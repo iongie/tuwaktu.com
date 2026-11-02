@@ -29,6 +29,7 @@ import {
   BookingFormDraft,
   ServiceBookingFormComponent,
 } from '../organisms/service-booking-form/service-booking-form.component';
+import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
 
 @Component({
   selector: 'app-worker-booking-page',
@@ -56,6 +57,7 @@ export class WorkerBookingPageComponent implements OnInit {
 
   readonly searchTechnicianSlug = signal<string>('budi-santoso');
   readonly clientValidationErrors = signal<Record<string, string>>({});
+  readonly whatsappRedirectUrl = signal<string>('');
 
   clientFullName = '';
   clientContactPhone = '';
@@ -200,11 +202,36 @@ export class WorkerBookingPageComponent implements OnInit {
       zone: this.serviceOperationalZone.trim(),
       booking_date: parsedIsoDate,
       notes: this.additionalClientNotes.trim(),
+      status: 'PENDING_WA',
     };
 
-    this.store.submitReservation(payload, () => {
+    this.store.submitReservation(payload, (confirmation) => {
+      const workerPhone =
+        confirmation.worker_whatsapp || activeProfile.whatsapp_number || '';
+      const waUrl = buildWhatsAppBookingUrl(workerPhone, {
+        bookingCode: confirmation.booking_code,
+        workerName: confirmation.worker_name || activeProfile.name,
+        serviceName: confirmation.service_name || selectedService.name,
+        clientName: confirmation.client_name,
+        bookingDate: confirmation.booking_date,
+        location: confirmation.location,
+        totalPrice: confirmation.total_price,
+        notes: confirmation.notes,
+      });
+
+      this.whatsappRedirectUrl.set(waUrl);
+
+      if (typeof window !== 'undefined' && typeof window.open === 'function') {
+        window.open(waUrl, '_blank');
+      }
+
       this.resetBookingForm();
     });
+  }
+
+  dismissConfirmedReservation(): void {
+    this.store.dismissReservationSuccess();
+    this.whatsappRedirectUrl.set('');
   }
 
   resetBookingForm(): void {

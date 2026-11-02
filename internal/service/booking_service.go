@@ -160,6 +160,11 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 		}
 	}
 
+	bookingStatus := "PENDING"
+	if strings.TrimSpace(req.Status) != "" {
+		bookingStatus = strings.TrimSpace(req.Status)
+	}
+
 	now := time.Now().UTC()
 	booking := &domain.Booking{
 		ID:          bookingID.String(),
@@ -176,7 +181,7 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 		EndTime:     &endTime,
 		Notes:       strings.TrimSpace(req.Notes),
 		TotalPrice:  totalPrice,
-		Status:      "PENDING",
+		Status:      bookingStatus,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -188,22 +193,24 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 
 	// 8. Return sanitized response
 	res := &domain.PublicBookingResponse{
-		BookingCode:  booking.BookingCode,
-		WorkerID:     worker.ID,
-		WorkerName:   worker.Name,
-		ServiceID:    srv.ID,
-		ServiceName:  srv.Name,
-		ClientName:   booking.ClientName,
-		Location:     booking.Location,
-		Zone:         booking.Zone,
-		BookingDate:  booking.BookingDate,
-		StartTime:    &startTime,
-		EndTime:      &endTime,
-		Notes:        booking.Notes,
-		TotalPrice:   booking.TotalPrice,
-		TransportFee: transportFee,
-		Status:       booking.Status,
-		CreatedAt:    booking.CreatedAt,
+		BookingID:      booking.ID,
+		BookingCode:    booking.BookingCode,
+		WorkerID:       worker.ID,
+		WorkerName:     worker.Name,
+		WorkerWhatsApp: worker.WhatsAppNumber,
+		ServiceID:      srv.ID,
+		ServiceName:    srv.Name,
+		ClientName:     booking.ClientName,
+		Location:       booking.Location,
+		Zone:           booking.Zone,
+		BookingDate:    booking.BookingDate,
+		StartTime:      &startTime,
+		EndTime:        &endTime,
+		Notes:          booking.Notes,
+		TotalPrice:     booking.TotalPrice,
+		TransportFee:   transportFee,
+		Status:         booking.Status,
+		CreatedAt:      booking.CreatedAt,
 	}
 
 	return res, nil

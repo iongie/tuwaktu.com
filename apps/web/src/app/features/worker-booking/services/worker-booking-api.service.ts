@@ -33,7 +33,7 @@ export class WorkerBookingApiService {
     bookingPayload: CreateServiceBookingPayload
   ): Observable<ServiceBookingApiResponse> {
     return this.httpClient.post<ServiceBookingApiResponse>(
-      `${this.normalizedBaseUrl}/api/public/bookings`,
+      `${this.normalizedBaseUrl}/api/v1/booking/create`,
       bookingPayload
     );
   }

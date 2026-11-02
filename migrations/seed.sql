@@ -3,7 +3,7 @@ INSERT INTO workers (
     id, slug, name, bio, avatar_url, rating, review_count, zone,
     base_price, rate_type,
     lat, lng, max_radius_km, free_radius_km, extra_fee_per_km,
-    phone_number, email, address, is_active
+    phone_number, whatsapp_number, email, address, is_active
 ) VALUES (
     'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
     'budi-santoso',
@@ -21,6 +21,7 @@ INSERT INTO workers (
     3.00,
     5000,
     '+6281234567890',
+    '6281234567890',
     'budi.santoso@internal.tuwaktu.com',
     'Jl. Fatmawati No. 12, Cilandak, Jakarta Selatan',
     TRUE
@@ -31,7 +32,8 @@ INSERT INTO workers (
     lng = EXCLUDED.lng,
     max_radius_km = EXCLUDED.max_radius_km,
     free_radius_km = EXCLUDED.free_radius_km,
-    extra_fee_per_km = EXCLUDED.extra_fee_per_km;
+    extra_fee_per_km = EXCLUDED.extra_fee_per_km,
+    whatsapp_number = EXCLUDED.whatsapp_number;
 
 -- Services for Worker 1
 INSERT INTO services (
@@ -77,7 +79,7 @@ INSERT INTO workers (
     id, slug, name, bio, avatar_url, rating, review_count, zone,
     base_price, rate_type,
     lat, lng, max_radius_km, free_radius_km, extra_fee_per_km,
-    phone_number, email, address, is_active
+    phone_number, whatsapp_number, email, address, is_active
 ) VALUES (
     'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
     'siti-aminah',
@@ -95,6 +97,7 @@ INSERT INTO workers (
     5.00,
     4000,
     '+6281987654321',
+    '6281987654321',
     'siti.aminah@internal.tuwaktu.com',
     'Jl. Bintaro Utama Sektor 3, Tangsel',
     TRUE
@@ -105,7 +108,8 @@ INSERT INTO workers (
     lng = EXCLUDED.lng,
     max_radius_km = EXCLUDED.max_radius_km,
     free_radius_km = EXCLUDED.free_radius_km,
-    extra_fee_per_km = EXCLUDED.extra_fee_per_km;
+    extra_fee_per_km = EXCLUDED.extra_fee_per_km,
+    whatsapp_number = EXCLUDED.whatsapp_number;
 
 -- Services for Worker 2
 INSERT INTO services (

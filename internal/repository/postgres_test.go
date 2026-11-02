@@ -42,6 +42,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			free_radius_km REAL DEFAULT 3.00,
 			extra_fee_per_km INTEGER DEFAULT 0,
 			phone_number TEXT,
+			whatsapp_number TEXT DEFAULT '',
 			email TEXT,
 			address TEXT,
 			is_active BOOLEAN,

@@ -27,7 +27,7 @@ type Booking struct {
 	EndTime     *time.Time `json:"end_time,omitempty" db:"end_time" gorm:"type:timestamptz"`
 	Notes       string     `json:"notes" db:"notes" gorm:"type:text;default:''"`
 	TotalPrice  float64   `json:"total_price" db:"total_price" gorm:"type:numeric(12,2);not null"`
-	Status      string    `json:"status" db:"status" gorm:"type:varchar(50);default:'PENDING';index"`
+	Status      string    `json:"status" db:"status" gorm:"type:varchar(50);default:'PENDING_WA';index"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
 	Worker      *Worker   `json:"worker,omitempty" gorm:"foreignKey:WorkerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
@@ -62,6 +62,7 @@ type CreateBookingRequest struct {
 	Zone        string `json:"zone"`
 	BookingDate string   `json:"booking_date"` // RFC3339 format, e.g. 2026-11-03T10:00:00Z; defaults to future date if omitted
 	Notes       string   `json:"notes"`
+	Status      string   `json:"status,omitempty"`
 	ClientLat   *float64 `json:"client_lat,omitempty"`
 	ClientLng   *float64 `json:"client_lng,omitempty"`
 }
@@ -93,6 +94,8 @@ func (r *CreateBookingRequest) UnmarshalJSON(data []byte) error {
 		BookingDateAlt string   `json:"bookingDate"`
 		Jadwal         string   `json:"jadwal"`
 		Catatan        string   `json:"catatan"`
+		StatusAlt      string   `json:"status"`
+		StatusPesanan  string   `json:"status_pesanan"`
 		ClientLatAlt   *float64 `json:"clientLat"`
 		Latitude       *float64 `json:"lat"`
 		ClientLngAlt   *float64 `json:"clientLng"`
@@ -180,6 +183,13 @@ func (r *CreateBookingRequest) UnmarshalJSON(data []byte) error {
 	if r.Notes == "" && aux.Catatan != "" {
 		r.Notes = aux.Catatan
 	}
+	if r.Status == "" {
+		if aux.StatusAlt != "" {
+			r.Status = aux.StatusAlt
+		} else if aux.StatusPesanan != "" {
+			r.Status = aux.StatusPesanan
+		}
+	}
 	if r.ClientLat == nil {
 		if aux.ClientLatAlt != nil {
 			r.ClientLat = aux.ClientLatAlt
@@ -263,22 +273,24 @@ func parseBookingDate(val string) (time.Time, error) {
 
 // PublicBookingResponse represents the public response payload for a confirmed booking creation
 type PublicBookingResponse struct {
-	BookingCode  string    `json:"booking_code"`
-	WorkerID     string    `json:"worker_id"`
-	WorkerName   string    `json:"worker_name"`
-	ServiceID    string    `json:"service_id"`
-	ServiceName  string    `json:"service_name"`
-	ClientName   string    `json:"client_name"`
-	Location     string    `json:"location"`
-	Zone         string    `json:"zone"`
-	BookingDate  time.Time  `json:"booking_date"`
-	StartTime    *time.Time `json:"start_time,omitempty"`
-	EndTime      *time.Time `json:"end_time,omitempty"`
-	Notes        string     `json:"notes,omitempty"`
-	TotalPrice   float64   `json:"total_price"`
-	TransportFee float64   `json:"transport_fee,omitempty"`
-	Status       string    `json:"status"`
-	CreatedAt    time.Time `json:"created_at"`
+	BookingID      string     `json:"booking_id"`
+	BookingCode    string     `json:"booking_code"`
+	WorkerID       string     `json:"worker_id"`
+	WorkerName     string     `json:"worker_name"`
+	WorkerWhatsApp string     `json:"worker_whatsapp"`
+	ServiceID      string     `json:"service_id"`
+	ServiceName    string     `json:"service_name"`
+	ClientName     string     `json:"client_name"`
+	Location       string     `json:"location"`
+	Zone           string     `json:"zone"`
+	BookingDate    time.Time  `json:"booking_date"`
+	StartTime      *time.Time `json:"start_time,omitempty"`
+	EndTime        *time.Time `json:"end_time,omitempty"`
+	Notes          string     `json:"notes,omitempty"`
+	TotalPrice     float64    `json:"total_price"`
+	TransportFee   float64    `json:"transport_fee,omitempty"`
+	Status         string     `json:"status"`
+	CreatedAt      time.Time  `json:"created_at"`
 }
 
 // CalculateFeeRequest represents the payload to calculate booking fee based on distance

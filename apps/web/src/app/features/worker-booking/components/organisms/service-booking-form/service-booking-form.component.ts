@@ -354,14 +354,14 @@ export interface BookingFormDraft {
           <button
             type="submit"
             [disabled]="isSubmitting() || !hasActiveProfile() || isOutOfRadius() || isCalculatingFee()"
-            class="m3-btn-filled w-full font-mono uppercase tracking-wider"
+            class="m3-btn-filled w-full font-mono uppercase tracking-wider min-h-[48px]"
           >
             @if (isSubmitting()) {
-              <span>Memproses Reservasi...</span>
+              <span>Memproses Pesanan WhatsApp...</span>
             } @else if (isOutOfRadius()) {
               <span>Di Luar Jangkauan Layanan</span>
             } @else {
-              <span>Kunci Jadwal &amp; Buat Kode Booking</span>
+              <span>Pesan &amp; Konfirmasi via WhatsApp</span>
             }
           </button>
         </div>

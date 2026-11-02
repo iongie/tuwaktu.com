@@ -51,7 +51,7 @@ describe('WorkerBookingApiService', () => {
 
     service.submitServiceBookingReservation(payload).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/public/bookings');
+    const req = httpMock.expectOne('http://localhost:8080/api/v1/booking/create');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     req.flush({ success: true, message: 'Sukses dibuat', data: {} });

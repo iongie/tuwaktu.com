@@ -54,6 +54,44 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusCreated, "Pesanan booking berhasil dibuat", res)
 }
 
+// CreateWABooking handles POST /api/v1/booking/create and POST /api/booking/create
+// storing the booking with status PENDING_WA
+func (h *BookingHandler) CreateWABooking(c *fiber.Ctx) error {
+	var req domain.CreateBookingRequest
+	if err := c.BodyParser(&req); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload pemesanan tidak valid", err.Error())
+	}
+	req.Status = "PENDING_WA"
+
+	res, err := h.service.CreateBooking(c.UserContext(), req)
+	if err != nil {
+		if errors.Is(err, domain.ErrSlotUnavailable) {
+			return ErrorResponse(c, fiber.StatusConflict, "Slot waktu tidak tersedia atau bertabrakan dengan jadwal pesanan lain (termasuk buffer transit 60 menit)", err.Error())
+		}
+		if errors.Is(err, domain.ErrOutOfServiceRadius) {
+			return ErrorResponse(c, fiber.StatusUnprocessableEntity, "Di luar jangkauan: Lokasi pemesanan melebihi batas jangkauan layanan pekerja", err.Error())
+		}
+		if errors.Is(err, domain.ErrInvalidInput) || errors.Is(err, domain.ErrPastBookingDate) {
+			return ErrorResponse(c, fiber.StatusUnprocessableEntity, "Kesalahan validasi data pemesanan", err.Error())
+		}
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", err.Error())
+		}
+		if errors.Is(err, domain.ErrServiceNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Layanan tidak ditemukan atau sedang tidak aktif", err.Error())
+		}
+		if errors.Is(err, domain.ErrServiceWorkerMismatch) {
+			return ErrorResponse(c, fiber.StatusBadRequest, "Layanan tidak sesuai dengan pekerja yang dipilih", err.Error())
+		}
+		if errors.Is(err, domain.ErrWorkerInactive) {
+			return ErrorResponse(c, fiber.StatusBadRequest, "Pekerja saat ini sedang tidak dapat menerima pesanan", err.Error())
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memproses pembuatan pesanan", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusCreated, "Pesanan booking berhasil dibuat", res)
+}
+
 // CalculateFee handles POST /api/v1/booking/calculate-fee and POST /api/booking/calculate-fee
 func (h *BookingHandler) CalculateFee(c *fiber.Ctx) error {
 	var req domain.CalculateFeeRequest

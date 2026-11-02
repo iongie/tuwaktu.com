@@ -43,20 +43,39 @@ func (h *WorkerHandler) GetWorkerBySlug(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusOK, "Data profil pekerja berhasil diambil", profile)
 }
 
-// UpdateWorkerProfile handles PUT /api/workers/:id/profile and PUT /api/v1/workers/:id/profile
+// UpdateWorkerProfile handles PUT /api/v1/worker/profile, PUT /api/worker/profile, and PUT /api/v1/workers/:id/profile
 func (h *WorkerHandler) UpdateWorkerProfile(c *fiber.Ctx) error {
+	var req domain.WorkerProfileUpdate
+	if err := c.BodyParser(&req); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload tidak valid", err.Error())
+	}
+
 	rawID := c.Params("id")
 	if unescaped, err := url.PathUnescape(rawID); err == nil {
 		rawID = unescaped
 	}
 	id := strings.TrimSpace(rawID)
 	if id == "" {
-		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi", nil)
+		id = strings.TrimSpace(req.WorkerID)
+	}
+	if id == "" {
+		id = strings.TrimSpace(req.ID)
+	}
+	if id == "" {
+		id = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if id == "" {
+		id = strings.TrimSpace(c.Query("worker_slug"))
+	}
+	if id == "" {
+		id = strings.TrimSpace(c.Query("id"))
+	}
+	if id == "" {
+		id = strings.TrimSpace(c.Query("slug"))
 	}
 
-	var req domain.WorkerProfileUpdate
-	if err := c.BodyParser(&req); err != nil {
-		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload tidak valid", err.Error())
+	if id == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi", nil)
 	}
 
 	if strings.TrimSpace(req.Name) == "" {

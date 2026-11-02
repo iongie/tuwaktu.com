@@ -6,8 +6,10 @@ export interface WorkerProfileUpdatePayload {
   avatar_url: string;
   zone: string;
   phone_number?: string;
+  whatsapp_number?: string;
   email?: string;
   address?: string;
+  worker_id?: string;
 }
 
 export interface WorkerProfileApiResponse {

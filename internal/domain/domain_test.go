@@ -287,3 +287,93 @@ func TestCreateBookingRequest_ISOAndWIBDateParsing(t *testing.T) {
 	})
 }
 
+func TestSanitizeAndValidateWhatsAppNumber(t *testing.T) {
+	t.Run("valid international numbers with country code 62", func(t *testing.T) {
+		clean, err := domain.SanitizeAndValidateWhatsAppNumber("+62 812-3456-7890")
+		require.NoError(t, err)
+		assert.Equal(t, "6281234567890", clean)
+
+		clean, err = domain.SanitizeAndValidateWhatsAppNumber("6281234567890")
+		require.NoError(t, err)
+		assert.Equal(t, "6281234567890", clean)
+
+		clean, err = domain.SanitizeAndValidateWhatsAppNumber("+62 (812) 345-6789")
+		require.NoError(t, err)
+		assert.Equal(t, "628123456789", clean)
+	})
+
+	t.Run("valid international numbers with other country codes", func(t *testing.T) {
+		clean, err := domain.SanitizeAndValidateWhatsAppNumber("+1 415 555 2671")
+		require.NoError(t, err)
+		assert.Equal(t, "14155552671", clean)
+
+		clean, err = domain.SanitizeAndValidateWhatsAppNumber("+65 9123 4567")
+		require.NoError(t, err)
+		assert.Equal(t, "6591234567", clean)
+	})
+
+	t.Run("invalid numbers starting with 0 returns descriptive error", func(t *testing.T) {
+		_, err := domain.SanitizeAndValidateWhatsAppNumber("081234567890")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "nomor WhatsApp wajib diawali kode negara")
+	})
+
+	t.Run("invalid length too short", func(t *testing.T) {
+		_, err := domain.SanitizeAndValidateWhatsAppNumber("628123")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "10 hingga 16 digit")
+	})
+
+	t.Run("invalid length too long", func(t *testing.T) {
+		_, err := domain.SanitizeAndValidateWhatsAppNumber("628123456789012345678")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "10 hingga 16 digit")
+	})
+
+	t.Run("invalid characters", func(t *testing.T) {
+		_, err := domain.SanitizeAndValidateWhatsAppNumber("62812abc3456")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "hanya boleh berisi angka")
+	})
+
+	t.Run("empty string returns error", func(t *testing.T) {
+		_, err := domain.SanitizeAndValidateWhatsAppNumber("   ")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "nomor WhatsApp wajib diisi")
+	})
+
+	t.Run("invalid plus sign in middle or multiple plus signs", func(t *testing.T) {
+		_, err := domain.SanitizeAndValidateWhatsAppNumber("62812+3456789")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "tanda plus (+) hanya boleh berada di awal")
+
+		_, err = domain.SanitizeAndValidateWhatsAppNumber("+62+8123456789")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "tanda plus (+) hanya boleh berada di awal")
+	})
+}
+
+func TestWorkerProfileUpdate_UnmarshalJSON_WhatsApp(t *testing.T) {
+	t.Run("unmarshals whatsappNumber and aliases correctly", func(t *testing.T) {
+		jsonStr := `{"name":"Budi","whatsapp_number":"6281234567890"}`
+		var update domain.WorkerProfileUpdate
+		err := json.Unmarshal([]byte(jsonStr), &update)
+		require.NoError(t, err)
+		assert.Equal(t, "6281234567890", update.WhatsAppNumber)
+
+		jsonStrCamel := `{"name":"Budi","whatsappNumber":"6281234567890"}`
+		var updateCamel domain.WorkerProfileUpdate
+		err = json.Unmarshal([]byte(jsonStrCamel), &updateCamel)
+		require.NoError(t, err)
+		assert.Equal(t, "6281234567890", updateCamel.WhatsAppNumber)
+
+		jsonStrIndo := `{"nama":"Budi","nomor_wa":"6281234567890"}`
+		var updateIndo domain.WorkerProfileUpdate
+		err = json.Unmarshal([]byte(jsonStrIndo), &updateIndo)
+		require.NoError(t, err)
+		assert.Equal(t, "Budi", updateIndo.Name)
+		assert.Equal(t, "6281234567890", updateIndo.WhatsAppNumber)
+	})
+}
+
+

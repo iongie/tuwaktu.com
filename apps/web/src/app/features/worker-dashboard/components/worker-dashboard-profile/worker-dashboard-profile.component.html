@@ -804,6 +804,31 @@
           }
         </div>
 
+        <!-- Nomor WhatsApp -->
+        <div class="space-y-2">
+          <label for="workerWhatsAppNumberInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Nomor WhatsApp
+          </label>
+          <input
+            id="workerWhatsAppNumberInput"
+            type="tel"
+            [ngModel]="workerWhatsAppNumber()"
+            (ngModelChange)="workerWhatsAppNumber.set($event); clearInputValidationError('whatsapp_number')"
+            name="workerWhatsAppNumber"
+            placeholder="Contoh: 6281234567890"
+            class="m3-field-outlined font-mono"
+            [class.m3-field-error]="inputValidationErrors()['whatsapp_number']"
+          />
+          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">
+            Gunakan format internasional diawali kode negara (misal: 628123456789). Nomor ini digunakan klien untuk konfirmasi pesanan via WhatsApp.
+          </p>
+          @if (inputValidationErrors()['whatsapp_number']) {
+            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              {{ inputValidationErrors()['whatsapp_number'] }}
+            </p>
+          }
+        </div>
+
         <!-- Profesi & Wilayah Operasional -->
         <div class="space-y-2">
           <label for="workerProfessionZoneInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">

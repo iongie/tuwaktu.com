@@ -171,6 +171,9 @@ func (m *MemoryRepository) UpdateProfile(ctx context.Context, id string, profile
 	if strings.TrimSpace(profile.PhoneNumber) != "" {
 		w.PhoneNumber = strings.TrimSpace(profile.PhoneNumber)
 	}
+	if strings.TrimSpace(profile.WhatsAppNumber) != "" {
+		w.WhatsAppNumber = strings.TrimSpace(profile.WhatsAppNumber)
+	}
 	if strings.TrimSpace(profile.Email) != "" {
 		w.Email = strings.TrimSpace(profile.Email)
 	}

@@ -1661,3 +1661,186 @@ func TestBookingHandler_GetAvailableSlots(t *testing.T) {
 		assert.Contains(t, res.Message, "Slot waktu tidak tersedia")
 	})
 }
+
+func TestWorkerHandler_WhatsAppNumber_And_BookingCreate(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:             "worker-wa-101",
+		Slug:           "hendra-teknik",
+		Name:           "Hendra Teknik",
+		Bio:            "Teknisi Berpengalaman",
+		Zone:           "Jakarta Selatan",
+		PhoneNumber:    "+6281299887766",
+		WhatsAppNumber: "6281299887766",
+		Email:          "hendra@tuwaktu.com",
+		Address:        "Jl. Radio Dalam No. 1",
+		IsActive:       true,
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "service-wa-101",
+		WorkerID:        worker.ID,
+		Name:            "Instalasi Pipa Air",
+		Price:           200000,
+		DurationMinutes: 60,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	t.Run("200 OK - PUT /api/v1/worker/profile updates whatsapp_number with sanitization", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":       worker.ID,
+			"name":            "Hendra Teknik Updated",
+			"whatsapp_number": "+62 813-1122-3344",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Profil pekerja berhasil diperbarui", res.Message)
+		assert.Equal(t, "6281311223344", res.Data.WhatsAppNumber)
+		assert.Equal(t, "Hendra Teknik Updated", res.Data.Name)
+	})
+
+	t.Run("400 Bad Request - PUT /api/v1/worker/profile rejects whatsapp_number starting with 0", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":       worker.ID,
+			"name":            "Hendra Teknik",
+			"whatsapp_number": "081234567890",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "nomor WhatsApp wajib diawali kode negara")
+	})
+
+	t.Run("400 Bad Request - PUT /api/v1/worker/profile rejects too short whatsapp_number", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":       worker.ID,
+			"name":            "Hendra Teknik",
+			"whatsapp_number": "62812",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "10 hingga 16 digit")
+	})
+
+	t.Run("201 Created - POST /api/v1/booking/create saves with PENDING_WA and returns complete response", func(t *testing.T) {
+		futureTime := time.Now().Add(48 * time.Hour).Format(time.RFC3339)
+		payload := map[string]any{
+			"worker_id":    worker.ID,
+			"service_id":   srv.ID,
+			"client_name":  "Rina Sasmita",
+			"client_phone": "+628177889900",
+			"location":     "Jl. Dharmawangsa No. 10",
+			"zone":         "Jakarta Selatan",
+			"booking_date": futureTime,
+			"notes":        "Pipa bocor di lantai 2",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/booking/create", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var res struct {
+			Success bool                         `json:"success"`
+			Message string                       `json:"message"`
+			Data    domain.PublicBookingResponse `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Pesanan booking berhasil dibuat", res.Message)
+		assert.NotEmpty(t, res.Data.BookingID)
+		assert.NotEmpty(t, res.Data.BookingCode)
+		assert.True(t, strings.HasPrefix(res.Data.BookingCode, "TW-"))
+		assert.Equal(t, "PENDING_WA", res.Data.Status)
+		assert.Equal(t, "Hendra Teknik Updated", res.Data.WorkerName)
+		assert.Equal(t, "6281311223344", res.Data.WorkerWhatsApp)
+		assert.Equal(t, "Instalasi Pipa Air", res.Data.ServiceName)
+		assert.Equal(t, 200000.0, res.Data.TotalPrice)
+		assert.Equal(t, "Rina Sasmita", res.Data.ClientName)
+	})
+
+	t.Run("201 Created - POST /api/booking/create alias works with PENDING_WA", func(t *testing.T) {
+		futureTime := time.Now().Add(72 * time.Hour).Format(time.RFC3339)
+		payload := map[string]any{
+			"worker_id":    worker.ID,
+			"service_id":   srv.ID,
+			"client_name":  "Klien Alias",
+			"location":     "Jakarta Selatan",
+			"booking_date": futureTime,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/booking/create", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var res struct {
+			Success bool                         `json:"success"`
+			Message string                       `json:"message"`
+			Data    domain.PublicBookingResponse `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "PENDING_WA", res.Data.Status)
+		assert.NotEmpty(t, res.Data.BookingID)
+	})
+
+	t.Run("200 OK - GET /api/public/workers/:slug exposes whatsapp_number", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/public/workers/hendra-teknik", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "6281311223344", res.Data.WhatsAppNumber)
+	})
+}
+

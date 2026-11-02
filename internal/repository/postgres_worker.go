@@ -122,6 +122,9 @@ func (r *PostgresWorkerRepository) UpdateProfile(ctx context.Context, id string,
 	if strings.TrimSpace(profile.PhoneNumber) != "" {
 		worker.PhoneNumber = strings.TrimSpace(profile.PhoneNumber)
 	}
+	if strings.TrimSpace(profile.WhatsAppNumber) != "" {
+		worker.WhatsAppNumber = strings.TrimSpace(profile.WhatsAppNumber)
+	}
 	if strings.TrimSpace(profile.Email) != "" {
 		worker.Email = strings.TrimSpace(profile.Email)
 	}

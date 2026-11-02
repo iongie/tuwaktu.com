@@ -26,11 +26,18 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 
 	// Bookings endpoint
 	pub.Post("/bookings", bookingHandler.CreateBooking)
+	pub.Post("/booking/create", bookingHandler.CreateWABooking)
+	pub.Post("/bookings/create", bookingHandler.CreateWABooking)
 	pub.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	pub.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 
 	// Worker profile update endpoints
+	api.Put("/worker/profile", workerHandler.UpdateWorkerProfile)
 	api.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
+
+	// Booking create endpoints (api group)
+	api.Post("/booking/create", bookingHandler.CreateWABooking)
+	api.Post("/bookings/create", bookingHandler.CreateWABooking)
 
 	// Worker rates endpoints & profile alias
 	api.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
@@ -63,6 +70,8 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	v1Pub.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	v1Pub.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	v1Pub.Post("/bookings", bookingHandler.CreateBooking)
+	v1Pub.Post("/booking/create", bookingHandler.CreateWABooking)
+	v1Pub.Post("/bookings/create", bookingHandler.CreateWABooking)
 	v1Pub.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	v1Pub.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 	v1.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
@@ -71,6 +80,7 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	v1.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	v1.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	v1.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
+	v1.Put("/worker/profile", workerHandler.UpdateWorkerProfile)
 	v1.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
 	v1.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
 	v1.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
@@ -78,6 +88,8 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	v1.Get("/workers/:id/schedules", workerHandler.GetWorkerSchedules)
 	v1.Put("/worker/schedules", workerHandler.UpdateWorkerSchedules)
 	v1.Put("/workers/:id/schedules", workerHandler.UpdateWorkerSchedules)
+	v1.Post("/booking/create", bookingHandler.CreateWABooking)
+	v1.Post("/bookings/create", bookingHandler.CreateWABooking)
 	v1.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	v1.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 }

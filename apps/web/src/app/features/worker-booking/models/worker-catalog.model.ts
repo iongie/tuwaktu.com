@@ -24,6 +24,7 @@ export interface PublicTechnicianProfile {
   max_radius_km?: number;
   free_radius_km?: number;
   extra_fee_per_km?: number;
+  whatsapp_number?: string;
   services: PublicServiceCatalogItem[];
 }
 

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS workers (
     extra_fee_per_km INT NOT NULL DEFAULT 0 CHECK (extra_fee_per_km >= 0),
     -- Private / sensitive fields
     phone_number VARCHAR(30) NOT NULL DEFAULT '',
+    whatsapp_number VARCHAR(30) DEFAULT '',
     email VARCHAR(150) NOT NULL DEFAULT '',
     address TEXT DEFAULT '',
     is_active BOOLEAN DEFAULT TRUE,
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     end_time TIMESTAMPTZ,
     notes TEXT DEFAULT '',
     total_price NUMERIC(12,2) NOT NULL,
-    status VARCHAR(50) DEFAULT 'PENDING',
+    status VARCHAR(50) DEFAULT 'PENDING_WA',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

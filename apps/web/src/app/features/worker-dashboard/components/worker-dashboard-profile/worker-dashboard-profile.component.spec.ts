@@ -201,6 +201,55 @@ describe('WorkerDashboardProfileComponent', () => {
     expect(component.isProfileSubmitting()).toBe(false);
   });
 
+  it('harus memvalidasi input nomor WhatsApp dan menyertakan nomor yang disanitasi pada payload', () => {
+    component.populateWorkerProfileState('worker-uuid-123', {
+      slug: 'budi-santoso',
+      name: 'Budi Santoso',
+      zone: 'Jakarta Barat',
+      whatsapp_number: '6281234567890',
+    });
+
+    expect(component.workerWhatsAppNumber()).toBe('6281234567890');
+
+    // Invalid: contains alphabets
+    component.workerWhatsAppNumber.set('62812abc789');
+    expect(component.validateProfileInput()).toBe(false);
+    expect(component.inputValidationErrors()['whatsapp_number']).toContain('hanya boleh berisi angka');
+
+    // Invalid: starts with 0
+    component.workerWhatsAppNumber.set('081234567890');
+    expect(component.validateProfileInput()).toBe(false);
+    expect(component.inputValidationErrors()['whatsapp_number']).toContain('Gunakan format internasional');
+
+    // Invalid: too short (< 10 digits)
+    component.workerWhatsAppNumber.set('62812');
+    expect(component.validateProfileInput()).toBe(false);
+    expect(component.inputValidationErrors()['whatsapp_number']).toContain('10 hingga 16 digit');
+
+    // Invalid: plus sign in middle or multiple plus signs
+    component.workerWhatsAppNumber.set('62812+3456789');
+    expect(component.validateProfileInput()).toBe(false);
+    expect(component.inputValidationErrors()['whatsapp_number']).toContain('Tanda plus (+) hanya boleh berada di awal');
+
+    component.workerWhatsAppNumber.set('+62+8123456789');
+    expect(component.validateProfileInput()).toBe(false);
+    expect(component.inputValidationErrors()['whatsapp_number']).toContain('Tanda plus (+) hanya boleh berada di awal');
+
+    // Valid: formatted with plus, space, dashes
+    component.workerWhatsAppNumber.set('+62 812-3456-7890');
+    expect(component.validateProfileInput()).toBe(true);
+
+    component.submitProfileUpdate();
+
+    expect(mockApiService.updateWorkerProfile).toHaveBeenCalledWith(
+      'worker-uuid-123',
+      expect.objectContaining({
+        name: 'Budi Santoso',
+        whatsapp_number: '6281234567890',
+      })
+    );
+  });
+
   it('harus menampilkan pesan error saat API update profil mengembalikan error', () => {
     mockApiService.updateWorkerProfile.mockReturnValueOnce(
       throwError(() => new Error('Server error'))
@@ -256,6 +305,7 @@ describe('WorkerDashboardProfileComponent', () => {
     expect(component.workerRecordId()).toBe('');
     expect(component.workerSlugIdentifier()).toBe('');
     expect(component.workerFullName()).toBe('');
+    expect(component.workerWhatsAppNumber()).toBe('');
     expect(component.workerBasePrice()).toBeNull();
     expect(component.workerRateType()).toBe('HOURLY');
   });

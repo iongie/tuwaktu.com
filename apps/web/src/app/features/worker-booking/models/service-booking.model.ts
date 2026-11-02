@@ -11,12 +11,15 @@ export interface CreateServiceBookingPayload {
   client_lng?: number;
   booking_date?: string;
   notes?: string;
+  status?: string;
 }
 
 export interface ServiceBookingConfirmation {
+  booking_id?: string;
   booking_code: string;
   worker_id: string;
   worker_name: string;
+  worker_whatsapp?: string;
   service_id: string;
   service_name: string;
   client_name: string;

@@ -62,7 +62,8 @@ describe('WorkerBookingPageComponent', () => {
             zone: 'Jakarta Selatan',
             booking_date: new Date().toISOString(),
             total_price: 75000,
-            status: 'PENDING',
+            status: 'PENDING_WA',
+            worker_whatsapp: '6281234567890',
             created_at: new Date().toISOString(),
           },
         })
@@ -221,12 +222,25 @@ it('harus memvalidasi dan menolak submit reservasi jika lokasi di luar radius ja
   expect(component.clientValidationErrors()['service']).toContain('di luar batas jangkauan');
 });
 
-it('harus berhasil submit reservasi ketika form valid', () => {
+it('harus berhasil submit reservasi ketika form valid dan menyusun URL WhatsApp', () => {
+  const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
   component.clientFullName = 'Bambang';
   component.serviceLocationAddress = 'Jl. Thamrin No. 5';
   component.reservationScheduledDate = '2030-01-01T10:00';
 
   component.submitBookingOrder();
   expect(mockApiService.submitServiceBookingReservation).toHaveBeenCalled();
+
+  const generatedUrl = component.whatsappRedirectUrl();
+  expect(generatedUrl.startsWith('https://wa.me/6281234567890?text=')).toBe(true);
+  expect(generatedUrl).toContain('TWK-12345');
+  expect(windowOpenSpy).toHaveBeenCalledWith(generatedUrl, '_blank');
+
+  component.dismissConfirmedReservation();
+  expect(component.whatsappRedirectUrl()).toBe('');
+  expect(component.store.confirmedReservation()).toBeNull();
+
+  windowOpenSpy.mockRestore();
 });
 });

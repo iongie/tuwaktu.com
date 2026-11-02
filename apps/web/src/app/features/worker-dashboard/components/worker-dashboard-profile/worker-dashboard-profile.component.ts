@@ -37,6 +37,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
   readonly workerProfessionZone = signal<string>('');
   readonly workerBioDescription = signal<string>('');
   readonly workerAvatarUrl = signal<string>('');
+  readonly workerWhatsAppNumber = signal<string>('');
 
   readonly workerLookupSlugInput = signal<string>('');
   readonly suggestedWorkerSlugs: readonly string[] = ['budi-santoso', 'siti-aminah'];
@@ -139,6 +140,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.workerProfessionZone.set('');
     this.workerBioDescription.set('');
     this.workerAvatarUrl.set('');
+    this.workerWhatsAppNumber.set('');
     this.workerBasePrice.set(null);
     this.workerRateType.set('HOURLY');
     this.workerLat.set(null);
@@ -182,6 +184,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
               zone: response.data.zone,
               bio: response.data.bio,
               avatar_url: response.data.avatar_url,
+              whatsapp_number: response.data.whatsapp_number,
               base_price: response.data.base_price,
               rate_type: response.data.rate_type,
               lat: response.data.lat,
@@ -214,6 +217,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
       zone: string;
       bio?: string;
       avatar_url?: string;
+      whatsapp_number?: string;
       base_price?: number;
       rate_type?: 'HOURLY' | 'UNIT' | string;
       lat?: number | null;
@@ -229,6 +233,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.workerProfessionZone.set(profile.zone);
     this.workerBioDescription.set(profile.bio || '');
     this.workerAvatarUrl.set(profile.avatar_url || '');
+    this.workerWhatsAppNumber.set(profile.whatsapp_number || '');
 
     if (profile.base_price !== undefined && profile.base_price !== null && !Number.isNaN(profile.base_price) && profile.base_price > 0) {
       this.workerBasePrice.set(profile.base_price);
@@ -375,6 +380,26 @@ export class WorkerDashboardProfileComponent implements OnInit {
       errors['name'] = 'Nama lengkap pekerja wajib diisi.';
     }
 
+    const wa = this.workerWhatsAppNumber().trim();
+    if (wa) {
+      if (!/^[0-9+\s-]+$/.test(wa)) {
+        errors['whatsapp_number'] =
+          'Nomor WhatsApp hanya boleh berisi angka dan tanda plus atau strip.';
+      } else if ((wa.includes('+') && !wa.startsWith('+')) || (wa.match(/\+/g) || []).length > 1) {
+        errors['whatsapp_number'] =
+          'Tanda plus (+) hanya boleh berada di awal nomor telepon sebagai awalan kode negara.';
+      } else {
+        const sanitized = wa.replace(/\D/g, '');
+        if (sanitized.length < 10 || sanitized.length > 16) {
+          errors['whatsapp_number'] =
+            'Nomor WhatsApp harus terdiri dari 10 hingga 16 digit angka.';
+        } else if (sanitized.startsWith('0')) {
+          errors['whatsapp_number'] =
+            'Gunakan format internasional diawali kode negara (contoh: 628123456789, bukan 0812).';
+        }
+      }
+    }
+
     this.inputValidationErrors.set(errors);
     return Object.keys(errors).length === 0;
   }
@@ -404,11 +429,13 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.profileFeedbackSuccess.set(null);
     this.profileFeedbackError.set(null);
 
+    const sanitizedWhatsApp = this.workerWhatsAppNumber().trim().replace(/\D/g, '');
     const payload: WorkerProfileUpdatePayload = {
       name: this.workerFullName().trim(),
       zone: this.workerProfessionZone().trim(),
       bio: this.workerBioDescription().trim(),
       avatar_url: this.workerAvatarUrl().trim(),
+      whatsapp_number: sanitizedWhatsApp,
     };
 
     this.dashboardApiService
@@ -425,13 +452,18 @@ export class WorkerDashboardProfileComponent implements OnInit {
               this.workerBioDescription.set(response.data.bio || '');
               this.workerAvatarUrl.set(response.data.avatar_url || '');
               this.workerSlugIdentifier.set(response.data.slug);
+              if (response.data.whatsapp_number !== undefined) {
+                this.workerWhatsAppNumber.set(response.data.whatsapp_number || '');
+              }
             }
           }
         },
-        error: () => {
+        error: (err) => {
           this.isProfileSubmitting.set(false);
+          const serverMsg = err?.error?.message;
           this.profileFeedbackError.set(
-            'Gagal menyimpan perubahan profil pekerja. Silakan periksa koneksi atau coba kembali.'
+            serverMsg ||
+              'Gagal menyimpan perubahan profil pekerja. Silakan periksa koneksi atau coba kembali.'
           );
         },
       });

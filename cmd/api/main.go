@@ -151,12 +151,13 @@ func seedMemoryRepository(repo *repository.MemoryRepository) {
 		AvatarURL:   "https://images.unsplash.com/photo-1540569014015-19a7be504e3a",
 		Rating:      4.9,
 		ReviewCount: 42,
-		Zone:        "Jakarta Selatan",
-		PhoneNumber: "+6281234567890",                                  // SENSITIVE
-		Email:       "budi.santoso@internal.tuwaktu.com",               // SENSITIVE
-		Address:     "Jl. Fatmawati No. 12, Cilandak, Jakarta Selatan", // SENSITIVE
-		IsActive:    true,
-		CreatedAt:   time.Now(),
+		Zone:           "Jakarta Selatan",
+		PhoneNumber:    "+6281234567890",                                  // SENSITIVE
+		WhatsAppNumber: "6281234567890",
+		Email:          "budi.santoso@internal.tuwaktu.com",               // SENSITIVE
+		Address:        "Jl. Fatmawati No. 12, Cilandak, Jakarta Selatan", // SENSITIVE
+		IsActive:       true,
+		CreatedAt:      time.Now(),
 		UpdatedAt:   time.Now(),
 	}
 

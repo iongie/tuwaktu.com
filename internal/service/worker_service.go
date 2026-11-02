@@ -66,6 +66,13 @@ func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req 
 	if strings.TrimSpace(req.Name) == "" {
 		return nil, domain.ErrInvalidInput
 	}
+	if strings.TrimSpace(req.WhatsAppNumber) != "" {
+		sanitized, err := domain.SanitizeAndValidateWhatsAppNumber(req.WhatsAppNumber)
+		if err != nil {
+			return nil, err
+		}
+		req.WhatsAppNumber = sanitized
+	}
 
 	updatedWorker, err := s.repo.UpdateProfile(ctx, id, req)
 	if err != nil {

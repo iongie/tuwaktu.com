@@ -88,6 +88,9 @@
       },
       "executor": "@angular/build:dev-server",
       "defaultConfiguration": "development",
+      "options": {
+        "port": 4200
+      },
       "configurations": {
         "production": {
           "buildTarget": "web:build:production"
@@ -121,13 +124,16 @@
       },
       "configurations": {
         "development": {
-          "command": "node dist/apps/web/server/server.mjs"
+          "command": "node dist/apps/web/server/server.mjs",
+          "dependsOn": ["build:development"]
         },
         "staging": {
-          "command": "node dist/apps/web/server/server.mjs"
+          "command": "node dist/apps/web/server/server.mjs",
+          "dependsOn": ["build:staging"]
         },
         "production": {
-          "command": "node dist/apps/web/server/server.mjs"
+          "command": "node dist/apps/web/server/server.mjs",
+          "dependsOn": ["build:production"]
         }
       }
     }

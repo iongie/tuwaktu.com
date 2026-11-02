@@ -16,6 +16,8 @@ type Service struct {
 	Name            string    `json:"name" db:"name" gorm:"type:varchar(150);not null"`
 	Description     string    `json:"description" db:"description" gorm:"type:text"`
 	Price           float64   `json:"price" db:"price" gorm:"type:numeric(12,2);not null"`
+	BasePrice       float64   `json:"base_price" db:"base_price" gorm:"type:numeric(12,2);default:0.00"`
+	RateType        string    `json:"rate_type" db:"rate_type" gorm:"type:varchar(20);default:'HOURLY'"`
 	DurationMinutes int       `json:"duration_minutes" db:"duration_minutes" gorm:"type:int;not null;default:60"`
 	IsActive        bool      `json:"is_active" db:"is_active" gorm:"index"`
 	CreatedAt       time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
@@ -44,16 +46,28 @@ type PublicService struct {
 	Name            string  `json:"name"`
 	Description     string  `json:"description"`
 	Price           float64 `json:"price"`
+	BasePrice       float64 `json:"base_price"`
+	RateType        string  `json:"rate_type"`
 	DurationMinutes int     `json:"duration_minutes"`
 }
 
 // ToPublic converts a Service domain model to PublicService
 func (s *Service) ToPublic() PublicService {
+	rateType := strings.ToUpper(strings.TrimSpace(s.RateType))
+	if rateType == "" {
+		rateType = "HOURLY"
+	}
+	basePrice := s.BasePrice
+	if basePrice == 0 && s.Price > 0 {
+		basePrice = s.Price
+	}
 	return PublicService{
 		ID:              s.ID,
 		Name:            s.Name,
 		Description:     s.Description,
 		Price:           s.Price,
+		BasePrice:       basePrice,
+		RateType:        rateType,
 		DurationMinutes: s.DurationMinutes,
 	}
 }

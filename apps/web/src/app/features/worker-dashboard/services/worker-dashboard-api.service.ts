@@ -5,6 +5,8 @@ import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
   WorkerProfileApiResponse,
   WorkerProfileUpdatePayload,
+  WorkerRateUpdatePayload,
+  WorkerRatesApiResponse,
 } from '../models/worker-profile.model';
 
 @Injectable({
@@ -35,4 +37,18 @@ export class WorkerDashboardApiService {
       payload
     );
   }
+
+  updateWorkerRates(
+    workerId: string,
+    payload: WorkerRateUpdatePayload
+  ): Observable<WorkerRatesApiResponse> {
+    return this.httpClient.put<WorkerRatesApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/rates`,
+      {
+        worker_id: workerId.trim(),
+        ...payload,
+      }
+    );
+  }
 }
+

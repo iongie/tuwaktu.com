@@ -11,6 +11,7 @@ describe('WorkerDashboardProfileComponent', () => {
   let mockApiService: {
     fetchWorkerProfile: jest.Mock;
     updateWorkerProfile: jest.Mock;
+    updateWorkerRates: jest.Mock;
   };
 
   const sampleWorkerData: PublicTechnicianProfile = {
@@ -22,6 +23,8 @@ describe('WorkerDashboardProfileComponent', () => {
     rating: 4.9,
     review_count: 24,
     zone: 'Jakarta Selatan',
+    base_price: 75000,
+    rate_type: 'HOURLY',
     services: [],
   };
 
@@ -41,6 +44,17 @@ describe('WorkerDashboardProfileComponent', () => {
           data: {
             ...sampleWorkerData,
             name: 'Budi Santoso Diperbarui',
+          },
+        })
+      ),
+      updateWorkerRates: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Pengaturan tarif pekerja berhasil diperbarui!',
+          data: {
+            ...sampleWorkerData,
+            base_price: 90000,
+            rate_type: 'UNIT',
           },
         })
       ),
@@ -98,6 +112,8 @@ describe('WorkerDashboardProfileComponent', () => {
     expect(component.workerProfessionZone()).toBe('Jakarta Selatan');
     expect(component.workerBioDescription()).toBe('Teknisi AC Berpengalaman');
     expect(component.workerAvatarUrl()).toBe('https://example.com/budi.jpg');
+    expect(component.workerBasePrice()).toBe(75000);
+    expect(component.workerRateType()).toBe('HOURLY');
     expect(component.publicProfileRelativeUrl()).toBe('/budi-santoso');
   });
 
@@ -207,6 +223,132 @@ describe('WorkerDashboardProfileComponent', () => {
     expect(component.workerRecordId()).toBe('');
     expect(component.workerSlugIdentifier()).toBe('');
     expect(component.workerFullName()).toBe('');
+    expect(component.workerBasePrice()).toBeNull();
+    expect(component.workerRateType()).toBe('HOURLY');
+  });
+
+  it('harus memvalidasi field tarif dasar dan menampilkan error jika kosong atau <= 0', () => {
+    component.workerBasePrice.set(null);
+    let isValid = component.validateRatesInput();
+    expect(isValid).toBe(false);
+    expect(component.ratesValidationErrors()['base_price']).toBe(
+      'Nominal tarif dasar harus lebih besar dari Rp 0.'
+    );
+
+    component.workerBasePrice.set(0);
+    isValid = component.validateRatesInput();
+    expect(isValid).toBe(false);
+    expect(component.ratesValidationErrors()['base_price']).toBe(
+      'Nominal tarif dasar harus lebih besar dari Rp 0.'
+    );
+
+    component.workerBasePrice.set(-10000);
+    isValid = component.validateRatesInput();
+    expect(isValid).toBe(false);
+    expect(component.ratesValidationErrors()['base_price']).toBe(
+      'Nominal tarif dasar harus lebih besar dari Rp 0.'
+    );
+
+    component.workerBasePrice.set(NaN);
+    isValid = component.validateRatesInput();
+    expect(isValid).toBe(false);
+    expect(component.ratesValidationErrors()['base_price']).toBe(
+      'Nominal tarif dasar harus lebih besar dari Rp 0.'
+    );
+
+    component.workerBasePrice.set(75000);
+    isValid = component.validateRatesInput();
+    expect(isValid).toBe(true);
+    expect(component.ratesValidationErrors()['base_price']).toBeUndefined();
+  });
+
+  it('harus memproses perubahan input tarif pada onBasePriceChange secara aman', () => {
+    component.onBasePriceChange('85000');
+    expect(component.workerBasePrice()).toBe(85000);
+
+    component.onBasePriceChange('');
+    expect(component.workerBasePrice()).toBeNull();
+
+    component.onBasePriceChange('bukan-angka');
+    expect(component.workerBasePrice()).toBeNull();
+  });
+
+  it('harus menghapus pesan validasi tarif ketika clearRatesValidationError dipanggil', () => {
+    component.ratesValidationErrors.set({
+      base_price: 'Nominal tarif dasar harus lebih besar dari Rp 0.',
+    });
+    component.clearRatesValidationError('base_price');
+    expect(component.ratesValidationErrors()['base_price']).toBeUndefined();
+  });
+
+  it('harus mengubah skema tipe tarif saat setRateType dipanggil', () => {
+    expect(component.workerRateType()).toBe('HOURLY');
+    component.setRateType('UNIT');
+    expect(component.workerRateType()).toBe('UNIT');
+    component.setRateType('HOURLY');
+    expect(component.workerRateType()).toBe('HOURLY');
+  });
+
+  it('harus berhasil submit update tarif pekerja saat input valid', () => {
+    component.workerRecordId.set('worker-uuid-123');
+    component.workerBasePrice.set(90000);
+    component.workerRateType.set('UNIT');
+
+    component.submitRatesUpdate();
+
+    expect(mockApiService.updateWorkerRates).toHaveBeenCalledWith(
+      'worker-uuid-123',
+      {
+        base_price: 90000,
+        rate_type: 'UNIT',
+      }
+    );
+    expect(component.ratesFeedbackSuccess()).toBe(
+      'Pengaturan tarif pekerja berhasil diperbarui!'
+    );
+    expect(component.isRatesSubmitting()).toBe(false);
+  });
+
+  it('harus menampilkan pesan error saat API update tarif mengembalikan error', () => {
+    mockApiService.updateWorkerRates.mockReturnValueOnce(
+      throwError(() => ({ error: { message: 'Nominal tarif dasar harus lebih besar dari Rp 0' } }))
+    );
+
+    component.workerRecordId.set('worker-uuid-123');
+    component.workerBasePrice.set(50000);
+    component.workerRateType.set('HOURLY');
+
+    component.submitRatesUpdate();
+
+    expect(component.ratesFeedbackError()).toBe(
+      'Nominal tarif dasar harus lebih besar dari Rp 0'
+    );
+    expect(component.isRatesSubmitting()).toBe(false);
+  });
+
+  it('harus menolak submit tarif jika ID pekerja belum tersedia', () => {
+    component.workerRecordId.set('');
+    component.workerBasePrice.set(75000);
+
+    component.submitRatesUpdate();
+
+    expect(mockApiService.updateWorkerRates).not.toHaveBeenCalled();
+    expect(component.ratesFeedbackError()).toContain('ID pekerja belum tersedia');
+  });
+
+  it('harus menghitung formattedBasePricePreview dengan format Rupiah yang tepat', () => {
+    component.workerBasePrice.set(null);
+    expect(component.formattedBasePricePreview()).toBeNull();
+
+    component.workerBasePrice.set(75000);
+    component.workerRateType.set('HOURLY');
+    expect(component.formattedBasePricePreview()).toContain('75.000');
+    expect(component.formattedBasePricePreview()).toContain('/ Jam');
+
+    component.workerBasePrice.set(350000);
+    component.workerRateType.set('UNIT');
+    expect(component.formattedBasePricePreview()).toContain('350.000');
+    expect(component.formattedBasePricePreview()).toContain('/ Sesi');
   });
 
   it('harus menampilkan pesan error saat clipboard gagal menyalin', async () => {
@@ -224,3 +366,4 @@ describe('WorkerDashboardProfileComponent', () => {
     expect(component.clipboardFeedbackMessage()).toBe('Gagal menyalin tautan');
   });
 });
+

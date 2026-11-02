@@ -130,7 +130,21 @@ func (m *MemoryRepository) UpdateProfile(ctx context.Context, id string, profile
 		return nil, domain.ErrInvalidInput
 	}
 
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
 	w, exists := m.workers[id]
+	if !exists {
+		for _, worker := range m.workers {
+			if strings.EqualFold(worker.Slug, id) {
+				w = worker
+				exists = true
+				break
+			}
+		}
+	}
 	if !exists {
 		return nil, domain.ErrWorkerNotFound
 	}
@@ -154,6 +168,36 @@ func (m *MemoryRepository) UpdateProfile(ctx context.Context, id string, profile
 	if strings.TrimSpace(profile.Address) != "" {
 		w.Address = strings.TrimSpace(profile.Address)
 	}
+	w.UpdatedAt = time.Now().UTC()
+
+	return w, nil
+}
+
+func (m *MemoryRepository) UpdateRates(ctx context.Context, idOrSlug string, basePrice float64, rateType string) (*domain.Worker, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	w, exists := m.workers[idOrSlug]
+	if !exists {
+		for _, worker := range m.workers {
+			if strings.EqualFold(worker.Slug, idOrSlug) {
+				w = worker
+				exists = true
+				break
+			}
+		}
+	}
+	if !exists {
+		return nil, domain.ErrWorkerNotFound
+	}
+
+	w.BasePrice = basePrice
+	w.RateType = rateType
 	w.UpdatedAt = time.Now().UTC()
 
 	return w, nil

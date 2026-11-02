@@ -44,6 +44,27 @@ export class WorkerDashboardProfileComponent implements OnInit {
   readonly clipboardFeedbackMessage = signal<string | null>(null);
   readonly inputValidationErrors = signal<Record<string, string>>({});
 
+  readonly workerBasePrice = signal<number | null>(null);
+  readonly workerRateType = signal<'HOURLY' | 'UNIT'>('HOURLY');
+  readonly isRatesSubmitting = signal<boolean>(false);
+  readonly ratesFeedbackSuccess = signal<string | null>(null);
+  readonly ratesFeedbackError = signal<string | null>(null);
+  readonly ratesValidationErrors = signal<Record<string, string>>({});
+
+  readonly formattedBasePricePreview = computed(() => {
+    const price = this.workerBasePrice();
+    if (price === null || price === undefined || Number.isNaN(price) || price <= 0) {
+      return null;
+    }
+    const formatted = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(price);
+    const unitLabel = (this.workerRateType() || '').toUpperCase() === 'UNIT' ? 'Sesi' : 'Jam';
+    return `${formatted} / ${unitLabel}`;
+  });
+
   private clipboardTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly publicProfileRelativeUrl = computed(() => {
@@ -89,8 +110,13 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.workerProfessionZone.set('');
     this.workerBioDescription.set('');
     this.workerAvatarUrl.set('');
+    this.workerBasePrice.set(null);
+    this.workerRateType.set('HOURLY');
     this.profileFeedbackSuccess.set(null);
     this.profileFeedbackError.set(null);
+    this.ratesFeedbackSuccess.set(null);
+    this.ratesFeedbackError.set(null);
+    this.ratesValidationErrors.set({});
     this.router.navigate([], { queryParams: { slug: null }, queryParamsHandling: 'merge' });
   }
 
@@ -98,6 +124,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
     const sanitizedSlug = slug.trim().toLowerCase();
     this.isProfileLoading.set(true);
     this.profileFeedbackError.set(null);
+    this.ratesFeedbackError.set(null);
     this.workerLookupSlugInput.set(sanitizedSlug);
 
     this.dashboardApiService
@@ -113,6 +140,8 @@ export class WorkerDashboardProfileComponent implements OnInit {
               zone: response.data.zone,
               bio: response.data.bio,
               avatar_url: response.data.avatar_url,
+              base_price: response.data.base_price,
+              rate_type: response.data.rate_type,
             });
             this.router.navigate([], {
               queryParams: { slug: sanitizedSlug },
@@ -137,6 +166,8 @@ export class WorkerDashboardProfileComponent implements OnInit {
       zone: string;
       bio?: string;
       avatar_url?: string;
+      base_price?: number;
+      rate_type?: 'HOURLY' | 'UNIT' | string;
     }
   ): void {
     this.workerRecordId.set(id);
@@ -145,6 +176,113 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.workerProfessionZone.set(profile.zone);
     this.workerBioDescription.set(profile.bio || '');
     this.workerAvatarUrl.set(profile.avatar_url || '');
+
+    if (profile.base_price !== undefined && profile.base_price !== null && !Number.isNaN(profile.base_price) && profile.base_price > 0) {
+      this.workerBasePrice.set(profile.base_price);
+    } else {
+      this.workerBasePrice.set(null);
+    }
+
+    const normalizedRateType = (profile.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
+    this.workerRateType.set(normalizedRateType);
+  }
+
+  onBasePriceChange(rawValue: unknown): void {
+    this.clearRatesValidationError('base_price');
+    if (rawValue === null || rawValue === undefined || rawValue === '') {
+      this.workerBasePrice.set(null);
+      return;
+    }
+    const num = Number(rawValue);
+    if (Number.isNaN(num)) {
+      this.workerBasePrice.set(null);
+      return;
+    }
+    this.workerBasePrice.set(num);
+  }
+
+  validateRatesInput(): boolean {
+    const errors: Record<string, string> = {};
+    const price = this.workerBasePrice();
+
+    if (price === null || price === undefined || Number.isNaN(price) || price <= 0) {
+      errors['base_price'] = 'Nominal tarif dasar harus lebih besar dari Rp 0.';
+    }
+
+    const type = (this.workerRateType() || '').toUpperCase();
+    if (type !== 'HOURLY' && type !== 'UNIT') {
+      errors['rate_type'] = 'Pilih tipe tarif yang valid (Tarif Per Jam atau Tarif Per Sesi).';
+    }
+
+    this.ratesValidationErrors.set(errors);
+    return Object.keys(errors).length === 0;
+  }
+
+  clearRatesValidationError(fieldName: string): void {
+    const current = { ...this.ratesValidationErrors() };
+    if (current[fieldName]) {
+      delete current[fieldName];
+      this.ratesValidationErrors.set(current);
+    }
+  }
+
+  setRateType(type: 'HOURLY' | 'UNIT'): void {
+    this.workerRateType.set(type);
+    this.clearRatesValidationError('rate_type');
+  }
+
+  submitRatesUpdate(): void {
+    if (!this.validateRatesInput()) {
+      return;
+    }
+
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      this.ratesFeedbackError.set(
+        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
+      );
+      return;
+    }
+
+    this.isRatesSubmitting.set(true);
+    this.ratesFeedbackSuccess.set(null);
+    this.ratesFeedbackError.set(null);
+
+    const payload = {
+      base_price: Number(this.workerBasePrice()),
+      rate_type: this.workerRateType(),
+    };
+
+    this.dashboardApiService
+      .updateWorkerRates(workerId, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.isRatesSubmitting.set(false);
+          if (response.success) {
+            this.ratesFeedbackSuccess.set(
+              response.message || 'Pengaturan tarif pekerja berhasil diperbarui!'
+            );
+            if (response.data) {
+              if (response.data.base_price && !Number.isNaN(response.data.base_price) && response.data.base_price > 0) {
+                this.workerBasePrice.set(response.data.base_price);
+              }
+              const returnedType = (response.data.rate_type || '').toUpperCase();
+              if (returnedType === 'UNIT' || returnedType === 'HOURLY') {
+                this.workerRateType.set(returnedType);
+              }
+            }
+          }
+        },
+        error: (err) => {
+          this.isRatesSubmitting.set(false);
+          const serverMsg = err?.error?.message;
+          this.ratesFeedbackError.set(
+            serverMsg ||
+              'Gagal menyimpan pengaturan tarif pekerja. Silakan periksa koneksi atau coba kembali.'
+          );
+        },
+      });
   }
 
   validateProfileInput(): boolean {

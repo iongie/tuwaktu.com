@@ -185,6 +185,193 @@
       </div>
     </section>
 
+    <!-- Rates Feedback Alerts -->
+    @if (ratesFeedbackSuccess()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="font-medium">{{ ratesFeedbackSuccess() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="ratesFeedbackSuccess.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    @if (ratesFeedbackError()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">{{ ratesFeedbackError() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="ratesFeedbackError.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    <!-- Bento Card: Pengaturan Tarif Layanan -->
+    <section class="m3-card-surface p-6 space-y-6">
+      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Pengaturan Tarif Layanan</h2>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+              Atur harga dasar dan skema perhitungan biaya yang akan ditampilkan di profil publik dan halaman booking.
+            </p>
+          </div>
+          @if (formattedBasePricePreview(); as preview) {
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-xs font-mono font-bold">
+              <span>Tarif Aktif: {{ preview }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <form (ngSubmit)="submitRatesUpdate()" class="space-y-6">
+        <!-- Nominal Tarif Dasar (Rupiah) -->
+        <div class="space-y-2">
+          <label for="workerBasePriceInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Nominal Tarif Dasar (Rupiah) <span class="text-[var(--md-sys-color-primary)]">*</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="px-3.5 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-sm font-bold text-[var(--md-sys-color-on-surface-variant)]">
+              Rp
+            </span>
+            <div class="flex-1">
+              <input
+                id="workerBasePriceInput"
+                type="number"
+                min="1"
+                step="1000"
+                [ngModel]="workerBasePrice()"
+                (ngModelChange)="onBasePriceChange($event)"
+                name="workerBasePrice"
+                placeholder="Contoh: 75000"
+                class="m3-field-outlined font-mono"
+                [class.m3-field-error]="ratesValidationErrors()['base_price']"
+              />
+            </div>
+          </div>
+          @if (ratesValidationErrors()['base_price']) {
+            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              {{ ratesValidationErrors()['base_price'] }}
+            </p>
+          } @else if (formattedBasePricePreview(); as preview) {
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-mono">
+              Pratinjau tampilan harga: <strong class="text-[var(--md-sys-color-primary)] font-bold">{{ preview }}</strong>
+            </p>
+          }
+        </div>
+
+        <!-- Pilihan Tipe Tarif (Radio button / Skema) -->
+        <div class="space-y-3">
+          <span class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Skema Penagihan Tarif <span class="text-[var(--md-sys-color-primary)]">*</span>
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Pilihan: Tarif Per Jam -->
+            <label
+              class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-colors"
+              [class.border-[var(--md-sys-color-primary)]]="workerRateType() === 'HOURLY'"
+              [class.bg-[var(--md-sys-color-primary-container)]/20]="workerRateType() === 'HOURLY'"
+              [class.border-[var(--md-sys-color-outline-variant)]]="workerRateType() !== 'HOURLY'"
+            >
+              <div class="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="workerRateTypeSelection"
+                  value="HOURLY"
+                  [checked]="workerRateType() === 'HOURLY'"
+                  (change)="setRateType('HOURLY')"
+                  class="w-4 h-4 text-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)]"
+                />
+                <div>
+                  <span class="block text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                    Tarif Per Jam
+                  </span>
+                  <span class="text-[11px] font-mono text-[var(--md-sys-color-primary)] font-semibold">
+                    HOURLY
+                  </span>
+                </div>
+              </div>
+              <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-2 pl-7 leading-relaxed">
+                Biaya dihitung proporsional terhadap durasi pengerjaan. Cocok untuk servis AC berkala, kelistrikan, atau pekerjaan fleksibel.
+              </p>
+            </label>
+
+            <!-- Pilihan: Tarif Per Sesi -->
+            <label
+              class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-colors"
+              [class.border-[var(--md-sys-color-primary)]]="workerRateType() === 'UNIT'"
+              [class.bg-[var(--md-sys-color-primary-container)]/20]="workerRateType() === 'UNIT'"
+              [class.border-[var(--md-sys-color-outline-variant)]]="workerRateType() !== 'UNIT'"
+            >
+              <div class="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="workerRateTypeSelection"
+                  value="UNIT"
+                  [checked]="workerRateType() === 'UNIT'"
+                  (change)="setRateType('UNIT')"
+                  class="w-4 h-4 text-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)]"
+                />
+                <div>
+                  <span class="block text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                    Tarif Per Sesi
+                  </span>
+                  <span class="text-[11px] font-mono text-[var(--md-sys-color-primary)] font-semibold">
+                    UNIT
+                  </span>
+                </div>
+              </div>
+              <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-2 pl-7 leading-relaxed">
+                Biaya flat per kedatangan atau per unit tugas tuntas. Cocok untuk deep cleaning, instalasi unit baru, atau paket borongan.
+              </p>
+            </label>
+          </div>
+
+          @if (ratesValidationErrors()['rate_type']) {
+            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              {{ ratesValidationErrors()['rate_type'] }}
+            </p>
+          }
+        </div>
+
+        <!-- Form Action -->
+        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+          <button
+            type="submit"
+            [disabled]="isRatesSubmitting() || !workerRecordId()"
+            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+          >
+            @if (isRatesSubmitting()) {
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Menyimpan Tarif...</span>
+            } @else {
+              <span>Simpan Pengaturan Tarif</span>
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+
+
     <!-- Form Section -->
     <section class="m3-card-surface p-6 space-y-6">
       <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">

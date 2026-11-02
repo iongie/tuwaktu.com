@@ -620,3 +620,350 @@ func TestWorkerHandler_UpdateWorkerProfile(t *testing.T) {
 	})
 }
 
+func TestWorkerHandler_UpdateWorkerRates(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:          "worker-rates-001",
+		Slug:        "joko-kendil",
+		Name:        "Joko Kendil",
+		Bio:         "Teknisi Pompa Air Berpengalaman",
+		Zone:        "Jakarta Barat",
+		BasePrice:   60000,
+		RateType:    "HOURLY",
+		PhoneNumber: "+62811223344",
+		Email:       "joko@tuwaktu.com",
+		Address:     "Jl. Barat No. 5",
+		IsActive:    true,
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "service-joko-1",
+		WorkerID:        worker.ID,
+		Name:            "Servis Pompa Air",
+		Price:           120000,
+		BasePrice:       120000,
+		RateType:        "HOURLY",
+		DurationMinutes: 60,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	t.Run("200 OK - PUT /api/v1/worker/rates updates rates successfully", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"base_price": 95000,
+			"rate_type":  "HOURLY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		respBytes, _ := io.ReadAll(resp.Body)
+		assert.NotContains(t, string(respBytes), "+62811223344", "Sensitive phone must not leak")
+		assert.NotContains(t, string(respBytes), "joko@tuwaktu.com", "Sensitive email must not leak")
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		err = json.Unmarshal(respBytes, &res)
+		require.NoError(t, err)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Pengaturan tarif pekerja berhasil diperbarui", res.Message)
+		assert.Equal(t, 95000.0, res.Data.BasePrice)
+		assert.Equal(t, "HOURLY", res.Data.RateType)
+		assert.Equal(t, "Joko Kendil", res.Data.Name)
+	})
+
+	t.Run("200 OK - PUT /api/v1/worker/rates with rate_type UNIT", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  "joko-kendil", // by slug
+			"base_price": 350000,
+			"rate_type":  "UNIT",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 350000.0, res.Data.BasePrice)
+		assert.Equal(t, "UNIT", res.Data.RateType)
+	})
+
+	t.Run("200 OK - alias PUT /api/worker/rates works", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"base_price": 110000,
+			"rate_type":  "HOURLY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 110000.0, res.Data.BasePrice)
+	})
+
+	t.Run("200 OK - alias PUT /api/v1/workers/:id/rates works with param ID", func(t *testing.T) {
+		payload := map[string]any{
+			"base_price": 125000,
+			"rate_type":  "HOURLY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/workers/"+worker.ID+"/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 125000.0, res.Data.BasePrice)
+	})
+
+	t.Run("400 Bad Request - base_price <= 0 returns Indonesian error", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"base_price": 0,
+			"rate_type":  "HOURLY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "Nominal tarif dasar harus lebih besar dari Rp 0", res.Message)
+	})
+
+	t.Run("400 Bad Request - invalid rate_type returns Indonesian error", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"base_price": 75000,
+			"rate_type":  "DAILY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "Tipe tarif tidak valid")
+	})
+
+	t.Run("400 Bad Request - missing worker_id", func(t *testing.T) {
+		payload := map[string]any{
+			"base_price": 75000,
+			"rate_type":  "HOURLY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "ID pekerja wajib diisi", res.Message)
+	})
+
+	t.Run("404 Not Found - non-existent worker", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  "non-existent-worker-uuid",
+			"base_price": 75000,
+			"rate_type":  "HOURLY",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "Pekerja tidak ditemukan", res.Message)
+	})
+
+	t.Run("400 Bad Request - malformed JSON body", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader([]byte(`{"base_price":`)))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "Format data payload tidak valid", res.Message)
+	})
+}
+
+func TestWorkerHandler_GetWorkerProfileRoutes(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:        "worker-prof-001",
+		Slug:      "hendra-listrik",
+		Name:      "Hendra Listrik",
+		Bio:       "Spesialis Instalasi Listrik Rumah",
+		Zone:      "Jakarta Pusat",
+		BasePrice: 80000,
+		RateType:  "HOURLY",
+		IsActive:  true,
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "service-hendra-1",
+		WorkerID:        worker.ID,
+		Name:            "Instalasi Titik Lampu",
+		Price:           80000,
+		BasePrice:       80000,
+		RateType:        "HOURLY",
+		DurationMinutes: 45,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	t.Run("200 OK - GET /api/v1/worker/:slug/profile returns base_price and rate_type", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/worker/hendra-listrik/profile", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&res)
+		require.NoError(t, err)
+
+		assert.True(t, res.Success)
+		assert.Equal(t, "Data profil pekerja berhasil diambil", res.Message)
+		assert.Equal(t, "hendra-listrik", res.Data.Slug)
+		assert.Equal(t, 80000.0, res.Data.BasePrice)
+		assert.Equal(t, "HOURLY", res.Data.RateType)
+		assert.Len(t, res.Data.Services, 1)
+		assert.Equal(t, 80000.0, res.Data.Services[0].BasePrice)
+		assert.Equal(t, "HOURLY", res.Data.Services[0].RateType)
+	})
+
+	t.Run("200 OK - GET /api/public/workers/:slug returns base_price and rate_type", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/public/workers/hendra-listrik", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 80000.0, res.Data.BasePrice)
+		assert.Equal(t, "HOURLY", res.Data.RateType)
+	})
+
+	t.Run("200 OK - GET /api/v1/workers/:slug returns base_price and rate_type", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/workers/hendra-listrik", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 80000.0, res.Data.BasePrice)
+	})
+
+	t.Run("200 OK - PUT /api/v1/worker/rates works with id field in JSON body", func(t *testing.T) {
+		payload := map[string]any{
+			"id":         "hendra-listrik",
+			"base_price": 99000,
+			"rate_type":  "UNIT",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/rates", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 99000.0, res.Data.BasePrice)
+		assert.Equal(t, "UNIT", res.Data.RateType)
+	})
+}

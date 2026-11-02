@@ -48,6 +48,9 @@ func (r *PostgresWorkerRepository) GetByID(ctx context.Context, id string) (*dom
 		return nil, fmt.Errorf("querying worker by id: %w", err)
 	}
 	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, domain.ErrInvalidInput
+	}
 	if _, err := uuid.Parse(id); err != nil && r.db.Dialector.Name() == "postgres" {
 		return nil, domain.ErrWorkerNotFound
 	}
@@ -56,7 +59,9 @@ func (r *PostgresWorkerRepository) GetByID(ctx context.Context, id string) (*dom
 		Where("id = ?", id).
 		First(&w).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, gorm.ErrRecordNotFound) ||
+			strings.Contains(err.Error(), "invalid input syntax for type uuid") ||
+			strings.Contains(err.Error(), "22P02") {
 			return nil, domain.ErrWorkerNotFound
 		}
 		return nil, fmt.Errorf("querying worker by id: %w", err)
@@ -89,10 +94,19 @@ func (r *PostgresWorkerRepository) UpdateProfile(ctx context.Context, id string,
 	if profile == nil {
 		return nil, domain.ErrInvalidInput
 	}
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, domain.ErrInvalidInput
+	}
 
 	worker, err := r.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetBySlug(ctx, id)
+		}
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if strings.TrimSpace(profile.Name) != "" {
@@ -118,6 +132,36 @@ func (r *PostgresWorkerRepository) UpdateProfile(ctx context.Context, id string,
 
 	if err := r.db.WithContext(ctx).Save(worker).Error; err != nil {
 		return nil, fmt.Errorf("saving worker profile update: %w", err)
+	}
+
+	return worker, nil
+}
+
+func (r *PostgresWorkerRepository) UpdateRates(ctx context.Context, idOrSlug string, basePrice float64, rateType string) (*domain.Worker, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("updating worker rates: %w", err)
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	worker.BasePrice = basePrice
+	worker.RateType = rateType
+	worker.UpdatedAt = time.Now().UTC()
+
+	if err := r.db.WithContext(ctx).Save(worker).Error; err != nil {
+		return nil, fmt.Errorf("saving worker rates update: %w", err)
 	}
 
 	return worker, nil

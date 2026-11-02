@@ -59,4 +59,29 @@ describe('WorkerDashboardApiService', () => {
     expect(req.request.body).toEqual(payload);
     req.flush({ success: true, message: 'Profil pekerja berhasil diperbarui', data: {} });
   });
+
+  it('harus memanggil endpoint PUT update tarif pekerja v1 dengan payload yang sesuai', () => {
+    service
+      .updateWorkerRates('worker-uuid-1', {
+        base_price: 85000,
+        rate_type: 'HOURLY',
+      })
+      .subscribe();
+
+    const req = httpMock.expectOne(
+      'http://localhost:8080/api/v1/worker/rates'
+    );
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({
+      worker_id: 'worker-uuid-1',
+      base_price: 85000,
+      rate_type: 'HOURLY',
+    });
+    req.flush({
+      success: true,
+      message: 'Pengaturan tarif pekerja berhasil diperbarui',
+      data: {},
+    });
+  });
 });
+

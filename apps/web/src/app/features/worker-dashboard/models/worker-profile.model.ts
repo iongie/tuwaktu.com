@@ -16,3 +16,16 @@ export interface WorkerProfileApiResponse {
   data: PublicTechnicianProfile;
   error?: unknown;
 }
+
+export interface WorkerRateUpdatePayload {
+  worker_id?: string;
+  base_price: number;
+  rate_type: 'HOURLY' | 'UNIT';
+}
+
+export interface WorkerRatesApiResponse {
+  success: boolean;
+  message: string;
+  data: PublicTechnicianProfile;
+  error?: unknown;
+}

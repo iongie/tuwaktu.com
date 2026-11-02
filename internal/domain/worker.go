@@ -19,6 +19,9 @@ type Worker struct {
 	Rating      float64 `json:"rating" db:"rating" gorm:"type:numeric(3,2);default:0.00"`
 	ReviewCount int     `json:"review_count" db:"review_count" gorm:"type:int;default:0"`
 	Zone        string  `json:"zone" db:"zone" gorm:"type:varchar(100);not null"`
+	// Rates fields
+	BasePrice float64 `json:"base_price" db:"base_price" gorm:"type:numeric(12,2);default:0.00"`
+	RateType  string  `json:"rate_type" db:"rate_type" gorm:"type:varchar(20);default:'HOURLY'"`
 	// Sensitive private fields - MUST NEVER be exposed in public endpoints
 	PhoneNumber string    `json:"phone_number" db:"phone_number" gorm:"type:varchar(30);not null;default:''"`
 	Email       string    `json:"email" db:"email" gorm:"type:varchar(150);not null;default:''"`
@@ -56,6 +59,8 @@ type PublicWorkerProfile struct {
 	Rating      float64         `json:"rating"`
 	ReviewCount int             `json:"review_count"`
 	Zone        string          `json:"zone"`
+	BasePrice   float64         `json:"base_price"`
+	RateType    string          `json:"rate_type"`
 	Services    []PublicService `json:"services"`
 }
 
@@ -63,6 +68,10 @@ type PublicWorkerProfile struct {
 func (w *Worker) ToPublic(services []PublicService) PublicWorkerProfile {
 	if services == nil {
 		services = []PublicService{}
+	}
+	rateType := strings.ToUpper(strings.TrimSpace(w.RateType))
+	if rateType == "" {
+		rateType = "HOURLY"
 	}
 	return PublicWorkerProfile{
 		ID:          w.ID,
@@ -73,6 +82,8 @@ func (w *Worker) ToPublic(services []PublicService) PublicWorkerProfile {
 		Rating:      w.Rating,
 		ReviewCount: w.ReviewCount,
 		Zone:        w.Zone,
+		BasePrice:   w.BasePrice,
+		RateType:    rateType,
 		Services:    services,
 	}
 }
@@ -88,3 +99,10 @@ type WorkerProfileUpdate struct {
 	Address     string `json:"address,omitempty"`
 }
 
+// WorkerRateUpdate represents the payload to update worker rates
+type WorkerRateUpdate struct {
+	WorkerID  string  `json:"worker_id"`
+	ID        string  `json:"id,omitempty"`
+	BasePrice float64 `json:"base_price"`
+	RateType  string  `json:"rate_type"`
+}

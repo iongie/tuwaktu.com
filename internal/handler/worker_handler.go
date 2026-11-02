@@ -77,3 +77,52 @@ func (h *WorkerHandler) UpdateWorkerProfile(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusOK, "Profil pekerja berhasil diperbarui", profile)
 }
 
+// UpdateWorkerRates handles PUT /api/v1/worker/rates, PUT /api/worker/rates, and PUT /api/v1/workers/:id/rates
+func (h *WorkerHandler) UpdateWorkerRates(c *fiber.Ctx) error {
+	var req domain.WorkerRateUpdate
+	if err := c.BodyParser(&req); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload tidak valid", err.Error())
+	}
+
+	// Check if :id is provided in URL path
+	if rawID := c.Params("id"); rawID != "" {
+		if unescaped, err := url.PathUnescape(rawID); err == nil {
+			rawID = unescaped
+		}
+		if trimmed := strings.TrimSpace(rawID); trimmed != "" {
+			req.WorkerID = trimmed
+		}
+	}
+
+	if req.WorkerID == "" && req.ID != "" {
+		req.WorkerID = req.ID
+	}
+
+	req.WorkerID = strings.TrimSpace(req.WorkerID)
+	if req.WorkerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi", nil)
+	}
+
+	if req.BasePrice <= 0 {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Nominal tarif dasar harus lebih besar dari Rp 0", nil)
+	}
+
+	rateType := strings.ToUpper(strings.TrimSpace(req.RateType))
+	if rateType != "HOURLY" && rateType != "UNIT" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Tipe tarif tidak valid. Nilai yang diizinkan adalah HOURLY atau UNIT", nil)
+	}
+	req.RateType = rateType
+
+	profile, err := h.service.UpdateWorkerRates(c.UserContext(), &req)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidBasePrice) || errors.Is(err, domain.ErrInvalidRateType) || errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memperbarui tarif pekerja", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Pengaturan tarif pekerja berhasil diperbarui", profile)
+}

@@ -11,6 +11,7 @@ import (
 type WorkerService interface {
 	GetPublicProfileBySlug(ctx context.Context, slug string) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error)
+	UpdateWorkerRates(ctx context.Context, req *domain.WorkerRateUpdate) (*domain.PublicWorkerProfile, error)
 }
 
 type workerService struct {
@@ -63,6 +64,47 @@ func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req 
 	}
 
 	updatedWorker, err := s.repo.UpdateProfile(ctx, id, req)
+	if err != nil {
+		return nil, err
+	}
+
+	services, err := s.repo.GetServicesByWorkerID(ctx, updatedWorker.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	publicServices := make([]domain.PublicService, len(services))
+	for i, srv := range services {
+		publicServices[i] = srv.ToPublic()
+	}
+
+	profile := updatedWorker.ToPublic(publicServices)
+	return &profile, nil
+}
+
+func (s *workerService) UpdateWorkerRates(ctx context.Context, req *domain.WorkerRateUpdate) (*domain.PublicWorkerProfile, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, domain.ErrInvalidInput
+	}
+	workerID := strings.TrimSpace(req.WorkerID)
+	if workerID == "" {
+		workerID = strings.TrimSpace(req.ID)
+	}
+	if workerID == "" {
+		return nil, domain.ErrInvalidInput
+	}
+	if req.BasePrice <= 0 {
+		return nil, domain.ErrInvalidBasePrice
+	}
+	rateType := strings.ToUpper(strings.TrimSpace(req.RateType))
+	if rateType != "HOURLY" && rateType != "UNIT" {
+		return nil, domain.ErrInvalidRateType
+	}
+
+	updatedWorker, err := s.repo.UpdateRates(ctx, workerID, req.BasePrice, rateType)
 	if err != nil {
 		return nil, err
 	}

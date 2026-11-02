@@ -3,6 +3,8 @@ export interface PublicServiceCatalogItem {
   name: string;
   description: string;
   price: number;
+  base_price?: number;
+  rate_type?: 'HOURLY' | 'UNIT' | string;
   duration_minutes: number;
 }
 
@@ -15,6 +17,8 @@ export interface PublicTechnicianProfile {
   rating: number;
   review_count: number;
   zone: string;
+  base_price?: number;
+  rate_type?: 'HOURLY' | 'UNIT' | string;
   services: PublicServiceCatalogItem[];
 }
 

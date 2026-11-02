@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"tuwaktu.com/internal/config"
+	"tuwaktu.com/internal/database"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/repository"
 )
@@ -31,6 +33,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			rating REAL,
 			review_count INTEGER,
 			zone TEXT,
+			base_price REAL DEFAULT 0.00,
+			rate_type TEXT DEFAULT 'HOURLY',
 			phone_number TEXT,
 			email TEXT,
 			address TEXT,
@@ -44,6 +48,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			name TEXT,
 			description TEXT,
 			price REAL,
+			base_price REAL DEFAULT 0.00,
+			rate_type TEXT DEFAULT 'HOURLY',
 			duration_minutes INTEGER,
 			is_active BOOLEAN,
 			created_at DATETIME,
@@ -644,6 +650,25 @@ func TestPostgresWorkerRepository_UpdateProfile(t *testing.T) {
 		assert.ErrorIs(t, err, domain.ErrInvalidInput)
 	})
 
+	t.Run("success updates profile using worker slug", func(t *testing.T) {
+		db := setupTestDB(t)
+		w := domain.Worker{
+			ID:       "w-slug-update",
+			Slug:     "anton-ac",
+			Name:     "Anton Asli",
+			Zone:     "Jakarta",
+			IsActive: true,
+		}
+		require.NoError(t, db.Create(&w).Error)
+
+		repo := repository.NewPostgresWorkerRepository(db)
+		updated, err := repo.UpdateProfile(ctx, "anton-ac", &domain.WorkerProfileUpdate{
+			Name: "Anton AC Profesional",
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "Anton AC Profesional", updated.Name)
+	})
+
 	t.Run("worker not found returns ErrWorkerNotFound", func(t *testing.T) {
 		db := setupTestDB(t)
 		repo := repository.NewPostgresWorkerRepository(db)
@@ -663,4 +688,97 @@ func TestPostgresWorkerRepository_UpdateProfile(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "updating worker profile")
 	})
+}
+
+func TestPostgresWorkerRepository_UpdateRates(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success updates rates by worker id", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		worker := &domain.Worker{
+			ID:        "w-rates-01",
+			Slug:      "budi-rate",
+			Name:      "Budi Rate",
+			Zone:      "Jakarta",
+			BasePrice: 50000,
+			RateType:  "HOURLY",
+			IsActive:  true,
+		}
+		require.NoError(t, db.Create(worker).Error)
+
+		updated, err := repo.UpdateRates(ctx, "w-rates-01", 125000, "UNIT")
+		require.NoError(t, err)
+		assert.Equal(t, 125000.0, updated.BasePrice)
+		assert.Equal(t, "UNIT", updated.RateType)
+
+		// Verify database persistence
+		var fetched domain.Worker
+		err = db.Where("id = ?", "w-rates-01").First(&fetched).Error
+		require.NoError(t, err)
+		assert.Equal(t, 125000.0, fetched.BasePrice)
+		assert.Equal(t, "UNIT", fetched.RateType)
+	})
+
+	t.Run("success updates rates by worker slug", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		worker := &domain.Worker{
+			ID:        "w-rates-02",
+			Slug:      "siti-rate",
+			Name:      "Siti Rate",
+			Zone:      "Tangsel",
+			BasePrice: 80000,
+			RateType:  "HOURLY",
+			IsActive:  true,
+		}
+		require.NoError(t, db.Create(worker).Error)
+
+		updated, err := repo.UpdateRates(ctx, "siti-rate", 175000, "HOURLY")
+		require.NoError(t, err)
+		assert.Equal(t, 175000.0, updated.BasePrice)
+		assert.Equal(t, "HOURLY", updated.RateType)
+	})
+
+	t.Run("empty identifier returns ErrInvalidInput", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err := repo.UpdateRates(ctx, "   ", 100000, "HOURLY")
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("worker not found returns ErrWorkerNotFound", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err := repo.UpdateRates(ctx, "non-existent-worker", 100000, "HOURLY")
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+	})
+}
+
+func TestPostgresWorkerRepository_RealPostgresIntegration(t *testing.T) {
+	cfg := config.LoadConfig()
+	db, err := database.NewGormDBWithConfig(cfg)
+	if err != nil {
+		t.Skip("PostgreSQL not available for integration test:", err)
+	}
+
+	ctx := context.Background()
+	repo := repository.NewPostgresWorkerRepository(db)
+
+	// Test UpdateRates using slug against real PostgreSQL with UUID column
+	updated, err := repo.UpdateRates(ctx, "budi-santoso", 85000, "HOURLY")
+	require.NoError(t, err)
+	assert.Equal(t, 85000.0, updated.BasePrice)
+	assert.Equal(t, "HOURLY", updated.RateType)
+
+	// Test UpdateProfile using slug against real PostgreSQL
+	profUpdated, err := repo.UpdateProfile(ctx, "budi-santoso", &domain.WorkerProfileUpdate{
+		Name: "Budi Santoso",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Budi Santoso", profUpdated.Name)
 }

@@ -228,3 +228,128 @@ func TestWorkerService_UpdateWorkerProfile(t *testing.T) {
 	})
 }
 
+func TestWorkerService_UpdateWorkerRates(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success updates rates and returns updated public profile", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:        "worker-rate-1",
+			Slug:      "budi-santoso",
+			Name:      "Budi Santoso",
+			Zone:      "Jakarta Selatan",
+			BasePrice: 50000,
+			RateType:  "HOURLY",
+			IsActive:  true,
+		}
+		repo.SeedWorker(worker)
+
+		svc := service.NewWorkerService(repo)
+		req := &domain.WorkerRateUpdate{
+			WorkerID:  "worker-rate-1",
+			BasePrice: 85000,
+			RateType:  "HOURLY",
+		}
+
+		profile, err := svc.UpdateWorkerRates(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, profile)
+		assert.Equal(t, 85000.0, profile.BasePrice)
+		assert.Equal(t, "HOURLY", profile.RateType)
+		assert.Equal(t, "Budi Santoso", profile.Name)
+	})
+
+	t.Run("success updates rates with UNIT rate type (case-insensitive)", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:        "worker-rate-2",
+			Slug:      "siti-aminah",
+			Name:      "Siti Aminah",
+			Zone:      "Tangerang",
+			BasePrice: 100000,
+			RateType:  "HOURLY",
+			IsActive:  true,
+		}
+		repo.SeedWorker(worker)
+
+		svc := service.NewWorkerService(repo)
+		req := &domain.WorkerRateUpdate{
+			WorkerID:  "siti-aminah", // Lookup by slug
+			BasePrice: 150000,
+			RateType:  "unit", // lowercase should be normalized
+		}
+
+		profile, err := svc.UpdateWorkerRates(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, profile)
+		assert.Equal(t, 150000.0, profile.BasePrice)
+		assert.Equal(t, "UNIT", profile.RateType)
+	})
+
+	t.Run("returns ErrInvalidBasePrice when base_price is zero or negative", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		// Zero base_price
+		_, errZero := svc.UpdateWorkerRates(ctx, &domain.WorkerRateUpdate{
+			WorkerID:  "w-1",
+			BasePrice: 0,
+			RateType:  "HOURLY",
+		})
+		assert.ErrorIs(t, errZero, domain.ErrInvalidBasePrice)
+
+		// Negative base_price
+		_, errNeg := svc.UpdateWorkerRates(ctx, &domain.WorkerRateUpdate{
+			WorkerID:  "w-1",
+			BasePrice: -50000,
+			RateType:  "HOURLY",
+		})
+		assert.ErrorIs(t, errNeg, domain.ErrInvalidBasePrice)
+	})
+
+	t.Run("returns ErrInvalidRateType when rate_type is not HOURLY or UNIT", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, errInvalidType := svc.UpdateWorkerRates(ctx, &domain.WorkerRateUpdate{
+			WorkerID:  "w-1",
+			BasePrice: 75000,
+			RateType:  "DAILY",
+		})
+		assert.ErrorIs(t, errInvalidType, domain.ErrInvalidRateType)
+
+		_, errEmptyType := svc.UpdateWorkerRates(ctx, &domain.WorkerRateUpdate{
+			WorkerID:  "w-1",
+			BasePrice: 75000,
+			RateType:  "",
+		})
+		assert.ErrorIs(t, errEmptyType, domain.ErrInvalidRateType)
+	})
+
+	t.Run("returns ErrInvalidInput on nil or empty worker_id", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, errNil := svc.UpdateWorkerRates(ctx, nil)
+		assert.ErrorIs(t, errNil, domain.ErrInvalidInput)
+
+		_, errEmptyID := svc.UpdateWorkerRates(ctx, &domain.WorkerRateUpdate{
+			WorkerID:  "   ",
+			BasePrice: 50000,
+			RateType:  "HOURLY",
+		})
+		assert.ErrorIs(t, errEmptyID, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrWorkerNotFound when worker does not exist", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, errNotFound := svc.UpdateWorkerRates(ctx, &domain.WorkerRateUpdate{
+			WorkerID:  "non-existent-worker-id",
+			BasePrice: 75000,
+			RateType:  "HOURLY",
+		})
+		assert.ErrorIs(t, errNotFound, domain.ErrWorkerNotFound)
+	})
+}

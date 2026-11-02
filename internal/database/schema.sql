@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS workers (
     rating NUMERIC(3,2) DEFAULT 0.00,
     review_count INT DEFAULT 0,
     zone VARCHAR(100) NOT NULL,
+    -- Rates fields
+    base_price NUMERIC(12,2) DEFAULT 0.00 CHECK (base_price >= 0),
+    rate_type VARCHAR(20) DEFAULT 'HOURLY' CHECK (rate_type IN ('HOURLY', 'UNIT')),
     -- Private / sensitive fields
     phone_number VARCHAR(30) NOT NULL DEFAULT '',
     email VARCHAR(150) NOT NULL DEFAULT '',
@@ -30,6 +33,8 @@ CREATE TABLE IF NOT EXISTS services (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     price NUMERIC(12,2) NOT NULL CHECK (price >= 0),
+    base_price NUMERIC(12,2) DEFAULT 0.00 CHECK (base_price >= 0),
+    rate_type VARCHAR(20) DEFAULT 'HOURLY' CHECK (rate_type IN ('HOURLY', 'UNIT')),
     duration_minutes INT NOT NULL DEFAULT 60 CHECK (duration_minutes > 0),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -38,6 +43,11 @@ CREATE TABLE IF NOT EXISTS services (
 
 CREATE INDEX IF NOT EXISTS idx_services_worker_id ON services(worker_id);
 CREATE INDEX IF NOT EXISTS idx_services_is_active ON services(is_active);
+
+-- View: worker_services
+CREATE OR REPLACE VIEW worker_services AS
+    SELECT id, worker_id, name, description, price, base_price, rate_type, duration_minutes, is_active, created_at, updated_at
+    FROM services;
 
 -- Table: bookings
 CREATE TABLE IF NOT EXISTS bookings (

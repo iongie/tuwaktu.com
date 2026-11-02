@@ -9,4 +9,6 @@ var (
 	ErrServiceWorkerMismatch = errors.New("layanan tidak sesuai dengan pekerja yang dipilih")
 	ErrInvalidInput          = errors.New("data masukan tidak valid")
 	ErrPastBookingDate       = errors.New("tanggal booking harus di masa depan")
+	ErrInvalidBasePrice      = errors.New("Nominal tarif dasar harus lebih besar dari Rp 0")
+	ErrInvalidRateType       = errors.New("Tipe tarif tidak valid. Nilai yang diizinkan adalah HOURLY atau UNIT")
 )

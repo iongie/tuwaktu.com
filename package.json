@@ -7,7 +7,11 @@
     "test": "nx run-many --target=test --all",
     "serve:web": "nx serve web",
     "serve:api": "nx serve api",
-    "serve:ssr": "nx run web:serve-ssr"
+    "serve:ssr": "nx run web:serve-ssr",
+    "db:migrate": "go run ./cmd/migrate up",
+    "db:revert": "go run ./cmd/migrate down",
+    "db:status": "go run ./cmd/migrate status",
+    "db:seed": "go run ./cmd/migrate seed"
   },
   "private": true,
   "dependencies": {

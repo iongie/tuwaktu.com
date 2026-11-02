@@ -130,12 +130,39 @@ $env:APP_ENV="production"; go run cmd/api/main.go
 
 ## Migrasi Skema Database (PostgreSQL)
 
-Jika menjalankan PostgreSQL lokal secara mandiri:
+> [!CAUTION]
+> **Larangan Keras AutoMigrate**:
+> Sesuai aturan arsitektur codebase Tuwaktu, penggunaan `AutoMigrate` saat runtime atau startup server **dilarang keras**. Seluruh perubahan skema DDL wajib dieksekusi secara manual dan terencana melalui runner migrasi.
 
+### Menjalankan Migrasi Manual via NPM Scripts:
+```bash
+# 1. Menjalankan migrasi UP (menerapkan file migrations/*.up.sql yang pending)
+npm run db:migrate
+
+# 2. Membatalkan / Revert migrasi DOWN (rollback file migrations/*.down.sql terakhir)
+npm run db:revert
+
+# 3. Memeriksa status migrasi (terpasang vs pending)
+npm run db:status
+
+# 4. Mengisi data awal / seeding (migrations/seed.sql)
+npm run db:seed
+```
+
+### Atau via Go CLI Langsung:
+```bash
+go run ./cmd/migrate up
+go run ./cmd/migrate down
+go run ./cmd/migrate status
+go run ./cmd/migrate seed
+```
+
+### Alternatif Eksekusi Manual via PostgreSQL CLI (`psql`):
 ```bash
 psql -h localhost -U postgres -d tuwaktu_dev -f migrations/000001_init_schema.up.sql
 psql -h localhost -U postgres -d tuwaktu_dev -f migrations/seed.sql
 ```
+*(Lihat dokumentasi lengkap di [migrations/README.md](file:///c:/Users/gigih/Documents/gigih/tuwaktu.com/migrations/README.md))*
 
 ---
 

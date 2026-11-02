@@ -105,21 +105,6 @@ func NewGormDBWithConfig(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-// MigrateSchema applies GORM auto-migration for domain entities (Worker, Service, Booking).
-func MigrateSchema(ctx context.Context, db *gorm.DB) error {
-	dbWithCtx := db.WithContext(ctx)
-
-	if err := dbWithCtx.AutoMigrate(
-		&domain.Worker{},
-		&domain.Service{},
-		&domain.Booking{},
-	); err != nil {
-		return fmt.Errorf("applying gorm auto-migration: %w", err)
-	}
-
-	return nil
-}
-
 // SeedIfEmpty checks if workers exist in the database and seeds initial demo data only if table is empty.
 func SeedIfEmpty(ctx context.Context, db *gorm.DB) error {
 	dbWithCtx := db.WithContext(ctx)
@@ -136,15 +121,6 @@ func SeedIfEmpty(ctx context.Context, db *gorm.DB) error {
 	}
 
 	return nil
-}
-
-// AutoMigrate applies GORM auto-migration for domain entities and seeds initial data if workers table is empty.
-// Preserved for full backward compatibility.
-func AutoMigrate(ctx context.Context, db *gorm.DB) error {
-	if err := MigrateSchema(ctx, db); err != nil {
-		return err
-	}
-	return SeedIfEmpty(ctx, db)
 }
 
 // SeedData inserts standard initial workers and services if they do not exist

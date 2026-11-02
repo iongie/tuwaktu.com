@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"tuwaktu.com/internal/domain"
@@ -60,6 +61,15 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		res, err := svc.CreateBooking(ctx, req)
 		require.NoError(t, err)
 		require.NotNil(t, res)
+
+		// Assert persisted booking ID is valid UUIDv7
+		for _, b := range repo.GetAllBookings() {
+			if b.BookingCode == res.BookingCode {
+				parsedUUID, parseErr := uuid.Parse(b.ID)
+				require.NoError(t, parseErr)
+				assert.Equal(t, uuid.Version(7), parsedUUID.Version())
+			}
+		}
 
 		assert.NotEmpty(t, res.BookingCode)
 		assert.Contains(t, res.BookingCode, "TW-")

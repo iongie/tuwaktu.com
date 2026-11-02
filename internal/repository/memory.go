@@ -109,3 +109,14 @@ func (m *MemoryRepository) GetBookingByID(id string) *domain.Booking {
 
 	return m.bookings[id]
 }
+
+func (m *MemoryRepository) GetAllBookings() []*domain.Booking {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var all []*domain.Booking
+	for _, b := range m.bookings {
+		all = append(all, b)
+	}
+	return all
+}

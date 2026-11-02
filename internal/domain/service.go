@@ -1,6 +1,13 @@
 package domain
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 // Service represents the full database entity for a worker service
 type Service struct {
@@ -17,6 +24,18 @@ type Service struct {
 
 func (Service) TableName() string {
 	return "services"
+}
+
+// BeforeCreate ensures ID is generated as UUIDv7 if not already specified
+func (s *Service) BeforeCreate(tx *gorm.DB) error {
+	if strings.TrimSpace(s.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for service: %w", err)
+		}
+		s.ID = id.String()
+	}
+	return nil
 }
 
 // PublicService represents the public facing service information (name, description, price, duration)

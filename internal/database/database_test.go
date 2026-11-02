@@ -14,7 +14,7 @@ import (
 	"tuwaktu.com/internal/domain"
 )
 
-func TestAutoMigrateAndSeedData(t *testing.T) {
+func TestSeedIfEmptyAndSeedData(t *testing.T) {
 	ctx := context.Background()
 
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
@@ -22,8 +22,63 @@ func TestAutoMigrateAndSeedData(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// First AutoMigrate should create tables and seed default data
-	err = database.AutoMigrate(ctx, db)
+	// Create tables using manual DDL to avoid AutoMigrate
+	err = db.Exec(`
+		CREATE TABLE workers (
+			id TEXT PRIMARY KEY,
+			slug TEXT UNIQUE,
+			name TEXT,
+			bio TEXT,
+			avatar_url TEXT,
+			rating REAL,
+			review_count INTEGER,
+			zone TEXT,
+			phone_number TEXT,
+			email TEXT,
+			address TEXT,
+			is_active BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+		CREATE TABLE services (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			name TEXT,
+			description TEXT,
+			price REAL,
+			duration_minutes INTEGER,
+			is_active BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+		CREATE TABLE bookings (
+			id TEXT PRIMARY KEY,
+			booking_code TEXT UNIQUE,
+			worker_id TEXT,
+			service_id TEXT,
+			client_name TEXT,
+			client_phone TEXT,
+			client_email TEXT,
+			location TEXT,
+			zone TEXT,
+			booking_date DATETIME,
+			notes TEXT,
+			total_price REAL,
+			status TEXT,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+	`).Error
+	require.NoError(t, err)
+
+	// Workers should initially be 0
+	var count int64
+	err = db.Model(&domain.Worker{}).Count(&count).Error
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+
+	// First SeedIfEmpty should populate workers and services
+	err = database.SeedIfEmpty(ctx, db)
 	require.NoError(t, err)
 
 	var workerCount int64
@@ -43,49 +98,14 @@ func TestAutoMigrateAndSeedData(t *testing.T) {
 	assert.Equal(t, "Budi Santoso", budi.Name)
 	assert.Equal(t, 4.9, budi.Rating)
 
-	// Second AutoMigrate should be idempotent and not re-seed duplicates
-	err = database.AutoMigrate(ctx, db)
+	// Second SeedIfEmpty should be idempotent and not re-seed duplicates
+	err = database.SeedIfEmpty(ctx, db)
 	require.NoError(t, err)
 
 	var workerCountAfter int64
 	err = db.Model(&domain.Worker{}).Count(&workerCountAfter).Error
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), workerCountAfter)
-}
-
-func TestMigrateSchemaAndSeedIfEmpty(t *testing.T) {
-	ctx := context.Background()
-
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
-	require.NoError(t, err)
-
-	// Migrate schema only
-	err = database.MigrateSchema(ctx, db)
-	require.NoError(t, err)
-
-	// Workers should be 0 since SeedIfEmpty was not invoked
-	var count int64
-	err = db.Model(&domain.Worker{}).Count(&count).Error
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), count)
-
-	// Now run SeedIfEmpty
-	err = database.SeedIfEmpty(ctx, db)
-	require.NoError(t, err)
-
-	err = db.Model(&domain.Worker{}).Count(&count).Error
-	require.NoError(t, err)
-	assert.Equal(t, int64(2), count)
-
-	// Running SeedIfEmpty again should do nothing
-	err = database.SeedIfEmpty(ctx, db)
-	require.NoError(t, err)
-
-	err = db.Model(&domain.Worker{}).Count(&count).Error
-	require.NoError(t, err)
-	assert.Equal(t, int64(2), count)
 }
 
 func TestNewGormDBWithConfig_Validation(t *testing.T) {

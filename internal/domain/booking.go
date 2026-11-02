@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // Booking represents the database entity for a booking order
@@ -31,6 +34,18 @@ type Booking struct {
 
 func (Booking) TableName() string {
 	return "bookings"
+}
+
+// BeforeCreate ensures ID is generated as UUIDv7 if not already specified
+func (b *Booking) BeforeCreate(tx *gorm.DB) error {
+	if strings.TrimSpace(b.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for booking: %w", err)
+		}
+		b.ID = id.String()
+	}
+	return nil
 }
 
 // CreateBookingRequest represents client payload to create a new booking

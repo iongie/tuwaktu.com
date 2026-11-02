@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"tuwaktu.com/internal/domain"
@@ -173,5 +174,57 @@ func TestCreateBookingRequest_Validate(t *testing.T) {
 		assert.Equal(t, "Jakarta Selatan", req.Location)
 		assert.Equal(t, "Jakarta Selatan", req.Zone)
 		assert.Equal(t, "srv-999", req.ServiceID)
+	})
+}
+
+func TestEntities_UUIDv7BeforeCreate(t *testing.T) {
+	t.Run("Worker BeforeCreate generates valid UUIDv7 when ID is empty", func(t *testing.T) {
+		w := &domain.Worker{
+			Name: "Worker Test",
+		}
+		err := w.BeforeCreate(nil)
+		require.NoError(t, err)
+		require.NotEmpty(t, w.ID)
+
+		parsed, err := uuid.Parse(w.ID)
+		require.NoError(t, err)
+		assert.Equal(t, uuid.Version(7), parsed.Version())
+	})
+
+	t.Run("Worker BeforeCreate preserves existing ID", func(t *testing.T) {
+		customID := "custom-worker-id"
+		w := &domain.Worker{
+			ID:   customID,
+			Name: "Worker Test",
+		}
+		err := w.BeforeCreate(nil)
+		require.NoError(t, err)
+		assert.Equal(t, customID, w.ID)
+	})
+
+	t.Run("Service BeforeCreate generates valid UUIDv7 when ID is empty", func(t *testing.T) {
+		s := &domain.Service{
+			Name: "Service Test",
+		}
+		err := s.BeforeCreate(nil)
+		require.NoError(t, err)
+		require.NotEmpty(t, s.ID)
+
+		parsed, err := uuid.Parse(s.ID)
+		require.NoError(t, err)
+		assert.Equal(t, uuid.Version(7), parsed.Version())
+	})
+
+	t.Run("Booking BeforeCreate generates valid UUIDv7 when ID is empty", func(t *testing.T) {
+		b := &domain.Booking{
+			ClientName: "Booking Test",
+		}
+		err := b.BeforeCreate(nil)
+		require.NoError(t, err)
+		require.NotEmpty(t, b.ID)
+
+		parsed, err := uuid.Parse(b.ID)
+		require.NoError(t, err)
+		assert.Equal(t, uuid.Version(7), parsed.Version())
 	})
 }

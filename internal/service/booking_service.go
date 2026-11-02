@@ -83,9 +83,14 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 	// 5. Generate unique booking code
 	bookingCode := generateBookingCode()
 
+	bookingID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("generating booking id: %w", err)
+	}
+
 	now := time.Now().UTC()
 	booking := &domain.Booking{
-		ID:          uuid.NewString(),
+		ID:          bookingID.String(),
 		BookingCode: bookingCode,
 		WorkerID:    worker.ID,
 		ServiceID:   srv.ID,

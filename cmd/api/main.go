@@ -27,8 +27,8 @@ func main() {
 	cfg := config.LoadConfig()
 
 	log.Printf("[INFO] Starting Tuwaktu Public API in [%s] environment...", cfg.AppEnv)
-	log.Printf("[INFO] Config: Port=%s, LogLevel=%s, AutoMigrate=%t, AutoSeed=%t, MemoryFallback=%t",
-		cfg.AppPort, cfg.LogLevel, cfg.DBAutoMigrate, cfg.DBAutoSeed, cfg.DBAllowMemoryFallback)
+	log.Printf("[INFO] Config: Port=%s, LogLevel=%s, AutoSeed=%t, MemoryFallback=%t",
+		cfg.AppPort, cfg.LogLevel, cfg.DBAutoSeed, cfg.DBAllowMemoryFallback)
 
 	var workerRepo repository.WorkerRepository
 	var bookingRepo repository.BookingRepository
@@ -53,15 +53,8 @@ func main() {
 		log.Printf("[INFO] Successfully connected to PostgreSQL via GORM at %s:%s/%s (Pool: max_open=%d, max_idle=%d)",
 			cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBMaxOpenConns, cfg.DBMaxIdleConns)
 
-		if cfg.DBAutoMigrate {
-			migrateCtx, migrateCancel := context.WithTimeout(context.Background(), 15*time.Second)
-			if err := database.MigrateSchema(migrateCtx, gormDB); err != nil {
-				log.Printf("[WARN] Failed to auto-migrate database schema with GORM: %v", err)
-			} else {
-				log.Printf("[INFO] Database schema verified successfully via GORM.")
-			}
-			migrateCancel()
-		}
+		// AutoMigrate dilarang keras saat runtime/startup server.
+		// Skema database dimigrasikan secara manual via `npm run db:migrate` atau `go run ./cmd/migrate up`.
 
 		if cfg.DBAutoSeed && !cfg.IsProduction() {
 			seedCtx, seedCancel := context.WithTimeout(context.Background(), 15*time.Second)

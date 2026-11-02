@@ -1,0 +1,396 @@
+<div class="min-h-screen bg-[#FDFCFB] text-[#141413] antialiased selection:bg-[#C84B31]/15">
+  <!-- Minimalist Technical Header -->
+  <header class="border-b border-[#141413]/10 bg-[#FDFCFB]/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="inline-block w-3 h-3 bg-[#C84B31] rounded-sm"></span>
+        <span class="font-serif text-2xl tracking-tight font-bold">Tuwaktu</span>
+        <span class="text-xs uppercase tracking-widest text-[#141413]/60 px-2 py-0.5 border border-[#141413]/15 rounded font-mono">
+          {{ appEnvironment.environmentName }}
+        </span>
+      </div>
+      <div class="flex items-center gap-4 text-xs font-mono text-[#141413]/70">
+        <span class="hidden sm:inline">SSR Engine: Node.js</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <!-- Asymmetric Top Bar: Search & Quick Pick -->
+    <section class="mb-10 pb-8 border-b border-[#141413]/10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+        <div class="lg:col-span-7">
+          <p class="text-xs font-mono uppercase tracking-wider text-[#C84B31] font-semibold mb-2">
+            Platform Reservasi Teknisi
+          </p>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold tracking-tight text-[#141413] leading-tight">
+            Pilih Teknisi Berpengalaman, Kunci Jadwal Pasti.
+          </h1>
+        </div>
+        <div class="lg:col-span-5 bg-[#F6F4F0] p-4 rounded-lg border border-[#141413]/10">
+          <label for="technicianSlugInput" class="block text-xs font-mono font-medium text-[#141413]/70 mb-1.5">
+            Cari Berdasarkan Slug URL Teknisi:
+          </label>
+          <div class="flex gap-2">
+            <input
+              id="technicianSlugInput"
+              type="text"
+              [value]="searchTechnicianSlug()"
+              (input)="searchTechnicianSlug.set($any($event.target).value)"
+              (keydown.enter)="executeTechnicianLookup()"
+              placeholder="contoh: budi-santoso"
+              class="flex-1 bg-[#FDFCFB] border border-[#141413]/20 px-3 py-2 text-sm rounded focus:outline-none focus:border-[#C84B31] font-mono text-[#141413]"
+            />
+            <button
+              type="button"
+              (click)="executeTechnicianLookup()"
+              class="px-4 py-2 bg-[#141413] text-[#FDFCFB] text-xs font-mono uppercase tracking-wider rounded hover:bg-[#C84B31] transition font-semibold"
+            >
+              Cari
+            </button>
+          </div>
+          <div class="mt-2.5 flex items-center gap-2 text-xs text-[#141413]/60">
+            <span>Pilihan cepat:</span>
+            <button
+              type="button"
+              (click)="quickSelectTechnician('budi-santoso')"
+              class="font-mono text-[#C84B31] underline underline-offset-2 hover:text-[#141413]"
+            >
+              budi-santoso
+            </button>
+            <span>&bull;</span>
+            <button
+              type="button"
+              (click)="quickSelectTechnician('siti-aminah')"
+              class="font-mono text-[#C84B31] underline underline-offset-2 hover:text-[#141413]"
+            >
+              siti-aminah
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Success Confirmation Modal / Banner -->
+    @if (store.confirmedReservation(); as conf) {
+      <div class="mb-8 p-6 bg-emerald-50 border border-emerald-300 rounded-lg text-[#141413]">
+        <div class="flex items-start justify-between">
+          <div class="space-y-1">
+            <span class="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded">
+              Pemesanan Terkonfirmasi
+            </span>
+            <h3 class="text-xl font-serif font-bold text-emerald-950 mt-1">
+              Kode Reservasi: <span class="font-mono">{{ conf.booking_code }}</span>
+            </h3>
+            <p class="text-xs text-emerald-800">
+              Layanan <strong class="font-semibold">{{ conf.service_name }}</strong> bersama teknisi <strong class="font-semibold">{{ conf.worker_name }}</strong> untuk klien <strong class="font-semibold">{{ conf.client_name }}</strong> telah dicatat ke sistem.
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="store.dismissReservationSuccess()"
+            class="text-xs font-mono text-emerald-900 border border-emerald-400 px-3 py-1 rounded hover:bg-emerald-200 transition"
+          >
+            Tutup Banner
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Asymmetric 60/40 Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- 60% Left Column: Bento Grid Profile & Service Catalog -->
+      <div class="lg:col-span-7 space-y-6">
+        @if (store.isProfileLoading()) {
+          <!-- Skeleton Loader Anatomi Asli (SSR-Friendly) -->
+          <div class="p-6 bg-[#F6F4F0] border border-[#141413]/10 rounded-lg animate-pulse space-y-4">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 bg-[#141413]/10 rounded-full"></div>
+              <div class="space-y-2 flex-1">
+                <div class="h-5 bg-[#141413]/10 rounded w-1/3"></div>
+                <div class="h-3 bg-[#141413]/10 rounded w-1/2"></div>
+              </div>
+            </div>
+            <div class="h-16 bg-[#141413]/10 rounded"></div>
+          </div>
+          <div class="space-y-3">
+            <div class="h-24 bg-[#F6F4F0] border border-[#141413]/10 rounded-lg animate-pulse"></div>
+            <div class="h-24 bg-[#F6F4F0] border border-[#141413]/10 rounded-lg animate-pulse"></div>
+          </div>
+        } @else if (store.profileErrorMessage()) {
+          <!-- Empty / Error State Terarah -->
+          <div class="p-8 bg-[#F6F4F0] border border-[#C84B31]/30 rounded-lg text-center space-y-4">
+            <p class="text-sm text-[#C84B31] font-mono">{{ store.profileErrorMessage() }}</p>
+            <div class="text-xs text-[#141413]/70">
+              Pekerja dengan slug tersebut belum terdaftar di database. Anda dapat memuat profil contoh:
+            </div>
+            <button
+              type="button"
+              (click)="quickSelectTechnician('budi-santoso')"
+              class="px-4 py-2 border border-[#141413] text-xs font-mono uppercase tracking-wider rounded hover:bg-[#141413] hover:text-[#FDFCFB] transition"
+            >
+              Muat Profil Budi Santoso
+            </button>
+          </div>
+        } @else if (store.activeTechnicianProfile(); as worker) {
+          <!-- Bento Box Grid: Header Profil Teknisi -->
+          <div class="p-6 bg-[#F6F4F0] border border-[#141413]/10 rounded-lg">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <img
+                [src]="worker.avatar_url"
+                [alt]="worker.name"
+                class="w-20 h-20 rounded-full object-cover border-2 border-[#FDFCFB] shadow-sm bg-[#141413]/5"
+              />
+              <div class="flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <h2 class="text-2xl font-serif font-bold tracking-tight text-[#141413]">{{ worker.name }}</h2>
+                  <span class="text-xs font-mono bg-[#141413] text-[#FDFCFB] px-2 py-0.5 rounded uppercase">
+                    Terverifikasi
+                  </span>
+                </div>
+                <p class="text-xs text-[#141413]/70 leading-relaxed mb-3">{{ worker.bio }}</p>
+                <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-[#141413]/80">
+                  <span class="flex items-center gap-1 font-semibold text-[#C84B31]">
+                    ★ {{ worker.rating }} <span class="font-normal text-[#141413]/60">({{ worker.review_count }} ulasan)</span>
+                  </span>
+                  <span>&bull;</span>
+                  <span>Zona: <strong class="font-semibold">{{ worker.zone }}</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Katalog Layanan Teknisi -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-[#141413]/10">
+              <h3 class="text-base font-serif font-bold text-[#141413]">Pilihan Layanan Teknisi</h3>
+              <span class="text-xs font-mono text-[#141413]/60">{{ worker.services.length }} opsi tarif</span>
+            </div>
+
+            @if (worker.services.length === 0) {
+              <div class="p-6 bg-[#F6F4F0] border border-[#141413]/10 rounded-lg text-center text-xs text-[#141413]/60 font-mono">
+                Belum ada layanan aktif yang terdaftar untuk teknisi ini.
+              </div>
+            } @else {
+              @for (serviceItem of worker.services; track serviceItem.id) {
+                <div
+                  role="button"
+                  tabindex="0"
+                  class="p-4 rounded-lg border transition cursor-pointer bg-[#FDFCFB]"
+                  [ngClass]="{
+                    'border-[#C84B31] ring-1 ring-[#C84B31] bg-[#F6F4F0]/50': store.selectedCatalogService()?.id === serviceItem.id,
+                    'border-[#141413]/15 hover:border-[#141413]/40': store.selectedCatalogService()?.id !== serviceItem.id
+                  }"
+                  (click)="onServiceItemSelected(serviceItem)"
+                  (keydown.enter)="onServiceItemSelected(serviceItem)"
+                  (keydown.space)="onServiceItemSelected(serviceItem)"
+                >
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2">
+                        <h4 class="text-sm font-semibold text-[#141413]">{{ serviceItem.name }}</h4>
+                        @if (store.selectedCatalogService()?.id === serviceItem.id) {
+                          <span class="text-[10px] font-mono uppercase bg-[#C84B31]/10 text-[#C84B31] px-2 py-0.5 rounded font-semibold">
+                            Dipilih
+                          </span>
+                        }
+                      </div>
+                      <p class="text-xs text-[#141413]/70 mt-1 leading-relaxed">{{ serviceItem.description }}</p>
+                      <span class="inline-block mt-2 text-[11px] font-mono text-[#141413]/60">
+                        Durasi pengerjaan: {{ serviceItem.duration_minutes }} menit
+                      </span>
+                    </div>
+                    <div class="text-right sm:self-center">
+                      <div class="text-base font-mono font-bold text-[#C84B31]">
+                        {{ formatCurrencyRupiah(serviceItem.price) }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- 40% Right Column: Reservasi Form & Ringkasan -->
+      <div class="lg:col-span-5 bg-[#F6F4F0] p-6 rounded-lg border border-[#141413]/10 space-y-6 sticky top-24">
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[#C84B31] font-semibold">Formulir Pesanan</span>
+          <h3 class="text-xl font-serif font-bold text-[#141413] mt-1">Konfirmasi Jadwal Reservasi</h3>
+        </div>
+
+        @if (store.selectedCatalogService(); as selectedSvc) {
+          <div class="p-3.5 bg-[#FDFCFB] rounded border border-[#141413]/10 text-xs font-mono space-y-1">
+            <div class="text-[#141413]/60 uppercase text-[10px]">Layanan Terpilih:</div>
+            <div class="font-bold text-sm text-[#141413]">{{ selectedSvc.name }}</div>
+            <div class="text-[#C84B31] font-bold text-sm">{{ formatCurrencyRupiah(selectedSvc.price) }}</div>
+          </div>
+        } @else {
+          <div class="p-3.5 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900 font-mono">
+            Silakan pilih salah satu layanan di kolom sebelah kiri terlebih dahulu.
+          </div>
+        }
+
+        @if (store.reservationErrorMessage()) {
+          <div class="p-3 bg-red-50 border border-red-200 rounded text-xs text-red-800 font-mono">
+            {{ store.reservationErrorMessage() }}
+          </div>
+        }
+
+        <form (ngSubmit)="submitBookingOrder()" class="space-y-4" novalidate>
+          @if (clientValidationErrors()['service']) {
+            <p class="text-xs text-[#C84B31] font-mono">
+              {{ clientValidationErrors()['service'] }}
+            </p>
+          }
+
+          <div>
+            <label for="clientNameInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+              Nama Lengkap Klien <span class="text-[#C84B31]">*</span>
+            </label>
+            <input
+              id="clientNameInput"
+              type="text"
+              name="clientFullName"
+              [(ngModel)]="clientFullName"
+              (input)="clearClientValidationError('client_name')"
+              required
+              placeholder="contoh: Pak Joko Santoso"
+              class="w-full bg-[#FDFCFB] border px-3 py-2 text-xs rounded focus:outline-none text-[#141413] transition"
+              [ngClass]="{
+                'border-[#C84B31] focus:border-[#C84B31]': clientValidationErrors()['client_name'],
+                'border-[#141413]/20 focus:border-[#C84B31]': !clientValidationErrors()['client_name']
+              }"
+            />
+            @if (clientValidationErrors()['client_name']) {
+              <p class="mt-1 text-[11px] text-[#C84B31] font-mono">
+                {{ clientValidationErrors()['client_name'] }}
+              </p>
+            }
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="clientPhoneInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+                Nomor Telepon
+              </label>
+              <input
+                id="clientPhoneInput"
+                type="tel"
+                name="clientContactPhone"
+                [(ngModel)]="clientContactPhone"
+                placeholder="contoh: 081234567890"
+                class="w-full bg-[#FDFCFB] border border-[#141413]/20 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#C84B31] text-[#141413]"
+              />
+            </div>
+            <div>
+              <label for="clientEmailInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+                Alamat Email
+              </label>
+              <input
+                id="clientEmailInput"
+                type="email"
+                name="clientEmailAddress"
+                [(ngModel)]="clientEmailAddress"
+                placeholder="nama@domain.com"
+                class="w-full bg-[#FDFCFB] border border-[#141413]/20 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#C84B31] text-[#141413]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="serviceLocationInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+              Alamat Lengkap Lokasi Servis <span class="text-[#C84B31]">*</span>
+            </label>
+            <textarea
+              id="serviceLocationInput"
+              name="serviceLocationAddress"
+              [(ngModel)]="serviceLocationAddress"
+              (input)="clearClientValidationError('location')"
+              required
+              rows="2"
+              class="w-full bg-[#FDFCFB] border px-3 py-2 text-xs rounded focus:outline-none text-[#141413] transition"
+              [ngClass]="{
+                'border-[#C84B31] focus:border-[#C84B31]': clientValidationErrors()['location'],
+                'border-[#141413]/20 focus:border-[#C84B31]': !clientValidationErrors()['location']
+              }"
+            ></textarea>
+            @if (clientValidationErrors()['location']) {
+              <p class="mt-1 text-[11px] text-[#C84B31] font-mono">
+                {{ clientValidationErrors()['location'] }}
+              </p>
+            }
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="serviceZoneInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+                Zona Operasional
+              </label>
+              <input
+                id="serviceZoneInput"
+                type="text"
+                name="serviceOperationalZone"
+                [(ngModel)]="serviceOperationalZone"
+                (input)="clearClientValidationError('location')"
+                class="w-full bg-[#FDFCFB] border border-[#141413]/20 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#C84B31] text-[#141413]"
+              />
+            </div>
+            <div>
+              <label for="scheduledDateInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+                Waktu Kedatangan
+              </label>
+              <input
+                id="scheduledDateInput"
+                type="datetime-local"
+                name="reservationScheduledDate"
+                [(ngModel)]="reservationScheduledDate"
+                (input)="clearClientValidationError('booking_date')"
+                class="w-full bg-[#FDFCFB] border px-3 py-2 text-xs rounded focus:outline-none text-[#141413] transition"
+                [ngClass]="{
+                  'border-[#C84B31] focus:border-[#C84B31]': clientValidationErrors()['booking_date'],
+                  'border-[#141413]/20 focus:border-[#C84B31]': !clientValidationErrors()['booking_date']
+                }"
+              />
+              @if (clientValidationErrors()['booking_date']) {
+                <p class="mt-1 text-[11px] text-[#C84B31] font-mono">
+                  {{ clientValidationErrors()['booking_date'] }}
+                </p>
+              }
+            </div>
+          </div>
+
+          <div>
+            <label for="clientNotesInput" class="block text-xs font-mono text-[#141413]/70 mb-1">
+              Catatan Tambahan untuk Teknisi
+            </label>
+            <input
+              id="clientNotesInput"
+              type="text"
+              name="additionalClientNotes"
+              [(ngModel)]="additionalClientNotes"
+              placeholder="misal: unit AC di lantai 2"
+              class="w-full bg-[#FDFCFB] border border-[#141413]/20 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#C84B31] text-[#141413]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="store.isReservationSubmitting()"
+            class="w-full py-3 bg-[#141413] text-[#FDFCFB] font-mono text-xs uppercase tracking-wider rounded font-bold hover:bg-[#C84B31] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (store.isReservationSubmitting()) {
+              Memproses Reservasi...
+            } @else {
+              Kunci Jadwal & Buat Kode Booking
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
+

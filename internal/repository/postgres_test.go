@@ -21,7 +21,52 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	})
 	require.NoError(t, err)
 
-	err = db.AutoMigrate(&domain.Worker{}, &domain.Service{}, &domain.Booking{})
+	err = db.Exec(`
+		CREATE TABLE workers (
+			id TEXT PRIMARY KEY,
+			slug TEXT UNIQUE,
+			name TEXT,
+			bio TEXT,
+			avatar_url TEXT,
+			rating REAL,
+			review_count INTEGER,
+			zone TEXT,
+			phone_number TEXT,
+			email TEXT,
+			address TEXT,
+			is_active BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+		CREATE TABLE services (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			name TEXT,
+			description TEXT,
+			price REAL,
+			duration_minutes INTEGER,
+			is_active BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+		CREATE TABLE bookings (
+			id TEXT PRIMARY KEY,
+			booking_code TEXT UNIQUE,
+			worker_id TEXT,
+			service_id TEXT,
+			client_name TEXT,
+			client_phone TEXT,
+			client_email TEXT,
+			location TEXT,
+			zone TEXT,
+			booking_date DATETIME,
+			notes TEXT,
+			total_price REAL,
+			status TEXT,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+	`).Error
 	require.NoError(t, err)
 
 	return db

@@ -4,9 +4,16 @@ export const appRoutes: Route[] = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/worker-demo/worker-demo.component').then(
-        (m) => m.WorkerDemoComponent
-      ),
+      import(
+        './features/worker-booking/components/worker-booking-page/worker-booking-page.component'
+      ).then((m) => m.WorkerBookingPageComponent),
+  },
+  {
+    path: ':slug',
+    loadComponent: () =>
+      import(
+        './features/worker-booking/components/worker-booking-page/worker-booking-page.component'
+      ).then((m) => m.WorkerBookingPageComponent),
   },
   {
     path: '**',

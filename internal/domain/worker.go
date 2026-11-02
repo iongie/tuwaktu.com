@@ -1,6 +1,13 @@
 package domain
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 // Worker represents the full database entity for a worker, containing sensitive/private info
 type Worker struct {
@@ -24,6 +31,18 @@ type Worker struct {
 
 func (Worker) TableName() string {
 	return "workers"
+}
+
+// BeforeCreate ensures ID is generated as UUIDv7 if not already specified
+func (w *Worker) BeforeCreate(tx *gorm.DB) error {
+	if strings.TrimSpace(w.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for worker: %w", err)
+		}
+		w.ID = id.String()
+	}
+	return nil
 }
 
 // PublicWorkerProfile represents the sanitized public view of a worker

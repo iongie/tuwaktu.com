@@ -1,0 +1,40 @@
+package domain
+
+import "time"
+
+// Service represents the full database entity for a worker service
+type Service struct {
+	ID              string    `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
+	WorkerID        string    `json:"worker_id" db:"worker_id" gorm:"type:uuid;not null;index"`
+	Name            string    `json:"name" db:"name" gorm:"type:varchar(150);not null"`
+	Description     string    `json:"description" db:"description" gorm:"type:text"`
+	Price           float64   `json:"price" db:"price" gorm:"type:numeric(12,2);not null"`
+	DurationMinutes int       `json:"duration_minutes" db:"duration_minutes" gorm:"type:int;not null;default:60"`
+	IsActive        bool      `json:"is_active" db:"is_active" gorm:"index"`
+	CreatedAt       time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
+	UpdatedAt       time.Time `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
+}
+
+func (Service) TableName() string {
+	return "services"
+}
+
+// PublicService represents the public facing service information (name, description, price, duration)
+type PublicService struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	Description     string  `json:"description"`
+	Price           float64 `json:"price"`
+	DurationMinutes int     `json:"duration_minutes"`
+}
+
+// ToPublic converts a Service domain model to PublicService
+func (s *Service) ToPublic() PublicService {
+	return PublicService{
+		ID:              s.ID,
+		Name:            s.Name,
+		Description:     s.Description,
+		Price:           s.Price,
+		DurationMinutes: s.DurationMinutes,
+	}
+}

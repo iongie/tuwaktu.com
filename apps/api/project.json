@@ -1,0 +1,58 @@
+{
+  "name": "api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "cmd/api",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/apps/api"],
+      "options": {
+        "command": "go build -o dist/apps/api/ ./cmd/api",
+        "cwd": "."
+      },
+      "configurations": {
+        "production": {
+          "command": "go build -ldflags=\"-s -w\" -o dist/apps/api/ ./cmd/api"
+        },
+        "staging": {
+          "command": "go build -o dist/apps/api/ ./cmd/api"
+        },
+        "development": {
+          "command": "go build -o dist/apps/api/ ./cmd/api"
+        }
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run ./cmd/api",
+        "cwd": "."
+      },
+      "configurations": {
+        "production": {
+          "env": {
+            "APP_ENV": "production"
+          }
+        },
+        "staging": {
+          "env": {
+            "APP_ENV": "staging"
+          }
+        },
+        "development": {
+          "env": {
+            "APP_ENV": "development"
+          }
+        }
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go test ./cmd/... ./internal/...",
+        "cwd": "."
+      }
+    }
+  }
+}

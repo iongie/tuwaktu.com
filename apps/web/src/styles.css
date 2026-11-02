@@ -1,3 +1,222 @@
 @import "tailwindcss";
 
 @source "../../../libs";
+
+/* Material Design 3 (M3) System Tokens - Warm Terracotta & Deep Ink Identity */
+:root {
+  /* M3 Color Roles */
+  --md-sys-color-primary: #C84B31;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #FFDAD3;
+  --md-sys-color-on-primary-container: #3F0300;
+
+  --md-sys-color-secondary: #1E4D3B;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #CBECE0;
+  --md-sys-color-on-secondary-container: #002116;
+
+  --md-sys-color-surface: #FDFCFB;
+  --md-sys-color-surface-container-low: #F6F4F0;
+  --md-sys-color-surface-container: #F0EDE7;
+  --md-sys-color-surface-container-high: #EAE6DF;
+  --md-sys-color-on-surface: #141413;
+  --md-sys-color-on-surface-variant: #4E4642;
+
+  --md-sys-color-outline: #7A716C;
+  --md-sys-color-outline-variant: #D2C4BE;
+
+  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FFDAD6;
+  --md-sys-color-on-error-container: #410002;
+
+  /* M3 Shape Scale */
+  --md-sys-shape-corner-xs: 4px;
+  --md-sys-shape-corner-sm: 8px;
+  --md-sys-shape-corner-md: 12px;
+  --md-sys-shape-corner-lg: 16px;
+  --md-sys-shape-corner-xl: 28px;
+}
+
+/* shortcut: M3 Atom primitives implemented as CSS classes to avoid 1-line Angular wrapper bloat, upgrade to standalone directives only if complex behavior is added */
+
+/* M3 Buttons (Minimum 44px-48px touch target for R-03 accessibility) */
+.m3-btn-filled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--md-sys-shape-corner-sm);
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1), opacity 150ms cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+}
+
+.m3-btn-filled:hover:not(:disabled) {
+  background-color: #B03E26;
+}
+
+.m3-btn-filled:focus-visible {
+  outline: 2px solid var(--md-sys-color-on-surface);
+  outline-offset: 2px;
+}
+
+.m3-btn-filled:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.m3-btn-tonal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--md-sys-shape-corner-sm);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+}
+
+.m3-btn-tonal:hover:not(:disabled) {
+  background-color: #B6E0D1;
+}
+
+.m3-btn-tonal:focus-visible {
+  outline: 2px solid var(--md-sys-color-secondary);
+  outline-offset: 2px;
+}
+
+.m3-btn-outlined {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--md-sys-shape-corner-sm);
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+}
+
+.m3-btn-outlined:hover:not(:disabled) {
+  background-color: rgba(20, 20, 19, 0.06);
+  border-color: var(--md-sys-color-on-surface);
+}
+
+.m3-btn-outlined:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+/* M3 Assist / Filter Chip (44px tap height via padding/min-height) */
+.m3-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 36px;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--md-sys-shape-corner-sm);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+}
+
+.m3-chip:hover {
+  background-color: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.m3-chip:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.m3-chip-active {
+  background-color: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary-container);
+  font-weight: 600;
+}
+
+/* M3 Outlined TextField */
+.m3-field-outlined {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--md-sys-shape-corner-sm);
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.8125rem;
+  transition: border-color 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-field-outlined::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.75;
+}
+
+.m3-field-outlined:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 1px var(--md-sys-color-primary);
+}
+
+.m3-field-error {
+  border-color: var(--md-sys-color-error);
+}
+
+.m3-field-error:focus {
+  border-color: var(--md-sys-color-error);
+  box-shadow: 0 0 0 1px var(--md-sys-color-error);
+}
+
+/* M3 Cards */
+.m3-card-surface {
+  background-color: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+}
+
+.m3-card-outlined {
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-md);
+  transition: border-color 150ms cubic-bezier(0.2, 0, 0, 1), background-color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-card-outlined:hover {
+  border-color: var(--md-sys-color-outline);
+  background-color: var(--md-sys-color-surface-container-low);
+}
+
+.m3-card-outlined:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.m3-card-tonal-selected {
+  background-color: var(--md-sys-color-primary-container);
+  border: 2px solid var(--md-sys-color-primary);
+  border-radius: var(--md-sys-shape-corner-md);
+  color: var(--md-sys-color-on-primary-container);
+}

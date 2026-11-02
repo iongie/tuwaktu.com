@@ -103,3 +103,26 @@ Wajib dipatuhi pada seluruh aplikasi frontend Angular SSR (`apps/web`):
    - Gunakan desain flat terstruktur dengan border tipis tegas (`1px solid rgba(20, 20, 19, 0.08)`). Gunakan shadow hanya untuk status interaksi aktif (hover) atau elemen melayang (modal/dropdown).
 7. **Microcopy yang Spesifik dan Manusiawi**:
    - Tulis teks antarmuka yang fungsional dan berorientasi domain bisnis Tuwaktu dalam Bahasa Indonesia (contoh: *"Kunci Jadwal & Buat Kode Booking"* bukan *"Submit"*, *"Cari Teknisi AC & Listrik"* bukan *"Search"*).
+
+---
+
+## 7. Aturan Arsitektur Atomic Design & Material Design 3 (M3)
+
+Seluruh antarmuka web (`apps/web`) wajib menerapkan prinsip **Atomic Design** yang dipadukan dengan spesifikasi **Material Design 3 (https://m3.material.io/)**:
+
+1. **Hierarki Atomic Design Proporsional (Anti-Bloat / Ponytail)**:
+   - **Atoms**: Token desain dan elemen dasar M3 (`.m3-btn-filled`, `.m3-btn-outlined`, `.m3-chip`, `.m3-field-outlined`, `.m3-badge`). Jangan membuat komponen Angular pembungkus untuk 1 tag HTML murni jika cukup menggunakan class sistem M3 di `styles.css`.
+   - **Molecules (`components/molecules/`)**: Gabungan atom dengan satu tanggung jawab fungsional spesifik (misal: `TechnicianSearchBarComponent`, `ServiceCatalogCardComponent`).
+   - **Organisms (`components/organisms/`)**: Bagian antarmuka mandiri yang utuh (misal: `TechnicianProfileHeaderComponent`, `ServiceBookingFormComponent`).
+   - **Pages / Templates (`components/worker-booking-page/`)**: Mengorkestrasi tata letak halaman, state store, dan SEO/OpenGraph.
+2. **Material Design 3 (M3) Color Roles & Surface Hierarchy**:
+   - Gunakan token CSS M3 (`--md-sys-color-*`) yang selaras dengan identitas hangat Tuwaktu:
+     - `primary` (`#C84B31`), `on-primary` (`#FFFFFF`), `primary-container` (`#FFDAD3`), `on-primary-container` (`#3F0300`).
+     - `secondary` (`#1E4D3B`), `secondary-container` (`#CBECE0`), `on-secondary-container` (`#002116`).
+     - `surface` (`#FDFCFB`), `surface-container-low` (`#F6F4F0`), `surface-container` (`#F0EDE7`), `surface-container-high` (`#EAE6DF`), `on-surface` (`#141413`), `on-surface-variant` (`#4E4642`).
+     - `outline` (`#807570`), `outline-variant` (`#D2C4BE`).
+   - Bedakan kedalaman kontainer menggunakan *Tonal Surface Container* dan *Outline*, bukan dengan menumpuk *drop-shadow* lembut di setiap kartu.
+3. **M3 Shape, State Layers, & Aksesibilitas**:
+   - Gunakan skala radius M3 yang bervariasi sesuai hierarki komponen (`xs: 4px`, `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 28px`). Dilarang membuat semua elemen berbentuk kapsul/pill seragam.
+   - Setiap kontrol interaktif wajib memiliki ukuran target sentuh minimum `48x48px` (atau tinggi minimal `44px–48px`), state layer saat hover/pressed, dan indikator `focus-visible` yang memenuhi rasio kontras WCAG AA (minimal 4.5:1 untuk teks normal).
+   - Formulir dilarang diisi dengan data fiktif bawaan (*pre-filled fake data*); gunakan `placeholder` yang jujur dan jelas.

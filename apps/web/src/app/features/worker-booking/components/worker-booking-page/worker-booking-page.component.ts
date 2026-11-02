@@ -13,14 +13,31 @@ import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WorkerBookingStore } from '../../services/worker-booking.store';
-import { PublicServiceCatalogItem, PublicTechnicianProfile } from '../../models/worker-catalog.model';
+import {
+  PublicServiceCatalogItem,
+  PublicTechnicianProfile,
+} from '../../models/worker-catalog.model';
 import { CreateServiceBookingPayload } from '../../models/service-booking.model';
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
+import { TechnicianSearchBarComponent } from '../molecules/technician-search-bar/technician-search-bar.component';
+import { ServiceCatalogCardComponent } from '../molecules/service-catalog-card/service-catalog-card.component';
+import { TechnicianProfileHeaderComponent } from '../organisms/technician-profile-header/technician-profile-header.component';
+import {
+  BookingFormDraft,
+  ServiceBookingFormComponent,
+} from '../organisms/service-booking-form/service-booking-form.component';
 
 @Component({
   selector: 'app-worker-booking-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TechnicianSearchBarComponent,
+    ServiceCatalogCardComponent,
+    TechnicianProfileHeaderComponent,
+    ServiceBookingFormComponent,
+  ],
   templateUrl: './worker-booking-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -39,16 +56,41 @@ export class WorkerBookingPageComponent implements OnInit {
   clientFullName = '';
   clientContactPhone = '';
   clientEmailAddress = '';
-  serviceLocationAddress = 'Jl. Metro Pondok Indah Blok TB No. 12';
-  serviceOperationalZone = 'Jakarta Selatan';
+  serviceLocationAddress = '';
+  serviceOperationalZone = '';
   reservationScheduledDate = '';
-  additionalClientNotes = 'Tolong hubungi sebelum tiba di lokasi.';
+  additionalClientNotes = '';
 
   constructor() {
     effect(() => {
       const activeWorker = this.store.activeTechnicianProfile();
       this.updateSeoOpenGraphTags(activeWorker);
+      if (activeWorker && !this.serviceOperationalZone) {
+        this.serviceOperationalZone = activeWorker.zone;
+      }
     });
+  }
+
+  get currentFormDraft(): BookingFormDraft {
+    return {
+      clientFullName: this.clientFullName,
+      clientContactPhone: this.clientContactPhone,
+      clientEmailAddress: this.clientEmailAddress,
+      serviceLocationAddress: this.serviceLocationAddress,
+      serviceOperationalZone: this.serviceOperationalZone,
+      reservationScheduledDate: this.reservationScheduledDate,
+      additionalClientNotes: this.additionalClientNotes,
+    };
+  }
+
+  applyFormDraft(draft: BookingFormDraft): void {
+    this.clientFullName = draft.clientFullName;
+    this.clientContactPhone = draft.clientContactPhone;
+    this.clientEmailAddress = draft.clientEmailAddress;
+    this.serviceLocationAddress = draft.serviceLocationAddress;
+    this.serviceOperationalZone = draft.serviceOperationalZone;
+    this.reservationScheduledDate = draft.reservationScheduledDate;
+    this.additionalClientNotes = draft.additionalClientNotes;
   }
 
   ngOnInit(): void {
@@ -161,6 +203,7 @@ export class WorkerBookingPageComponent implements OnInit {
     this.clientFullName = '';
     this.clientContactPhone = '';
     this.clientEmailAddress = '';
+    this.serviceLocationAddress = '';
     this.additionalClientNotes = '';
     this.clientValidationErrors.set({});
     this.initializeDefaultReservationSchedule();
@@ -179,14 +222,15 @@ export class WorkerBookingPageComponent implements OnInit {
       this.documentTitle.setTitle(this.appEnvironment.appTitle);
       this.metaService.updateTag({
         name: 'description',
-        content: 'Platform reservasi teknisi terverifikasi di Indonesia. Kunci jadwal pasti tanpa repot.',
+        content:
+          'Platform reservasi teknisi terverifikasi di Indonesia. Kunci jadwal pasti tanpa repot.',
       });
       return;
     }
 
     const pageTitle = `Pesan Layanan dari ${profile.name} - Tuwaktu`;
     const pageDescription = profile.bio
-      ? `${profile.bio} - Wilayah operasional: ${profile.zone}. Rating ${profile.rating}★ (${profile.review_count} ulasan). Pesan jadwal layanan teknisi sekarang.`
+      ? `${profile.bio}. Wilayah operasional: ${profile.zone}. Rating ${profile.rating} (${profile.review_count} ulasan). Pesan jadwal layanan teknisi sekarang.`
       : `Pesan layanan profesional terpercaya dari ${profile.name} di zona ${profile.zone} secara online melalui Tuwaktu.`;
 
     this.documentTitle.setTitle(pageTitle);
@@ -196,7 +240,10 @@ export class WorkerBookingPageComponent implements OnInit {
     this.metaService.updateTag({ property: 'og:description', content: pageDescription });
     this.metaService.updateTag({ property: 'og:type', content: 'profile' });
     this.metaService.updateTag({ property: 'og:image', content: profile.avatar_url });
-    this.metaService.updateTag({ property: 'og:image:alt', content: `Foto profil ${profile.name}` });
+    this.metaService.updateTag({
+      property: 'og:image:alt',
+      content: `Foto profil ${profile.name}`,
+    });
     this.metaService.updateTag({ property: 'og:url', content: `/${profile.slug}` });
     this.metaService.updateTag({ property: 'og:site_name', content: 'Tuwaktu' });
 
@@ -204,7 +251,10 @@ export class WorkerBookingPageComponent implements OnInit {
     this.metaService.updateTag({ name: 'twitter:title', content: pageTitle });
     this.metaService.updateTag({ name: 'twitter:description', content: pageDescription });
     this.metaService.updateTag({ name: 'twitter:image', content: profile.avatar_url });
-    this.metaService.updateTag({ name: 'twitter:image:alt', content: `Foto profil ${profile.name}` });
+    this.metaService.updateTag({
+      name: 'twitter:image:alt',
+      content: `Foto profil ${profile.name}`,
+    });
   }
 
   private initializeDefaultReservationSchedule(): void {
@@ -221,4 +271,3 @@ export class WorkerBookingPageComponent implements OnInit {
     this.reservationScheduledDate = `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 }
-

@@ -10,6 +10,7 @@ type WorkerRepository interface {
 	GetBySlug(ctx context.Context, slug string) (*domain.Worker, error)
 	GetByID(ctx context.Context, id string) (*domain.Worker, error)
 	GetServicesByWorkerID(ctx context.Context, workerID string) ([]domain.Service, error)
+	UpdateProfile(ctx context.Context, id string, profile *domain.WorkerProfileUpdate) (*domain.Worker, error)
 }
 
 type BookingRepository interface {

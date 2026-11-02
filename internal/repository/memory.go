@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"tuwaktu.com/internal/domain"
 )
@@ -119,4 +120,41 @@ func (m *MemoryRepository) GetAllBookings() []*domain.Booking {
 		all = append(all, b)
 	}
 	return all
+}
+
+func (m *MemoryRepository) UpdateProfile(ctx context.Context, id string, profile *domain.WorkerProfileUpdate) (*domain.Worker, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if profile == nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	w, exists := m.workers[id]
+	if !exists {
+		return nil, domain.ErrWorkerNotFound
+	}
+
+	if strings.TrimSpace(profile.Name) != "" {
+		w.Name = strings.TrimSpace(profile.Name)
+	}
+	w.Bio = strings.TrimSpace(profile.Bio)
+	if strings.TrimSpace(profile.AvatarURL) != "" {
+		w.AvatarURL = strings.TrimSpace(profile.AvatarURL)
+	}
+	if strings.TrimSpace(profile.Zone) != "" {
+		w.Zone = strings.TrimSpace(profile.Zone)
+	}
+	if strings.TrimSpace(profile.PhoneNumber) != "" {
+		w.PhoneNumber = strings.TrimSpace(profile.PhoneNumber)
+	}
+	if strings.TrimSpace(profile.Email) != "" {
+		w.Email = strings.TrimSpace(profile.Email)
+	}
+	if strings.TrimSpace(profile.Address) != "" {
+		w.Address = strings.TrimSpace(profile.Address)
+	}
+	w.UpdatedAt = time.Now().UTC()
+
+	return w, nil
 }

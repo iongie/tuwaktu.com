@@ -9,6 +9,18 @@ export const appRoutes: Route[] = [
       ).then((m) => m.WorkerBookingPageComponent),
   },
   {
+    path: 'dashboard',
+    redirectTo: 'dashboard/profile',
+    pathMatch: 'full',
+  },
+  {
+    path: 'dashboard/profile',
+    loadComponent: () =>
+      import(
+        './features/worker-dashboard/components/worker-dashboard-profile/worker-dashboard-profile.component'
+      ).then((m) => m.WorkerDashboardProfileComponent),
+  },
+  {
     path: ':slug',
     loadComponent: () =>
       import(

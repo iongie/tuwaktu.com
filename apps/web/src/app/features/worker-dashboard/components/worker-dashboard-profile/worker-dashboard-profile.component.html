@@ -1,0 +1,304 @@
+<div class="min-h-screen bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Header Section -->
+    <header class="space-y-2 border-b border-[var(--md-sys-color-outline-variant)] pb-6">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-semibold tracking-wider text-[var(--md-sys-color-primary)] uppercase">
+        <a routerLink="/" class="hover:underline">Beranda Reservasi</a>
+        <span>/</span>
+        <span>Dasbor Mitra</span>
+        <span>/</span>
+        <span class="text-[var(--md-sys-color-on-surface-variant)]">Pengaturan Profil</span>
+      </nav>
+      <h1 class="text-3xl font-extrabold tracking-tight">Pengaturan Profil Pekerja</h1>
+      <p class="text-sm text-[var(--md-sys-color-on-surface-variant)]">
+        Kelola identitas, deskripsi keahlian, dan tautan halaman reservasi publik Anda di Tuwaktu.
+      </p>
+    </header>
+
+    <!-- Feedback Alerts -->
+    @if (profileFeedbackSuccess()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="font-medium">{{ profileFeedbackSuccess() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="profileFeedbackSuccess.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    @if (profileFeedbackError()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">{{ profileFeedbackError() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="profileFeedbackError.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    <!-- Worker Selection & Lookup Card -->
+    <section class="m3-card-surface p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">
+            @if (workerRecordId()) {
+              Profil Mitra Aktif
+            } @else {
+              Pilih Profil Mitra
+            }
+          </h2>
+          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+            @if (workerRecordId()) {
+              Menyunting data akun mitra <span class="font-mono font-bold text-[var(--md-sys-color-primary)]">{{ workerSlugIdentifier() }}</span>
+            } @else {
+              Ketik slug pekerja atau pilih dari mitra terdaftar untuk memuat dan menyunting profil.
+            }
+          </p>
+        </div>
+
+        @if (workerRecordId()) {
+          <button
+            type="button"
+            (click)="resetWorkerSelection()"
+            class="m3-btn-outlined text-xs min-h-[44px]"
+          >
+            Ganti Mitra
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="flex-1">
+          <input
+            type="text"
+            [ngModel]="workerLookupSlugInput()"
+            (ngModelChange)="workerLookupSlugInput.set($event)"
+            (keydown.enter)="loadProfileByLookupInput()"
+            placeholder="Masukkan slug mitra, contoh: budi-santoso"
+            class="m3-field-outlined"
+          />
+        </div>
+        <button
+          type="button"
+          (click)="loadProfileByLookupInput()"
+          [disabled]="isProfileLoading() || !workerLookupSlugInput().trim()"
+          class="m3-btn-filled min-h-[44px]"
+        >
+          @if (isProfileLoading()) {
+            <span>Memuat...</span>
+          } @else {
+            <span>Muat Profil</span>
+          }
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 pt-1">
+        <span class="text-xs text-[var(--md-sys-color-on-surface-variant)]">Mitra Terdaftar:</span>
+        @for (slug of suggestedWorkerSlugs; track slug) {
+          <button
+            type="button"
+            (click)="selectPresetSlug(slug)"
+            class="m3-chip"
+          >
+            {{ slug }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Bento Card: Tautan Profil Publik -->
+    <section class="m3-card-surface p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Tautan Profil Publik</h2>
+          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+            Gunakan tautan unik ini untuk menerima booking langsung dari calon klien Anda.
+          </p>
+        </div>
+
+        @if (clipboardFeedbackMessage()) {
+          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold border border-[var(--md-sys-color-secondary)]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>{{ clipboardFeedbackMessage() }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+        <div class="flex-1 flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-4 py-2.5 rounded-lg border border-[var(--md-sys-color-outline-variant)]">
+          <svg class="w-4 h-4 text-[var(--md-sys-color-on-surface-variant)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <span class="font-mono text-xs sm:text-sm text-[var(--md-sys-color-on-surface)] select-all truncate">
+            @if (workerSlugIdentifier()) {
+              {{ publicProfileRelativeUrl() }}
+            } @else {
+              <span class="text-[var(--md-sys-color-on-surface-variant)] italic">Slug profil belum aktif</span>
+            }
+          </span>
+        </div>
+
+        <button
+          type="button"
+          (click)="copyPublicProfileLink()"
+          [disabled]="!workerSlugIdentifier()"
+          class="m3-btn-outlined gap-2 min-h-[44px]"
+          aria-label="Salin Tautan Profil"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span>Salin Tautan</span>
+        </button>
+
+        @if (workerSlugIdentifier()) {
+          <a
+            [routerLink]="publicProfileRelativeUrl()"
+            target="_blank"
+            class="m3-btn-tonal gap-2 min-h-[44px]"
+          >
+            <span>Lihat Profil</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        }
+      </div>
+    </section>
+
+    <!-- Form Section -->
+    <section class="m3-card-surface p-6 space-y-6">
+      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+        <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Informasi Profil Mitra</h2>
+        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+          Lengkapi data profil agar calon pengguna yakin memilih layanan keahlian Anda.
+        </p>
+      </div>
+
+      <form (ngSubmit)="submitProfileUpdate()" class="space-y-6">
+        <!-- Nama Lengkap -->
+        <div class="space-y-2">
+          <label for="workerFullNameInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Nama Lengkap <span class="text-[var(--md-sys-color-primary)]">*</span>
+          </label>
+          <input
+            id="workerFullNameInput"
+            type="text"
+            [ngModel]="workerFullName()"
+            (ngModelChange)="workerFullName.set($event); clearInputValidationError('name')"
+            name="workerFullName"
+            placeholder="Contoh: Budi Santoso"
+            class="m3-field-outlined"
+            [class.m3-field-error]="inputValidationErrors()['name']"
+          />
+          @if (inputValidationErrors()['name']) {
+            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              {{ inputValidationErrors()['name'] }}
+            </p>
+          }
+        </div>
+
+        <!-- Profesi & Wilayah Operasional -->
+        <div class="space-y-2">
+          <label for="workerProfessionZoneInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Profesi / Keahlian & Wilayah Operasional
+          </label>
+          <input
+            id="workerProfessionZoneInput"
+            type="text"
+            [ngModel]="workerProfessionZone()"
+            (ngModelChange)="workerProfessionZone.set($event)"
+            name="workerProfessionZone"
+            placeholder="Contoh: Spesialis Servis AC (Jakarta Selatan)"
+            class="m3-field-outlined"
+          />
+          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">
+            Tampilkan keahlian utama dan area layanan yang Anda jangkau.
+          </p>
+        </div>
+
+        <!-- Bio / Deskripsi -->
+        <div class="space-y-2">
+          <label for="workerBioInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Bio & Deskripsi Keahlian
+          </label>
+          <textarea
+            id="workerBioInput"
+            rows="4"
+            [ngModel]="workerBioDescription()"
+            (ngModelChange)="workerBioDescription.set($event)"
+            name="workerBioDescription"
+            placeholder="Ceritakan pengalaman kerja, lisensi/sertifikasi, standar mutu, dan komitmen layanan Anda..."
+            class="m3-field-outlined resize-y"
+          ></textarea>
+        </div>
+
+        <!-- URL Foto Profil -->
+        <div class="space-y-2">
+          <label for="workerAvatarUrlInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            URL Foto Profil
+          </label>
+          <input
+            id="workerAvatarUrlInput"
+            type="url"
+            [ngModel]="workerAvatarUrl()"
+            (ngModelChange)="workerAvatarUrl.set($event)"
+            name="workerAvatarUrl"
+            placeholder="https://example.com/foto-profil.jpg"
+            class="m3-field-outlined"
+          />
+
+          @if (workerAvatarUrl()) {
+            <div class="flex items-center gap-3 pt-2">
+              <img
+                [src]="workerAvatarUrl()"
+                alt="Pratinjau foto profil"
+                class="w-12 h-12 rounded-full object-cover border border-[var(--md-sys-color-outline)]"
+              />
+              <span class="text-xs text-[var(--md-sys-color-on-surface-variant)]">Pratinjau Foto Profil</span>
+            </div>
+          }
+        </div>
+
+        <!-- Form Action -->
+        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+          <button
+            type="submit"
+            [disabled]="isProfileSubmitting()"
+            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+          >
+            @if (isProfileSubmitting()) {
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Menyimpan...</span>
+            } @else {
+              <span>Simpan Perubahan</span>
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+
+  </div>
+</div>

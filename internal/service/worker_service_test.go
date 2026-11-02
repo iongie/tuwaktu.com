@@ -128,3 +128,103 @@ func TestWorkerService_GetPublicProfileBySlug(t *testing.T) {
 		assert.Equal(t, "budi-santoso", profile.Slug)
 	})
 }
+
+func TestWorkerService_UpdateWorkerProfile(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success updates profile and returns public profile", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:          "worker-001",
+			Slug:        "budi-santoso",
+			Name:        "Budi Lama",
+			Bio:         "Bio lama",
+			AvatarURL:   "https://example.com/old.jpg",
+			Zone:        "Jakarta Barat",
+			PhoneNumber: "+6281111111",
+			Email:       "budi@example.com",
+			Address:     "Jl. Lama No. 1",
+			IsActive:    true,
+		}
+		repo.SeedWorker(worker)
+
+		s1 := &domain.Service{
+			ID:              "service-001",
+			WorkerID:        worker.ID,
+			Name:            "Reparasi AC",
+			Price:           150000,
+			DurationMinutes: 60,
+			IsActive:        true,
+		}
+		repo.SeedService(s1)
+
+		svc := service.NewWorkerService(repo)
+		updatePayload := &domain.WorkerProfileUpdate{
+			Name:        "Budi Santoso Baru",
+			Bio:         "Teknisi Berpengalaman 10 Tahun",
+			AvatarURL:   "https://example.com/new.jpg",
+			Zone:        "Jakarta Selatan",
+			PhoneNumber: "+6289999999",
+			Email:       "budi.baru@example.com",
+			Address:     "Jl. Baru No. 99",
+		}
+
+		profile, err := svc.UpdateWorkerProfile(ctx, "worker-001", updatePayload)
+		require.NoError(t, err)
+		require.NotNil(t, profile)
+
+		assert.Equal(t, "Budi Santoso Baru", profile.Name)
+		assert.Equal(t, "Teknisi Berpengalaman 10 Tahun", profile.Bio)
+		assert.Equal(t, "https://example.com/new.jpg", profile.AvatarURL)
+		assert.Equal(t, "Jakarta Selatan", profile.Zone)
+		assert.Equal(t, "budi-santoso", profile.Slug)
+		assert.Len(t, profile.Services, 1)
+		assert.Equal(t, "Reparasi AC", profile.Services[0].Name)
+	})
+
+	t.Run("returns ErrWorkerNotFound when worker ID not found", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		updatePayload := &domain.WorkerProfileUpdate{
+			Name: "Budi Santoso",
+		}
+
+		profile, err := svc.UpdateWorkerProfile(ctx, "non-existent-id", updatePayload)
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+		assert.Nil(t, profile)
+	})
+
+	t.Run("returns ErrInvalidInput on empty name or id", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		// Empty id
+		p1, err1 := svc.UpdateWorkerProfile(ctx, "   ", &domain.WorkerProfileUpdate{Name: "Budi"})
+		assert.ErrorIs(t, err1, domain.ErrInvalidInput)
+		assert.Nil(t, p1)
+
+		// Nil payload
+		p2, err2 := svc.UpdateWorkerProfile(ctx, "w-1", nil)
+		assert.ErrorIs(t, err2, domain.ErrInvalidInput)
+		assert.Nil(t, p2)
+
+		// Empty name
+		p3, err3 := svc.UpdateWorkerProfile(ctx, "w-1", &domain.WorkerProfileUpdate{Name: "   "})
+		assert.ErrorIs(t, err3, domain.ErrInvalidInput)
+		assert.Nil(t, p3)
+	})
+
+	t.Run("returns error on canceled context", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		canceledCtx, cancel := context.WithCancel(ctx)
+		cancel()
+
+		profile, err := svc.UpdateWorkerProfile(canceledCtx, "w-1", &domain.WorkerProfileUpdate{Name: "Budi"})
+		assert.ErrorIs(t, err, context.Canceled)
+		assert.Nil(t, profile)
+	})
+}
+

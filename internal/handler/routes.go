@@ -14,7 +14,7 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 		})
 	})
 
-	// Public API group
+	// Public API group (backward compatible)
 	api := app.Group("/api")
 	pub := api.Group("/public")
 
@@ -23,4 +23,16 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 
 	// Bookings endpoint
 	pub.Post("/bookings", bookingHandler.CreateBooking)
+
+	// Worker profile update endpoints
+	api.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
+
+	// API v1 group
+	v1 := api.Group("/v1")
+	v1Pub := v1.Group("/public")
+
+	v1Pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
+	v1Pub.Post("/bookings", bookingHandler.CreateBooking)
+	v1.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
 }
+

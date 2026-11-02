@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -79,4 +80,45 @@ func (r *PostgresWorkerRepository) GetServicesByWorkerID(ctx context.Context, wo
 	}
 
 	return services, nil
+}
+
+func (r *PostgresWorkerRepository) UpdateProfile(ctx context.Context, id string, profile *domain.WorkerProfileUpdate) (*domain.Worker, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("updating worker profile: %w", err)
+	}
+	if profile == nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.TrimSpace(profile.Name) != "" {
+		worker.Name = strings.TrimSpace(profile.Name)
+	}
+	worker.Bio = strings.TrimSpace(profile.Bio)
+	if strings.TrimSpace(profile.AvatarURL) != "" {
+		worker.AvatarURL = strings.TrimSpace(profile.AvatarURL)
+	}
+	if strings.TrimSpace(profile.Zone) != "" {
+		worker.Zone = strings.TrimSpace(profile.Zone)
+	}
+	if strings.TrimSpace(profile.PhoneNumber) != "" {
+		worker.PhoneNumber = strings.TrimSpace(profile.PhoneNumber)
+	}
+	if strings.TrimSpace(profile.Email) != "" {
+		worker.Email = strings.TrimSpace(profile.Email)
+	}
+	if strings.TrimSpace(profile.Address) != "" {
+		worker.Address = strings.TrimSpace(profile.Address)
+	}
+	worker.UpdatedAt = time.Now().UTC()
+
+	if err := r.db.WithContext(ctx).Save(worker).Error; err != nil {
+		return nil, fmt.Errorf("saving worker profile update: %w", err)
+	}
+
+	return worker, nil
 }

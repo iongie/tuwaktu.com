@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WorkerBookingStore } from '../../services/worker-booking.store';
 import {
@@ -33,6 +33,7 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     TechnicianSearchBarComponent,
     ServiceCatalogCardComponent,
     TechnicianProfileHeaderComponent,

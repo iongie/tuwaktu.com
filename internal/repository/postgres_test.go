@@ -548,3 +548,119 @@ func TestPostgresBookingRepository_GetWorkerBySlug(t *testing.T) {
 		assert.Nil(t, res)
 	})
 }
+
+func TestPostgresWorkerRepository_UpdateProfile(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success updates worker profile and updated_at", func(t *testing.T) {
+		db := setupTestDB(t)
+		initialTime := time.Now().Add(-1 * time.Hour).UTC()
+		w := domain.Worker{
+			ID:          "w-update-101",
+			Slug:        "supardi-kebun",
+			Name:        "Supardi",
+			Bio:         "Bio lama",
+			AvatarURL:   "https://example.com/old.jpg",
+			Zone:        "Jakarta Barat",
+			PhoneNumber: "+6281111111",
+			Email:       "old@tuwaktu.com",
+			Address:     "Alamat Lama",
+			IsActive:    true,
+			CreatedAt:   initialTime,
+			UpdatedAt:   initialTime,
+		}
+		require.NoError(t, db.Create(&w).Error)
+
+		repo := repository.NewPostgresWorkerRepository(db)
+		updatePayload := &domain.WorkerProfileUpdate{
+			Name:        "Supardi Baru",
+			Bio:         "Bio baru diperbarui",
+			AvatarURL:   "https://example.com/new.jpg",
+			Zone:        "Jakarta Selatan",
+			PhoneNumber: "+6289999999",
+			Email:       "new@tuwaktu.com",
+			Address:     "Alamat Baru",
+		}
+
+		updated, err := repo.UpdateProfile(ctx, "w-update-101", updatePayload)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+
+		assert.Equal(t, "Supardi Baru", updated.Name)
+		assert.Equal(t, "Bio baru diperbarui", updated.Bio)
+		assert.Equal(t, "https://example.com/new.jpg", updated.AvatarURL)
+		assert.Equal(t, "Jakarta Selatan", updated.Zone)
+		assert.Equal(t, "+6289999999", updated.PhoneNumber)
+		assert.Equal(t, "new@tuwaktu.com", updated.Email)
+		assert.Equal(t, "Alamat Baru", updated.Address)
+		assert.True(t, updated.UpdatedAt.After(initialTime))
+
+		// Verify re-fetch from database
+		persisted, err := repo.GetByID(ctx, "w-update-101")
+		require.NoError(t, err)
+		assert.Equal(t, "Supardi Baru", persisted.Name)
+		assert.Equal(t, "Bio baru diperbarui", persisted.Bio)
+	})
+
+	t.Run("partial update preserves existing optional fields", func(t *testing.T) {
+		db := setupTestDB(t)
+		w := domain.Worker{
+			ID:          "w-update-102",
+			Slug:        "budi-teknisi",
+			Name:        "Budi",
+			Bio:         "Bio Budi",
+			AvatarURL:   "https://example.com/avatar.jpg",
+			Zone:        "Jakarta Timur",
+			PhoneNumber: "+6285555555",
+			Email:       "budi@tuwaktu.com",
+			Address:     "Jl. Rawamangun",
+			IsActive:    true,
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+		}
+		require.NoError(t, db.Create(&w).Error)
+
+		repo := repository.NewPostgresWorkerRepository(db)
+		// Only update name and bio, leave others empty
+		partialUpdate := &domain.WorkerProfileUpdate{
+			Name: "Budi Updated",
+			Bio:  "Bio Budi Baru",
+		}
+
+		updated, err := repo.UpdateProfile(ctx, "w-update-102", partialUpdate)
+		require.NoError(t, err)
+		assert.Equal(t, "Budi Updated", updated.Name)
+		assert.Equal(t, "Bio Budi Baru", updated.Bio)
+		assert.Equal(t, "https://example.com/avatar.jpg", updated.AvatarURL)
+		assert.Equal(t, "Jakarta Timur", updated.Zone)
+		assert.Equal(t, "+6285555555", updated.PhoneNumber)
+	})
+
+	t.Run("nil profile returns ErrInvalidInput", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err := repo.UpdateProfile(ctx, "w-001", nil)
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("worker not found returns ErrWorkerNotFound", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err := repo.UpdateProfile(ctx, "non-existent-worker-id", &domain.WorkerProfileUpdate{Name: "Name"})
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+	})
+
+	t.Run("canceled context returns error", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		canceledCtx, cancel := context.WithCancel(ctx)
+		cancel()
+
+		_, err := repo.UpdateProfile(canceledCtx, "w-001", &domain.WorkerProfileUpdate{Name: "Name"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "updating worker profile")
+	})
+}

@@ -143,6 +143,24 @@ func TestWorkerHandler_GetWorkerBySlug(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
+
+	t.Run("200 OK - route alias /api/v1/public/workers/:slug works correctly", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/bambang-pamungkas", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&res)
+		require.NoError(t, err)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Data profil pekerja berhasil diambil", res.Message)
+		assert.Equal(t, "bambang-pamungkas", res.Data.Slug)
+	})
 }
 
 func TestBookingHandler_CreateBooking(t *testing.T) {
@@ -427,3 +445,178 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 		assert.Equal(t, "Layanan tidak sesuai dengan pekerja yang dipilih", errRes.Message)
 	})
 }
+
+func TestWorkerHandler_UpdateWorkerProfile(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:          "worker-update-001",
+		Slug:        "supardi-kebun",
+		Name:        "Supardi",
+		Bio:         "Tukang kebun berpengalaman",
+		AvatarURL:   "https://example.com/supardi.jpg",
+		Zone:        "Jakarta Selatan",
+		PhoneNumber: "+628111222333",
+		Email:       "supardi.rahasia@tuwaktu.com",
+		Address:     "Alamat Rahasia Supardi No. 12",
+		IsActive:    true,
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "service-supardi-1",
+		WorkerID:        worker.ID,
+		Name:            "Potong Rumput",
+		Price:           80000,
+		DurationMinutes: 60,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	t.Run("200 OK - PUT /api/workers/:id/profile updates worker successfully", func(t *testing.T) {
+		payload := map[string]any{
+			"name":         "Supardi Ahli Taman",
+			"bio":          "Spesialis desain taman dan bonsai",
+			"avatar_url":   "https://example.com/supardi-new.jpg",
+			"zone":         "Jakarta Selatan & Depok",
+			"phone_number": "+628999888777",
+			"email":        "supardi.baru@tuwaktu.com",
+			"address":      "Jl. Depok Baru No. 1",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/workers/"+worker.ID+"/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		respBodyBytes, _ := io.ReadAll(resp.Body)
+		respBodyStr := string(respBodyBytes)
+
+		// Privacy checks: sensitive fields must not leak
+		assert.NotContains(t, respBodyStr, "+628999888777")
+		assert.NotContains(t, respBodyStr, "supardi.baru@tuwaktu.com")
+		assert.NotContains(t, respBodyStr, "Jl. Depok Baru No. 1")
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		err = json.Unmarshal(respBodyBytes, &res)
+		require.NoError(t, err)
+
+		assert.True(t, res.Success)
+		assert.Equal(t, "Profil pekerja berhasil diperbarui", res.Message)
+		assert.Equal(t, "Supardi Ahli Taman", res.Data.Name)
+		assert.Equal(t, "Spesialis desain taman dan bonsai", res.Data.Bio)
+		assert.Equal(t, "Jakarta Selatan & Depok", res.Data.Zone)
+		assert.Equal(t, "https://example.com/supardi-new.jpg", res.Data.AvatarURL)
+		assert.Len(t, res.Data.Services, 1)
+	})
+
+	t.Run("200 OK - PUT /api/v1/workers/:id/profile alias works", func(t *testing.T) {
+		payload := map[string]any{
+			"name":       "Supardi Master Taman",
+			"bio":        "Konsultan lanskap taman",
+			"avatar_url": "https://example.com/supardi-v1.jpg",
+			"zone":       "Jabodetabek",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/workers/"+worker.ID+"/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Profil pekerja berhasil diperbarui", res.Message)
+		assert.Equal(t, "Supardi Master Taman", res.Data.Name)
+	})
+
+	t.Run("400 Bad Request - missing worker name in payload", func(t *testing.T) {
+		payload := map[string]any{
+			"name": "   ",
+			"bio":  "Bio tanpa nama",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/workers/"+worker.ID+"/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "nama pekerja wajib diisi", res.Message)
+	})
+
+	t.Run("404 Not Found - updating non-existent worker", func(t *testing.T) {
+		payload := map[string]any{
+			"name": "Orang Hilang",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/workers/non-existent-worker/profile", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "Pekerja tidak ditemukan", res.Message)
+	})
+
+	t.Run("400 Bad Request - malformed JSON payload", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPut, "/api/workers/"+worker.ID+"/profile", bytes.NewReader([]byte(`{"name": invalid-json`)))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "Format data payload tidak valid", res.Message)
+	})
+
+	t.Run("400 Bad Request - empty or whitespace worker ID parameter", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPut, "/api/workers/%20/profile", bytes.NewReader([]byte(`{"name": "Valid Name"}`)))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "ID pekerja wajib diisi", res.Message)
+	})
+}
+

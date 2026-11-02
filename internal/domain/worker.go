@@ -76,3 +76,15 @@ func (w *Worker) ToPublic(services []PublicService) PublicWorkerProfile {
 		Services:    services,
 	}
 }
+
+// WorkerProfileUpdate represents the payload to update worker profile details
+type WorkerProfileUpdate struct {
+	Name        string `json:"name"`
+	Bio         string `json:"bio"`
+	AvatarURL   string `json:"avatar_url"`
+	Zone        string `json:"zone"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+	Email       string `json:"email,omitempty"`
+	Address     string `json:"address,omitempty"`
+}
+

@@ -227,4 +227,63 @@ func TestEntities_UUIDv7BeforeCreate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, uuid.Version(7), parsed.Version())
 	})
+
+	t.Run("WorkerSchedule BeforeCreate generates valid UUIDv7 when ID is empty", func(t *testing.T) {
+		sc := &domain.WorkerSchedule{
+			WorkerID:  "w-123",
+			DayOfWeek: 1,
+		}
+		err := sc.BeforeCreate(nil)
+		require.NoError(t, err)
+		require.NotEmpty(t, sc.ID)
+
+		parsed, err := uuid.Parse(sc.ID)
+		require.NoError(t, err)
+		assert.Equal(t, uuid.Version(7), parsed.Version())
+	})
+
+	t.Run("WorkerSchedule BeforeCreate preserves existing ID", func(t *testing.T) {
+		customID := "custom-schedule-id"
+		sc := &domain.WorkerSchedule{
+			ID:        customID,
+			WorkerID:  "w-123",
+			DayOfWeek: 1,
+		}
+		err := sc.BeforeCreate(nil)
+		require.NoError(t, err)
+		assert.Equal(t, customID, sc.ID)
+	})
 }
+
+func TestCreateBookingRequest_ISOAndWIBDateParsing(t *testing.T) {
+	validReq := domain.CreateBookingRequest{
+		ClientName: "Andi",
+		ServiceID:  "srv-1",
+		Location:   "Jakarta",
+	}
+
+	t.Run("parses ISO format without timezone into WIB location", func(t *testing.T) {
+		req := validReq
+		// 2026-11-20T08:00:00 without offset
+		req.BookingDate = "2026-11-20T08:00:00"
+		parsed, err := req.Validate()
+		require.NoError(t, err)
+		assert.Equal(t, 2026, parsed.Year())
+		assert.Equal(t, time.November, parsed.Month())
+		assert.Equal(t, 20, parsed.Day())
+		assert.Equal(t, 8, parsed.Hour())
+		assert.Equal(t, 0, parsed.Minute())
+		// Location should be WIB (+07:00)
+		_, offset := parsed.Zone()
+		assert.Equal(t, 7*3600, offset)
+	})
+
+	t.Run("parses standard RFC3339 format correctly", func(t *testing.T) {
+		req := validReq
+		req.BookingDate = "2026-11-20T08:00:00Z"
+		parsed, err := req.Validate()
+		require.NoError(t, err)
+		assert.Equal(t, 8, parsed.UTC().Hour())
+	})
+}
+

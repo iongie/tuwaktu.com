@@ -187,4 +187,16 @@ func seedMemoryRepository(repo *repository.MemoryRepository) {
 	repo.SeedWorker(worker1)
 	repo.SeedService(service1)
 	repo.SeedService(service2)
+
+	for d := 0; d < 7; d++ {
+		repo.SeedSchedule(&domain.WorkerSchedule{
+			WorkerID:      worker1.ID,
+			DayOfWeek:     d,
+			DayName:       domain.GetDayName(d),
+			IsActive:      d != 0, // Libur hari Minggu
+			SlotMorning:   true,
+			SlotAfternoon: true,
+			SlotEvening:   d == 5 || d == 6, // Jumat & Sabtu malam buka
+		})
+	}
 }

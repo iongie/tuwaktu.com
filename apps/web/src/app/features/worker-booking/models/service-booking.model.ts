@@ -63,4 +63,31 @@ export interface FeeCalculationApiResponse {
   error: unknown;
 }
 
+export interface AvailableTimeSlot {
+  slot_type: 'MORNING' | 'AFTERNOON' | 'EVENING' | string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  available: boolean;
+  reason: string;
+}
+
+export interface AvailableSlotsData {
+  worker_id: string;
+  worker_slug: string;
+  worker_name: string;
+  date: string;
+  day_of_week: number;
+  day_name: string;
+  is_working_day: boolean;
+  slots: AvailableTimeSlot[];
+}
+
+export interface AvailableSlotsApiResponse {
+  success: boolean;
+  message: string;
+  data: AvailableSlotsData;
+  error?: unknown;
+}
+
 

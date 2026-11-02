@@ -9,6 +9,8 @@ import {
   WorkerRatesApiResponse,
   WorkerLocationSettingsUpdatePayload,
   WorkerLocationSettingsApiResponse,
+  WorkerScheduleItem,
+  WorkerSchedulesApiResponse,
 } from '../models/worker-profile.model';
 
 @Injectable({
@@ -62,6 +64,26 @@ export class WorkerDashboardApiService {
       {
         worker_id: workerId.trim(),
         ...payload,
+      }
+    );
+  }
+
+  fetchWorkerSchedules(workerIdOrSlug: string): Observable<WorkerSchedulesApiResponse> {
+    const sanitizedId = encodeURIComponent(workerIdOrSlug.trim());
+    return this.httpClient.get<WorkerSchedulesApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/schedules?worker_id=${sanitizedId}`
+    );
+  }
+
+  updateWorkerSchedules(
+    workerId: string,
+    schedules: WorkerScheduleItem[]
+  ): Observable<WorkerSchedulesApiResponse> {
+    return this.httpClient.put<WorkerSchedulesApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/schedules`,
+      {
+        worker_id: workerId.trim(),
+        schedules,
       }
     );
   }

@@ -5,6 +5,8 @@ import {
   PublicTechnicianProfile,
 } from '../models/worker-catalog.model';
 import {
+  AvailableSlotsData,
+  AvailableTimeSlot,
   CreateServiceBookingPayload,
   FeeCalculationResult,
   ServiceBookingConfirmation,
@@ -24,6 +26,17 @@ export class WorkerBookingStore {
   readonly feeCalculation = signal<FeeCalculationResult | null>(null);
   readonly isCalculatingFee = signal<boolean>(false);
   readonly feeCalculationError = signal<string | null>(null);
+
+  readonly selectedBookingDate = signal<string>('');
+  readonly availableSlotsData = signal<AvailableSlotsData | null>(null);
+  readonly isSlotsLoading = signal<boolean>(false);
+  readonly slotsErrorMessage = signal<string | null>(null);
+  readonly selectedTimeSlot = signal<AvailableTimeSlot | null>(null);
+
+  readonly availableSlots = computed(() => this.availableSlotsData()?.slots ?? []);
+  readonly isSelectedDateWorkingDay = computed(
+    () => this.availableSlotsData()?.is_working_day ?? true
+  );
 
   readonly isProfileLoading = signal<boolean>(false);
   readonly isReservationSubmitting = signal<boolean>(false);
@@ -73,6 +86,9 @@ export class WorkerBookingStore {
         if (this.clientCoordinates()) {
           this.triggerFeeCalculation();
         }
+        if (this.selectedBookingDate()) {
+          this.loadAvailableSlots(this.selectedBookingDate());
+        }
       },
       error: (err: { status?: number; error?: { message?: string } }) => {
         this.isProfileLoading.set(false);
@@ -91,6 +107,9 @@ export class WorkerBookingStore {
     this.selectedCatalogService.set(serviceItem);
     if (this.clientCoordinates()) {
       this.triggerFeeCalculation();
+    }
+    if (this.selectedBookingDate()) {
+      this.loadAvailableSlots(this.selectedBookingDate());
     }
   }
 
@@ -178,5 +197,42 @@ export class WorkerBookingStore {
 
   dismissReservationSuccess(): void {
     this.confirmedReservation.set(null);
+  }
+
+  loadAvailableSlots(date: string): void {
+    const worker = this.activeTechnicianProfile();
+    const cleanDate = date.trim();
+    if (!worker || !cleanDate) {
+      return;
+    }
+
+    this.selectedBookingDate.set(cleanDate);
+    this.selectedTimeSlot.set(null);
+    this.isSlotsLoading.set(true);
+    this.slotsErrorMessage.set(null);
+
+    const service = this.selectedCatalogService();
+    this.bookingApi.fetchAvailableSlots(worker.slug, cleanDate, service?.id).subscribe({
+      next: (response) => {
+        this.isSlotsLoading.set(false);
+        this.availableSlotsData.set(response.data);
+        this.slotsErrorMessage.set(null);
+      },
+      error: (err: { status?: number; error?: { message?: string } }) => {
+        this.isSlotsLoading.set(false);
+        this.availableSlotsData.set(null);
+        this.slotsErrorMessage.set(
+          err.error?.message ||
+            'Gagal mengambil daftar slot ketersediaan teknisi untuk tanggal tersebut.'
+        );
+      },
+    });
+  }
+
+  selectTimeSlot(slot: AvailableTimeSlot): void {
+    if (!slot.available) {
+      return;
+    }
+    this.selectedTimeSlot.set(slot);
   }
 }

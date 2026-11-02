@@ -73,6 +73,24 @@ describe('WorkerDashboardProfileComponent', () => {
           },
         })
       ),
+      fetchWorkerSchedules: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Daftar jadwal kerja berhasil diambil',
+          data: [
+            { day_of_week: 1, day_name: 'Senin', is_active: true, slot_morning: true, slot_afternoon: true, slot_evening: false },
+          ],
+        })
+      ),
+      updateWorkerSchedules: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Konfigurasi jadwal kerja mingguan berhasil disimpan!',
+          data: [
+            { day_of_week: 1, day_name: 'Senin', is_active: true, slot_morning: true, slot_afternoon: false, slot_evening: true },
+          ],
+        })
+      ),
     };
 
     await TestBed.configureTestingModule({
@@ -458,6 +476,60 @@ describe('WorkerDashboardProfileComponent', () => {
 
     expect(mockApiService.updateWorkerLocationSettings).not.toHaveBeenCalled();
     expect(component.locationFeedbackError()).toContain('ID pekerja belum tersedia');
+  });
+
+  it('harus memuat jadwal pekerja dan menyusun dengan Senin di awal', () => {
+    component.loadWorkerSchedules('worker-uuid-123');
+
+    expect(mockApiService.fetchWorkerSchedules).toHaveBeenCalledWith('worker-uuid-123');
+    const schedules = component.workerSchedules();
+    expect(schedules.length).toBe(7);
+    expect(schedules[0].day_name).toBe('Senin');
+    expect(schedules[0].day_of_week).toBe(1);
+    expect(schedules[6].day_name).toBe('Minggu');
+    expect(schedules[6].day_of_week).toBe(0);
+  });
+
+  it('harus mengubah status aktif hari kerja saat toggleScheduleDayActive dipanggil', () => {
+    component.workerSchedules.set(component.createDefaultWeeklySchedule());
+    const initialMondayActive = component.workerSchedules()[0].is_active;
+
+    component.toggleScheduleDayActive(1);
+    expect(component.workerSchedules()[0].is_active).toBe(!initialMondayActive);
+
+    component.toggleScheduleDayActive(1);
+    expect(component.workerSchedules()[0].is_active).toBe(initialMondayActive);
+  });
+
+  it('harus mengubah ketersediaan blok slot saat toggleScheduleSlot dipanggil', () => {
+    component.workerSchedules.set(component.createDefaultWeeklySchedule());
+    const initialMorning = component.workerSchedules()[0].slot_morning;
+
+    component.toggleScheduleSlot(1, 'slot_morning');
+    expect(component.workerSchedules()[0].slot_morning).toBe(!initialMorning);
+  });
+
+  it('harus berhasil submit konfigurasi jadwal saat form valid', () => {
+    component.workerRecordId.set('worker-uuid-123');
+    const dummySchedules = component.createDefaultWeeklySchedule();
+    component.workerSchedules.set(dummySchedules);
+
+    component.submitScheduleUpdate();
+
+    expect(mockApiService.updateWorkerSchedules).toHaveBeenCalledWith(
+      'worker-uuid-123',
+      dummySchedules
+    );
+    expect(component.scheduleFeedbackSuccess()).toContain('Konfigurasi jadwal');
+    expect(component.isScheduleSubmitting()).toBe(false);
+  });
+
+  it('harus menolak submit jadwal jika ID pekerja belum tersedia', () => {
+    component.workerRecordId.set('');
+    component.submitScheduleUpdate();
+
+    expect(mockApiService.updateWorkerSchedules).not.toHaveBeenCalled();
+    expect(component.scheduleFeedbackError()).toContain('ID pekerja belum tersedia');
   });
 });
 

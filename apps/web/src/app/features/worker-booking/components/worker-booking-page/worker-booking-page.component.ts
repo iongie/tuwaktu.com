@@ -17,7 +17,10 @@ import {
   PublicServiceCatalogItem,
   PublicTechnicianProfile,
 } from '../../models/worker-catalog.model';
-import { CreateServiceBookingPayload } from '../../models/service-booking.model';
+import {
+  AvailableTimeSlot,
+  CreateServiceBookingPayload,
+} from '../../models/service-booking.model';
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
 import { TechnicianSearchBarComponent } from '../molecules/technician-search-bar/technician-search-bar.component';
 import { ServiceCatalogCardComponent } from '../molecules/service-catalog-card/service-catalog-card.component';
@@ -262,17 +265,30 @@ export class WorkerBookingPageComponent implements OnInit {
     });
   }
 
+  onBookingDateChanged(newDate: string): void {
+    if (!newDate) return;
+    this.store.loadAvailableSlots(newDate);
+  }
+
+  onSlotSelected(slot: AvailableTimeSlot): void {
+    this.store.selectTimeSlot(slot);
+    const date = this.store.selectedBookingDate();
+    if (date) {
+      this.reservationScheduledDate = `${date}T${slot.start_time}:00`;
+      this.clearClientValidationError('booking_date');
+    }
+  }
+
   private initializeDefaultReservationSchedule(): void {
     const nextDay = new Date();
     nextDay.setDate(nextDay.getDate() + 1);
-    nextDay.setHours(10, 0, 0, 0);
 
     const year = nextDay.getFullYear();
     const month = String(nextDay.getMonth() + 1).padStart(2, '0');
     const day = String(nextDay.getDate()).padStart(2, '0');
-    const hours = String(nextDay.getHours()).padStart(2, '0');
-    const minutes = String(nextDay.getMinutes()).padStart(2, '0');
 
-    this.reservationScheduledDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+    const defaultDate = `${year}-${month}-${day}`;
+    this.store.selectedBookingDate.set(defaultDate);
+    this.reservationScheduledDate = `${defaultDate}T08:00:00`;
   }
 }

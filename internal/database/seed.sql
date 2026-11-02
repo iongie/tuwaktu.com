@@ -134,3 +134,38 @@ INSERT INTO services (
 ) ON CONFLICT (id) DO UPDATE SET
     base_price = EXCLUDED.base_price,
     rate_type = EXCLUDED.rate_type;
+
+-- Worker Schedules for Worker 1 (Budi Santoso)
+INSERT INTO worker_schedules (
+    worker_id, day_of_week, is_active, slot_morning, slot_afternoon, slot_evening
+) VALUES
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 0, FALSE, FALSE, FALSE, FALSE),
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 1, TRUE, TRUE, TRUE, FALSE),
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 2, TRUE, TRUE, TRUE, FALSE),
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 3, TRUE, TRUE, TRUE, FALSE),
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 4, TRUE, TRUE, TRUE, FALSE),
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 5, TRUE, TRUE, TRUE, FALSE),
+    ('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', 6, TRUE, TRUE, FALSE, FALSE)
+ON CONFLICT (worker_id, day_of_week) DO UPDATE SET
+    is_active = EXCLUDED.is_active,
+    slot_morning = EXCLUDED.slot_morning,
+    slot_afternoon = EXCLUDED.slot_afternoon,
+    slot_evening = EXCLUDED.slot_evening;
+
+-- Worker Schedules for Worker 2 (Siti Aminah)
+INSERT INTO worker_schedules (
+    worker_id, day_of_week, is_active, slot_morning, slot_afternoon, slot_evening
+) VALUES
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 0, FALSE, FALSE, FALSE, FALSE),
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 1, TRUE, TRUE, TRUE, TRUE),
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 2, TRUE, TRUE, TRUE, TRUE),
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 3, TRUE, TRUE, TRUE, TRUE),
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 4, TRUE, TRUE, TRUE, TRUE),
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 5, TRUE, TRUE, TRUE, FALSE),
+    ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 6, FALSE, FALSE, FALSE, FALSE)
+ON CONFLICT (worker_id, day_of_week) DO UPDATE SET
+    is_active = EXCLUDED.is_active,
+    slot_morning = EXCLUDED.slot_morning,
+    slot_afternoon = EXCLUDED.slot_afternoon,
+    slot_evening = EXCLUDED.slot_evening;
+

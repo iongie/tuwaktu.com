@@ -125,4 +125,78 @@ describe('ServiceBookingFormComponent', () => {
 
     expect(submitted).toBe(true);
   });
+
+  it('harus merender slot ketersediaan waktu dan menonaktifkan slot yang bentrok buffer transit', () => {
+    const slots = [
+      {
+        slot_type: 'MORNING',
+        name: 'Pagi',
+        start_time: '08:00',
+        end_time: '11:30',
+        available: true,
+        reason: 'Tersedia',
+      },
+      {
+        slot_type: 'AFTERNOON',
+        name: 'Siang',
+        start_time: '13:00',
+        end_time: '16:30',
+        available: false,
+        reason: 'Bentrok buffer transit 60 menit',
+      },
+    ];
+
+    componentRef.setInput('availableSlots', slots);
+    componentRef.setInput('selectedBookingDate', '2026-11-03');
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.textContent).toContain('Pagi');
+    expect(compiled.textContent).toContain('Siang');
+    expect(compiled.textContent).toContain('08:00 - 11:30');
+    expect(compiled.textContent).toContain('13:00 - 16:30');
+    expect(compiled.textContent).toContain('Bentrok buffer transit 60 menit');
+
+    const buttons = compiled.querySelectorAll('div[role="group"] button');
+    expect(buttons.length).toBe(2);
+    expect((buttons[0] as HTMLButtonElement).disabled).toBe(false);
+    expect((buttons[1] as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('harus memancarkan event slotSelect dan memperbarui jadwal saat slot yang tersedia diklik', () => {
+    const slot = {
+      slot_type: 'MORNING',
+      name: 'Pagi',
+      start_time: '08:00',
+      end_time: '11:30',
+      available: true,
+      reason: 'Tersedia',
+    };
+
+    componentRef.setInput('selectedBookingDate', '2026-11-03');
+    let emittedSlot: unknown = null;
+    component.slotSelect.subscribe((s) => {
+      emittedSlot = s;
+    });
+
+    let draftChanged: BookingFormDraft | null = null;
+    component.formDraftChange.subscribe((draft) => {
+      draftChanged = draft;
+    });
+
+    component.onSlotClick(slot);
+
+    expect(emittedSlot).toEqual(slot);
+    expect(draftChanged?.reservationScheduledDate).toBe('2026-11-03T08:00:00');
+  });
+
+  it('harus memancarkan event dateChange saat tanggal picker diubah', () => {
+    let changedDate = '';
+    component.dateChange.subscribe((d) => {
+      changedDate = d;
+    });
+
+    component.onDatePickerChange('2026-11-04');
+    expect(changedDate).toBe('2026-11-04');
+  });
 });

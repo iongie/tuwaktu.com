@@ -12,7 +12,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WorkerDashboardApiService } from '../../services/worker-dashboard-api.service';
-import { WorkerProfileUpdatePayload } from '../../models/worker-profile.model';
+import {
+  WorkerProfileUpdatePayload,
+  WorkerScheduleItem,
+} from '../../models/worker-profile.model';
 import { LocationMapPickerComponent } from '../../../worker-booking/components/molecules/location-map-picker/location-map-picker.component';
 
 @Component({
@@ -61,6 +64,12 @@ export class WorkerDashboardProfileComponent implements OnInit {
   readonly locationFeedbackSuccess = signal<string | null>(null);
   readonly locationFeedbackError = signal<string | null>(null);
   readonly locationValidationErrors = signal<Record<string, string>>({});
+
+  readonly workerSchedules = signal<WorkerScheduleItem[]>([]);
+  readonly isScheduleLoading = signal<boolean>(false);
+  readonly isScheduleSubmitting = signal<boolean>(false);
+  readonly scheduleFeedbackSuccess = signal<string | null>(null);
+  readonly scheduleFeedbackError = signal<string | null>(null);
 
   readonly formattedBasePricePreview = computed(() => {
     const price = this.workerBasePrice();
@@ -145,6 +154,9 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.locationFeedbackSuccess.set(null);
     this.locationFeedbackError.set(null);
     this.locationValidationErrors.set({});
+    this.workerSchedules.set([]);
+    this.scheduleFeedbackSuccess.set(null);
+    this.scheduleFeedbackError.set(null);
     this.router.navigate([], { queryParams: { slug: null }, queryParamsHandling: 'merge' });
   }
 
@@ -154,6 +166,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.profileFeedbackError.set(null);
     this.ratesFeedbackError.set(null);
     this.locationFeedbackError.set(null);
+    this.scheduleFeedbackError.set(null);
     this.workerLookupSlugInput.set(sanitizedSlug);
 
     this.dashboardApiService
@@ -177,6 +190,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
               free_radius_km: response.data.free_radius_km,
               extra_fee_per_km: response.data.extra_fee_per_km,
             });
+            this.loadWorkerSchedules(response.data.id || sanitizedSlug);
             this.router.navigate([], {
               queryParams: { slug: sanitizedSlug },
               queryParamsHandling: 'merge',
@@ -598,6 +612,142 @@ export class WorkerDashboardProfileComponent implements OnInit {
           this.locationFeedbackError.set(
             serverMsg ||
               'Gagal menyimpan pengaturan lokasi pekerja. Silakan periksa koneksi atau coba kembali.'
+          );
+        },
+      });
+  }
+
+  loadWorkerSchedules(workerIdOrSlug: string): void {
+    const sanitized = workerIdOrSlug.trim();
+    if (!sanitized) return;
+
+    this.isScheduleLoading.set(true);
+    this.scheduleFeedbackError.set(null);
+
+    this.dashboardApiService
+      .fetchWorkerSchedules(sanitized)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.isScheduleLoading.set(false);
+          if (response.success && response.data && response.data.length > 0) {
+            this.workerSchedules.set(this.sortSchedulesMondayFirst(response.data));
+          } else {
+            this.workerSchedules.set(this.createDefaultWeeklySchedule());
+          }
+        },
+        error: () => {
+          this.isScheduleLoading.set(false);
+          this.workerSchedules.set(this.createDefaultWeeklySchedule());
+        },
+      });
+  }
+
+  createDefaultWeeklySchedule(): WorkerScheduleItem[] {
+    const days = [
+      { day_of_week: 1, day_name: 'Senin' },
+      { day_of_week: 2, day_name: 'Selasa' },
+      { day_of_week: 3, day_name: 'Rabu' },
+      { day_of_week: 4, day_name: 'Kamis' },
+      { day_of_week: 5, day_name: 'Jumat' },
+      { day_of_week: 6, day_name: 'Sabtu' },
+      { day_of_week: 0, day_name: 'Minggu' },
+    ];
+    return days.map((d) => ({
+      day_of_week: d.day_of_week,
+      day_name: d.day_name,
+      is_active: d.day_of_week !== 0,
+      slot_morning: true,
+      slot_afternoon: true,
+      slot_evening: false,
+    }));
+  }
+
+  private sortSchedulesMondayFirst(items: WorkerScheduleItem[]): WorkerScheduleItem[] {
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const map = new Map<number, WorkerScheduleItem>();
+    for (const item of items) {
+      map.set(item.day_of_week, item);
+    }
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    return order.map((dayNum) => {
+      const existing = map.get(dayNum);
+      if (existing) {
+        return {
+          ...existing,
+          day_name: existing.day_name || dayNames[dayNum],
+        };
+      }
+      return {
+        day_of_week: dayNum,
+        day_name: dayNames[dayNum],
+        is_active: dayNum !== 0,
+        slot_morning: true,
+        slot_afternoon: true,
+        slot_evening: false,
+      };
+    });
+  }
+
+  toggleScheduleDayActive(dayOfWeek: number): void {
+    const current = this.workerSchedules();
+    const updated = current.map((item) => {
+      if (item.day_of_week === dayOfWeek) {
+        return { ...item, is_active: !item.is_active };
+      }
+      return item;
+    });
+    this.workerSchedules.set(updated);
+  }
+
+  toggleScheduleSlot(
+    dayOfWeek: number,
+    slotKey: 'slot_morning' | 'slot_afternoon' | 'slot_evening'
+  ): void {
+    const current = this.workerSchedules();
+    const updated = current.map((item) => {
+      if (item.day_of_week === dayOfWeek) {
+        return { ...item, [slotKey]: !item[slotKey] };
+      }
+      return item;
+    });
+    this.workerSchedules.set(updated);
+  }
+
+  submitScheduleUpdate(): void {
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      this.scheduleFeedbackError.set(
+        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
+      );
+      return;
+    }
+
+    this.isScheduleSubmitting.set(true);
+    this.scheduleFeedbackSuccess.set(null);
+    this.scheduleFeedbackError.set(null);
+
+    this.dashboardApiService
+      .updateWorkerSchedules(workerId, this.workerSchedules())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.isScheduleSubmitting.set(false);
+          if (response.success) {
+            this.scheduleFeedbackSuccess.set(
+              response.message || 'Konfigurasi jadwal kerja mingguan berhasil disimpan!'
+            );
+            if (response.data && response.data.length > 0) {
+              this.workerSchedules.set(this.sortSchedulesMondayFirst(response.data));
+            }
+          }
+        },
+        error: (err) => {
+          this.isScheduleSubmitting.set(false);
+          const serverMsg = err?.error?.message;
+          this.scheduleFeedbackError.set(
+            serverMsg ||
+              'Gagal menyimpan konfigurasi jadwal kerja. Silakan periksa koneksi atau coba kembali.'
           );
         },
       });

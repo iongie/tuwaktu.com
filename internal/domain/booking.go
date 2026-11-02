@@ -22,8 +22,10 @@ type Booking struct {
 	ClientEmail string    `json:"client_email" db:"client_email" gorm:"type:varchar(150);default:''"`
 	Location    string    `json:"location" db:"location" gorm:"type:text;not null"`
 	Zone        string    `json:"zone" db:"zone" gorm:"type:varchar(100);not null"`
-	BookingDate time.Time `json:"booking_date" db:"booking_date" gorm:"not null"`
-	Notes       string    `json:"notes" db:"notes" gorm:"type:text;default:''"`
+	BookingDate time.Time  `json:"booking_date" db:"booking_date" gorm:"not null"`
+	StartTime   *time.Time `json:"start_time,omitempty" db:"start_time" gorm:"type:timestamptz"`
+	EndTime     *time.Time `json:"end_time,omitempty" db:"end_time" gorm:"type:timestamptz"`
+	Notes       string     `json:"notes" db:"notes" gorm:"type:text;default:''"`
 	TotalPrice  float64   `json:"total_price" db:"total_price" gorm:"type:numeric(12,2);not null"`
 	Status      string    `json:"status" db:"status" gorm:"type:varchar(50);default:'PENDING';index"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
@@ -236,17 +238,23 @@ func (r *CreateBookingRequest) Validate() (time.Time, error) {
 }
 
 func parseBookingDate(val string) (time.Time, error) {
+	loc := time.FixedZone("WIB", 7*3600)
 	layouts := []string{
 		time.RFC3339,
 		time.RFC3339Nano,
-		"2006-01-02 15:04:05",
-		"2006-01-02 15:04",
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04:05.999999999",
 		"2006-01-02T15:04",
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04:05.999999999",
+		"2006-01-02 15:04",
+		"2006-01-02 15:04:05Z07:00",
+		"2006-01-02 15:04:05.999999999Z07:00",
 		"2006-01-02",
 	}
 
 	for _, layout := range layouts {
-		if t, err := time.Parse(layout, val); err == nil {
+		if t, err := time.ParseInLocation(layout, val, loc); err == nil {
 			return t, nil
 		}
 	}
@@ -263,8 +271,10 @@ type PublicBookingResponse struct {
 	ClientName   string    `json:"client_name"`
 	Location     string    `json:"location"`
 	Zone         string    `json:"zone"`
-	BookingDate  time.Time `json:"booking_date"`
-	Notes        string    `json:"notes,omitempty"`
+	BookingDate  time.Time  `json:"booking_date"`
+	StartTime    *time.Time `json:"start_time,omitempty"`
+	EndTime      *time.Time `json:"end_time,omitempty"`
+	Notes        string     `json:"notes,omitempty"`
 	TotalPrice   float64   `json:"total_price"`
 	TransportFee float64   `json:"transport_fee,omitempty"`
 	Status       string    `json:"status"`

@@ -14,6 +14,8 @@ type WorkerService interface {
 	UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerRates(ctx context.Context, req *domain.WorkerRateUpdate) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error)
+	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerScheduleItem, error)
+	UpdateWorkerSchedules(ctx context.Context, idOrSlug string, req []domain.WorkerScheduleItem) ([]domain.WorkerScheduleItem, error)
 }
 
 type workerService struct {
@@ -180,4 +182,80 @@ func (s *workerService) UpdateWorkerLocationSettings(ctx context.Context, req *d
 	profile := updatedWorker.ToPublic(publicServices)
 	return &profile, nil
 }
+
+func (s *workerService) GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerScheduleItem, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	schedules, err := s.repo.GetWorkerSchedules(ctx, idOrSlug)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]domain.WorkerScheduleItem, len(schedules))
+	for i, sc := range schedules {
+		items[i] = domain.WorkerScheduleItem{
+			DayOfWeek:     sc.DayOfWeek,
+			DayName:       domain.GetDayName(sc.DayOfWeek),
+			IsActive:      sc.IsActive,
+			SlotMorning:   sc.SlotMorning,
+			SlotAfternoon: sc.SlotAfternoon,
+			SlotEvening:   sc.SlotEvening,
+		}
+	}
+
+	return items, nil
+}
+
+func (s *workerService) UpdateWorkerSchedules(ctx context.Context, idOrSlug string, req []domain.WorkerScheduleItem) ([]domain.WorkerScheduleItem, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+	if len(req) == 0 {
+		return nil, fmt.Errorf("%w: konfigurasi jadwal kerja tidak boleh kosong", domain.ErrInvalidInput)
+	}
+
+	entities := make([]domain.WorkerSchedule, len(req))
+	for i, item := range req {
+		if item.DayOfWeek < 0 || item.DayOfWeek > 6 {
+			return nil, domain.ErrInvalidScheduleDay
+		}
+		entities[i] = domain.WorkerSchedule{
+			DayOfWeek:     item.DayOfWeek,
+			IsActive:      item.IsActive,
+			SlotMorning:   item.SlotMorning,
+			SlotAfternoon: item.SlotAfternoon,
+			SlotEvening:   item.SlotEvening,
+		}
+	}
+
+	updated, err := s.repo.UpdateWorkerSchedules(ctx, idOrSlug, entities)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]domain.WorkerScheduleItem, len(updated))
+	for i, sc := range updated {
+		items[i] = domain.WorkerScheduleItem{
+			DayOfWeek:     sc.DayOfWeek,
+			DayName:       domain.GetDayName(sc.DayOfWeek),
+			IsActive:      sc.IsActive,
+			SlotMorning:   sc.SlotMorning,
+			SlotAfternoon: sc.SlotAfternoon,
+			SlotEvening:   sc.SlotEvening,
+		}
+	}
+
+	return items, nil
+}
+
 

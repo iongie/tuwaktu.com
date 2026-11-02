@@ -13,4 +13,7 @@ var (
 	ErrInvalidRateType       = errors.New("Tipe tarif tidak valid. Nilai yang diizinkan adalah HOURLY atau UNIT")
 	ErrOutOfServiceRadius    = errors.New("Di luar jangkauan: Lokasi pemesanan melebihi batas jangkauan layanan pekerja")
 	ErrWorkerLocationNotSet  = errors.New("Pekerja belum mengatur titik koordinat lokasi layanan")
+	ErrSlotUnavailable      = errors.New("slot waktu tidak tersedia atau bertabrakan dengan jadwal pesanan lain")
+	ErrInvalidScheduleDay    = errors.New("hari jadwal kerja tidak valid (harus bernilai antara 0 sampai 6)")
 )
+

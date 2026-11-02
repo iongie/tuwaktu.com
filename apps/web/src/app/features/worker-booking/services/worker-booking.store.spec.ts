@@ -38,6 +38,7 @@ describe('WorkerBookingStore', () => {
       fetchPublicTechnicianProfile: jest.fn(),
       submitServiceBookingReservation: jest.fn(),
       calculateBookingFee: jest.fn(),
+      fetchAvailableSlots: jest.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -171,6 +172,83 @@ describe('WorkerBookingStore', () => {
     expect(store.isOutOfRadius()).toBe(true);
     expect(store.feeCalculationError()).toContain('Di luar jangkauan');
     expect(store.feeCalculation()).toBeNull();
+  });
+
+  it('harus memuat slot ketersediaan teknisi untuk tanggal tertentu', () => {
+    mockApiService.fetchPublicTechnicianProfile.mockReturnValue(
+      of({ success: true, message: 'OK', data: sampleProfile })
+    );
+    mockApiService.fetchAvailableSlots.mockReturnValue(
+      of({
+        success: true,
+        message: 'Daftar slot ketersediaan berhasil diambil',
+        data: {
+          worker_id: 'tech-1',
+          worker_slug: 'budi-santoso',
+          worker_name: 'Budi Santoso',
+          date: '2026-11-03',
+          day_of_week: 2,
+          day_name: 'Selasa',
+          is_working_day: true,
+          slots: [
+            {
+              slot_type: 'MORNING',
+              name: 'Pagi',
+              start_time: '08:00',
+              end_time: '11:30',
+              available: true,
+              reason: 'Tersedia',
+            },
+            {
+              slot_type: 'AFTERNOON',
+              name: 'Siang',
+              start_time: '13:00',
+              end_time: '16:30',
+              available: false,
+              reason: 'Bentrok buffer transit 60 menit',
+            },
+          ],
+        },
+      })
+    );
+
+    store.loadTechnicianProfile('budi-santoso');
+    store.loadAvailableSlots('2026-11-03');
+
+    expect(mockApiService.fetchAvailableSlots).toHaveBeenCalledWith(
+      'budi-santoso',
+      '2026-11-03',
+      'srv-1'
+    );
+    expect(store.availableSlots().length).toBe(2);
+    expect(store.availableSlots()[0].available).toBe(true);
+    expect(store.availableSlots()[1].available).toBe(false);
+    expect(store.isSelectedDateWorkingDay()).toBe(true);
+  });
+
+  it('harus memilih slot yang tersedia dan menolak slot yang tidak tersedia', () => {
+    const slotAvailable = {
+      slot_type: 'MORNING',
+      name: 'Pagi',
+      start_time: '08:00',
+      end_time: '11:30',
+      available: true,
+      reason: 'Tersedia',
+    };
+    const slotUnavailable = {
+      slot_type: 'AFTERNOON',
+      name: 'Siang',
+      start_time: '13:00',
+      end_time: '16:30',
+      available: false,
+      reason: 'Bentrok buffer transit 60 menit',
+    };
+
+    store.selectTimeSlot(slotUnavailable);
+    expect(store.selectedTimeSlot()).toBeNull();
+
+    store.selectTimeSlot(slotAvailable);
+    expect(store.selectedTimeSlot()).toEqual(slotAvailable);
   });
 });
 

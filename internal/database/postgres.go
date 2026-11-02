@@ -247,5 +247,30 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		}
 	}
 
+	seedSchedules := []domain.WorkerSchedule{
+		// Budi Santoso (worker 1)
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 0, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 2, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 3, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 4, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 5, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{WorkerID: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", DayOfWeek: 6, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: false},
+		// Siti Aminah (worker 2)
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 0, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: true},
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 2, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: true},
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 3, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: true},
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 4, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: true},
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 5, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{WorkerID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", DayOfWeek: 6, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+	}
+
+	for _, sc := range seedSchedules {
+		if err := dbWithCtx.Clauses(clause.OnConflict{DoNothing: true}).Create(&sc).Error; err != nil {
+			return fmt.Errorf("seeding worker_schedule: %w", err)
+		}
+	}
+
 	return nil
 }

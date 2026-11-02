@@ -61,6 +61,17 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			created_at DATETIME,
 			updated_at DATETIME
 		);
+		CREATE TABLE worker_schedules (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			day_of_week INTEGER,
+			is_active BOOLEAN,
+			slot_morning BOOLEAN,
+			slot_afternoon BOOLEAN,
+			slot_evening BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
 		CREATE TABLE bookings (
 			id TEXT PRIMARY KEY,
 			booking_code TEXT UNIQUE,
@@ -72,6 +83,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			location TEXT,
 			zone TEXT,
 			booking_date DATETIME,
+			start_time DATETIME,
+			end_time DATETIME,
 			notes TEXT,
 			total_price REAL,
 			status TEXT,
@@ -856,6 +869,130 @@ func TestPostgresWorkerRepository_UpdateLocationSettings(t *testing.T) {
 		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
 	})
 }
+
+func TestPostgresWorkerRepository_Schedules(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("returns default 7 days when no schedule exists in DB", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		worker := &domain.Worker{
+			ID:       "w-sched-pg-1",
+			Slug:     "agus-sched",
+			Name:     "Agus",
+			IsActive: true,
+		}
+		require.NoError(t, db.Create(worker).Error)
+
+		schedules, err := repo.GetWorkerSchedules(ctx, "agus-sched")
+		require.NoError(t, err)
+		assert.Len(t, schedules, 7)
+		assert.Equal(t, "Minggu", schedules[0].DayName)
+		assert.Equal(t, "Senin", schedules[1].DayName)
+	})
+
+	t.Run("successfully creates and updates worker schedules in DB", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		worker := &domain.Worker{
+			ID:       "w-sched-pg-2",
+			Slug:     "bambang-sched",
+			Name:     "Bambang",
+			IsActive: true,
+		}
+		require.NoError(t, db.Create(worker).Error)
+
+		items := []domain.WorkerSchedule{
+			{DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: true},
+			{DayOfWeek: 2, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+		}
+
+		updated, err := repo.UpdateWorkerSchedules(ctx, worker.ID, items)
+		require.NoError(t, err)
+		require.NotEmpty(t, updated)
+
+		var monday *domain.WorkerSchedule
+		for i := range updated {
+			if updated[i].DayOfWeek == 1 {
+				monday = &updated[i]
+				break
+			}
+		}
+		require.NotNil(t, monday)
+		assert.True(t, monday.IsActive)
+		assert.True(t, monday.SlotMorning)
+		assert.False(t, monday.SlotAfternoon)
+		assert.True(t, monday.SlotEvening)
+		assert.NotEmpty(t, monday.ID)
+	})
+
+	t.Run("returns ErrWorkerNotFound on non-existent worker", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err := repo.GetWorkerSchedules(ctx, "none")
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+
+		_, err2 := repo.UpdateWorkerSchedules(ctx, "none", []domain.WorkerSchedule{{DayOfWeek: 1}})
+		assert.ErrorIs(t, err2, domain.ErrWorkerNotFound)
+	})
+}
+
+func TestPostgresBookingRepository_BookingsAndSchedules(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("queries bookings by worker and date range with start_time and end_time", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresBookingRepository(db)
+
+		workerID := "w-bkg-pg-1"
+		w := &domain.Worker{ID: workerID, Slug: "tono-bkg", Name: "Tono", IsActive: true}
+		require.NoError(t, db.Create(w).Error)
+
+		baseDate := time.Date(2026, 11, 10, 10, 0, 0, 0, time.UTC)
+		b1Start := baseDate
+		b1End := baseDate.Add(2 * time.Hour)
+		b1 := &domain.Booking{
+			ID:          "bkg-pg-1",
+			BookingCode: "TW-PG-001",
+			WorkerID:    workerID,
+			ServiceID:   "srv-1",
+			ClientName:  "Klien 1",
+			BookingDate: b1Start,
+			StartTime:   &b1Start,
+			EndTime:     &b1End,
+			Status:      "CONFIRMED",
+		}
+		require.NoError(t, db.Create(b1).Error)
+
+		// Overlapping range [09:00, 11:00]
+		results, err := repo.GetBookingsByWorkerAndDateRange(ctx, workerID, baseDate.Add(-1*time.Hour), baseDate.Add(1*time.Hour))
+		require.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, "bkg-pg-1", results[0].ID)
+
+		// Non-overlapping range [13:00, 15:00]
+		nonOverlapping, err := repo.GetBookingsByWorkerAndDateRange(ctx, workerID, baseDate.Add(3*time.Hour), baseDate.Add(5*time.Hour))
+		require.NoError(t, err)
+		assert.Empty(t, nonOverlapping)
+	})
+
+	t.Run("GetWorkerSchedules from PostgresBookingRepository", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresBookingRepository(db)
+
+		workerID := "w-bkg-pg-2"
+		w := &domain.Worker{ID: workerID, Slug: "joko-bkg", Name: "Joko", IsActive: true}
+		require.NoError(t, db.Create(w).Error)
+
+		schedules, err := repo.GetWorkerSchedules(ctx, "joko-bkg")
+		require.NoError(t, err)
+		assert.Len(t, schedules, 7)
+	})
+}
+
 
 
 func TestPostgresWorkerRepository_RealPostgresIntegration(t *testing.T) {

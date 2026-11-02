@@ -20,6 +20,9 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 
 	// Workers endpoint
 	pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
+	pub.Get("/worker/:slug", workerHandler.GetWorkerBySlug)
+	pub.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
+	pub.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 
 	// Bookings endpoint
 	pub.Post("/bookings", bookingHandler.CreateBooking)
@@ -32,12 +35,20 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	// Worker rates endpoints & profile alias
 	api.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	api.Get("/worker/:slug/profile", workerHandler.GetWorkerBySlug)
+	api.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
+	api.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	api.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	api.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
 
 	// Worker location settings endpoints
 	api.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
 	api.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
+
+	// Worker schedules endpoints
+	api.Get("/worker/schedules", workerHandler.GetWorkerSchedules)
+	api.Get("/workers/:id/schedules", workerHandler.GetWorkerSchedules)
+	api.Put("/worker/schedules", workerHandler.UpdateWorkerSchedules)
+	api.Put("/workers/:id/schedules", workerHandler.UpdateWorkerSchedules)
 
 	// Booking calculate-fee endpoint
 	api.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
@@ -48,16 +59,25 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	v1Pub := v1.Group("/public")
 
 	v1Pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
+	v1Pub.Get("/worker/:slug", workerHandler.GetWorkerBySlug)
+	v1Pub.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
+	v1Pub.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	v1Pub.Post("/bookings", bookingHandler.CreateBooking)
 	v1Pub.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	v1Pub.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 	v1.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	v1.Get("/worker/:slug/profile", workerHandler.GetWorkerBySlug)
+	v1.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
+	v1.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	v1.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	v1.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
 	v1.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
 	v1.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
 	v1.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
+	v1.Get("/worker/schedules", workerHandler.GetWorkerSchedules)
+	v1.Get("/workers/:id/schedules", workerHandler.GetWorkerSchedules)
+	v1.Put("/worker/schedules", workerHandler.UpdateWorkerSchedules)
+	v1.Put("/workers/:id/schedules", workerHandler.UpdateWorkerSchedules)
 	v1.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	v1.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 }

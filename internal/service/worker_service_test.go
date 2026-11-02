@@ -536,3 +536,119 @@ func TestWorkerService_UpdateWorkerLocationSettings(t *testing.T) {
 	})
 }
 
+func TestWorkerService_GetWorkerSchedules(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("returns default 7 days when no custom schedule configured", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:       "w-sched-1",
+			Slug:     "budi-teknisi",
+			Name:     "Budi",
+			IsActive: true,
+		}
+		repo.SeedWorker(worker)
+
+		svc := service.NewWorkerService(repo)
+		schedules, err := svc.GetWorkerSchedules(ctx, "budi-teknisi")
+		require.NoError(t, err)
+		assert.Len(t, schedules, 7)
+		assert.Equal(t, "Minggu", schedules[0].DayName)
+		assert.Equal(t, "Senin", schedules[1].DayName)
+		assert.True(t, schedules[1].IsActive)
+	})
+
+	t.Run("returns ErrInvalidInput on empty id", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+		_, err := svc.GetWorkerSchedules(ctx, "   ")
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrWorkerNotFound on unknown worker", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+		_, err := svc.GetWorkerSchedules(ctx, "unknown-worker")
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+	})
+}
+
+func TestWorkerService_UpdateWorkerSchedules(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success updates schedules", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:       "w-sched-2",
+			Slug:     "siti-bersih",
+			Name:     "Siti",
+			IsActive: true,
+		}
+		repo.SeedWorker(worker)
+
+		svc := service.NewWorkerService(repo)
+		req := []domain.WorkerScheduleItem{
+			{DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: false},
+			{DayOfWeek: 2, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+		}
+
+		updated, err := svc.UpdateWorkerSchedules(ctx, "siti-bersih", req)
+		require.NoError(t, err)
+		require.NotEmpty(t, updated)
+
+		var monday, tuesday *domain.WorkerScheduleItem
+		for i := range updated {
+			if updated[i].DayOfWeek == 1 {
+				monday = &updated[i]
+			}
+			if updated[i].DayOfWeek == 2 {
+				tuesday = &updated[i]
+			}
+		}
+
+		require.NotNil(t, monday)
+		assert.True(t, monday.IsActive)
+		assert.True(t, monday.SlotMorning)
+		assert.False(t, monday.SlotAfternoon)
+		assert.Equal(t, "Senin", monday.DayName)
+
+		require.NotNil(t, tuesday)
+		assert.False(t, tuesday.IsActive)
+		assert.Equal(t, "Selasa", tuesday.DayName)
+	})
+
+	t.Run("returns ErrInvalidScheduleDay on invalid day", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:       "w-sched-3",
+			Slug:     "doni-service",
+			Name:     "Doni",
+			IsActive: true,
+		}
+		repo.SeedWorker(worker)
+
+		svc := service.NewWorkerService(repo)
+		req := []domain.WorkerScheduleItem{
+			{DayOfWeek: 7, IsActive: true}, // Invalid! (Only 0-6 allowed)
+		}
+
+		_, err := svc.UpdateWorkerSchedules(ctx, "doni-service", req)
+		assert.ErrorIs(t, err, domain.ErrInvalidScheduleDay)
+	})
+
+	t.Run("returns ErrInvalidInput on empty payload", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		worker := &domain.Worker{
+			ID:       "w-sched-4",
+			Slug:     "rudi",
+			IsActive: true,
+		}
+		repo.SeedWorker(worker)
+
+		svc := service.NewWorkerService(repo)
+		_, err := svc.UpdateWorkerSchedules(ctx, "rudi", []domain.WorkerScheduleItem{})
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+}
+
+

@@ -56,4 +56,18 @@ describe('WorkerBookingApiService', () => {
     expect(req.request.body).toEqual(payload);
     req.flush({ success: true, message: 'Sukses dibuat', data: {} });
   });
+
+  it('harus memanggil endpoint GET available-slots dengan query date dan service_id', () => {
+    service.fetchAvailableSlots('budi-santoso', '2026-11-03', 'srv-1').subscribe();
+
+    const req = httpMock.expectOne(
+      'http://localhost:8080/api/v1/public/workers/budi-santoso/available-slots?date=2026-11-03&service_id=srv-1'
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      success: true,
+      message: 'Daftar slot ketersediaan berhasil diambil',
+      data: { slots: [] },
+    });
+  });
 });

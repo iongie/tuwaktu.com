@@ -83,5 +83,44 @@ describe('WorkerDashboardApiService', () => {
       data: {},
     });
   });
+
+  it('harus memanggil endpoint GET jadwal pekerja v1 dengan worker_id', () => {
+    service.fetchWorkerSchedules('worker-uuid-1').subscribe();
+
+    const req = httpMock.expectOne(
+      'http://localhost:8080/api/v1/worker/schedules?worker_id=worker-uuid-1'
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ success: true, message: 'Daftar jadwal kerja berhasil diambil', data: [] });
+  });
+
+  it('harus memanggil endpoint PUT jadwal pekerja v1 dengan payload schedules', () => {
+    const schedules = [
+      {
+        day_of_week: 1,
+        day_name: 'Senin',
+        is_active: true,
+        slot_morning: true,
+        slot_afternoon: false,
+        slot_evening: true,
+      },
+    ];
+
+    service.updateWorkerSchedules('worker-uuid-1', schedules).subscribe();
+
+    const req = httpMock.expectOne(
+      'http://localhost:8080/api/v1/worker/schedules'
+    );
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({
+      worker_id: 'worker-uuid-1',
+      schedules,
+    });
+    req.flush({
+      success: true,
+      message: 'Konfigurasi jadwal kerja berhasil disimpan',
+      data: schedules,
+    });
+  });
 });
 

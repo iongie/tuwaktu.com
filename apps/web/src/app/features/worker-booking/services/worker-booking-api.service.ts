@@ -8,6 +8,7 @@ import {
   ServiceBookingApiResponse,
   CalculateFeeRequestPayload,
   FeeCalculationApiResponse,
+  AvailableSlotsApiResponse,
 } from '../models/service-booking.model';
 
 @Injectable({
@@ -44,5 +45,18 @@ export class WorkerBookingApiService {
       `${this.normalizedBaseUrl}/api/v1/booking/calculate-fee`,
       payload
     );
+  }
+
+  fetchAvailableSlots(
+    workerSlug: string,
+    date: string,
+    serviceId?: string
+  ): Observable<AvailableSlotsApiResponse> {
+    const sanitizedSlug = encodeURIComponent(workerSlug.trim().toLowerCase());
+    let url = `${this.normalizedBaseUrl}/api/v1/public/workers/${sanitizedSlug}/available-slots?date=${encodeURIComponent(date.trim())}`;
+    if (serviceId && serviceId.trim()) {
+      url += `&service_id=${encodeURIComponent(serviceId.trim())}`;
+    }
+    return this.httpClient.get<AvailableSlotsApiResponse>(url);
   }
 }

@@ -86,6 +86,39 @@ describe('WorkerBookingPageComponent', () => {
           },
         })
       ),
+      fetchAvailableSlots: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Daftar slot ketersediaan berhasil diambil',
+          data: {
+            worker_id: 'tech-1',
+            worker_slug: 'budi-santoso',
+            worker_name: 'Budi Santoso',
+            date: '2026-11-03',
+            day_of_week: 2,
+            day_name: 'Selasa',
+            is_working_day: true,
+            slots: [
+              {
+                slot_type: 'MORNING',
+                name: 'Pagi',
+                start_time: '08:00',
+                end_time: '11:30',
+                available: true,
+                reason: 'Tersedia',
+              },
+              {
+                slot_type: 'AFTERNOON',
+                name: 'Siang',
+                start_time: '13:00',
+                end_time: '16:30',
+                available: false,
+                reason: 'Bentrok buffer transit 60 menit',
+              },
+            ],
+          },
+        })
+      ),
     };
 
   await TestBed.configureTestingModule({

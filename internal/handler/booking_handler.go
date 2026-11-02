@@ -2,6 +2,8 @@ package handler
 
 import (
 	"errors"
+	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"tuwaktu.com/internal/domain"
@@ -25,6 +27,9 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 
 	res, err := h.service.CreateBooking(c.UserContext(), req)
 	if err != nil {
+		if errors.Is(err, domain.ErrSlotUnavailable) {
+			return ErrorResponse(c, fiber.StatusConflict, "Slot waktu tidak tersedia atau bertabrakan dengan jadwal pesanan lain (termasuk buffer transit 60 menit)", err.Error())
+		}
 		if errors.Is(err, domain.ErrOutOfServiceRadius) {
 			return ErrorResponse(c, fiber.StatusUnprocessableEntity, "Di luar jangkauan: Lokasi pemesanan melebihi batas jangkauan layanan pekerja", err.Error())
 		}
@@ -84,4 +89,52 @@ func (h *BookingHandler) CalculateFee(c *fiber.Ctx) error {
 
 	return SuccessResponse(c, fiber.StatusOK, "Kalkulasi biaya pemesanan berhasil dihitung", res)
 }
+
+// GetAvailableSlots handles GET /api/v1/public/workers/:slug/available-slots and alias GET /api/public/workers/:slug/available-slots
+func (h *BookingHandler) GetAvailableSlots(c *fiber.Ctx) error {
+	rawSlug := c.Params("slug")
+	if unescaped, err := url.PathUnescape(rawSlug); err == nil {
+		rawSlug = unescaped
+	}
+	slug := strings.TrimSpace(rawSlug)
+	if slug == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Parameter slug pekerja wajib diisi", nil)
+	}
+
+	dateStr := strings.TrimSpace(c.Query("date"))
+	if dateStr == "" {
+		dateStr = strings.TrimSpace(c.Query("tanggal"))
+	}
+	if dateStr == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Parameter tanggal (date) wajib diisi dengan format YYYY-MM-DD", nil)
+	}
+
+	serviceID := strings.TrimSpace(c.Query("service_id"))
+	if serviceID == "" {
+		serviceID = strings.TrimSpace(c.Query("serviceId"))
+	}
+	if serviceID == "" {
+		serviceID = strings.TrimSpace(c.Query("layanan_id"))
+	}
+
+	res, err := h.service.GetAvailableSlots(c.UserContext(), slug, dateStr, serviceID)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) || errors.Is(err, domain.ErrWorkerInactive) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan atau sedang tidak aktif", err.Error())
+		}
+		if errors.Is(err, domain.ErrServiceNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Layanan tidak ditemukan atau sedang tidak aktif", err.Error())
+		}
+		if errors.Is(err, domain.ErrServiceWorkerMismatch) {
+			return ErrorResponse(c, fiber.StatusBadRequest, "Layanan tidak sesuai dengan pekerja yang dipilih", err.Error())
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal mengambil daftar slot ketersediaan", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Daftar slot ketersediaan berhasil diambil", res)
+}
+
 

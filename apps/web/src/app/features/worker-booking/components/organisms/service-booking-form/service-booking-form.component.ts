@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicServiceCatalogItem } from '../../../models/worker-catalog.model';
-import { FeeCalculationResult } from '../../../models/service-booking.model';
+import { AvailableTimeSlot, FeeCalculationResult } from '../../../models/service-booking.model';
 import { LocationMapPickerComponent } from '../../molecules/location-map-picker/location-map-picker.component';
 
 export interface BookingFormDraft {
@@ -171,40 +171,125 @@ export interface BookingFormDraft {
           />
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div>
-            <label for="serviceZoneInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-              Zona Operasional
+        <div>
+          <label for="serviceZoneInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
+            Zona Operasional
+          </label>
+          <input
+            id="serviceZoneInput"
+            type="text"
+            name="serviceOperationalZone"
+            [ngModel]="formDraft().serviceOperationalZone"
+            (ngModelChange)="updateDraftField('serviceOperationalZone', $event); clearFieldError.emit('location')"
+            placeholder="Misal: Jakarta Selatan"
+            class="m3-field-outlined"
+          />
+        </div>
+
+        <!-- Pemilih Tanggal & Blok Waktu Kunjungan Interaktif -->
+        <div class="space-y-3 pt-1">
+          <div class="flex items-center justify-between">
+            <label for="bookingDatePickerInput" class="block text-xs font-mono font-medium text-[#4E4642]">
+              Pilih Tanggal Kunjungan <span class="text-[#BA1A1A]">*</span>
             </label>
-            <input
-              id="serviceZoneInput"
-              type="text"
-              name="serviceOperationalZone"
-              [ngModel]="formDraft().serviceOperationalZone"
-              (ngModelChange)="updateDraftField('serviceOperationalZone', $event); clearFieldError.emit('location')"
-              placeholder="Misal: Jakarta Selatan"
-              class="m3-field-outlined"
-            />
-          </div>
-          <div>
-            <label for="scheduledDateInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-              Waktu Kedatangan
-            </label>
-            <input
-              id="scheduledDateInput"
-              type="datetime-local"
-              name="reservationScheduledDate"
-              [ngModel]="formDraft().reservationScheduledDate"
-              (ngModelChange)="updateDraftField('reservationScheduledDate', $event); clearFieldError.emit('booking_date')"
-              class="m3-field-outlined"
-              [class.m3-field-error]="validationErrors()['booking_date']"
-            />
-            @if (validationErrors()['booking_date']) {
-              <p class="mt-1.5 text-xs text-[#BA1A1A] font-mono">
-                {{ validationErrors()['booking_date'] }}
-              </p>
+            @if (formDraft().reservationScheduledDate) {
+              <span class="text-[11px] font-mono text-[#1E4D3B] font-semibold">
+                Jadwal: {{ formDraft().reservationScheduledDate | date:'dd MMM yyyy, HH:mm' }}
+              </span>
             }
           </div>
+
+          <input
+            id="bookingDatePickerInput"
+            type="date"
+            name="bookingDateInput"
+            [min]="minimumBookingDate"
+            [ngModel]="selectedBookingDate()"
+            (ngModelChange)="onDatePickerChange($event)"
+            class="m3-field-outlined"
+            [class.m3-field-error]="validationErrors()['booking_date']"
+          />
+
+          @if (validationErrors()['booking_date']) {
+            <p class="text-xs text-[#BA1A1A] font-mono">
+              {{ validationErrors()['booking_date'] }}
+            </p>
+          }
+
+          <!-- Blok Slot Waktu -->
+          @if (isSlotsLoading()) {
+            <div class="space-y-2 py-2" aria-label="Memuat slot ketersediaan teknisi">
+              <div class="text-[11px] font-mono text-[#4E4642] animate-pulse">
+                Memeriksa ketersediaan slot &amp; buffer transit 60 menit...
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="h-14 bg-[#D2C4BE]/30 rounded-xl animate-pulse"></div>
+                <div class="h-14 bg-[#D2C4BE]/30 rounded-xl animate-pulse"></div>
+                <div class="h-14 bg-[#D2C4BE]/30 rounded-xl animate-pulse"></div>
+              </div>
+            </div>
+          } @else if (slotsErrorMessage()) {
+            <div class="p-3 bg-[#FFDAD6] border border-[#BA1A1A] rounded-xl text-xs text-[#410002] font-mono">
+              {{ slotsErrorMessage() }}
+            </div>
+          } @else if (!isSelectedDateWorkingDay()) {
+            <div class="p-3 bg-[#FFDAD3]/40 border border-[#C84B31]/40 rounded-xl text-xs text-[#3F0300] font-mono">
+              Teknisi libur pada hari ini. Silakan pilih tanggal kerja lain.
+            </div>
+          } @else if (availableSlots().length > 0) {
+            <div class="space-y-2">
+              <div class="text-[11px] font-mono font-medium text-[#4E4642] flex items-center justify-between">
+                <span>PILIH BLOK WAKTU KUNJUNGAN:</span>
+                <span class="text-[10px] text-[#4E4642]">Termasuk buffer transit 60 mnt</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" role="group" aria-label="Pilihan Slot Waktu">
+                @for (slot of availableSlots(); track slot.slot_type) {
+                  <button
+                    type="button"
+                    [disabled]="!slot.available"
+                    (click)="onSlotClick(slot)"
+                    class="min-h-[48px] p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all"
+                    [class.cursor-pointer]="slot.available"
+                    [class.cursor-not-allowed]="!slot.available"
+                    [class.opacity-60]="!slot.available"
+                    [class.bg-[#FDFCFB]]="slot.available && !isSlotSelected(slot)"
+                    [class.border-[#D2C4BE]]="slot.available && !isSlotSelected(slot)"
+                    [class.bg-[#FFDAD3]]="slot.available && isSlotSelected(slot)"
+                    [class.border-[#C84B31]]="slot.available && isSlotSelected(slot)"
+                    [class.ring-2]="slot.available && isSlotSelected(slot)"
+                    [class.ring-[#C84B31]]="slot.available && isSlotSelected(slot)"
+                    [class.bg-[#F0EDE7]]="!slot.available"
+                  >
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-xs" [class.text-[#C84B31]]="slot.available && isSlotSelected(slot)" [class.text-[#141413]]="slot.available && !isSlotSelected(slot)" [class.text-[#4E4642]]="!slot.available">
+                        {{ slot.name }}
+                      </span>
+                      @if (slot.available) {
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold" [class.bg-[#C84B31]]="isSlotSelected(slot)" [class.text-white]="isSlotSelected(slot)" [class.bg-[#CBECE0]]="!isSlotSelected(slot)" [class.text-[#002116]]="!isSlotSelected(slot)">
+                          {{ isSlotSelected(slot) ? 'Dipilih' : 'Tersedia' }}
+                        </span>
+                      } @else {
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-medium bg-[#EAE6DF] text-[#807570]">
+                          Penuh
+                        </span>
+                      }
+                    </div>
+
+                    <div class="mt-1 font-mono text-[11px]" [class.text-[#141413]]="slot.available" [class.text-[#807570]]="!slot.available">
+                      {{ slot.start_time }} - {{ slot.end_time }}
+                    </div>
+
+                    @if (!slot.available && slot.reason) {
+                      <div class="text-[10px] font-mono text-[#BA1A1A] mt-0.5 truncate" [title]="slot.reason">
+                        {{ slot.reason }}
+                      </div>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <div>
@@ -299,10 +384,50 @@ export class ServiceBookingFormComponent {
   readonly feeCalculationError = input<string | null>(null);
   readonly isOutOfRadius = input<boolean>(false);
 
+  readonly availableSlots = input<AvailableTimeSlot[]>([]);
+  readonly isSlotsLoading = input<boolean>(false);
+  readonly slotsErrorMessage = input<string | null>(null);
+  readonly selectedTimeSlot = input<AvailableTimeSlot | null>(null);
+  readonly selectedBookingDate = input<string>('');
+  readonly isSelectedDateWorkingDay = input<boolean>(true);
+
   readonly formDraftChange = output<BookingFormDraft>();
   readonly clientCoordinatesChange = output<{ lat: number; lng: number }>();
   readonly clearFieldError = output<string>();
   readonly submitForm = output<void>();
+  readonly dateChange = output<string>();
+  readonly slotSelect = output<AvailableTimeSlot>();
+
+  get minimumBookingDate(): string {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  onDatePickerChange(dateStr: string): void {
+    this.dateChange.emit(dateStr);
+  }
+
+  onSlotClick(slot: AvailableTimeSlot): void {
+    if (!slot.available) return;
+    this.slotSelect.emit(slot);
+    const date = this.selectedBookingDate();
+    if (date) {
+      this.updateDraftField('reservationScheduledDate', `${date}T${slot.start_time}:00`);
+      this.clearFieldError.emit('booking_date');
+    }
+  }
+
+  isSlotSelected(slot: AvailableTimeSlot): boolean {
+    const current = this.selectedTimeSlot();
+    if (current && current.slot_type === slot.slot_type) {
+      return true;
+    }
+    const currentDraftDate = this.formDraft().reservationScheduledDate;
+    return !!currentDraftDate && currentDraftDate.includes(`T${slot.start_time}`);
+  }
 
   updateDraftField<K extends keyof BookingFormDraft>(field: K, value: BookingFormDraft[K]): void {
     this.formDraftChange.emit({

@@ -18,6 +18,7 @@ import (
 type BookingService interface {
 	CreateBooking(ctx context.Context, req domain.CreateBookingRequest) (*domain.PublicBookingResponse, error)
 	CalculateFee(ctx context.Context, req domain.CalculateFeeRequest) (*domain.FeeCalculationResponse, error)
+	GetAvailableSlots(ctx context.Context, workerSlug string, dateStr string, serviceID string) (*domain.AvailableSlotsResponse, error)
 }
 
 type bookingService struct {
@@ -127,6 +128,38 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 		return nil, fmt.Errorf("generating booking id: %w", err)
 	}
 
+	durationMinutes := srv.DurationMinutes
+	if durationMinutes <= 0 {
+		durationMinutes = 60
+	}
+	startTime := bookingDate
+	endTime := startTime.Add(time.Duration(durationMinutes) * time.Minute)
+
+	// Check for collision with existing worker bookings (including 60 min transit buffer)
+	// only when booking_date was explicitly specified by the client
+	if strings.TrimSpace(req.BookingDate) != "" {
+		buffer := domain.TransitBufferDuration
+		existingBookings, err := s.repo.GetBookingsByWorkerAndDateRange(ctx, worker.ID, startTime.Add(-buffer-4*time.Hour), endTime.Add(buffer+4*time.Hour))
+		if err == nil {
+			for _, b := range existingBookings {
+				if b.Status == "CANCELLED" {
+					continue
+				}
+				bStart := b.BookingDate
+				bEnd := bStart.Add(60 * time.Minute)
+				if b.StartTime != nil {
+					bStart = *b.StartTime
+				}
+				if b.EndTime != nil {
+					bEnd = *b.EndTime
+				}
+				if startTime.Before(bEnd.Add(buffer)) && endTime.After(bStart.Add(-buffer)) {
+					return nil, domain.ErrSlotUnavailable
+				}
+			}
+		}
+	}
+
 	now := time.Now().UTC()
 	booking := &domain.Booking{
 		ID:          bookingID.String(),
@@ -139,6 +172,8 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 		Location:    location,
 		Zone:        zone,
 		BookingDate: bookingDate,
+		StartTime:   &startTime,
+		EndTime:     &endTime,
 		Notes:       strings.TrimSpace(req.Notes),
 		TotalPrice:  totalPrice,
 		Status:      "PENDING",
@@ -162,6 +197,8 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 		Location:     booking.Location,
 		Zone:         booking.Zone,
 		BookingDate:  booking.BookingDate,
+		StartTime:    &startTime,
+		EndTime:      &endTime,
 		Notes:        booking.Notes,
 		TotalPrice:   booking.TotalPrice,
 		TransportFee: transportFee,
@@ -277,4 +314,202 @@ func (s *bookingService) CalculateFee(ctx context.Context, req domain.CalculateF
 		IsWithinRadius: true,
 	}, nil
 }
+
+func (s *bookingService) GetAvailableSlots(ctx context.Context, workerSlug string, dateStr string, serviceID string) (*domain.AvailableSlotsResponse, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	workerSlug = strings.ToLower(strings.TrimSpace(workerSlug))
+	if workerSlug == "" {
+		return nil, fmt.Errorf("%w: slug pekerja wajib diisi", domain.ErrInvalidInput)
+	}
+
+	worker, err := s.repo.GetWorkerBySlug(ctx, workerSlug)
+	if err != nil {
+		return nil, err
+	}
+	if !worker.IsActive {
+		return nil, domain.ErrWorkerInactive
+	}
+
+	if strings.TrimSpace(serviceID) != "" {
+		srv, err := s.repo.GetServiceByID(ctx, strings.TrimSpace(serviceID))
+		if err != nil {
+			return nil, err
+		}
+		if srv.WorkerID != worker.ID {
+			return nil, domain.ErrServiceWorkerMismatch
+		}
+	}
+
+	dateStr = strings.TrimSpace(dateStr)
+	if dateStr == "" {
+		return nil, fmt.Errorf("%w: parameter tanggal (date) wajib diisi dengan format YYYY-MM-DD", domain.ErrInvalidInput)
+	}
+
+	parsedDate, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return nil, fmt.Errorf("%w: format tanggal tidak valid, gunakan format YYYY-MM-DD (contoh: 2026-11-03)", domain.ErrInvalidInput)
+	}
+
+	// Use Indonesia Western Time (WIB, UTC+7) as base operational timezone
+	loc := time.FixedZone("WIB", 7*3600)
+	dateInLoc := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, loc)
+
+	dayOfWeek := int(dateInLoc.Weekday())
+	dayName := domain.GetDayName(dayOfWeek)
+
+	// Fetch schedules for worker
+	schedules, err := s.repo.GetWorkerSchedules(ctx, worker.ID)
+	if err != nil {
+		return nil, fmt.Errorf("mengambil jadwal pekerja: %w", err)
+	}
+
+	isWorkingDay := true
+	slotMorningActive := true
+	slotAfternoonActive := true
+	slotEveningActive := false
+
+	var foundSchedule bool
+	for _, sc := range schedules {
+		if sc.DayOfWeek == dayOfWeek {
+			isWorkingDay = sc.IsActive
+			slotMorningActive = sc.SlotMorning
+			slotAfternoonActive = sc.SlotAfternoon
+			slotEveningActive = sc.SlotEvening
+			foundSchedule = true
+			break
+		}
+	}
+	if !foundSchedule {
+		// Default rule if no schedule entry exists:
+		// Sunday (0) is off, others Morning & Afternoon active
+		if dayOfWeek == 0 {
+			isWorkingDay = false
+			slotMorningActive = false
+			slotAfternoonActive = false
+			slotEveningActive = false
+		} else {
+			isWorkingDay = true
+			slotMorningActive = true
+			slotAfternoonActive = true
+			slotEveningActive = false
+		}
+	}
+
+	// Fetch existing bookings for this worker around this date
+	dayStart := time.Date(dateInLoc.Year(), dateInLoc.Month(), dateInLoc.Day(), 0, 0, 0, 0, loc)
+	dayEnd := time.Date(dateInLoc.Year(), dateInLoc.Month(), dateInLoc.Day(), 23, 59, 59, 999999999, loc)
+
+	bookings, err := s.repo.GetBookingsByWorkerAndDateRange(ctx, worker.ID, dayStart.Add(-4*time.Hour), dayEnd.Add(4*time.Hour))
+	if err != nil {
+		return nil, fmt.Errorf("mengambil data pesanan pekerja: %w", err)
+	}
+
+	slotConfigs := []struct {
+		SlotType  string
+		Name      string
+		StartTime string
+		EndTime   string
+		StartH    int
+		StartM    int
+		EndH      int
+		EndM      int
+		IsActive  bool
+	}{
+		{
+			SlotType:  domain.SlotMorning,
+			Name:      "Pagi",
+			StartTime: domain.SlotMorningStart,
+			EndTime:   domain.SlotMorningEnd,
+			StartH:    8, StartM: 0,
+			EndH:      11, EndM: 30,
+			IsActive:  slotMorningActive,
+		},
+		{
+			SlotType:  domain.SlotAfternoon,
+			Name:      "Siang",
+			StartTime: domain.SlotAfternoonStart,
+			EndTime:   domain.SlotAfternoonEnd,
+			StartH:    13, StartM: 0,
+			EndH:      16, EndM: 30,
+			IsActive:  slotAfternoonActive,
+		},
+		{
+			SlotType:  domain.SlotEvening,
+			Name:      "Sore",
+			StartTime: domain.SlotEveningStart,
+			EndTime:   domain.SlotEveningEnd,
+			StartH:    17, StartM: 0,
+			EndH:      20, EndM: 30,
+			IsActive:  slotEveningActive,
+		},
+	}
+
+	now := time.Now().UTC()
+	slots := make([]domain.AvailableTimeSlot, len(slotConfigs))
+
+	for i, cfg := range slotConfigs {
+		slotStart := time.Date(dateInLoc.Year(), dateInLoc.Month(), dateInLoc.Day(), cfg.StartH, cfg.StartM, 0, 0, loc)
+		slotEnd := time.Date(dateInLoc.Year(), dateInLoc.Month(), dateInLoc.Day(), cfg.EndH, cfg.EndM, 0, 0, loc)
+
+		slot := domain.AvailableTimeSlot{
+			SlotType:  cfg.SlotType,
+			Name:      cfg.Name,
+			StartTime: cfg.StartTime,
+			EndTime:   cfg.EndTime,
+			Available: true,
+			Reason:    "Tersedia",
+		}
+
+		if !isWorkingDay {
+			slot.Available = false
+			slot.Reason = "Pekerja libur pada hari yang dipilih"
+		} else if !cfg.IsActive {
+			slot.Available = false
+			slot.Reason = "Slot tidak diaktifkan oleh pekerja"
+		} else if slotStart.Before(now) {
+			slot.Available = false
+			slot.Reason = "Waktu slot telah berlalu"
+		} else {
+			// Transit buffer 60 minutes conflict:
+			// slot_start < booking.end_time + 60m && slot_end > booking.start_time - 60m
+			buffer := domain.TransitBufferDuration
+			for _, b := range bookings {
+				if b.Status == "CANCELLED" {
+					continue
+				}
+
+				bStart := b.BookingDate
+				bEnd := bStart.Add(60 * time.Minute)
+				if b.StartTime != nil {
+					bStart = *b.StartTime
+				}
+				if b.EndTime != nil {
+					bEnd = *b.EndTime
+				}
+
+				if slotStart.Before(bEnd.Add(buffer)) && slotEnd.After(bStart.Add(-buffer)) {
+					slot.Available = false
+					slot.Reason = "Slot bentrok dengan pesanan lain (termasuk buffer transit 60 menit)"
+					break
+				}
+			}
+		}
+
+		slots[i] = slot
+	}
+
+	return &domain.AvailableSlotsResponse{
+		WorkerID:     worker.ID,
+		WorkerSlug:   worker.Slug,
+		WorkerName:   worker.Name,
+		Date:         dateStr,
+		DayOfWeek:    dayOfWeek,
+		DayName:      dayName,
+		IsWorkingDay: isWorkingDay,
+		Slots:        slots,
+	}, nil
+}
+
 

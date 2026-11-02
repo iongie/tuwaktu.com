@@ -55,6 +55,22 @@ CREATE OR REPLACE VIEW worker_services AS
     SELECT id, worker_id, name, description, price, base_price, rate_type, duration_minutes, is_active, created_at, updated_at
     FROM services;
 
+-- Table: worker_schedules
+CREATE TABLE IF NOT EXISTS worker_schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    worker_id UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
+    day_of_week INT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    slot_morning BOOLEAN NOT NULL DEFAULT TRUE,
+    slot_afternoon BOOLEAN NOT NULL DEFAULT TRUE,
+    slot_evening BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(worker_id, day_of_week)
+);
+
+CREATE INDEX IF NOT EXISTS idx_worker_schedules_worker_id ON worker_schedules(worker_id);
+
 -- Table: bookings
 CREATE TABLE IF NOT EXISTS bookings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -67,6 +83,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     location TEXT NOT NULL,
     zone VARCHAR(100) NOT NULL,
     booking_date TIMESTAMPTZ NOT NULL,
+    start_time TIMESTAMPTZ,
+    end_time TIMESTAMPTZ,
     notes TEXT DEFAULT '',
     total_price NUMERIC(12,2) NOT NULL,
     status VARCHAR(50) DEFAULT 'PENDING',
@@ -77,3 +95,4 @@ CREATE TABLE IF NOT EXISTS bookings (
 CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
 CREATE INDEX IF NOT EXISTS idx_bookings_worker_id ON bookings(worker_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_start_end_time ON bookings(worker_id, start_time, end_time);

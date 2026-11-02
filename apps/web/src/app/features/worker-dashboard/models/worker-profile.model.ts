@@ -46,3 +46,24 @@ export interface WorkerLocationSettingsApiResponse {
   error?: unknown;
 }
 
+export interface WorkerScheduleItem {
+  day_of_week: number;
+  day_name?: string;
+  is_active: boolean;
+  slot_morning: boolean;
+  slot_afternoon: boolean;
+  slot_evening: boolean;
+}
+
+export interface WorkerSchedulesApiResponse {
+  success: boolean;
+  message: string;
+  data: WorkerScheduleItem[];
+  error?: unknown;
+}
+
+export interface UpdateWorkerSchedulesPayload {
+  worker_id?: string;
+  schedules: WorkerScheduleItem[];
+}
+

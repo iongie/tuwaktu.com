@@ -60,6 +60,17 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 			created_at DATETIME,
 			updated_at DATETIME
 		);
+		CREATE TABLE worker_schedules (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			day_of_week INTEGER,
+			is_active BOOLEAN,
+			slot_morning BOOLEAN,
+			slot_afternoon BOOLEAN,
+			slot_evening BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
 		CREATE TABLE bookings (
 			id TEXT PRIMARY KEY,
 			booking_code TEXT UNIQUE,
@@ -71,6 +82,8 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 			location TEXT,
 			zone TEXT,
 			booking_date DATETIME,
+			start_time DATETIME,
+			end_time DATETIME,
 			notes TEXT,
 			total_price REAL,
 			status TEXT,

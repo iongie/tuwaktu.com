@@ -592,6 +592,186 @@
       </form>
     </section>
 
+    <!-- Schedule Feedback Alerts -->
+    @if (scheduleFeedbackSuccess()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="font-medium">{{ scheduleFeedbackSuccess() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="scheduleFeedbackSuccess.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    @if (scheduleFeedbackError()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">{{ scheduleFeedbackError() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="scheduleFeedbackError.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    <!-- Bento Card: Pengaturan Jadwal Kerja & Blok Slot Waktu Mingguan -->
+    <section class="m3-card-surface p-6 space-y-6">
+      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">
+              Jadwal Kerja &amp; Blok Waktu Mingguan
+            </h2>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+              Atur ketersediaan hari kerja rutin dan aktifkan blok waktu (Pagi, Siang, Sore) untuk menerima reservasi pesanan klien.
+            </p>
+          </div>
+          @if (workerRecordId()) {
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] text-xs font-mono text-[var(--md-sys-color-on-surface)]">
+              Jeda Transit Otomatis: 60 Menit
+            </span>
+          }
+        </div>
+      </div>
+
+      @if (isScheduleLoading()) {
+        <div class="space-y-3 animate-pulse" aria-label="Memuat jadwal kerja">
+          <div class="h-16 bg-[var(--md-sys-color-surface-container)] rounded-lg"></div>
+          <div class="h-16 bg-[var(--md-sys-color-surface-container)] rounded-lg"></div>
+          <div class="h-16 bg-[var(--md-sys-color-surface-container)] rounded-lg"></div>
+        </div>
+      } @else {
+        <div class="space-y-4">
+          @for (schedule of workerSchedules(); track schedule.day_of_week) {
+            <div
+              class="p-4 rounded-xl border transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+              [class.bg-[var(--md-sys-color-surface-container-low)]]="schedule.is_active"
+              [class.border-[var(--md-sys-color-outline-variant)]]="schedule.is_active"
+              [class.bg-[var(--md-sys-color-surface)]]="!schedule.is_active"
+              [class.border-dashed]="!schedule.is_active"
+              [class.opacity-70]="!schedule.is_active"
+            >
+              <!-- Day Toggle & Label -->
+              <div class="flex items-center gap-3 min-w-[140px]">
+                <label class="relative inline-flex items-center cursor-pointer min-h-[48px]">
+                  <input
+                    type="checkbox"
+                    [checked]="schedule.is_active"
+                    (change)="toggleScheduleDayActive(schedule.day_of_week)"
+                    class="sr-only peer"
+                  />
+                  <div class="w-11 h-6 bg-[var(--md-sys-color-outline-variant)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--md-sys-color-primary)]"></div>
+                </label>
+                <div>
+                  <span class="font-bold text-sm text-[var(--md-sys-color-on-surface)] block">
+                    {{ schedule.day_name || 'Hari ' + schedule.day_of_week }}
+                  </span>
+                  <span class="text-[11px] font-mono" [class.text-[var(--md-sys-color-secondary)]]="schedule.is_active" [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.is_active">
+                    {{ schedule.is_active ? 'Hari Kerja Aktif' : 'Libur (Nonaktif)' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Slot Blocks (Pagi / Siang / Sore) -->
+              @if (schedule.is_active) {
+                <div class="flex flex-wrap items-center gap-2.5">
+                  <!-- Pagi -->
+                  <button
+                    type="button"
+                    (click)="toggleScheduleSlot(schedule.day_of_week, 'slot_morning')"
+                    class="min-h-[48px] px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
+                    [class.bg-[var(--md-sys-color-primary-container)]]="schedule.slot_morning"
+                    [class.text-[var(--md-sys-color-on-primary-container)]]="schedule.slot_morning"
+                    [class.border-[var(--md-sys-color-primary)]]="schedule.slot_morning"
+                    [class.bg-[var(--md-sys-color-surface)]]="!schedule.slot_morning"
+                    [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.slot_morning"
+                    [class.border-[var(--md-sys-color-outline-variant)]]="!schedule.slot_morning"
+                  >
+                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[var(--md-sys-color-primary)]]="schedule.slot_morning" [class.bg-[var(--md-sys-color-outline-variant)]]="!schedule.slot_morning"></span>
+                    <span class="font-bold">Pagi</span>
+                    <span class="opacity-80">08:00 - 11:30</span>
+                  </button>
+
+                  <!-- Siang -->
+                  <button
+                    type="button"
+                    (click)="toggleScheduleSlot(schedule.day_of_week, 'slot_afternoon')"
+                    class="min-h-[48px] px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
+                    [class.bg-[var(--md-sys-color-primary-container)]]="schedule.slot_afternoon"
+                    [class.text-[var(--md-sys-color-on-primary-container)]]="schedule.slot_afternoon"
+                    [class.border-[var(--md-sys-color-primary)]]="schedule.slot_afternoon"
+                    [class.bg-[var(--md-sys-color-surface)]]="!schedule.slot_afternoon"
+                    [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.slot_afternoon"
+                    [class.border-[var(--md-sys-color-outline-variant)]]="!schedule.slot_afternoon"
+                  >
+                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[var(--md-sys-color-primary)]]="schedule.slot_afternoon" [class.bg-[var(--md-sys-color-outline-variant)]]="!schedule.slot_afternoon"></span>
+                    <span class="font-bold">Siang</span>
+                    <span class="opacity-80">13:00 - 16:30</span>
+                  </button>
+
+                  <!-- Sore -->
+                  <button
+                    type="button"
+                    (click)="toggleScheduleSlot(schedule.day_of_week, 'slot_evening')"
+                    class="min-h-[48px] px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
+                    [class.bg-[var(--md-sys-color-primary-container)]]="schedule.slot_evening"
+                    [class.text-[var(--md-sys-color-on-primary-container)]]="schedule.slot_evening"
+                    [class.border-[var(--md-sys-color-primary)]]="schedule.slot_evening"
+                    [class.bg-[var(--md-sys-color-surface)]]="!schedule.slot_evening"
+                    [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.slot_evening"
+                    [class.border-[var(--md-sys-color-outline-variant)]]="!schedule.slot_evening"
+                  >
+                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[var(--md-sys-color-primary)]]="schedule.slot_evening" [class.bg-[var(--md-sys-color-outline-variant)]]="!schedule.slot_evening"></span>
+                    <span class="font-bold">Sore</span>
+                    <span class="opacity-80">17:00 - 20:30</span>
+                  </button>
+                </div>
+              } @else {
+                <div class="text-xs font-mono text-[var(--md-sys-color-on-surface-variant)] py-2">
+                  Tidak menerima pesanan kunjungan pada hari ini.
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Form Action -->
+        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="submitScheduleUpdate()"
+            [disabled]="isScheduleSubmitting() || !workerRecordId()"
+            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+          >
+            @if (isScheduleSubmitting()) {
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Menyimpan Jadwal...</span>
+            } @else {
+              <span>Simpan Konfigurasi Jadwal</span>
+            }
+          </button>
+        </div>
+      }
+    </section>
+
     <!-- Form Section -->
     <section class="m3-card-surface p-6 space-y-6">
       <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">

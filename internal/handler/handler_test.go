@@ -1399,3 +1399,265 @@ func TestBookingHandler_CalculateFee(t *testing.T) {
 	})
 }
 
+func TestWorkerHandler_SchedulesEndpoints(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:       "worker-sched-01",
+		Slug:     "teguh-teknisi",
+		Name:     "Teguh Teknisi",
+		IsActive: true,
+	}
+	repo.SeedWorker(worker)
+
+	// Seed initial schedule
+	repo.SeedSchedule(&domain.WorkerSchedule{
+		ID:            "sched-1",
+		WorkerID:      worker.ID,
+		DayOfWeek:     1, // Senin
+		IsActive:      true,
+		SlotMorning:   true,
+		SlotAfternoon: true,
+		SlotEvening:   false,
+	})
+
+	t.Run("200 OK - GET /api/v1/worker/schedules with worker_id", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/worker/schedules?worker_id="+worker.ID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                    `json:"success"`
+			Message string                  `json:"message"`
+			Data    []domain.WorkerSchedule `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Daftar jadwal kerja berhasil diambil", res.Message)
+		assert.NotEmpty(t, res.Data)
+	})
+
+	t.Run("400 Bad Request - GET without worker identifier", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/worker/schedules", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "ID atau slug pekerja wajib diisi")
+	})
+
+	t.Run("200 OK - PUT /api/v1/worker/schedules updates weekly schedules", func(t *testing.T) {
+		payload := domain.UpdateWorkerSchedulesRequest{
+			WorkerID: worker.ID,
+			Schedules: []domain.WorkerScheduleItem{
+				{DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: true},
+				{DayOfWeek: 2, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+			},
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/schedules", bytes.NewReader(payloadBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                    `json:"success"`
+			Message string                  `json:"message"`
+			Data    []domain.WorkerSchedule `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Konfigurasi jadwal kerja berhasil disimpan", res.Message)
+		assert.Len(t, res.Data, 2)
+	})
+
+	t.Run("200 OK - PUT /api/v1/worker/schedules with worker_slug in query param", func(t *testing.T) {
+		payload := domain.UpdateWorkerSchedulesRequest{
+			Schedules: []domain.WorkerScheduleItem{
+				{DayOfWeek: 3, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+			},
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/schedules?worker_slug="+worker.Slug, bytes.NewReader(payloadBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("400 Bad Request - PUT with invalid day_of_week", func(t *testing.T) {
+		payload := domain.UpdateWorkerSchedulesRequest{
+			WorkerID: worker.ID,
+			Schedules: []domain.WorkerScheduleItem{
+				{DayOfWeek: 7, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+			},
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/schedules", bytes.NewReader(payloadBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+func TestBookingHandler_GetAvailableSlots(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:       "worker-slots-01",
+		Slug:     "agus-ac",
+		Name:     "Agus AC",
+		IsActive: true,
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "srv-agus-1",
+		WorkerID:        worker.ID,
+		Name:            "Servis AC Cepat",
+		Price:           85000,
+		DurationMinutes: 60,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	// Seed schedule for Monday (day_of_week = 1)
+	repo.SeedSchedule(&domain.WorkerSchedule{
+		ID:            "sched-mon",
+		WorkerID:      worker.ID,
+		DayOfWeek:     1, // Senin
+		IsActive:      true,
+		SlotMorning:   true,
+		SlotAfternoon: true,
+		SlotEvening:   true,
+	})
+
+	// Monday: 2026-11-09
+	// Existing booking on Afternoon slot: 13:00 - 15:00 WIB
+	wib := time.FixedZone("WIB", 7*3600)
+	bookingStart := time.Date(2026, 11, 9, 13, 0, 0, 0, wib)
+	bookingEnd := time.Date(2026, 11, 9, 15, 0, 0, 0, wib)
+
+	repo.SeedBooking(&domain.Booking{
+		ID:          "booking-exist-1",
+		WorkerID:    worker.ID,
+		Status:      "CONFIRMED",
+		BookingDate: bookingStart,
+		StartTime:   &bookingStart,
+		EndTime:     &bookingEnd,
+	})
+
+	t.Run("200 OK - returns slot list and marks afternoon slot unavailable due to overlap", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-09", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                         `json:"success"`
+			Message string                       `json:"message"`
+			Data    domain.AvailableSlotsResponse `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		require.True(t, res.Success)
+		assert.Equal(t, "Daftar slot ketersediaan berhasil diambil", res.Message)
+		assert.Equal(t, 1, res.Data.DayOfWeek)
+		assert.True(t, res.Data.IsWorkingDay)
+		assert.Len(t, res.Data.Slots, 3)
+
+		// Morning slot (08:00 - 11:30): available because booking starts at 13:00 (gap > 60m)
+		assert.Equal(t, domain.SlotMorning, res.Data.Slots[0].SlotType)
+		assert.True(t, res.Data.Slots[0].Available)
+
+		// Afternoon slot (13:00 - 16:30): NOT available because booking is 13:00 - 15:00
+		assert.Equal(t, domain.SlotAfternoon, res.Data.Slots[1].SlotType)
+		assert.False(t, res.Data.Slots[1].Available)
+		assert.Contains(t, res.Data.Slots[1].Reason, "bentrok")
+
+		// Evening slot (17:00 - 20:30): available because booking ends at 15:00, 15:00+60m = 16:00 < 17:00
+		assert.Equal(t, domain.SlotEvening, res.Data.Slots[2].SlotType)
+		assert.True(t, res.Data.Slots[2].Available)
+	})
+
+	t.Run("200 OK - alias routes work for available-slots", func(t *testing.T) {
+		// Test /api/public/worker/:slug/available-slots
+		req1 := httptest.NewRequest(http.MethodGet, "/api/public/worker/agus-ac/available-slots?date=2026-11-09", nil)
+		resp1, err1 := app.Test(req1)
+		require.NoError(t, err1)
+		assert.Equal(t, http.StatusOK, resp1.StatusCode)
+
+		// Test /api/worker/:slug/available-slots
+		req2 := httptest.NewRequest(http.MethodGet, "/api/worker/agus-ac/available-slots?date=2026-11-09", nil)
+		resp2, err2 := app.Test(req2)
+		require.NoError(t, err2)
+		assert.Equal(t, http.StatusOK, resp2.StatusCode)
+	})
+
+	t.Run("200 OK - with valid service_id query param", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-09&service_id="+srv.ID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("404 Not Found - with invalid service_id query param", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-09&service_id=non-existent-service", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("400 Bad Request - missing date param", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("404 Not Found - unknown worker", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/unknown-slug/available-slots?date=2026-11-09", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("409 Conflict - CreateBooking rejects colliding booking with 60 min transit buffer", func(t *testing.T) {
+		// Existing booking is 13:00 - 15:00 on 2026-11-09.
+		// Try to book at 15:30 (starts within 60m buffer of 15:00):
+		collidingTime := time.Date(2026, 11, 9, 15, 30, 0, 0, wib).Format(time.RFC3339)
+		payload := map[string]any{
+			"worker_id":    worker.ID,
+			"service_id":   srv.ID,
+			"client_name":  "Budi Tabrakan",
+			"location":     "Jakarta",
+			"booking_date": collidingTime,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/public/bookings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "Slot waktu tidak tersedia")
+	})
+}

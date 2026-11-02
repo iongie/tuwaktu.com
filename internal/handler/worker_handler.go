@@ -189,3 +189,91 @@ func (h *WorkerHandler) UpdateWorkerLocationSettings(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusOK, "Pengaturan lokasi pekerja berhasil diperbarui", profile)
 }
 
+// GetWorkerSchedules handles GET /api/v1/worker/schedules, GET /api/worker/schedules, and GET /api/v1/workers/:id/schedules
+func (h *WorkerHandler) GetWorkerSchedules(c *fiber.Ctx) error {
+	workerID := c.Params("id")
+	if unescaped, err := url.PathUnescape(workerID); err == nil {
+		workerID = unescaped
+	}
+	if strings.TrimSpace(workerID) == "" {
+		workerID = c.Query("worker_id")
+		if workerID == "" {
+			workerID = c.Query("worker_slug")
+		}
+		if workerID == "" {
+			workerID = c.Query("slug")
+		}
+	}
+	workerID = strings.TrimSpace(workerID)
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID atau slug pekerja wajib diisi", nil)
+	}
+
+	schedules, err := h.service.GetWorkerSchedules(c.UserContext(), workerID)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal mengambil daftar jadwal kerja", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Daftar jadwal kerja berhasil diambil", schedules)
+}
+
+// UpdateWorkerSchedules handles PUT /api/v1/worker/schedules, PUT /api/worker/schedules, and PUT /api/v1/workers/:id/schedules
+func (h *WorkerHandler) UpdateWorkerSchedules(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+
+	var req domain.UpdateWorkerSchedulesRequest
+	if err := c.BodyParser(&req); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload jadwal tidak valid", err.Error())
+	}
+
+	if workerID == "" {
+		workerID = strings.TrimSpace(req.WorkerID)
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_slug"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("slug"))
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi", nil)
+	}
+
+	if len(req.Schedules) == 0 {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Konfigurasi jadwal kerja tidak boleh kosong", nil)
+	}
+
+	for _, item := range req.Schedules {
+		if item.DayOfWeek < 0 || item.DayOfWeek > 6 {
+			return ErrorResponse(c, fiber.StatusBadRequest, "Hari jadwal kerja tidak valid (harus antara 0 dan 6)", nil)
+		}
+	}
+
+	schedules, err := h.service.UpdateWorkerSchedules(c.UserContext(), workerID, req.Schedules)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidScheduleDay) || errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memperbarui konfigurasi jadwal kerja", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Konfigurasi jadwal kerja berhasil disimpan", schedules)
+}
+
+

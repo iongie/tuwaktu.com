@@ -210,3 +210,113 @@ func (r *PostgresWorkerRepository) UpdateLocationSettings(ctx context.Context, i
 	return worker, nil
 }
 
+func (r *PostgresWorkerRepository) GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying worker schedules: %w", err)
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var schedules []domain.WorkerSchedule
+	err = r.db.WithContext(ctx).
+		Where("worker_id = ?", worker.ID).
+		Order("day_of_week ASC").
+		Find(&schedules).Error
+	if err != nil {
+		return nil, fmt.Errorf("querying worker schedules: %w", err)
+	}
+
+	if len(schedules) == 0 {
+		// Provide default weekly schedule (all 7 days)
+		schedules = make([]domain.WorkerSchedule, 7)
+		for d := 0; d < 7; d++ {
+			schedules[d] = domain.WorkerSchedule{
+				WorkerID:      worker.ID,
+				DayOfWeek:     d,
+				DayName:       domain.GetDayName(d),
+				IsActive:      true,
+				SlotMorning:   true,
+				SlotAfternoon: true,
+				SlotEvening:   false,
+			}
+		}
+	} else {
+		for i := range schedules {
+			schedules[i].DayName = domain.GetDayName(schedules[i].DayOfWeek)
+		}
+	}
+
+	return schedules, nil
+}
+
+func (r *PostgresWorkerRepository) UpdateWorkerSchedules(ctx context.Context, idOrSlug string, schedules []domain.WorkerSchedule) ([]domain.WorkerSchedule, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("updating worker schedules: %w", err)
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tx := r.db.WithContext(ctx).Begin()
+	now := time.Now().UTC()
+
+	for _, item := range schedules {
+		if item.DayOfWeek < 0 || item.DayOfWeek > 6 {
+			tx.Rollback()
+			return nil, domain.ErrInvalidScheduleDay
+		}
+
+		var existing domain.WorkerSchedule
+		err := tx.Where("worker_id = ? AND day_of_week = ?", worker.ID, item.DayOfWeek).First(&existing).Error
+		if err == nil {
+			existing.IsActive = item.IsActive
+			existing.SlotMorning = item.SlotMorning
+			existing.SlotAfternoon = item.SlotAfternoon
+			existing.SlotEvening = item.SlotEvening
+			existing.UpdatedAt = now
+			if err := tx.Select("is_active", "slot_morning", "slot_afternoon", "slot_evening", "updated_at").Save(&existing).Error; err != nil {
+				tx.Rollback()
+				return nil, fmt.Errorf("saving worker schedule: %w", err)
+			}
+		} else {
+			item.WorkerID = worker.ID
+			item.CreatedAt = now
+			item.UpdatedAt = now
+			if err := tx.Select("*").Omit("DayName").Create(&item).Error; err != nil {
+				tx.Rollback()
+				return nil, fmt.Errorf("creating worker schedule: %w", err)
+			}
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, fmt.Errorf("committing worker schedules update: %w", err)
+	}
+
+	return r.GetWorkerSchedules(ctx, worker.ID)
+}
+
+

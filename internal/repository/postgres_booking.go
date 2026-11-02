@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -111,3 +112,81 @@ func (r *PostgresBookingRepository) GetWorkerBySlug(ctx context.Context, slug st
 
 	return &w, nil
 }
+
+func (r *PostgresBookingRepository) GetBookingsByWorkerAndDateRange(ctx context.Context, workerID string, startTime, endTime time.Time) ([]domain.Booking, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying bookings by worker and date range: %w", err)
+	}
+	workerID = strings.TrimSpace(workerID)
+	if workerID == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	var bookings []domain.Booking
+	err := r.db.WithContext(ctx).
+		Where("worker_id = ? AND status != ? AND ((start_time IS NOT NULL AND start_time < ? AND end_time > ?) OR (start_time IS NULL AND booking_date >= ? AND booking_date <= ?))",
+			workerID, "CANCELLED", endTime, startTime, startTime, endTime).
+		Order("booking_date ASC").
+		Find(&bookings).Error
+	if err != nil {
+		return nil, fmt.Errorf("querying bookings by worker and date range: %w", err)
+	}
+
+	if bookings == nil {
+		bookings = []domain.Booking{}
+	}
+
+	return bookings, nil
+}
+
+func (r *PostgresBookingRepository) GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying worker schedules: %w", err)
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetWorkerByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetWorkerBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var schedules []domain.WorkerSchedule
+	err = r.db.WithContext(ctx).
+		Where("worker_id = ?", worker.ID).
+		Order("day_of_week ASC").
+		Find(&schedules).Error
+	if err != nil {
+		return nil, fmt.Errorf("querying worker schedules: %w", err)
+	}
+
+	if len(schedules) == 0 {
+		schedules = make([]domain.WorkerSchedule, 7)
+		for d := 0; d < 7; d++ {
+			schedules[d] = domain.WorkerSchedule{
+				WorkerID:      worker.ID,
+				DayOfWeek:     d,
+				DayName:       domain.GetDayName(d),
+				IsActive:      true,
+				SlotMorning:   true,
+				SlotAfternoon: true,
+				SlotEvening:   false,
+			}
+		}
+	} else {
+		for i := range schedules {
+			schedules[i].DayName = domain.GetDayName(schedules[i].DayOfWeek)
+		}
+	}
+
+	return schedules, nil
+}
+
+

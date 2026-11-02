@@ -67,6 +67,25 @@ describe('WorkerBookingPageComponent', () => {
           },
         })
       ),
+      calculateBookingFee: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Kalkulasi berhasil',
+          data: {
+            worker_id: 'tech-1',
+            service_id: 'srv-1',
+            service_price: 75000,
+            distance_km: 5.0,
+            max_radius_km: 15.0,
+            free_radius_km: 3.0,
+            chargeable_km: 2.0,
+            extra_fee_per_km: 3000,
+            transport_fee: 6000,
+            total_price: 81000,
+            is_within_radius: true,
+          },
+        })
+      ),
     };
 
   await TestBed.configureTestingModule({
@@ -155,6 +174,18 @@ it('harus menavigasikan router saat quickSelectTechnician dieksekusi', () => {
   expect(mockApiService.fetchPublicTechnicianProfile).toHaveBeenCalledWith(
     'siti-aminah'
   );
+});
+
+it('harus memvalidasi dan menolak submit reservasi jika lokasi di luar radius jangkauan', () => {
+  component.clientFullName = 'Bambang';
+  component.serviceLocationAddress = 'Jl. Thamrin No. 5';
+  component.reservationScheduledDate = '2030-01-01T10:00';
+
+  component.store.feeCalculationError.set('Di luar jangkauan: Lokasi pemesanan melebihi batas jangkauan layanan pekerja.');
+
+  const isValid = component.validateBookingForm();
+  expect(isValid).toBe(false);
+  expect(component.clientValidationErrors()['service']).toContain('di luar batas jangkauan');
 });
 
 it('harus berhasil submit reservasi ketika form valid', () => {

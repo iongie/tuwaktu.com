@@ -29,3 +29,20 @@ export interface WorkerRatesApiResponse {
   data: PublicTechnicianProfile;
   error?: unknown;
 }
+
+export interface WorkerLocationSettingsUpdatePayload {
+  worker_id?: string;
+  lat: number;
+  lng: number;
+  max_radius_km: number;
+  free_radius_km: number;
+  extra_fee_per_km: number;
+}
+
+export interface WorkerLocationSettingsApiResponse {
+  success: boolean;
+  message: string;
+  data: PublicTechnicianProfile;
+  error?: unknown;
+}
+

@@ -14,6 +14,12 @@ CREATE TABLE IF NOT EXISTS workers (
     -- Rates fields
     base_price NUMERIC(12,2) DEFAULT 0.00 CHECK (base_price >= 0),
     rate_type VARCHAR(20) DEFAULT 'HOURLY' CHECK (rate_type IN ('HOURLY', 'UNIT')),
+    -- Location & Radius fields
+    lat NUMERIC(10, 7),
+    lng NUMERIC(10, 7),
+    max_radius_km NUMERIC(6, 2) NOT NULL DEFAULT 10.00 CHECK (max_radius_km > 0),
+    free_radius_km NUMERIC(6, 2) NOT NULL DEFAULT 3.00 CHECK (free_radius_km >= 0),
+    extra_fee_per_km INT NOT NULL DEFAULT 0 CHECK (extra_fee_per_km >= 0),
     -- Private / sensitive fields
     phone_number VARCHAR(30) NOT NULL DEFAULT '',
     email VARCHAR(150) NOT NULL DEFAULT '',

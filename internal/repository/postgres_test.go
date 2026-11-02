@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -35,6 +36,11 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			zone TEXT,
 			base_price REAL DEFAULT 0.00,
 			rate_type TEXT DEFAULT 'HOURLY',
+			lat REAL,
+			lng REAL,
+			max_radius_km REAL DEFAULT 10.00,
+			free_radius_km REAL DEFAULT 3.00,
+			extra_fee_per_km INTEGER DEFAULT 0,
 			phone_number TEXT,
 			email TEXT,
 			address TEXT,
@@ -758,6 +764,99 @@ func TestPostgresWorkerRepository_UpdateRates(t *testing.T) {
 		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
 	})
 }
+
+func TestPostgresWorkerRepository_UpdateLocationSettings(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("successfully updates worker location settings by ID", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		workerID := uuid.New().String()
+		worker := &domain.Worker{
+			ID:          workerID,
+			Slug:        "tono-reparasi",
+			Name:        "Tono Reparasi",
+			Zone:        "Jakarta Selatan",
+			MaxRadiusKM: 10.0,
+			IsActive:    true,
+		}
+		require.NoError(t, db.Create(worker).Error)
+
+		newLat := -6.2200
+		newLng := 106.8300
+		update := &domain.WorkerLocationSettingsUpdate{
+			WorkerID:      workerID,
+			Lat:           &newLat,
+			Lng:           &newLng,
+			MaxRadiusKM:   18.0,
+			FreeRadiusKM:  4.0,
+			ExtraFeePerKM: 6000,
+		}
+
+		updated, err := repo.UpdateLocationSettings(ctx, workerID, update)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+		require.NotNil(t, updated.Lat)
+		require.NotNil(t, updated.Lng)
+		assert.InDelta(t, newLat, *updated.Lat, 0.0001)
+		assert.InDelta(t, newLng, *updated.Lng, 0.0001)
+		assert.Equal(t, 18.0, updated.MaxRadiusKM)
+		assert.Equal(t, 4.0, updated.FreeRadiusKM)
+		assert.Equal(t, 6000, updated.ExtraFeePerKM)
+	})
+
+	t.Run("successfully updates worker location settings by slug", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		workerID := uuid.New().String()
+		worker := &domain.Worker{
+			ID:          workerID,
+			Slug:        "jono-pipa",
+			Name:        "Jono Pipa",
+			Zone:        "Jakarta Barat",
+			MaxRadiusKM: 10.0,
+			IsActive:    true,
+		}
+		require.NoError(t, db.Create(worker).Error)
+
+		newLat := -6.1500
+		newLng := 106.7500
+		update := &domain.WorkerLocationSettingsUpdate{
+			WorkerID:      "jono-pipa",
+			Lat:           &newLat,
+			Lng:           &newLng,
+			MaxRadiusKM:   25.0,
+			FreeRadiusKM:  5.0,
+			ExtraFeePerKM: 7500,
+		}
+
+		updated, err := repo.UpdateLocationSettings(ctx, "jono-pipa", update)
+		require.NoError(t, err)
+		assert.Equal(t, 25.0, updated.MaxRadiusKM)
+	})
+
+	t.Run("empty identifier or nil update returns ErrInvalidInput", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err1 := repo.UpdateLocationSettings(ctx, "", &domain.WorkerLocationSettingsUpdate{MaxRadiusKM: 10})
+		assert.ErrorIs(t, err1, domain.ErrInvalidInput)
+
+		_, err2 := repo.UpdateLocationSettings(ctx, "valid-id", nil)
+		assert.ErrorIs(t, err2, domain.ErrInvalidInput)
+	})
+
+	t.Run("worker not found returns ErrWorkerNotFound", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		_, err := repo.UpdateLocationSettings(ctx, "non-existent-worker-uuid", &domain.WorkerLocationSettingsUpdate{MaxRadiusKM: 10})
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+	})
+}
+
 
 func TestPostgresWorkerRepository_RealPostgresIntegration(t *testing.T) {
 	cfg := config.LoadConfig()

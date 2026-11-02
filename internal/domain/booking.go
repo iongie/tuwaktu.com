@@ -58,8 +58,10 @@ type CreateBookingRequest struct {
 	ClientEmail string `json:"client_email"`
 	Location    string `json:"location"`
 	Zone        string `json:"zone"`
-	BookingDate string `json:"booking_date"` // RFC3339 format, e.g. 2026-11-03T10:00:00Z; defaults to future date if omitted
-	Notes       string `json:"notes"`
+	BookingDate string   `json:"booking_date"` // RFC3339 format, e.g. 2026-11-03T10:00:00Z; defaults to future date if omitted
+	Notes       string   `json:"notes"`
+	ClientLat   *float64 `json:"client_lat,omitempty"`
+	ClientLng   *float64 `json:"client_lng,omitempty"`
 }
 
 // UnmarshalJSON supports both standard English keys and Indonesian aliases
@@ -86,9 +88,13 @@ func (r *CreateBookingRequest) UnmarshalJSON(data []byte) error {
 		EmailAlt       string `json:"email"`
 		ClientEmailAlt string `json:"clientEmail"`
 		TanggalBooking string `json:"tanggal_booking"`
-		BookingDateAlt string `json:"bookingDate"`
-		Jadwal         string `json:"jadwal"`
-		Catatan        string `json:"catatan"`
+		BookingDateAlt string   `json:"bookingDate"`
+		Jadwal         string   `json:"jadwal"`
+		Catatan        string   `json:"catatan"`
+		ClientLatAlt   *float64 `json:"clientLat"`
+		Latitude       *float64 `json:"lat"`
+		ClientLngAlt   *float64 `json:"clientLng"`
+		Longitude      *float64 `json:"lng"`
 		*Alias
 	}{
 		Alias: (*Alias)(r),
@@ -172,6 +178,20 @@ func (r *CreateBookingRequest) UnmarshalJSON(data []byte) error {
 	if r.Notes == "" && aux.Catatan != "" {
 		r.Notes = aux.Catatan
 	}
+	if r.ClientLat == nil {
+		if aux.ClientLatAlt != nil {
+			r.ClientLat = aux.ClientLatAlt
+		} else if aux.Latitude != nil {
+			r.ClientLat = aux.Latitude
+		}
+	}
+	if r.ClientLng == nil {
+		if aux.ClientLngAlt != nil {
+			r.ClientLng = aux.ClientLngAlt
+		} else if aux.Longitude != nil {
+			r.ClientLng = aux.Longitude
+		}
+	}
 
 	return nil
 }
@@ -235,17 +255,105 @@ func parseBookingDate(val string) (time.Time, error) {
 
 // PublicBookingResponse represents the public response payload for a confirmed booking creation
 type PublicBookingResponse struct {
-	BookingCode string    `json:"booking_code"`
-	WorkerID    string    `json:"worker_id"`
-	WorkerName  string    `json:"worker_name"`
-	ServiceID   string    `json:"service_id"`
-	ServiceName string    `json:"service_name"`
-	ClientName  string    `json:"client_name"`
-	Location    string    `json:"location"`
-	Zone        string    `json:"zone"`
-	BookingDate time.Time `json:"booking_date"`
-	Notes       string    `json:"notes,omitempty"`
-	TotalPrice  float64   `json:"total_price"`
-	Status      string    `json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
+	BookingCode  string    `json:"booking_code"`
+	WorkerID     string    `json:"worker_id"`
+	WorkerName   string    `json:"worker_name"`
+	ServiceID    string    `json:"service_id"`
+	ServiceName  string    `json:"service_name"`
+	ClientName   string    `json:"client_name"`
+	Location     string    `json:"location"`
+	Zone         string    `json:"zone"`
+	BookingDate  time.Time `json:"booking_date"`
+	Notes        string    `json:"notes,omitempty"`
+	TotalPrice   float64   `json:"total_price"`
+	TransportFee float64   `json:"transport_fee,omitempty"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"created_at"`
 }
+
+// CalculateFeeRequest represents the payload to calculate booking fee based on distance
+type CalculateFeeRequest struct {
+	WorkerID   string   `json:"worker_id"`
+	WorkerSlug string   `json:"worker_slug"`
+	ServiceID  string   `json:"service_id"`
+	ClientLat  *float64 `json:"client_lat"`
+	ClientLng  *float64 `json:"client_lng"`
+}
+
+// UnmarshalJSON supports Indonesian aliases and camelCase
+func (r *CalculateFeeRequest) UnmarshalJSON(data []byte) error {
+	type Alias CalculateFeeRequest
+	aux := &struct {
+		WorkerIDAlt    string   `json:"workerId"`
+		PekerjaID      string   `json:"pekerja_id"`
+		WorkerSlugAlt  string   `json:"workerSlug"`
+		PekerjaSlug    string   `json:"pekerja_slug"`
+		ServiceIDAlt   string   `json:"serviceId"`
+		LayananID      string   `json:"layanan_id"`
+		PilihanLayanan string   `json:"pilihan_layanan"`
+		ClientLatAlt   *float64 `json:"clientLat"`
+		Latitude       *float64 `json:"lat"`
+		ClientLngAlt   *float64 `json:"clientLng"`
+		Longitude      *float64 `json:"lng"`
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if r.WorkerID == "" {
+		if aux.WorkerIDAlt != "" {
+			r.WorkerID = aux.WorkerIDAlt
+		} else if aux.PekerjaID != "" {
+			r.WorkerID = aux.PekerjaID
+		}
+	}
+	if r.WorkerSlug == "" {
+		if aux.WorkerSlugAlt != "" {
+			r.WorkerSlug = aux.WorkerSlugAlt
+		} else if aux.PekerjaSlug != "" {
+			r.WorkerSlug = aux.PekerjaSlug
+		}
+	}
+	if r.ServiceID == "" {
+		if aux.ServiceIDAlt != "" {
+			r.ServiceID = aux.ServiceIDAlt
+		} else if aux.LayananID != "" {
+			r.ServiceID = aux.LayananID
+		} else if aux.PilihanLayanan != "" {
+			r.ServiceID = aux.PilihanLayanan
+		}
+	}
+	if r.ClientLat == nil {
+		if aux.ClientLatAlt != nil {
+			r.ClientLat = aux.ClientLatAlt
+		} else if aux.Latitude != nil {
+			r.ClientLat = aux.Latitude
+		}
+	}
+	if r.ClientLng == nil {
+		if aux.ClientLngAlt != nil {
+			r.ClientLng = aux.ClientLngAlt
+		} else if aux.Longitude != nil {
+			r.ClientLng = aux.Longitude
+		}
+	}
+
+	return nil
+}
+
+// FeeCalculationResponse represents the response containing pricing breakdown and radius validation
+type FeeCalculationResponse struct {
+	DistanceKM     float64 `json:"distance_km"`
+	MaxRadiusKM    float64 `json:"max_radius_km"`
+	FreeRadiusKM   float64 `json:"free_radius_km"`
+	ServicePrice   float64 `json:"service_price"`
+	ExtraFeePerKM  int     `json:"extra_fee_per_km"`
+	TransportFee   float64 `json:"transport_fee"`
+	TotalPrice     float64 `json:"total_price"`
+	IsWithinRadius bool    `json:"is_within_radius"`
+}
+

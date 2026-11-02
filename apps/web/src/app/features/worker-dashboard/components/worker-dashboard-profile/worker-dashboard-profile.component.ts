@@ -13,11 +13,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WorkerDashboardApiService } from '../../services/worker-dashboard-api.service';
 import { WorkerProfileUpdatePayload } from '../../models/worker-profile.model';
+import { LocationMapPickerComponent } from '../../../worker-booking/components/molecules/location-map-picker/location-map-picker.component';
 
 @Component({
   selector: 'app-worker-dashboard-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, LocationMapPickerComponent],
   templateUrl: './worker-dashboard-profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,6 +52,16 @@ export class WorkerDashboardProfileComponent implements OnInit {
   readonly ratesFeedbackError = signal<string | null>(null);
   readonly ratesValidationErrors = signal<Record<string, string>>({});
 
+  readonly workerLat = signal<number | null>(null);
+  readonly workerLng = signal<number | null>(null);
+  readonly workerMaxRadiusKm = signal<number>(10);
+  readonly workerFreeRadiusKm = signal<number>(3);
+  readonly workerExtraFeePerKm = signal<number>(0);
+  readonly isLocationSubmitting = signal<boolean>(false);
+  readonly locationFeedbackSuccess = signal<string | null>(null);
+  readonly locationFeedbackError = signal<string | null>(null);
+  readonly locationValidationErrors = signal<Record<string, string>>({});
+
   readonly formattedBasePricePreview = computed(() => {
     const price = this.workerBasePrice();
     if (price === null || price === undefined || Number.isNaN(price) || price <= 0) {
@@ -63,6 +74,15 @@ export class WorkerDashboardProfileComponent implements OnInit {
     }).format(price);
     const unitLabel = (this.workerRateType() || '').toUpperCase() === 'UNIT' ? 'Sesi' : 'Jam';
     return `${formatted} / ${unitLabel}`;
+  });
+
+  readonly formattedExtraFeePreview = computed(() => {
+    const fee = this.workerExtraFeePerKm();
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(fee);
   });
 
   private clipboardTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -112,11 +132,19 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.workerAvatarUrl.set('');
     this.workerBasePrice.set(null);
     this.workerRateType.set('HOURLY');
+    this.workerLat.set(null);
+    this.workerLng.set(null);
+    this.workerMaxRadiusKm.set(10);
+    this.workerFreeRadiusKm.set(3);
+    this.workerExtraFeePerKm.set(0);
     this.profileFeedbackSuccess.set(null);
     this.profileFeedbackError.set(null);
     this.ratesFeedbackSuccess.set(null);
     this.ratesFeedbackError.set(null);
     this.ratesValidationErrors.set({});
+    this.locationFeedbackSuccess.set(null);
+    this.locationFeedbackError.set(null);
+    this.locationValidationErrors.set({});
     this.router.navigate([], { queryParams: { slug: null }, queryParamsHandling: 'merge' });
   }
 
@@ -125,6 +153,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
     this.isProfileLoading.set(true);
     this.profileFeedbackError.set(null);
     this.ratesFeedbackError.set(null);
+    this.locationFeedbackError.set(null);
     this.workerLookupSlugInput.set(sanitizedSlug);
 
     this.dashboardApiService
@@ -142,6 +171,11 @@ export class WorkerDashboardProfileComponent implements OnInit {
               avatar_url: response.data.avatar_url,
               base_price: response.data.base_price,
               rate_type: response.data.rate_type,
+              lat: response.data.lat,
+              lng: response.data.lng,
+              max_radius_km: response.data.max_radius_km,
+              free_radius_km: response.data.free_radius_km,
+              extra_fee_per_km: response.data.extra_fee_per_km,
             });
             this.router.navigate([], {
               queryParams: { slug: sanitizedSlug },
@@ -168,6 +202,11 @@ export class WorkerDashboardProfileComponent implements OnInit {
       avatar_url?: string;
       base_price?: number;
       rate_type?: 'HOURLY' | 'UNIT' | string;
+      lat?: number | null;
+      lng?: number | null;
+      max_radius_km?: number;
+      free_radius_km?: number;
+      extra_fee_per_km?: number;
     }
   ): void {
     this.workerRecordId.set(id);
@@ -185,6 +224,36 @@ export class WorkerDashboardProfileComponent implements OnInit {
 
     const normalizedRateType = (profile.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
     this.workerRateType.set(normalizedRateType);
+
+    if (profile.lat !== undefined && profile.lat !== null && !Number.isNaN(profile.lat)) {
+      this.workerLat.set(profile.lat);
+    } else {
+      this.workerLat.set(null);
+    }
+
+    if (profile.lng !== undefined && profile.lng !== null && !Number.isNaN(profile.lng)) {
+      this.workerLng.set(profile.lng);
+    } else {
+      this.workerLng.set(null);
+    }
+
+    if (profile.max_radius_km !== undefined && profile.max_radius_km !== null && profile.max_radius_km > 0) {
+      this.workerMaxRadiusKm.set(profile.max_radius_km);
+    } else {
+      this.workerMaxRadiusKm.set(10);
+    }
+
+    if (profile.free_radius_km !== undefined && profile.free_radius_km !== null && profile.free_radius_km >= 0) {
+      this.workerFreeRadiusKm.set(profile.free_radius_km);
+    } else {
+      this.workerFreeRadiusKm.set(3);
+    }
+
+    if (profile.extra_fee_per_km !== undefined && profile.extra_fee_per_km !== null && profile.extra_fee_per_km >= 0) {
+      this.workerExtraFeePerKm.set(profile.extra_fee_per_km);
+    } else {
+      this.workerExtraFeePerKm.set(0);
+    }
   }
 
   onBasePriceChange(rawValue: unknown): void {
@@ -401,4 +470,137 @@ export class WorkerDashboardProfileComponent implements OnInit {
       this.clipboardFeedbackMessage.set('Gagal menyalin tautan');
     }
   }
+
+  onWorkerCoordinatesChanged(coords: { lat: number; lng: number }): void {
+    this.workerLat.set(coords.lat);
+    this.workerLng.set(coords.lng);
+    this.clearLocationValidationError('coordinates');
+  }
+
+  onMaxRadiusKmChange(rawVal: unknown): void {
+    this.clearLocationValidationError('max_radius_km');
+    const val = Number(rawVal);
+    if (!Number.isNaN(val) && val > 0) {
+      this.workerMaxRadiusKm.set(val);
+    }
+  }
+
+  onFreeRadiusKmChange(rawVal: unknown): void {
+    this.clearLocationValidationError('free_radius_km');
+    const val = Number(rawVal);
+    if (!Number.isNaN(val) && val >= 0) {
+      this.workerFreeRadiusKm.set(val);
+    }
+  }
+
+  onExtraFeePerKmChange(rawVal: unknown): void {
+    this.clearLocationValidationError('extra_fee_per_km');
+    const val = Number(rawVal);
+    if (!Number.isNaN(val) && val >= 0) {
+      this.workerExtraFeePerKm.set(val);
+    }
+  }
+
+  clearLocationValidationError(fieldName: string): void {
+    const current = { ...this.locationValidationErrors() };
+    if (current[fieldName]) {
+      delete current[fieldName];
+      this.locationValidationErrors.set(current);
+    }
+  }
+
+  validateLocationSettingsInput(): boolean {
+    const errors: Record<string, string> = {};
+
+    if (this.workerLat() === null || this.workerLng() === null) {
+      errors['coordinates'] =
+        'Titik koordinat (latitude & longitude) rumah atau pangkalan kerja wajib ditentukan.';
+    }
+
+    if (this.workerMaxRadiusKm() <= 0) {
+      errors['max_radius_km'] = 'Batas radius maksimal harus lebih besar dari 0 km.';
+    }
+
+    if (this.workerFreeRadiusKm() < 0) {
+      errors['free_radius_km'] = 'Radius bebas ongkir tidak boleh bernilai negatif.';
+    }
+
+    if (this.workerFreeRadiusKm() > this.workerMaxRadiusKm()) {
+      errors['free_radius_km'] =
+        'Radius bebas ongkir tidak boleh melebihi batas radius jangkauan maksimal.';
+    }
+
+    if (this.workerExtraFeePerKm() < 0) {
+      errors['extra_fee_per_km'] = 'Tarif per km tidak boleh bernilai negatif.';
+    }
+
+    this.locationValidationErrors.set(errors);
+    return Object.keys(errors).length === 0;
+  }
+
+  submitLocationSettingsUpdate(): void {
+    if (!this.validateLocationSettingsInput()) {
+      return;
+    }
+
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      this.locationFeedbackError.set(
+        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
+      );
+      return;
+    }
+
+    this.isLocationSubmitting.set(true);
+    this.locationFeedbackSuccess.set(null);
+    this.locationFeedbackError.set(null);
+
+    const payload = {
+      lat: Number(this.workerLat()),
+      lng: Number(this.workerLng()),
+      max_radius_km: Number(this.workerMaxRadiusKm()),
+      free_radius_km: Number(this.workerFreeRadiusKm()),
+      extra_fee_per_km: Number(this.workerExtraFeePerKm()),
+    };
+
+    this.dashboardApiService
+      .updateWorkerLocationSettings(workerId, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.isLocationSubmitting.set(false);
+          if (response.success) {
+            this.locationFeedbackSuccess.set(
+              response.message || 'Pengaturan lokasi dan radius jangkauan berhasil disimpan!'
+            );
+            if (response.data) {
+              if (response.data.lat !== undefined && response.data.lat !== null) {
+                this.workerLat.set(response.data.lat);
+              }
+              if (response.data.lng !== undefined && response.data.lng !== null) {
+                this.workerLng.set(response.data.lng);
+              }
+              if (response.data.max_radius_km) {
+                this.workerMaxRadiusKm.set(response.data.max_radius_km);
+              }
+              if (response.data.free_radius_km !== undefined) {
+                this.workerFreeRadiusKm.set(response.data.free_radius_km);
+              }
+              if (response.data.extra_fee_per_km !== undefined) {
+                this.workerExtraFeePerKm.set(response.data.extra_fee_per_km);
+              }
+            }
+          }
+        },
+        error: (err) => {
+          this.isLocationSubmitting.set(false);
+          const serverMsg = err?.error?.message;
+          this.locationFeedbackError.set(
+            serverMsg ||
+              'Gagal menyimpan pengaturan lokasi pekerja. Silakan periksa koneksi atau coba kembali.'
+          );
+        },
+      });
+  }
 }
+

@@ -12,6 +12,7 @@ describe('WorkerDashboardProfileComponent', () => {
     fetchWorkerProfile: jest.Mock;
     updateWorkerProfile: jest.Mock;
     updateWorkerRates: jest.Mock;
+    updateWorkerLocationSettings: jest.Mock;
   };
 
   const sampleWorkerData: PublicTechnicianProfile = {
@@ -55,6 +56,20 @@ describe('WorkerDashboardProfileComponent', () => {
             ...sampleWorkerData,
             base_price: 90000,
             rate_type: 'UNIT',
+          },
+        })
+      ),
+      updateWorkerLocationSettings: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Pengaturan lokasi pekerja berhasil diperbarui!',
+          data: {
+            ...sampleWorkerData,
+            lat: -6.2443,
+            lng: 106.7997,
+            max_radius_km: 15,
+            free_radius_km: 4,
+            extra_fee_per_km: 4000,
           },
         })
       ),
@@ -364,6 +379,85 @@ describe('WorkerDashboardProfileComponent', () => {
     await component.copyPublicProfileLink();
 
     expect(component.clipboardFeedbackMessage()).toBe('Gagal menyalin tautan');
+  });
+
+  it('harus memvalidasi field lokasi dan menampilkan pesan error jika koordinat belum diisi', () => {
+    component.workerLat.set(null);
+    component.workerLng.set(null);
+
+    const isValid = component.validateLocationSettingsInput();
+    expect(isValid).toBe(false);
+    expect(component.locationValidationErrors()['coordinates']).toBe(
+      'Titik koordinat (latitude & longitude) rumah atau pangkalan kerja wajib ditentukan.'
+    );
+  });
+
+  it('harus memvalidasi radius maksimal dan batas bebas ongkir secara logis', () => {
+    component.workerLat.set(-6.2443);
+    component.workerLng.set(106.7997);
+    component.workerMaxRadiusKm.set(0);
+
+    let isValid = component.validateLocationSettingsInput();
+    expect(isValid).toBe(false);
+    expect(component.locationValidationErrors()['max_radius_km']).toBe(
+      'Batas radius maksimal harus lebih besar dari 0 km.'
+    );
+
+    component.workerMaxRadiusKm.set(10);
+    component.workerFreeRadiusKm.set(15);
+    isValid = component.validateLocationSettingsInput();
+    expect(isValid).toBe(false);
+    expect(component.locationValidationErrors()['free_radius_km']).toBe(
+      'Radius bebas ongkir tidak boleh melebihi batas radius jangkauan maksimal.'
+    );
+
+    component.workerFreeRadiusKm.set(3);
+    isValid = component.validateLocationSettingsInput();
+    expect(isValid).toBe(true);
+  });
+
+  it('harus memproses perubahan koordinat melalui onWorkerCoordinatesChanged', () => {
+    component.locationValidationErrors.set({ coordinates: 'Error' });
+    component.onWorkerCoordinatesChanged({ lat: -6.2088, lng: 106.8456 });
+
+    expect(component.workerLat()).toBe(-6.2088);
+    expect(component.workerLng()).toBe(106.8456);
+    expect(component.locationValidationErrors()['coordinates']).toBeUndefined();
+  });
+
+  it('harus berhasil submit update lokasi pekerja saat form valid', () => {
+    component.workerRecordId.set('worker-uuid-123');
+    component.workerLat.set(-6.2443);
+    component.workerLng.set(106.7997);
+    component.workerMaxRadiusKm.set(15);
+    component.workerFreeRadiusKm.set(4);
+    component.workerExtraFeePerKm.set(4000);
+
+    component.submitLocationSettingsUpdate();
+
+    expect(mockApiService.updateWorkerLocationSettings).toHaveBeenCalledWith(
+      'worker-uuid-123',
+      {
+        lat: -6.2443,
+        lng: 106.7997,
+        max_radius_km: 15,
+        free_radius_km: 4,
+        extra_fee_per_km: 4000,
+      }
+    );
+    expect(component.locationFeedbackSuccess()).toContain('Pengaturan lokasi');
+    expect(component.isLocationSubmitting()).toBe(false);
+  });
+
+  it('harus menolak submit lokasi jika ID pekerja belum tersedia', () => {
+    component.workerRecordId.set('');
+    component.workerLat.set(-6.2443);
+    component.workerLng.set(106.7997);
+
+    component.submitLocationSettingsUpdate();
+
+    expect(mockApiService.updateWorkerLocationSettings).not.toHaveBeenCalled();
+    expect(component.locationFeedbackError()).toContain('ID pekerja belum tersedia');
   });
 });
 

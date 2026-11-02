@@ -6,6 +6,8 @@ import { TechnicianProfileApiResponse } from '../models/worker-catalog.model';
 import {
   CreateServiceBookingPayload,
   ServiceBookingApiResponse,
+  CalculateFeeRequestPayload,
+  FeeCalculationApiResponse,
 } from '../models/service-booking.model';
 
 @Injectable({
@@ -32,6 +34,15 @@ export class WorkerBookingApiService {
     return this.httpClient.post<ServiceBookingApiResponse>(
       `${this.normalizedBaseUrl}/api/public/bookings`,
       bookingPayload
+    );
+  }
+
+  calculateBookingFee(
+    payload: CalculateFeeRequestPayload
+  ): Observable<FeeCalculationApiResponse> {
+    return this.httpClient.post<FeeCalculationApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/booking/calculate-fee`,
+      payload
     );
   }
 }

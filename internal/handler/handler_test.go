@@ -967,3 +967,435 @@ func TestWorkerHandler_GetWorkerProfileRoutes(t *testing.T) {
 		assert.Equal(t, "UNIT", res.Data.RateType)
 	})
 }
+
+func TestWorkerHandler_UpdateWorkerLocationSettings(t *testing.T) {
+	app, repo := setupTestApp()
+
+	lat := -6.2921000
+	lng := 106.7992000
+	worker := &domain.Worker{
+		ID:            "worker-loc-test-1",
+		Slug:          "agus-ac",
+		Name:          "Agus AC",
+		Bio:           "Teknisi AC Cilandak",
+		Zone:          "Jakarta Selatan",
+		PhoneNumber:   "+628123456789",
+		Email:         "agus.secret@tuwaktu.com",
+		Address:       "Jl. Rahasia No. 10",
+		Lat:           &lat,
+		Lng:           &lng,
+		MaxRadiusKM:   12.0,
+		FreeRadiusKM:  3.0,
+		ExtraFeePerKM: 5000,
+		IsActive:      true,
+	}
+	repo.SeedWorker(worker)
+
+	t.Run("200 OK - PUT /api/v1/worker/location-settings updates location and radius", func(t *testing.T) {
+		newLat := -6.2088000
+		newLng := 106.8456000
+		payload := map[string]any{
+			"worker_id":        worker.ID,
+			"lat":              newLat,
+			"lng":              newLng,
+			"max_radius_km":    18.5,
+			"free_radius_km":   4.0,
+			"extra_fee_per_km": 5500,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		respBytes, _ := io.ReadAll(resp.Body)
+		assert.NotContains(t, string(respBytes), "+628123456789")
+		assert.NotContains(t, string(respBytes), "agus.secret@tuwaktu.com")
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		err = json.Unmarshal(respBytes, &res)
+		require.NoError(t, err)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Pengaturan lokasi pekerja berhasil diperbarui", res.Message)
+		require.NotNil(t, res.Data.Lat)
+		require.NotNil(t, res.Data.Lng)
+		assert.InDelta(t, newLat, *res.Data.Lat, 0.0001)
+		assert.InDelta(t, newLng, *res.Data.Lng, 0.0001)
+		assert.Equal(t, 18.5, res.Data.MaxRadiusKM)
+		assert.Equal(t, 4.0, res.Data.FreeRadiusKM)
+		assert.Equal(t, 5500, res.Data.ExtraFeePerKM)
+	})
+
+	t.Run("200 OK - alias PUT /api/worker/location-settings works with Indonesian aliases", func(t *testing.T) {
+		payload := map[string]any{
+			"pekerja_id":         "agus-ac",
+			"latitude":           -6.2500,
+			"longitude":          106.8000,
+			"jarak_maksimal_km":  20.0,
+			"radius_gratis_km":   5.0,
+			"tarif_per_km":       6000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Data    domain.PublicWorkerProfile `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, 20.0, res.Data.MaxRadiusKM)
+		assert.Equal(t, 5.0, res.Data.FreeRadiusKM)
+		assert.Equal(t, 6000, res.Data.ExtraFeePerKM)
+	})
+
+	t.Run("200 OK - alias PUT /api/v1/workers/:id/location-settings works with param ID", func(t *testing.T) {
+		payload := map[string]any{
+			"lat":              -6.2400,
+			"lng":              106.8100,
+			"max_radius_km":    15.0,
+			"free_radius_km":   3.0,
+			"extra_fee_per_km": 5000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/workers/"+worker.ID+"/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("400 Bad Request - missing worker_id", func(t *testing.T) {
+		payload := map[string]any{
+			"max_radius_km": 10.0,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("400 Bad Request - max_radius_km <= 0", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":     worker.ID,
+			"max_radius_km": 0,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("400 Bad Request - free_radius_km exceeds max_radius_km", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":      worker.ID,
+			"max_radius_km":  10.0,
+			"free_radius_km": 15.0,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("400 Bad Request - unpaired coordinates (lat only)", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":     worker.ID,
+			"lat":           -6.2000,
+			"max_radius_km": 10.0,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("404 Not Found - non-existent worker", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":     "non-existent-worker-id",
+			"max_radius_km": 10.0,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/api/v1/worker/location-settings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+func TestBookingHandler_CalculateFee(t *testing.T) {
+	app, repo := setupTestApp()
+
+	lat := -6.2921000
+	lng := 106.7992000
+	worker := &domain.Worker{
+		ID:            "worker-calc-1",
+		Slug:          "joko-teknisi",
+		Name:          "Joko Teknisi",
+		Zone:          "Jakarta Selatan",
+		Lat:           &lat,
+		Lng:           &lng,
+		MaxRadiusKM:   15.0,
+		FreeRadiusKM:  3.0,
+		ExtraFeePerKM: 5000,
+		IsActive:      true,
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "service-calc-1",
+		WorkerID:        worker.ID,
+		Name:            "Servis AC Berkala",
+		Price:           100000,
+		DurationMinutes: 60,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	t.Run("200 OK - POST /api/v1/booking/calculate-fee within free radius", func(t *testing.T) {
+		// ~0.43 km <= 3.0 km
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"service_id": srv.ID,
+			"client_lat": -6.2941000,
+			"client_lng": 106.8025000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/booking/calculate-fee", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                          `json:"success"`
+			Message string                        `json:"message"`
+			Data    domain.FeeCalculationResponse `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&res)
+		require.NoError(t, err)
+
+		assert.True(t, res.Success)
+		assert.Equal(t, "Kalkulasi biaya pemesanan berhasil dihitung", res.Message)
+		assert.InDelta(t, 0.43, res.Data.DistanceKM, 0.05)
+		assert.Equal(t, 100000.0, res.Data.ServicePrice)
+		assert.Equal(t, 0.0, res.Data.TransportFee)
+		assert.Equal(t, 100000.0, res.Data.TotalPrice)
+		assert.True(t, res.Data.IsWithinRadius)
+	})
+
+	t.Run("200 OK - alias POST /api/booking/calculate-fee beyond free radius", func(t *testing.T) {
+		// ~8.3 km distance from Monas to worker in Cilandak (~13 km)
+		payload := map[string]any{
+			"worker_slug": "joko-teknisi",
+			"service_id":  srv.ID,
+			"client_lat":  -6.1754000,
+			"client_lng":  106.8272000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/booking/calculate-fee", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                          `json:"success"`
+			Data    domain.FeeCalculationResponse `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.True(t, res.Data.TransportFee > 0)
+		assert.Equal(t, 100000.0+res.Data.TransportFee, res.Data.TotalPrice)
+	})
+
+	t.Run("422 Unprocessable Entity - distance exceeds max_radius_km", func(t *testing.T) {
+		// Bandung coordinates (~120 km > 15 km)
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"service_id": srv.ID,
+			"client_lat": -6.9025000,
+			"client_lng": 107.6186000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/booking/calculate-fee", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "Di luar jangkauan")
+	})
+
+	t.Run("422 Unprocessable Entity - worker has no location configured", func(t *testing.T) {
+		noLocWorker := &domain.Worker{
+			ID:       "worker-no-loc",
+			Slug:     "tanpa-lokasi",
+			Name:     "Tanpa Lokasi",
+			Zone:     "Jakarta",
+			IsActive: true,
+		}
+		noLocSrv := &domain.Service{
+			ID:       "service-no-loc",
+			WorkerID: noLocWorker.ID,
+			Name:     "Servis Biasa",
+			Price:    50000,
+			IsActive: true,
+		}
+		repo.SeedWorker(noLocWorker)
+		repo.SeedService(noLocSrv)
+
+		payload := map[string]any{
+			"worker_id":  noLocWorker.ID,
+			"service_id": noLocSrv.ID,
+			"client_lat": -6.2000,
+			"client_lng": 106.8000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/booking/calculate-fee", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "belum mengatur titik koordinat")
+	})
+
+	t.Run("404 Not Found - service does not exist", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"service_id": "non-existent-service",
+			"client_lat": -6.2000,
+			"client_lng": 106.8000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/booking/calculate-fee", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("422 Unprocessable Entity - missing client coordinates in calculate fee", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":  worker.ID,
+			"service_id": srv.ID,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/booking/calculate-fee", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "Kesalahan validasi data kalkulasi biaya")
+	})
+
+	t.Run("422 Unprocessable Entity - CreateBooking beyond worker max radius", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":       worker.ID,
+			"service_id":      srv.ID,
+			"client_name":     "Client Bandung",
+			"location":        "Bandung",
+			"zone":            "Bandung",
+			"tanggal_booking": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+			"client_lat":      -6.9025000,
+			"client_lng":      107.6186000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/public/bookings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Contains(t, res.Message, "Di luar jangkauan")
+	})
+
+	t.Run("201 Created - CreateBooking within radius includes transport fee", func(t *testing.T) {
+		payload := map[string]any{
+			"worker_id":       worker.ID,
+			"service_id":      srv.ID,
+			"client_name":     "Client Monas",
+			"location":        "Jl. Medan Merdeka",
+			"zone":            "Jakarta Pusat",
+			"tanggal_booking": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+			"client_lat":      -6.1754000,
+			"client_lng":      106.8272000,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/public/bookings", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var res struct {
+			Success bool                        `json:"success"`
+			Data    domain.PublicBookingResponse `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.True(t, res.Data.TransportFee > 0)
+		assert.Equal(t, 100000.0+res.Data.TransportFee, res.Data.TotalPrice)
+	})
+}
+

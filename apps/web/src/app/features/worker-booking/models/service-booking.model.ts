@@ -7,6 +7,8 @@ export interface CreateServiceBookingPayload {
   client_email?: string;
   location: string;
   zone?: string;
+  client_lat?: number;
+  client_lng?: number;
   booking_date?: string;
   notes?: string;
 }
@@ -23,6 +25,7 @@ export interface ServiceBookingConfirmation {
   booking_date: string;
   notes?: string;
   total_price: number;
+  transport_fee?: number;
   status: string;
   created_at: string;
 }
@@ -33,4 +36,31 @@ export interface ServiceBookingApiResponse {
   data: ServiceBookingConfirmation;
   error: unknown;
 }
+
+export interface CalculateFeeRequestPayload {
+  worker_id?: string;
+  worker_slug?: string;
+  service_id: string;
+  client_lat: number;
+  client_lng: number;
+}
+
+export interface FeeCalculationResult {
+  distance_km: number;
+  max_radius_km: number;
+  free_radius_km: number;
+  service_price: number;
+  extra_fee_per_km: number;
+  transport_fee: number;
+  total_price: number;
+  is_within_radius: boolean;
+}
+
+export interface FeeCalculationApiResponse {
+  success: boolean;
+  message: string;
+  data: FeeCalculationResult;
+  error: unknown;
+}
+
 

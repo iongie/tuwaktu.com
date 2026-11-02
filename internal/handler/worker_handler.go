@@ -126,3 +126,66 @@ func (h *WorkerHandler) UpdateWorkerRates(c *fiber.Ctx) error {
 
 	return SuccessResponse(c, fiber.StatusOK, "Pengaturan tarif pekerja berhasil diperbarui", profile)
 }
+
+// UpdateWorkerLocationSettings handles PUT /api/v1/worker/location-settings and aliases
+func (h *WorkerHandler) UpdateWorkerLocationSettings(c *fiber.Ctx) error {
+	var req domain.WorkerLocationSettingsUpdate
+	if err := c.BodyParser(&req); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload tidak valid", err.Error())
+	}
+
+	// Check if :id is provided in URL path
+	if rawID := c.Params("id"); rawID != "" {
+		if unescaped, err := url.PathUnescape(rawID); err == nil {
+			rawID = unescaped
+		}
+		if trimmed := strings.TrimSpace(rawID); trimmed != "" {
+			req.WorkerID = trimmed
+		}
+	}
+
+	if req.WorkerID == "" && req.ID != "" {
+		req.WorkerID = req.ID
+	}
+
+	req.WorkerID = strings.TrimSpace(req.WorkerID)
+	if req.WorkerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi", nil)
+	}
+
+	if req.MaxRadiusKM <= 0 {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Jarak maksimal jangkauan harus lebih besar dari 0 km", nil)
+	}
+	if req.FreeRadiusKM < 0 {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Radius gratis ongkir tidak boleh bernilai negatif", nil)
+	}
+	if req.FreeRadiusKM > req.MaxRadiusKM {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Radius bebas ongkir tidak boleh melebihi batas radius jangkauan maksimal", nil)
+	}
+	if req.ExtraFeePerKM < 0 {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Tarif per kilometer tidak boleh bernilai negatif", nil)
+	}
+	if (req.Lat != nil && req.Lng == nil) || (req.Lat == nil && req.Lng != nil) {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Titik lintang dan bujur harus diisi bersamaan", nil)
+	}
+	if req.Lat != nil && (*req.Lat < -90.0 || *req.Lat > 90.0) {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Titik lintang (latitude) harus berada di antara -90 dan 90", nil)
+	}
+	if req.Lng != nil && (*req.Lng < -180.0 || *req.Lng > 180.0) {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Titik bujur (longitude) harus berada di antara -180 dan 180", nil)
+	}
+
+	profile, err := h.service.UpdateWorkerLocationSettings(c.UserContext(), &req)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memperbarui pengaturan lokasi pekerja", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Pengaturan lokasi pekerja berhasil diperbarui", profile)
+}
+

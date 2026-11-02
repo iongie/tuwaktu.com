@@ -10,6 +10,7 @@ describe('WorkerBookingStore', () => {
   let mockApiService: {
     fetchPublicTechnicianProfile: jest.Mock;
     submitServiceBookingReservation: jest.Mock;
+    calculateBookingFee: jest.Mock;
   };
 
   const sampleProfile: PublicTechnicianProfile = {
@@ -36,6 +37,7 @@ describe('WorkerBookingStore', () => {
     mockApiService = {
       fetchPublicTechnicianProfile: jest.fn(),
       submitServiceBookingReservation: jest.fn(),
+      calculateBookingFee: jest.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -107,6 +109,68 @@ describe('WorkerBookingStore', () => {
     expect(store.isReservationSubmitting()).toBe(false);
     expect(store.confirmedReservation()).toEqual(confirmation);
     expect(callbackSpy).toHaveBeenCalledWith(confirmation);
+  });
+
+  it('harus memanggil API calculateBookingFee ketika setClientCoordinates dipanggil', () => {
+    mockApiService.fetchPublicTechnicianProfile.mockReturnValue(
+      of({ success: true, message: 'OK', data: sampleProfile })
+    );
+    mockApiService.calculateBookingFee.mockReturnValue(
+      of({
+        success: true,
+        message: 'Kalkulasi berhasil',
+        data: {
+          worker_id: 'tech-1',
+          service_id: 'srv-1',
+          service_price: 75000,
+          distance_km: 6.0,
+          max_radius_km: 15.0,
+          free_radius_km: 3.0,
+          chargeable_km: 3.0,
+          extra_fee_per_km: 3000,
+          transport_fee: 9000,
+          total_price: 84000,
+          is_within_radius: true,
+        },
+      })
+    );
+
+    store.loadTechnicianProfile('budi-santoso');
+    store.setClientCoordinates({ lat: -6.2443, lng: 106.7997 });
+
+    expect(mockApiService.calculateBookingFee).toHaveBeenCalledWith({
+      worker_id: 'tech-1',
+      worker_slug: 'budi-santoso',
+      service_id: 'srv-1',
+      client_lat: -6.2443,
+      client_lng: 106.7997,
+    });
+    expect(store.totalServiceEstimate()).toBe(84000);
+    expect(store.transportFeeEstimate()).toBe(9000);
+    expect(store.distanceKmEstimate()).toBe(6.0);
+    expect(store.isOutOfRadius()).toBe(false);
+  });
+
+  it('harus mengenali kondisi di luar jangkauan ketika API calculateBookingFee gagal dengan error out of radius', () => {
+    mockApiService.fetchPublicTechnicianProfile.mockReturnValue(
+      of({ success: true, message: 'OK', data: sampleProfile })
+    );
+    mockApiService.calculateBookingFee.mockReturnValue(
+      throwError(() => ({
+        status: 422,
+        error: {
+          message:
+            'Di luar jangkauan: Lokasi pemesanan melebihi batas jangkauan layanan pekerja (jarak: 22.5 km, maks: 15.0 km)',
+        },
+      }))
+    );
+
+    store.loadTechnicianProfile('budi-santoso');
+    store.setClientCoordinates({ lat: -6.4000, lng: 106.9000 });
+
+    expect(store.isOutOfRadius()).toBe(true);
+    expect(store.feeCalculationError()).toContain('Di luar jangkauan');
+    expect(store.feeCalculation()).toBeNull();
   });
 });
 

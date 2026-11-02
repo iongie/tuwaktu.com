@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"tuwaktu.com/internal/domain"
@@ -12,6 +13,7 @@ type WorkerService interface {
 	GetPublicProfileBySlug(ctx context.Context, slug string) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerRates(ctx context.Context, req *domain.WorkerRateUpdate) (*domain.PublicWorkerProfile, error)
+	UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error)
 }
 
 type workerService struct {
@@ -122,3 +124,60 @@ func (s *workerService) UpdateWorkerRates(ctx context.Context, req *domain.Worke
 	profile := updatedWorker.ToPublic(publicServices)
 	return &profile, nil
 }
+
+func (s *workerService) UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, domain.ErrInvalidInput
+	}
+	workerID := strings.TrimSpace(req.WorkerID)
+	if workerID == "" {
+		workerID = strings.TrimSpace(req.ID)
+	}
+	if workerID == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	if req.MaxRadiusKM <= 0 {
+		return nil, domain.ErrInvalidInput
+	}
+	if req.FreeRadiusKM < 0 {
+		return nil, domain.ErrInvalidInput
+	}
+	if req.FreeRadiusKM > req.MaxRadiusKM {
+		return nil, fmt.Errorf("%w: radius bebas ongkir tidak boleh melebihi batas radius jangkauan maksimal", domain.ErrInvalidInput)
+	}
+	if req.ExtraFeePerKM < 0 {
+		return nil, domain.ErrInvalidInput
+	}
+	if (req.Lat != nil && req.Lng == nil) || (req.Lat == nil && req.Lng != nil) {
+		return nil, fmt.Errorf("%w: titik lintang dan bujur harus diisi bersamaan", domain.ErrInvalidInput)
+	}
+	if req.Lat != nil && (*req.Lat < -90.0 || *req.Lat > 90.0) {
+		return nil, domain.ErrInvalidInput
+	}
+	if req.Lng != nil && (*req.Lng < -180.0 || *req.Lng > 180.0) {
+		return nil, domain.ErrInvalidInput
+	}
+
+	updatedWorker, err := s.repo.UpdateLocationSettings(ctx, workerID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	services, err := s.repo.GetServicesByWorkerID(ctx, updatedWorker.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	publicServices := make([]domain.PublicService, len(services))
+	for i, srv := range services {
+		publicServices[i] = srv.ToPublic()
+	}
+
+	profile := updatedWorker.ToPublic(publicServices)
+	return &profile, nil
+}
+

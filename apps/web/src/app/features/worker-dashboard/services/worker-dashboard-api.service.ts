@@ -7,6 +7,8 @@ import {
   WorkerProfileUpdatePayload,
   WorkerRateUpdatePayload,
   WorkerRatesApiResponse,
+  WorkerLocationSettingsUpdatePayload,
+  WorkerLocationSettingsApiResponse,
 } from '../models/worker-profile.model';
 
 @Injectable({
@@ -44,6 +46,19 @@ export class WorkerDashboardApiService {
   ): Observable<WorkerRatesApiResponse> {
     return this.httpClient.put<WorkerRatesApiResponse>(
       `${this.normalizedBaseUrl}/api/v1/worker/rates`,
+      {
+        worker_id: workerId.trim(),
+        ...payload,
+      }
+    );
+  }
+
+  updateWorkerLocationSettings(
+    workerId: string,
+    payload: WorkerLocationSettingsUpdatePayload
+  ): Observable<WorkerLocationSettingsApiResponse> {
+    return this.httpClient.put<WorkerLocationSettingsApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/location-settings`,
       {
         worker_id: workerId.trim(),
         ...payload,

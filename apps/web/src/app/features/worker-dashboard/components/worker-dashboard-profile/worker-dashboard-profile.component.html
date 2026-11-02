@@ -371,6 +371,226 @@
       </form>
     </section>
 
+    <!-- Location Feedback Alerts -->
+    @if (locationFeedbackSuccess()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="font-medium">{{ locationFeedbackSuccess() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="locationFeedbackSuccess.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    @if (locationFeedbackError()) {
+      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-medium">{{ locationFeedbackError() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="locationFeedbackError.set(null)"
+          class="text-xs font-semibold underline cursor-pointer"
+        >
+          Tutup
+        </button>
+      </div>
+    }
+
+    <!-- Bento Card: Pengaturan Lokasi & Radius Layanan -->
+    <section class="m3-card-surface p-6 space-y-6">
+      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Pengaturan Lokasi & Radius Layanan</h2>
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+              Tentukan titik pangkalan atau tempat tinggal Anda untuk mengaktifkan validasi jangkauan dan perhitungan ongkos jalan otomatis.
+            </p>
+          </div>
+          @if (workerLat() !== null && workerLng() !== null) {
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] text-xs font-mono">
+              <span class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)]"></span>
+              <span class="font-bold text-[var(--md-sys-color-on-surface)]">
+                Radius Maks: {{ workerMaxRadiusKm() }} km
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <form (ngSubmit)="submitLocationSettingsUpdate()" class="space-y-6">
+        <!-- Map Picker Molecule -->
+        <app-location-map-picker
+          [latitude]="workerLat()"
+          [longitude]="workerLng()"
+          [radiusKm]="workerMaxRadiusKm()"
+          label="Titik Koordinat Pangkalan / Tempat Tinggal"
+          helperText="Pilih titik peta atau gunakan GPS perangkat agar klien tahu batas jangkauan servis Anda."
+          (coordinatesChange)="onWorkerCoordinatesChanged($event)"
+        />
+
+        @if (locationValidationErrors()['coordinates']) {
+          <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+            {{ locationValidationErrors()['coordinates'] }}
+          </p>
+        }
+
+        <!-- Parameter Radius & Ongkos Jalan -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          <!-- Slider Batas Jangkauan Maksimal -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label for="workerMaxRadiusSlider" class="text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+                Jangkauan Maksimal (km) <span class="text-[var(--md-sys-color-primary)]">*</span>
+              </label>
+              <span class="px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                {{ workerMaxRadiusKm() }} km
+              </span>
+            </div>
+            <input
+              id="workerMaxRadiusSlider"
+              type="range"
+              min="1"
+              max="50"
+              step="1"
+              [ngModel]="workerMaxRadiusKm()"
+              (ngModelChange)="onMaxRadiusKmChange($event)"
+              name="workerMaxRadiusSlider"
+              class="w-full accent-[var(--md-sys-color-primary)] cursor-pointer h-2 bg-[var(--md-sys-color-surface-container)] rounded-lg"
+            />
+            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] leading-relaxed">
+              Order reservasi di luar jarak {{ workerMaxRadiusKm() }} km akan ditolak otomatis dengan status di luar jangkauan.
+            </p>
+            @if (locationValidationErrors()['max_radius_km']) {
+              <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+                {{ locationValidationErrors()['max_radius_km'] }}
+              </p>
+            }
+          </div>
+
+          <!-- Radius Bebas Ongkir -->
+          <div class="space-y-2">
+            <label for="workerFreeRadiusInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+              Batas Bebas Ongkir (km) <span class="text-[var(--md-sys-color-primary)]">*</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input
+                id="workerFreeRadiusInput"
+                type="number"
+                min="0"
+                max="50"
+                step="0.5"
+                [ngModel]="workerFreeRadiusKm()"
+                (ngModelChange)="onFreeRadiusKmChange($event)"
+                name="workerFreeRadiusKm"
+                placeholder="Contoh: 3"
+                class="m3-field-outlined font-mono"
+                [class.m3-field-error]="locationValidationErrors()['free_radius_km']"
+              />
+              <span class="px-3 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                km
+              </span>
+            </div>
+            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+              Jarak hingga {{ workerFreeRadiusKm() }} km tidak dikenakan biaya ongkos jalan (gratis).
+            </p>
+            @if (locationValidationErrors()['free_radius_km']) {
+              <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+                {{ locationValidationErrors()['free_radius_km'] }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Tarif Tambahan Ongkos Jalan Per Km -->
+        <div class="space-y-2">
+          <label for="workerExtraFeeInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
+            Tarif Tambahan Ongkos Jalan (Per Km) <span class="text-[var(--md-sys-color-primary)]">*</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="px-3.5 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-sm font-bold text-[var(--md-sys-color-on-surface-variant)]">
+              Rp
+            </span>
+            <div class="flex-1">
+              <input
+                id="workerExtraFeeInput"
+                type="number"
+                min="0"
+                step="500"
+                [ngModel]="workerExtraFeePerKm()"
+                (ngModelChange)="onExtraFeePerKmChange($event)"
+                name="workerExtraFeePerKm"
+                placeholder="Contoh: 3000"
+                class="m3-field-outlined font-mono"
+                [class.m3-field-error]="locationValidationErrors()['extra_fee_per_km']"
+              />
+            </div>
+            <span class="px-3 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">
+              / km
+            </span>
+          </div>
+          <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono">
+            Tarif aktif: <strong class="text-[var(--md-sys-color-primary)]">{{ formattedExtraFeePreview() }} / km</strong> untuk kelebihan jarak di atas {{ workerFreeRadiusKm() }} km.
+          </p>
+          @if (locationValidationErrors()['extra_fee_per_km']) {
+            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              {{ locationValidationErrors()['extra_fee_per_km'] }}
+            </p>
+          }
+        </div>
+
+        <!-- Skema Simulasi Ongkos Jalan -->
+        <div class="p-4 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] space-y-2">
+          <span class="block text-xs font-bold font-mono text-[var(--md-sys-color-on-surface)]">
+            Simulasi Perhitungan Ongkos Jalan:
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
+            <div class="p-2.5 rounded-lg bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]">
+              <span class="text-[var(--md-sys-color-on-surface-variant)] block text-[11px]">Jarak 0 - {{ workerFreeRadiusKm() }} km</span>
+              <span class="font-bold text-[var(--md-sys-color-secondary)]">Rp 0 (Bebas Ongkir)</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]">
+              <span class="text-[var(--md-sys-color-on-surface-variant)] block text-[11px]">Kelebihan Jarak</span>
+              <span class="font-bold text-[var(--md-sys-color-primary)]">+ {{ formattedExtraFeePreview() }} / km</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]">
+              <span class="text-[var(--md-sys-color-on-surface-variant)] block text-[11px]">Jarak > {{ workerMaxRadiusKm() }} km</span>
+              <span class="font-bold text-[var(--md-sys-color-error)]">Di Luar Jangkauan</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Action -->
+        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+          <button
+            type="submit"
+            [disabled]="isLocationSubmitting() || !workerRecordId()"
+            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+          >
+            @if (isLocationSubmitting()) {
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Menyimpan Pengaturan...</span>
+            } @else {
+              <span>Simpan Pengaturan Lokasi &amp; Radius</span>
+            }
+          </button>
+        </div>
+      </form>
+    </section>
 
     <!-- Form Section -->
     <section class="m3-card-surface p-6 space-y-6">

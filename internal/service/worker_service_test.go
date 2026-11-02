@@ -353,3 +353,186 @@ func TestWorkerService_UpdateWorkerRates(t *testing.T) {
 		assert.ErrorIs(t, errNotFound, domain.ErrWorkerNotFound)
 	})
 }
+
+func TestWorkerService_UpdateWorkerLocationSettings(t *testing.T) {
+	ctx := context.Background()
+
+	setupWorker := func() (*repository.MemoryRepository, *domain.Worker) {
+		repo := repository.NewMemoryRepository()
+		lat := -6.2921000
+		lng := 106.7992000
+		worker := &domain.Worker{
+			ID:            "worker-loc-1",
+			Slug:          "budi-santoso",
+			Name:          "Budi Santoso",
+			Zone:          "Jakarta Selatan",
+			Lat:           &lat,
+			Lng:           &lng,
+			MaxRadiusKM:   15.0,
+			FreeRadiusKM:  3.0,
+			ExtraFeePerKM: 5000,
+			IsActive:      true,
+		}
+		repo.SeedWorker(worker)
+		return repo, worker
+	}
+
+	t.Run("success updates location settings and returns public profile", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		newLat := -6.2088000
+		newLng := 106.8456000
+		req := &domain.WorkerLocationSettingsUpdate{
+			WorkerID:      "worker-loc-1",
+			Lat:           &newLat,
+			Lng:           &newLng,
+			MaxRadiusKM:   25.0,
+			FreeRadiusKM:  5.0,
+			ExtraFeePerKM: 6000,
+		}
+
+		profile, err := svc.UpdateWorkerLocationSettings(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, profile)
+		require.NotNil(t, profile.Lat)
+		require.NotNil(t, profile.Lng)
+		assert.InDelta(t, -6.2088, *profile.Lat, 0.0001)
+		assert.InDelta(t, 106.8456, *profile.Lng, 0.0001)
+		assert.Equal(t, 25.0, profile.MaxRadiusKM)
+		assert.Equal(t, 5.0, profile.FreeRadiusKM)
+		assert.Equal(t, 6000, profile.ExtraFeePerKM)
+	})
+
+	t.Run("success updates location settings by worker slug", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		newLat := -6.1754000
+		newLng := 106.8272000
+		req := &domain.WorkerLocationSettingsUpdate{
+			WorkerID:      "budi-santoso", // by slug
+			Lat:           &newLat,
+			Lng:           &newLng,
+			MaxRadiusKM:   20.0,
+			FreeRadiusKM:  4.0,
+			ExtraFeePerKM: 4500,
+		}
+
+		profile, err := svc.UpdateWorkerLocationSettings(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, profile)
+		assert.Equal(t, 20.0, profile.MaxRadiusKM)
+	})
+
+	t.Run("returns ErrInvalidInput when max_radius_km is <= 0", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:    "worker-loc-1",
+			MaxRadiusKM: 0,
+		})
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrInvalidInput when free_radius_km is negative", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:     "worker-loc-1",
+			MaxRadiusKM:  10.0,
+			FreeRadiusKM: -1.0,
+		})
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrInvalidInput when extra_fee_per_km is negative", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:      "worker-loc-1",
+			MaxRadiusKM:   10.0,
+			ExtraFeePerKM: -500,
+		})
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrInvalidInput when coordinates out of range", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		invalidLat := 95.0
+		_, errLat := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:    "worker-loc-1",
+			Lat:         &invalidLat,
+			MaxRadiusKM: 10.0,
+		})
+		assert.ErrorIs(t, errLat, domain.ErrInvalidInput)
+
+		invalidLng := 190.0
+		_, errLng := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:    "worker-loc-1",
+			Lng:         &invalidLng,
+			MaxRadiusKM: 10.0,
+		})
+		assert.ErrorIs(t, errLng, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrInvalidInput when free_radius_km > max_radius_km", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:     "worker-loc-1",
+			MaxRadiusKM:  10.0,
+			FreeRadiusKM: 15.0,
+		})
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("returns ErrInvalidInput when only lat or only lng provided", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		latOnly := -6.2000
+		_, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:    "worker-loc-1",
+			Lat:         &latOnly,
+			MaxRadiusKM: 10.0,
+		})
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("preserves existing coordinates when update coords are nil", func(t *testing.T) {
+		repo, original := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		profile, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:      "worker-loc-1",
+			MaxRadiusKM:   20.0,
+			FreeRadiusKM:  5.0,
+			ExtraFeePerKM: 7000,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, profile.Lat)
+		require.NotNil(t, profile.Lng)
+		assert.Equal(t, *original.Lat, *profile.Lat)
+		assert.Equal(t, *original.Lng, *profile.Lng)
+		assert.Equal(t, 20.0, profile.MaxRadiusKM)
+	})
+
+	t.Run("returns ErrWorkerNotFound when worker does not exist", func(t *testing.T) {
+		repo, _ := setupWorker()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerLocationSettings(ctx, &domain.WorkerLocationSettingsUpdate{
+			WorkerID:    "non-existent",
+			MaxRadiusKM: 10.0,
+		})
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+	})
+}
+

@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicServiceCatalogItem } from '../../../models/worker-catalog.model';
+import { FeeCalculationResult } from '../../../models/service-booking.model';
+import { LocationMapPickerComponent } from '../../molecules/location-map-picker/location-map-picker.component';
 
 export interface BookingFormDraft {
   clientFullName: string;
@@ -16,7 +18,7 @@ export interface BookingFormDraft {
 @Component({
   selector: 'app-service-booking-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LocationMapPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <aside class="m3-card-surface p-6 space-y-6 sticky top-24">
@@ -49,6 +51,30 @@ export interface BookingFormDraft {
           class="p-3.5 bg-[#FFDAD6] border border-[#BA1A1A] rounded-xl text-xs text-[#410002] font-mono"
         >
           {{ serverErrorMessage() }}
+        </div>
+      }
+
+      @if (feeCalculationError(); as calcError) {
+        <div
+          role="alert"
+          class="p-3.5 border rounded-xl text-xs font-mono space-y-1"
+          [class.bg-[#FFDAD6]]="isOutOfRadius()"
+          [class.border-[#BA1A1A]]="isOutOfRadius()"
+          [class.text-[#410002]]="isOutOfRadius()"
+          [class.bg-[#FFDAD3]/50]="!isOutOfRadius()"
+          [class.border-[#C84B31]/50]="!isOutOfRadius()"
+          [class.text-[#3F0300]]="!isOutOfRadius()"
+        >
+          <div class="font-bold uppercase tracking-wider" [class.text-[#BA1A1A]]="isOutOfRadius()">
+            @if (isOutOfRadius()) {
+              Di Luar Jangkauan Layanan
+            } @else {
+              Informasi Ongkos Jalan
+            }
+          </div>
+          <div>
+            {{ calcError }}
+          </div>
         </div>
       }
 
@@ -134,6 +160,17 @@ export interface BookingFormDraft {
           }
         </div>
 
+        <!-- Pemilih Titik Koordinat Peta -->
+        <div class="pt-1">
+          <app-location-map-picker
+            [latitude]="clientCoordinates()?.lat ?? null"
+            [longitude]="clientCoordinates()?.lng ?? null"
+            label="Titik Koordinat Lokasi Servis"
+            helperText="Pilih titik peta atau gunakan lokasi GPS agar sistem menghitung ongkos jalan secara otomatis."
+            (coordinatesChange)="clientCoordinatesChange.emit($event)"
+          />
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label for="serviceZoneInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
@@ -185,9 +222,45 @@ export interface BookingFormDraft {
           ></textarea>
         </div>
 
-        <div class="pt-3 border-t border-[#D2C4BE] space-y-3">
-          <div class="flex items-center justify-between text-xs font-mono">
-            <span class="text-[#4E4642]">Total Estimasi Biaya:</span>
+        <!-- Pricing Breakdown & Ongkos Jalan -->
+        <div class="pt-3 border-t border-[#D2C4BE] space-y-2.5">
+          <div class="text-xs font-mono font-bold text-[#141413] pb-1 border-b border-[#D2C4BE]/50 uppercase tracking-wider">
+            Rincian Pembayaran
+          </div>
+
+          <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
+            <span>Tarif Layanan Dasar:</span>
+            <span class="font-semibold text-[#141413]">{{ formattedServicePrice() }}</span>
+          </div>
+
+          @if (isCalculatingFee()) {
+            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642] animate-pulse">
+              <span>Menghitung Ongkos Jalan...</span>
+              <span class="inline-block w-3.5 h-3.5 border-2 border-[#C84B31] border-t-transparent rounded-full animate-spin"></span>
+            </div>
+          } @else if (feeCalculation(); as fee) {
+            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
+              <span>Jarak Tempuh Garis Lurus:</span>
+              <span class="font-semibold text-[#141413]">{{ fee.distance_km }} km</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
+              <span>Batas Bebas Ongkos Jalan:</span>
+              <span class="text-[#1E4D3B] font-semibold">{{ fee.free_radius_km }} km</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
+              <span>Biaya Ongkos Jalan:</span>
+              @if (fee.transport_fee > 0) {
+                <span class="font-bold text-[#C84B31]">+ {{ formatRupiah(fee.transport_fee) }}</span>
+              } @else {
+                <span class="font-bold text-[#1E4D3B]">Bebas Biaya (Rp 0)</span>
+              }
+            </div>
+          }
+
+          <div class="pt-2 border-t border-[#D2C4BE] flex items-center justify-between text-xs font-mono">
+            <span class="text-[#4E4642] font-semibold">Total Estimasi Biaya:</span>
             <span class="text-base font-bold text-[#141413]">
               {{ formattedTotalEstimate() }}
             </span>
@@ -195,11 +268,13 @@ export interface BookingFormDraft {
 
           <button
             type="submit"
-            [disabled]="isSubmitting() || !hasActiveProfile()"
+            [disabled]="isSubmitting() || !hasActiveProfile() || isOutOfRadius() || isCalculatingFee()"
             class="m3-btn-filled w-full font-mono uppercase tracking-wider"
           >
             @if (isSubmitting()) {
               <span>Memproses Reservasi...</span>
+            } @else if (isOutOfRadius()) {
+              <span>Di Luar Jangkauan Layanan</span>
             } @else {
               <span>Kunci Jadwal &amp; Buat Kode Booking</span>
             }
@@ -218,8 +293,14 @@ export class ServiceBookingFormComponent {
   readonly isSubmitting = input<boolean>(false);
   readonly hasActiveProfile = input<boolean>(false);
   readonly formDraft = input.required<BookingFormDraft>();
+  readonly clientCoordinates = input<{ lat: number; lng: number } | null>(null);
+  readonly feeCalculation = input<FeeCalculationResult | null>(null);
+  readonly isCalculatingFee = input<boolean>(false);
+  readonly feeCalculationError = input<string | null>(null);
+  readonly isOutOfRadius = input<boolean>(false);
 
   readonly formDraftChange = output<BookingFormDraft>();
+  readonly clientCoordinatesChange = output<{ lat: number; lng: number }>();
   readonly clearFieldError = output<string>();
   readonly submitForm = output<void>();
 
@@ -229,5 +310,14 @@ export class ServiceBookingFormComponent {
       [field]: value,
     });
   }
+
+  formatRupiah(amount: number): string {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
 }
+
 

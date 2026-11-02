@@ -166,3 +166,47 @@ func (r *PostgresWorkerRepository) UpdateRates(ctx context.Context, idOrSlug str
 
 	return worker, nil
 }
+
+func (r *PostgresWorkerRepository) UpdateLocationSettings(ctx context.Context, idOrSlug string, update *domain.WorkerLocationSettingsUpdate) (*domain.Worker, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("updating worker location settings: %w", err)
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" || update == nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if update.Lat != nil {
+		worker.Lat = update.Lat
+	}
+	if update.Lng != nil {
+		worker.Lng = update.Lng
+	}
+	if update.MaxRadiusKM > 0 {
+		worker.MaxRadiusKM = update.MaxRadiusKM
+	}
+	if update.FreeRadiusKM >= 0 {
+		worker.FreeRadiusKM = update.FreeRadiusKM
+	}
+	if update.ExtraFeePerKM >= 0 {
+		worker.ExtraFeePerKM = update.ExtraFeePerKM
+	}
+	worker.UpdatedAt = time.Now().UTC()
+
+	if err := r.db.WithContext(ctx).Save(worker).Error; err != nil {
+		return nil, fmt.Errorf("saving worker location settings update: %w", err)
+	}
+
+	return worker, nil
+}
+

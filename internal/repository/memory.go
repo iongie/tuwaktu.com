@@ -202,3 +202,47 @@ func (m *MemoryRepository) UpdateRates(ctx context.Context, idOrSlug string, bas
 
 	return w, nil
 }
+
+func (m *MemoryRepository) UpdateLocationSettings(ctx context.Context, idOrSlug string, update *domain.WorkerLocationSettingsUpdate) (*domain.Worker, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" || update == nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	w, exists := m.workers[idOrSlug]
+	if !exists {
+		for _, worker := range m.workers {
+			if strings.EqualFold(worker.Slug, idOrSlug) {
+				w = worker
+				exists = true
+				break
+			}
+		}
+	}
+	if !exists {
+		return nil, domain.ErrWorkerNotFound
+	}
+
+	if update.Lat != nil {
+		w.Lat = update.Lat
+	}
+	if update.Lng != nil {
+		w.Lng = update.Lng
+	}
+	if update.MaxRadiusKM > 0 {
+		w.MaxRadiusKM = update.MaxRadiusKM
+	}
+	if update.FreeRadiusKM >= 0 {
+		w.FreeRadiusKM = update.FreeRadiusKM
+	}
+	if update.ExtraFeePerKM >= 0 {
+		w.ExtraFeePerKM = update.ExtraFeePerKM
+	}
+	w.UpdatedAt = time.Now().UTC()
+
+	return w, nil
+}
+

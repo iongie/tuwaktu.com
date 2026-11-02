@@ -19,6 +19,11 @@ export interface PublicTechnicianProfile {
   zone: string;
   base_price?: number;
   rate_type?: 'HOURLY' | 'UNIT' | string;
+  lat?: number;
+  lng?: number;
+  max_radius_km?: number;
+  free_radius_km?: number;
+  extra_fee_per_km?: number;
   services: PublicServiceCatalogItem[];
 }
 

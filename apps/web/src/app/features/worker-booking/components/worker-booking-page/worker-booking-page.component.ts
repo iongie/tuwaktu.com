@@ -133,6 +133,10 @@ export class WorkerBookingPageComponent implements OnInit {
       errors['service'] = 'Silakan pilih salah satu layanan teknisi terlebih dahulu.';
     }
 
+    if (this.store.isOutOfRadius()) {
+      errors['service'] = 'Lokasi pemesanan berada di luar batas jangkauan layanan teknisi.';
+    }
+
     if (!this.clientFullName.trim()) {
       errors['client_name'] = 'Nama lengkap klien wajib diisi.';
     }

@@ -6,6 +6,7 @@ import {
 } from '../models/worker-catalog.model';
 import {
   CreateServiceBookingPayload,
+  FeeCalculationResult,
   ServiceBookingConfirmation,
 } from '../models/service-booking.model';
 
@@ -19,13 +20,32 @@ export class WorkerBookingStore {
   readonly selectedCatalogService = signal<PublicServiceCatalogItem | null>(null);
   readonly confirmedReservation = signal<ServiceBookingConfirmation | null>(null);
 
+  readonly clientCoordinates = signal<{ lat: number; lng: number } | null>(null);
+  readonly feeCalculation = signal<FeeCalculationResult | null>(null);
+  readonly isCalculatingFee = signal<boolean>(false);
+  readonly feeCalculationError = signal<string | null>(null);
+
   readonly isProfileLoading = signal<boolean>(false);
   readonly isReservationSubmitting = signal<boolean>(false);
   readonly profileErrorMessage = signal<string | null>(null);
   readonly reservationErrorMessage = signal<string | null>(null);
 
   readonly hasActiveProfile = computed(() => this.activeTechnicianProfile() !== null);
-  readonly totalServiceEstimate = computed(() => this.selectedCatalogService()?.price ?? 0);
+  readonly isOutOfRadius = computed(() => {
+    const err = this.feeCalculationError();
+    return err !== null && (err.includes('Di luar jangkauan') || err.includes('melebihi'));
+  });
+
+  readonly totalServiceEstimate = computed(() => {
+    const fee = this.feeCalculation();
+    if (fee && fee.is_within_radius) {
+      return fee.total_price;
+    }
+    return this.selectedCatalogService()?.price ?? 0;
+  });
+
+  readonly transportFeeEstimate = computed(() => this.feeCalculation()?.transport_fee ?? 0);
+  readonly distanceKmEstimate = computed(() => this.feeCalculation()?.distance_km ?? null);
 
   loadTechnicianProfile(slug: string): void {
     if (!slug.trim()) {
@@ -35,6 +55,8 @@ export class WorkerBookingStore {
 
     this.isProfileLoading.set(true);
     this.profileErrorMessage.set(null);
+    this.feeCalculation.set(null);
+    this.feeCalculationError.set(null);
 
     this.bookingApi.fetchPublicTechnicianProfile(slug).subscribe({
       next: (response) => {
@@ -46,6 +68,10 @@ export class WorkerBookingStore {
           this.selectedCatalogService.set(null);
         } else if (!currentSelected && response.data.services.length > 0) {
           this.selectedCatalogService.set(response.data.services[0]);
+        }
+
+        if (this.clientCoordinates()) {
+          this.triggerFeeCalculation();
         }
       },
       error: (err: { status?: number; error?: { message?: string } }) => {
@@ -63,6 +89,56 @@ export class WorkerBookingStore {
 
   selectCatalogService(serviceItem: PublicServiceCatalogItem): void {
     this.selectedCatalogService.set(serviceItem);
+    if (this.clientCoordinates()) {
+      this.triggerFeeCalculation();
+    }
+  }
+
+  setClientCoordinates(coords: { lat: number; lng: number } | null): void {
+    this.clientCoordinates.set(coords);
+    if (!coords) {
+      this.feeCalculation.set(null);
+      this.feeCalculationError.set(null);
+      return;
+    }
+    this.triggerFeeCalculation();
+  }
+
+  triggerFeeCalculation(): void {
+    const coords = this.clientCoordinates();
+    const service = this.selectedCatalogService();
+    const worker = this.activeTechnicianProfile();
+
+    if (!coords || !service || !worker) {
+      return;
+    }
+
+    this.isCalculatingFee.set(true);
+    this.feeCalculationError.set(null);
+
+    this.bookingApi
+      .calculateBookingFee({
+        worker_id: worker.id,
+        worker_slug: worker.slug,
+        service_id: service.id,
+        client_lat: coords.lat,
+        client_lng: coords.lng,
+      })
+      .subscribe({
+        next: (response) => {
+          this.isCalculatingFee.set(false);
+          this.feeCalculation.set(response.data);
+          this.feeCalculationError.set(null);
+        },
+        error: (err: { status?: number; error?: { message?: string } }) => {
+          this.isCalculatingFee.set(false);
+          this.feeCalculation.set(null);
+          const errorMsg =
+            err.error?.message ||
+            'Di luar jangkauan: Lokasi pemesanan melebihi batas jangkauan layanan pekerja.';
+          this.feeCalculationError.set(errorMsg);
+        },
+      });
   }
 
   submitReservation(
@@ -72,7 +148,14 @@ export class WorkerBookingStore {
     this.isReservationSubmitting.set(true);
     this.reservationErrorMessage.set(null);
 
-    this.bookingApi.submitServiceBookingReservation(payload).subscribe({
+    const coords = this.clientCoordinates();
+    const finalPayload: CreateServiceBookingPayload = {
+      ...payload,
+      client_lat: coords ? coords.lat : payload.client_lat,
+      client_lng: coords ? coords.lng : payload.client_lng,
+    };
+
+    this.bookingApi.submitServiceBookingReservation(finalPayload).subscribe({
       next: (response) => {
         this.isReservationSubmitting.set(false);
         this.confirmedReservation.set(response.data);
@@ -97,4 +180,3 @@ export class WorkerBookingStore {
     this.confirmedReservation.set(null);
   }
 }
-

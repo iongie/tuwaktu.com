@@ -12,6 +12,7 @@ type WorkerRepository interface {
 	GetServicesByWorkerID(ctx context.Context, workerID string) ([]domain.Service, error)
 	UpdateProfile(ctx context.Context, id string, profile *domain.WorkerProfileUpdate) (*domain.Worker, error)
 	UpdateRates(ctx context.Context, idOrSlug string, basePrice float64, rateType string) (*domain.Worker, error)
+	UpdateLocationSettings(ctx context.Context, idOrSlug string, update *domain.WorkerLocationSettingsUpdate) (*domain.Worker, error)
 }
 
 type BookingRepository interface {

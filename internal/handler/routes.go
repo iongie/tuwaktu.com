@@ -23,6 +23,8 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 
 	// Bookings endpoint
 	pub.Post("/bookings", bookingHandler.CreateBooking)
+	pub.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
+	pub.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 
 	// Worker profile update endpoints
 	api.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
@@ -33,15 +35,30 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	api.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	api.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
 
+	// Worker location settings endpoints
+	api.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
+	api.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
+
+	// Booking calculate-fee endpoint
+	api.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
+	api.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
+
 	// API v1 group
 	v1 := api.Group("/v1")
 	v1Pub := v1.Group("/public")
 
 	v1Pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	v1Pub.Post("/bookings", bookingHandler.CreateBooking)
+	v1Pub.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
+	v1Pub.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 	v1.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	v1.Get("/worker/:slug/profile", workerHandler.GetWorkerBySlug)
 	v1.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	v1.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
 	v1.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
+	v1.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
+	v1.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
+	v1.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
+	v1.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 }
+

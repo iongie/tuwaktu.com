@@ -12,14 +12,14 @@ export const appRoutes: Route[] = [
     path: 'dashboard/profile',
     loadComponent: () =>
       import(
-        './features/worker-dashboard/components/worker-dashboard-profile/worker-dashboard-profile.component'
+        './features/worker-dashboard/components/pages/worker-dashboard-profile/worker-dashboard-profile.component'
       ).then((m) => m.WorkerDashboardProfileComponent),
   },
   {
     path: 'dashboard',
     loadComponent: () =>
       import(
-        './features/worker-dashboard/components/worker-dashboard-layout/worker-dashboard-layout.component'
+        './features/worker-dashboard/components/pages/worker-dashboard-layout/worker-dashboard-layout.component'
       ).then((m) => m.WorkerDashboardLayoutComponent),
     children: [
       {
@@ -31,14 +31,14 @@ export const appRoutes: Route[] = [
         path: 'ringkasan',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-summary/worker-dashboard-summary.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-summary/worker-dashboard-summary.component'
           ).then((m) => m.WorkerDashboardSummaryComponent),
       },
       {
         path: 'tarif-layanan',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-rates/worker-dashboard-rates.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-rates/worker-dashboard-rates.component'
           ).then((m) => m.WorkerDashboardRatesComponent),
       },
       {
@@ -49,7 +49,7 @@ export const appRoutes: Route[] = [
         path: 'logistik-radius',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-logistics/worker-dashboard-logistics.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-logistics/worker-dashboard-logistics.component'
           ).then((m) => m.WorkerDashboardLogisticsComponent),
       },
       {
@@ -60,7 +60,7 @@ export const appRoutes: Route[] = [
         path: 'kalender-slot',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-schedule/worker-dashboard-schedule.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-schedule/worker-dashboard-schedule.component'
           ).then((m) => m.WorkerDashboardScheduleComponent),
       },
       {
@@ -71,7 +71,7 @@ export const appRoutes: Route[] = [
         path: 'integrasi-whatsapp',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-whatsapp/worker-dashboard-whatsapp.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-whatsapp/worker-dashboard-whatsapp.component'
           ).then((m) => m.WorkerDashboardWhatsAppProfileComponent),
       },
       {
@@ -82,14 +82,14 @@ export const appRoutes: Route[] = [
         path: 'plan',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-plan/worker-dashboard-plan.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-plan/worker-dashboard-plan.component'
           ).then((m) => m.WorkerDashboardPlanComponent),
       },
       {
         path: 'boost',
         loadComponent: () =>
           import(
-            './features/worker-dashboard/components/worker-dashboard-boost/worker-dashboard-boost.component'
+            './features/worker-dashboard/components/pages/worker-dashboard-boost/worker-dashboard-boost.component'
           ).then((m) => m.WorkerDashboardBoostComponent),
       },
     ],

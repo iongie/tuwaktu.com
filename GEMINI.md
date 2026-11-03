@@ -106,23 +106,43 @@ Wajib dipatuhi pada seluruh aplikasi frontend Angular SSR (`apps/web`):
 
 ---
 
-## 7. Aturan Arsitektur Atomic Design & Material Design 3 (M3)
+## 7. Aturan Baku Arsitektur Atomic Design Frontend (Wajib Diikuti)
 
-Seluruh antarmuka web (`apps/web`) wajib menerapkan prinsip **Atomic Design** yang dipadukan dengan spesifikasi **Material Design 3 (https://m3.material.io/)**:
+Seluruh antarmuka web (`apps/web`) **WAJIB SELALU** menerapkan prinsip **Atomic Design** yang dipadukan dengan spesifikasi **Material Design 3 (https://m3.material.io/)** dan prinsip efisiensi **Ponytail (Anti-Bloat)**:
 
-1. **Hierarki Atomic Design Proporsional (Anti-Bloat / Ponytail)**:
-   - **Atoms**: Token desain dan elemen dasar M3 (`.m3-btn-filled`, `.m3-btn-outlined`, `.m3-chip`, `.m3-field-outlined`, `.m3-badge`). Jangan membuat komponen Angular pembungkus untuk 1 tag HTML murni jika cukup menggunakan class sistem M3 di `styles.css`.
-   - **Molecules (`components/molecules/`)**: Gabungan atom dengan satu tanggung jawab fungsional spesifik (misal: `TechnicianSearchBarComponent`, `ServiceCatalogCardComponent`).
-   - **Organisms (`components/organisms/`)**: Bagian antarmuka mandiri yang utuh (misal: `TechnicianProfileHeaderComponent`, `ServiceBookingFormComponent`).
-   - **Pages / Templates (`components/worker-booking-page/`)**: Mengorkestrasi tata letak halaman, state store, dan SEO/OpenGraph.
-2. **Material Design 3 (M3) Color Roles & Surface Hierarchy**:
+1. **Struktur Folder Berbasis Hierarki Atomic Design**:
+   - Setiap fitur di dalam `apps/web/src/app/features/<nama-fitur>/components/` **WAJIB** dikelompokkan secara konsisten ke dalam subfolder:
+     - `components/molecules/`: Seluruh komponen molekul dengan satu tanggung jawab fungsional spesifik.
+     - `components/organisms/`: Seluruh komponen organisme mandiri yang terkomposisi dari beberapa molekul dan token atom.
+     - `components/pages/`: Seluruh komponen penampung rute (page views/sub-routes/layout shell).
+   - **DILARANG KERAS** meletakkan file komponen secara flat/rata langsung di dalam folder root `components/`.
+
+2. **Standar Klasifikasi Komponen**:
+   - **Atoms (Token Desain & Kelas Sistem CSS)**:
+     - Didefinisikan melalui token CSS M3 (`--md-sys-color-*`) dan kelas sistem M3 di `styles.css` (`.m3-btn-filled`, `.m3-btn-outlined`, `.m3-chip`, `.m3-field-outlined`, `.m3-badge`).
+     - **Prinsip Anti-Bloat / Ponytail**: DILARANG membuat komponen pembungkus Angular (misal `<app-button>`, `<app-input>`) hanya untuk membungkus 1 tag HTML murni jika fungsinya cukup diakomodasi oleh kelas CSS.
+   - **Molecules (`components/molecules/`)**:
+     - Komponen independen terisolasi dengan tanggung jawab fungsional tunggal (*Single Responsibility*) yang dapat digunakan kembali (*reusable*).
+     - Setiap elemen UI interaktif yang dipakai lebih dari sekali atau memiliki logika visual tersendiri (misal: kartu statistik metrik `DashboardMetricStatCardComponent`, master switch toggle `DashboardStatusToggleComponent`, banner feedback alert `FeedbackAlertBannerComponent`, quick copy link `DashboardQuickLinkComponent`, pemilih peta `LocationMapPickerComponent`) **WAJIB** dijadikan molekul mandiri.
+   - **Organisms (`components/organisms/`)**:
+     - Bagian antarmuka mandiri yang utuh dan kompleks, dibentuk dari komposisi molekul dan atom.
+     - Contoh: `WorkerDashboardSidebarComponent` (sidebar navigasi), `WorkerDashboardHeaderComponent` (bilah sinkronisasi atas), `WorkerDashboardHeroBannerComponent` (panel operator hero dengan telemetri), `WorkerDashboardFooterBarComponent` (bilah simpan lengket bawah), `ServiceBookingFormComponent` (formulir reservasi).
+   - **Pages / Sub-Routes (`components/pages/`)**:
+     - Mengorkestrasi routing, penghubung state store (`WorkerDashboardStore` / `WorkerBookingStore`), dan penata layout organisms.
+     - **Aturan Anti-Bloat Template Halaman**: File HTML halaman dilarang menampung ratusan baris markup UI murni; seluruh blok antarmuka modular wajib didelegasikan ke organisms dan molecules sehingga template halaman tetap ringkas, bersih, dan mudah dirawat.
+
+3. **Reusability & Komponen Bersama (Shared)**:
+   - Jika suatu molekul atau organisme dibutuhkan oleh lebih dari satu fitur (misal: `LocationMapPickerComponent`), komponen tersebut dapat dijadikan modul bersama atau diimpor secara eksplisit antar fitur dengan kontrak input/output yang jelas dan decoupled.
+
+4. **Material Design 3 (M3) Color Roles & Surface Hierarchy**:
    - Gunakan token CSS M3 (`--md-sys-color-*`) yang selaras dengan identitas hangat Tuwaktu:
      - `primary` (`#C84B31`), `on-primary` (`#FFFFFF`), `primary-container` (`#FFDAD3`), `on-primary-container` (`#3F0300`).
      - `secondary` (`#1E4D3B`), `secondary-container` (`#CBECE0`), `on-secondary-container` (`#002116`).
      - `surface` (`#FDFCFB`), `surface-container-low` (`#F6F4F0`), `surface-container` (`#F0EDE7`), `surface-container-high` (`#EAE6DF`), `on-surface` (`#141413`), `on-surface-variant` (`#4E4642`).
      - `outline` (`#807570`), `outline-variant` (`#D2C4BE`).
    - Bedakan kedalaman kontainer menggunakan *Tonal Surface Container* dan *Outline*, bukan dengan menumpuk *drop-shadow* lembut di setiap kartu.
-3. **M3 Shape, State Layers, & Aksesibilitas**:
+
+5. **M3 Shape, State Layers, & Aksesibilitas**:
    - Gunakan skala radius M3 yang bervariasi sesuai hierarki komponen (`xs: 4px`, `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 28px`). Dilarang membuat semua elemen berbentuk kapsul/pill seragam.
    - Setiap kontrol interaktif wajib memiliki ukuran target sentuh minimum `48x48px` (atau tinggi minimal `44px–48px`), state layer saat hover/pressed, dan indikator `focus-visible` yang memenuhi rasio kontras WCAG AA (minimal 4.5:1 untuk teks normal).
    - Formulir dilarang diisi dengan data fiktif bawaan (*pre-filled fake data*); gunakan `placeholder` yang jujur dan jelas.

@@ -334,8 +334,10 @@ tuwaktu.com/
 │           │   ├── environment.production.ts  # Konfigurasi production (https://api.tuwaktu.com)
 │           │   └── environment.ts             # Base fallback environment
 │           ├── app/
-│           │   ├── core/                      # Model data API & WorkerService
-│           │   └── pages/worker-demo/         # Demo UI profil pekerja & form booking
+│           │   ├── core/                      # Global Error Handler & app configs
+│           │   └── features/                  # Feature-Sliced Atomic Design Components
+│           │       ├── worker-booking/        # Fitur Pemesanan Publik (molecules, organisms, pages)
+│           │       └── worker-dashboard/      # Fitur Dasbor Pekerja (molecules, organisms, pages)
 │           ├── main.ts                        # Browser entrypoint
 │           ├── main.server.ts                 # Server entrypoint
 │           ├── server.ts                      # Express SSR Server

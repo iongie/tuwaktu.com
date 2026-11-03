@@ -1,24 +1,32 @@
 <div class="min-h-screen bg-(--body-canvas) text-(--brand-ink) antialiased">
   <!-- ======================= FIXED DARK SIDEBAR (W-64 / #121212) ======================= -->
-  <aside class="fixed left-0 top-0 h-full w-64 bg-(--hero-canvas) text-white z-50 flex-col justify-between py-6 px-4 hidden lg:flex border-r border-white/10">
+  <aside
+    class="fixed left-0 top-0 h-full w-64 bg-(--hero-canvas) text-white z-50 flex-col justify-between py-6 px-4 hidden lg:flex border-r border-white/10"
+  >
     <div class="space-y-6">
       <!-- Logo Tuwaktu PRO -->
       <div class="flex items-center justify-between px-2">
         <a routerLink="/" class="flex items-center gap-2">
-          <div class="w-7 h-7 bg-(--voltage-orange) rounded-lg flex items-center justify-center text-white font-bold text-sm">
+          <div
+            class="w-7 h-7 bg-(--voltage-orange) rounded-lg flex items-center justify-center text-white font-bold text-sm"
+          >
             T
           </div>
           <span class="text-lg font-bold tracking-tight text-white uppercase">
             TUWAKTU
           </span>
         </a>
-        <span class="font-mono text-[10px] uppercase text-white/50 px-2 py-0.5 bg-white/10 rounded">
+        <span
+          class="font-mono text-[10px] uppercase text-white/50 px-2 py-0.5 bg-white/10 rounded"
+        >
           PRO
         </span>
       </div>
 
       <!-- Status Penerimaan Master Indicator -->
-      <div class="px-3 py-2 bg-white/5 rounded-lg flex items-center justify-between border border-white/10">
+      <div
+        class="px-3 py-2 bg-white/5 rounded-lg flex items-center justify-between border border-white/10"
+      >
         <div class="flex items-center gap-2">
           <span
             class="w-2 h-2 rounded-full"
@@ -46,7 +54,9 @@
             routerLinkActive="bg-white/15 text-white"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white/70 hover:bg-white/5 hover:text-white transition-colors text-left"
           >
-            <span class="material-symbols-outlined text-base">{{ item.icon }}</span>
+            <span class="material-symbols-outlined text-base">{{
+              item.icon
+            }}</span>
             <span>{{ item.label }}</span>
           </a>
         }
@@ -76,13 +86,19 @@
             class="w-8 h-8 rounded-full object-cover border border-white/20"
           />
         } @else {
-          <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold font-mono text-white">
+          <div
+            class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold font-mono text-white"
+          >
             {{ (store.workerFullName() || 'TW').substring(0, 2).toUpperCase() }}
           </div>
         }
         <div class="flex flex-col min-w-0">
-          <span class="text-xs font-bold text-white truncate">{{ store.workerFullName() || 'Mitra' }}</span>
-          <span class="text-[10px] text-white/50 truncate">{{ store.workerProfessionZone() || 'Spesialis Mandiri' }}</span>
+          <span class="text-xs font-bold text-white truncate">{{
+            store.workerFullName() || 'Mitra'
+          }}</span>
+          <span class="text-[10px] text-white/50 truncate">{{
+            store.workerProfessionZone() || 'Spesialis Mandiri'
+          }}</span>
         </div>
       </div>
     </div>
@@ -91,20 +107,32 @@
   <!-- ======================= MAIN CONTENT CANVAS (PL-64 FOR DESKTOP) ======================= -->
   <div class="lg:pl-64 min-h-screen flex flex-col bg-(--body-canvas)">
     <!-- Fixed Top Header Bar from Stitch -->
-    <header class="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-xl border-b border-(--hairline-light) flex items-center justify-between px-4 sm:px-6 shadow-xs">
+    <header
+      class="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-xl border-b border-(--hairline-light) flex items-center justify-between px-4 sm:px-6 shadow-xs"
+    >
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-2">
-          <span class="font-mono text-xs text-(--brand-ink)/70 bg-(--surface-light) px-2.5 py-1 rounded border border-(--hairline-light)">
+          <span
+            class="font-mono text-xs text-(--brand-ink)/70 bg-(--surface-light) px-2.5 py-1 rounded border border-(--hairline-light)"
+          >
             tuwaktu.com{{ store.publicProfileRelativeUrl() || '/...' }}
           </span>
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs text-(--brand-ink)/60 hidden sm:inline-block">Tersinkronisasi</span>
+          <span
+            class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+          ></span>
+          <span class="text-xs text-(--brand-ink)/60 hidden sm:inline-block"
+            >Tersinkronisasi</span
+          >
         </div>
       </div>
 
       <div class="flex items-center gap-4">
-        <div class="hidden sm:flex items-center gap-1.5 text-xs text-(--brand-ink)/70 font-semibold">
-          <span class="material-symbols-outlined text-emerald-700 text-sm">verified</span>
+        <div
+          class="hidden sm:flex items-center gap-1.5 text-xs text-(--brand-ink)/70 font-semibold"
+        >
+          <span class="material-symbols-outlined text-emerald-700 text-sm"
+            >verified</span
+          >
           <span>Terverifikasi Mandiri</span>
         </div>
 
@@ -124,7 +152,9 @@
             class="w-8 h-8 rounded-full object-cover border border-(--hairline-light)"
           />
         } @else {
-          <div class="w-8 h-8 rounded-full bg-(--hero-canvas) text-white flex items-center justify-center text-xs font-bold font-mono">
+          <div
+            class="w-8 h-8 rounded-full bg-(--hero-canvas) text-white flex items-center justify-center text-xs font-bold font-mono"
+          >
             {{ (store.workerFullName() || 'TW').substring(0, 2).toUpperCase() }}
           </div>
         }
@@ -132,10 +162,17 @@
     </header>
 
     <!-- Main Workspace Container -->
-    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24">
+    <main
+      class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24"
+    >
       <!-- Mobile Sub-Navigation Bar -->
-      <nav aria-label="Menu Halaman Dasbor" class="lg:hidden sticky top-18 z-30 p-1.5 rounded-xl bg-white/95 backdrop-blur-md shadow-xs border border-(--hairline-light)">
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <nav
+        aria-label="Menu Halaman Dasbor"
+        class="lg:hidden sticky top-18 z-30 p-1.5 rounded-xl bg-white/95 backdrop-blur-md shadow-xs border border-(--hairline-light)"
+      >
+        <div
+          class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none"
+        >
           @for (item of navMenuItems; track item.routePath) {
             <a
               [routerLink]="item.routePath"
@@ -144,7 +181,9 @@
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap min-h-[44px] text-(--brand-ink)/70"
             >
-              <span class="material-symbols-outlined text-sm">{{ item.icon }}</span>
+              <span class="material-symbols-outlined text-sm">{{
+                item.icon
+              }}</span>
               <span>{{ item.shortLabel }}</span>
             </a>
           }
@@ -152,10 +191,22 @@
       </nav>
 
       <!-- Feedback Alerts -->
-      @if (store.profileFeedbackSuccess() || store.ratesFeedbackSuccess() || store.locationFeedbackSuccess() || store.scheduleFeedbackSuccess() || store.planFeedbackSuccess() || store.boostFeedbackSuccess(); as successMsg) {
-        <div class="p-4 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-300 text-sm flex items-center justify-between">
+      @if (
+        store.profileFeedbackSuccess() ||
+          store.ratesFeedbackSuccess() ||
+          store.locationFeedbackSuccess() ||
+          store.scheduleFeedbackSuccess() ||
+          store.planFeedbackSuccess() ||
+          store.boostFeedbackSuccess();
+        as successMsg
+      ) {
+        <div
+          class="p-4 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-300 text-sm flex items-center justify-between"
+        >
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-700 text-base">check_circle</span>
+            <span class="material-symbols-outlined text-emerald-700 text-base"
+              >check_circle</span
+            >
             <span class="font-medium">{{ successMsg }}</span>
           </div>
           <button
@@ -168,10 +219,20 @@
         </div>
       }
 
-      @if (store.profileFeedbackError() || store.ratesFeedbackError() || store.locationFeedbackError() || store.scheduleFeedbackError(); as errorMsg) {
-        <div class="p-4 rounded-xl bg-red-50 text-red-900 border border-red-300 text-sm flex items-center justify-between">
+      @if (
+        store.profileFeedbackError() ||
+          store.ratesFeedbackError() ||
+          store.locationFeedbackError() ||
+          store.scheduleFeedbackError();
+        as errorMsg
+      ) {
+        <div
+          class="p-4 rounded-xl bg-red-50 text-red-900 border border-red-300 text-sm flex items-center justify-between"
+        >
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-red-700 text-base">warning</span>
+            <span class="material-symbols-outlined text-red-700 text-base"
+              >warning</span
+            >
             <span class="font-medium">{{ errorMsg }}</span>
           </div>
           <button
@@ -185,7 +246,9 @@
       }
 
       <!-- Dynamic Slug Input Box -->
-      <section class="bg-white border border-(--hairline-light) rounded-xl p-5 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <section
+        class="bg-white border border-(--hairline-light) rounded-xl p-5 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
+      >
         <div>
           <h2 class="text-sm font-bold text-(--brand-ink)">
             @if (store.workerRecordId()) {
@@ -196,9 +259,13 @@
           </h2>
           <p class="text-xs text-(--brand-ink)/60 mt-0.5">
             @if (store.workerRecordId()) {
-              Menyunting konfigurasi akun mitra: <span class="font-mono font-bold text-(--voltage-orange)">{{ store.workerSlugIdentifier() }}</span>
+              Menyunting konfigurasi akun mitra:
+              <span class="font-mono font-bold text-(--voltage-orange)">{{
+                store.workerSlugIdentifier()
+              }}</span>
             } @else {
-              Ketik slug mitra terdaftar untuk memuat dan menyunting konfigurasi operasional.
+              Ketik slug mitra terdaftar untuk memuat dan menyunting konfigurasi
+              operasional.
             }
           </p>
         </div>
@@ -215,7 +282,9 @@
           <button
             type="button"
             (click)="loadProfileByLookupInput()"
-            [disabled]="store.isProfileLoading() || !store.workerLookupSlugInput().trim()"
+            [disabled]="
+              store.isProfileLoading() || !store.workerLookupSlugInput().trim()
+            "
             class="m3-btn-filled text-xs min-h-[40px] px-3.5"
           >
             @if (store.isProfileLoading()) {
@@ -237,13 +306,19 @@
       </section>
 
       <!-- ======================= TOP OPERATOR BAR: DARK SOVEREIGN PANEL ======================= -->
-      <section class="w-full bg-(--hero-canvas) rounded-xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <section
+        class="w-full bg-(--hero-canvas) rounded-xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden"
+      >
         <!-- Subtle radial glow from Stitch -->
-        <div class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-(--voltage-orange)/5 blur-3xl pointer-events-none"></div>
+        <div
+          class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-(--voltage-orange)/5 blur-3xl pointer-events-none"
+        ></div>
 
         <div class="relative z-10 flex flex-col gap-6">
           <!-- Profile & Master Dispatch Toggle -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div
+            class="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+          >
             <div class="flex items-center gap-4 sm:gap-5">
               <div class="relative shrink-0">
                 @if (store.workerAvatarUrl()) {
@@ -253,8 +328,14 @@
                     class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-2 ring-white/20 shadow-md"
                   />
                 } @else {
-                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 ring-2 ring-white/20 flex items-center justify-center font-mono font-bold text-2xl text-white">
-                    {{ (store.workerFullName() || 'TW').substring(0, 2).toUpperCase() }}
+                  <div
+                    class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 ring-2 ring-white/20 flex items-center justify-center font-mono font-bold text-2xl text-white"
+                  >
+                    {{
+                      (store.workerFullName() || 'TW')
+                        .substring(0, 2)
+                        .toUpperCase()
+                    }}
                   </div>
                 }
                 <span
@@ -267,11 +348,17 @@
 
               <div class="flex flex-col min-w-0 space-y-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  <h1
+                    class="text-2xl sm:text-3xl font-bold text-white tracking-tight"
+                  >
                     {{ store.workerFullName() || 'Sarah Melinda' }}
                   </h1>
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-(--surface-warm-promo) text-(--promo-ink) font-mono text-[10px] uppercase font-bold tracking-wider">
-                    <span class="material-symbols-outlined text-xs">verified</span>
+                  <span
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-(--surface-warm-promo) text-(--promo-ink) font-mono text-[10px] uppercase font-bold tracking-wider"
+                  >
+                    <span class="material-symbols-outlined text-xs"
+                      >verified</span
+                    >
                     VERIFIED PRO
                   </span>
                   @if (store.workerRecordId()) {
@@ -280,23 +367,54 @@
                     </span>
                   }
                 </div>
-                <div class="flex items-center gap-2 text-white/70 text-xs font-medium">
-                  <span>{{ store.workerProfessionZone() || 'Home Cleaning Specialist & Organizer' }}</span>
+                <div
+                  class="flex items-center gap-2 text-white/70 text-xs font-medium"
+                >
+                  <span>{{
+                    store.workerProfessionZone() ||
+                      'Home Cleaning Specialist & Organizer'
+                  }}</span>
                   <span>•</span>
-                  <span>Pangkalan: {{ store.workerProfessionZone() ? store.workerProfessionZone() : 'Jakarta Selatan' }}</span>
+                  <span
+                    >Pangkalan:
+                    {{
+                      store.workerProfessionZone()
+                        ? store.workerProfessionZone()
+                        : 'Jakarta Selatan'
+                    }}</span
+                  >
                 </div>
               </div>
             </div>
 
             <!-- Master Switch & Quick Public Link Pill -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div
+              class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+            >
               <!-- Master Toggle Switch -->
-              <div class="flex items-center justify-between sm:justify-start gap-3 bg-white/10 px-4 py-2.5 rounded-lg border border-white/10">
+              <div
+                class="flex items-center justify-between sm:justify-start gap-3 bg-white/10 px-4 py-2.5 rounded-lg border border-white/10"
+              >
                 <div class="flex flex-col">
-                  <span class="text-[11px] text-white/60">Penerimaan Pesanan</span>
-                  <span class="font-bold text-xs flex items-center gap-1.5" [class.text-emerald-400]="store.isStoreOnline()" [class.text-gray-400]="!store.isStoreOnline()">
-                    <span class="w-2 h-2 rounded-full" [class.bg-emerald-400]="store.isStoreOnline()" [class.bg-gray-400]="!store.isStoreOnline()" [class.animate-pulse]="store.isStoreOnline()"></span>
-                    {{ store.isStoreOnline() ? 'ONLINE • SIAP TERIMA' : 'OFFLINE • ISTIRAHAT' }}
+                  <span class="text-[11px] text-white/60"
+                    >Penerimaan Pesanan</span
+                  >
+                  <span
+                    class="font-bold text-xs flex items-center gap-1.5"
+                    [class.text-emerald-400]="store.isStoreOnline()"
+                    [class.text-gray-400]="!store.isStoreOnline()"
+                  >
+                    <span
+                      class="w-2 h-2 rounded-full"
+                      [class.bg-emerald-400]="store.isStoreOnline()"
+                      [class.bg-gray-400]="!store.isStoreOnline()"
+                      [class.animate-pulse]="store.isStoreOnline()"
+                    ></span>
+                    {{
+                      store.isStoreOnline()
+                        ? 'ONLINE • SIAP TERIMA'
+                        : 'OFFLINE • ISTIRAHAT'
+                    }}
                   </span>
                 </div>
                 <button
@@ -321,8 +439,15 @@
                   (click)="store.copyPublicProfileLink()"
                   class="h-10 px-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
                 >
-                  <span class="material-symbols-outlined text-sm">content_copy</span>
-                  <span class="font-mono">{{ store.clipboardFeedbackMessage() || (store.publicProfileRelativeUrl() ? 'tuwaktu.com' + store.publicProfileRelativeUrl() : 'Salin Tautan') }}</span>
+                  <span class="material-symbols-outlined text-sm"
+                    >content_copy</span
+                  >
+                  <span class="font-mono">{{
+                    store.clipboardFeedbackMessage() ||
+                      (store.publicProfileRelativeUrl()
+                        ? 'tuwaktu.com' + store.publicProfileRelativeUrl()
+                        : 'Salin Tautan')
+                  }}</span>
                 </button>
 
                 @if (store.workerSlugIdentifier()) {
@@ -331,7 +456,9 @@
                     target="_blank"
                     class="h-10 px-3.5 rounded-lg bg-(--voltage-orange) hover:bg-[#e04b00] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
                   >
-                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                    <span class="material-symbols-outlined text-sm"
+                      >open_in_new</span
+                    >
                     <span>Pratinjau Publik</span>
                   </a>
                 }
@@ -340,48 +467,85 @@
           </div>
 
           <!-- Quick Metrics Strip: Zero-Commission Authority (4 Bento Cards) -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-white/10">
-            <div class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1">
-              <span class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider">
+          <div
+            class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-white/10"
+          >
+            <div
+              class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1"
+            >
+              <span
+                class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider"
+              >
                 Pesanan Bulan Ini
               </span>
               <div class="flex items-baseline gap-2 mt-0.5">
-                <span class="text-xl sm:text-2xl font-bold font-mono text-white">28</span>
-                <span class="text-xs text-emerald-400 font-semibold font-mono">Selesai 100%</span>
+                <span class="text-xl sm:text-2xl font-bold font-mono text-white"
+                  >28</span
+                >
+                <span class="text-xs text-emerald-400 font-semibold font-mono"
+                  >Selesai 100%</span
+                >
               </div>
-              <span class="text-[10px] font-mono text-white/40">+6 dibanding bln lalu</span>
+              <span class="text-[10px] font-mono text-white/40"
+                >+6 dibanding bln lalu</span
+              >
             </div>
 
-            <div class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1">
-              <span class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider">
+            <div
+              class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1"
+            >
+              <span
+                class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider"
+              >
                 Estimasi Pendapatan
               </span>
               <div class="flex items-baseline gap-2 mt-0.5">
-                <span class="text-xl sm:text-2xl font-bold font-mono text-white">Rp 4.550.000</span>
+                <span class="text-xl sm:text-2xl font-bold font-mono text-white"
+                  >Rp 4.550.000</span
+                >
               </div>
-              <span class="text-[10px] font-mono text-emerald-400 font-semibold">Bebas Potongan Komisi 100%</span>
+              <span class="text-[10px] font-mono text-emerald-400 font-semibold"
+                >Bebas Potongan Komisi 100%</span
+              >
             </div>
 
-            <div class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1">
-              <span class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider">
+            <div
+              class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1"
+            >
+              <span
+                class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider"
+              >
                 Rata-rata Durasi
               </span>
               <div class="flex items-baseline gap-2 mt-0.5">
-                <span class="text-xl sm:text-2xl font-bold font-mono text-white">2.5</span>
+                <span class="text-xl sm:text-2xl font-bold font-mono text-white"
+                  >2.5</span
+                >
                 <span class="text-xs text-white/60 font-mono">Jam/Order</span>
               </div>
-              <span class="text-[10px] font-mono text-white/40">Presisi waktu 98.4%</span>
+              <span class="text-[10px] font-mono text-white/40"
+                >Presisi waktu 98.4%</span
+              >
             </div>
 
-            <div class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1">
-              <span class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider">
+            <div
+              class="p-3.5 rounded-lg bg-white/5 border border-white/10 flex flex-col space-y-1"
+            >
+              <span
+                class="text-[11px] text-white/50 flex items-center gap-1 font-mono uppercase tracking-wider"
+              >
                 Rating Mandiri
               </span>
               <div class="flex items-baseline gap-2 mt-0.5">
-                <span class="text-xl sm:text-2xl font-bold font-mono text-(--voltage-orange)">4.9</span>
+                <span
+                  class="text-xl sm:text-2xl font-bold font-mono text-(--voltage-orange)"
+                  >4.9</span
+                >
                 <span class="text-xs text-white/50 font-mono">/ 5.0</span>
               </div>
-              <span class="text-[10px] font-mono text-white/40">128 Ulasan Terverifikasi OTP</span>
+              <span class="text-[10px] font-mono text-white/40"
+                >128 Ulasan Terverifikasi OTP</span
+              >
             </div>
           </div>
         </div>
@@ -391,15 +555,22 @@
       <router-outlet></router-outlet>
 
       <!-- ======================= OPERATIONAL FOOTER BAR: STICKY BOTTOM SYNC ======================= -->
-      <div class="sticky bottom-4 z-30 w-full bg-(--hero-canvas)/95 backdrop-blur-md rounded-xl p-4 sm:p-5 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10">
+      <div
+        class="sticky bottom-4 z-30 w-full bg-(--hero-canvas)/95 backdrop-blur-md rounded-xl p-4 sm:p-5 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-(--whatsapp-green) flex items-center justify-center text-white shrink-0">
+          <div
+            class="w-8 h-8 rounded-full bg-(--whatsapp-green) flex items-center justify-center text-white shrink-0"
+          >
             <span class="material-symbols-outlined text-base">check</span>
           </div>
           <div class="flex flex-col">
-            <span class="font-bold text-xs sm:text-sm text-white">Semua Perubahan Disinkronkan Otomatis</span>
+            <span class="font-bold text-xs sm:text-sm text-white"
+              >Semua Perubahan Disinkronkan Otomatis</span
+            >
             <span class="text-[11px] text-white/60">
-              Profil publik {{ store.workerFullName() || 'Mitra' }} langsung terhubung ke sistem booking.
+              Profil publik {{ store.workerFullName() || 'Mitra' }} langsung
+              terhubung ke sistem booking.
             </span>
           </div>
         </div>
@@ -424,4 +595,3 @@
     </main>
   </div>
 </div>
-

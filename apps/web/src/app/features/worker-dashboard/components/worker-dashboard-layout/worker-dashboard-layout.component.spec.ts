@@ -35,13 +35,19 @@ describe('WorkerDashboardLayoutComponent', () => {
             rate_type: 'HOURLY',
             services: [],
           },
-        })
+        }),
       ),
       updateWorkerProfile: jest.fn().mockReturnValue(of({ success: true })),
       updateWorkerRates: jest.fn().mockReturnValue(of({ success: true })),
-      updateWorkerLocationSettings: jest.fn().mockReturnValue(of({ success: true })),
-      fetchWorkerSchedules: jest.fn().mockReturnValue(of({ success: true, data: [] })),
-      updateWorkerSchedules: jest.fn().mockReturnValue(of({ success: true, data: [] })),
+      updateWorkerLocationSettings: jest
+        .fn()
+        .mockReturnValue(of({ success: true })),
+      fetchWorkerSchedules: jest
+        .fn()
+        .mockReturnValue(of({ success: true, data: [] })),
+      updateWorkerSchedules: jest
+        .fn()
+        .mockReturnValue(of({ success: true, data: [] })),
     };
 
     await TestBed.configureTestingModule({
@@ -79,7 +85,9 @@ describe('WorkerDashboardLayoutComponent', () => {
     store.workerLookupSlugInput.set('budi-santoso');
     component.loadProfileByLookupInput();
 
-    expect(mockApiService.fetchWorkerProfile).toHaveBeenCalledWith('budi-santoso');
+    expect(mockApiService.fetchWorkerProfile).toHaveBeenCalledWith(
+      'budi-santoso',
+    );
   });
 
   it('harus mereset pemilihan pekerja saat resetWorkerSelection dipanggil', () => {
@@ -89,4 +97,3 @@ describe('WorkerDashboardLayoutComponent', () => {
     expect(store.workerFullName()).toBe('');
   });
 });
-

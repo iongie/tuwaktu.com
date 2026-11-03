@@ -2,54 +2,140 @@
 
 @source "../../../libs";
 
-/* Material Design 3 (M3) System Tokens - Warm Terracotta & Deep Ink Identity */
+@theme {
+  --color-hero-canvas: #121212;
+  --color-body-canvas: #ffffff;
+  --color-voltage-orange: #ff5500;
+  --color-whatsapp-green: #1e4d3b;
+  --color-whatsapp-green-hover: #16382b;
+  --color-whatsapp-surface: #cbece0;
+  --color-whatsapp-ink: #002116;
+  --color-hairline-light: #cccccc;
+  --color-hairline-subtle: #e5e5e5;
+  --color-surface-highlight: #f3f3f3;
+  --color-surface-elevated-dark: #303030;
+  --color-surface-warm-promo: #f4eedf;
+  --color-promo-ink: #6f5b37;
+  --color-success-surface: #e6f7ee;
+  --color-warning-surface: #fff8e1;
+  --color-error-surface: #ffebee;
+  --font-mono-rate: "JetBrains Mono", monospace;
+  --font-inter: "Inter", sans-serif;
+}
+
+/* Material Design 3 (M3) System Tokens - High-Contrast Documentary Modernism */
 :root {
-  /* M3 Color Roles */
-  --md-sys-color-primary: #C84B31;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #FFDAD3;
-  --md-sys-color-on-primary-container: #3F0300;
+  /* Stitch Canonical Color Roles */
+  --hero-canvas: #121212;
+  --body-canvas: #ffffff;
+  --voltage-orange: #ff5500;
+  --whatsapp-green: #1e4d3b;
+  --whatsapp-green-hover: #16382b;
+  --whatsapp-surface: #cbece0;
+  --whatsapp-ink: #002116;
+  --hairline-light: #cccccc;
+  --hairline-subtle: #e5e5e5;
+  --surface-highlight: #f3f3f3;
+  --surface-elevated-dark: #303030;
+  --surface-warm-promo: #f4eedf;
+  --promo-ink: #6f5b37;
 
-  --md-sys-color-secondary: #1E4D3B;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #CBECE0;
-  --md-sys-color-on-secondary-container: #002116;
+  /* M3 Color Roles aligned with Warm Architectural Modernism */
+  --md-sys-color-primary: #121212;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #1c1b1b;
+  --md-sys-color-on-primary-container: #858383;
 
-  --md-sys-color-surface: #FDFCFB;
-  --md-sys-color-surface-container-low: #F6F4F0;
-  --md-sys-color-surface-container: #F0EDE7;
-  --md-sys-color-surface-container-high: #EAE6DF;
-  --md-sys-color-on-surface: #141413;
-  --md-sys-color-on-surface-variant: #4E4642;
+  --md-sys-color-secondary: #ff5500;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #d04400;
+  --md-sys-color-on-secondary-container: #fffbff;
 
-  --md-sys-color-outline: #7A716C;
-  --md-sys-color-outline-variant: #D2C4BE;
+  --md-sys-color-tertiary: #1e4d3b;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #cbece0;
+  --md-sys-color-on-tertiary-container: #002116;
 
-  --md-sys-color-error: #BA1A1A;
-  --md-sys-color-on-error: #FFFFFF;
-  --md-sys-color-error-container: #FFDAD6;
-  --md-sys-color-on-error-container: #410002;
+  --md-sys-color-surface: #f9f9f9;
+  --md-sys-color-surface-container-low: #f3f3f4;
+  --md-sys-color-surface-container: #eeeeee;
+  --md-sys-color-surface-container-high: #e8e8e8;
+  --md-sys-color-on-surface: #1a1c1c;
+  --md-sys-color-on-surface-variant: #444748;
+
+  --md-sys-color-outline: #747878;
+  --md-sys-color-outline-variant: #cccccc;
+
+  --md-sys-color-error: #d61348;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
 
   /* M3 Shape Scale */
   --md-sys-shape-corner-xs: 4px;
   --md-sys-shape-corner-sm: 8px;
-  --md-sys-shape-corner-md: 12px;
+  --md-sys-shape-corner-md: 10px;
   --md-sys-shape-corner-lg: 16px;
   --md-sys-shape-corner-xl: 28px;
 }
 
-/* shortcut: M3 Atom primitives implemented as CSS classes to avoid 1-line Angular wrapper bloat, upgrade to standalone directives only if complex behavior is added */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--md-sys-color-on-surface);
+  background-color: var(--md-sys-color-surface);
+}
 
-/* M3 Buttons (Minimum 44px-48px touch target for R-03 accessibility) */
+.font-mono-rate {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* shortcut: M3 Atom primitives implemented as CSS classes to avoid 1-line Angular wrapper bloat */
+
+/* M3 WhatsApp Dispatch Button (Terminal Action) */
+.m3-btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--md-sys-shape-corner-xs);
+  background-color: var(--whatsapp-green);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1), transform 100ms ease;
+  cursor: pointer;
+}
+
+.m3-btn-whatsapp:hover:not(:disabled) {
+  background-color: var(--whatsapp-green-hover);
+}
+
+.m3-btn-whatsapp:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.m3-btn-whatsapp:focus-visible {
+  outline: 2px solid var(--whatsapp-green);
+  outline-offset: 2px;
+}
+
+.m3-btn-whatsapp:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* M3 Filled Button (High Contrast Nocturne) */
 .m3-btn-filled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 44px;
   padding: 0.625rem 1.25rem;
-  border-radius: var(--md-sys-shape-corner-sm);
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
+  border-radius: var(--md-sys-shape-corner-xs);
+  background-color: var(--hero-canvas);
+  color: #ffffff;
   font-weight: 600;
   font-size: 0.8125rem;
   letter-spacing: 0.02em;
@@ -58,11 +144,11 @@
 }
 
 .m3-btn-filled:hover:not(:disabled) {
-  background-color: #B03E26;
+  background-color: var(--surface-elevated-dark);
 }
 
 .m3-btn-filled:focus-visible {
-  outline: 2px solid var(--md-sys-color-on-surface);
+  outline: 2px solid var(--voltage-orange);
   outline-offset: 2px;
 }
 
@@ -77,9 +163,9 @@
   justify-content: center;
   min-height: 44px;
   padding: 0.625rem 1.25rem;
-  border-radius: var(--md-sys-shape-corner-sm);
-  background-color: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+  border-radius: var(--md-sys-shape-corner-xs);
+  background-color: var(--surface-highlight);
+  color: var(--md-sys-color-on-surface);
   font-weight: 600;
   font-size: 0.8125rem;
   transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1);
@@ -87,11 +173,11 @@
 }
 
 .m3-btn-tonal:hover:not(:disabled) {
-  background-color: #B6E0D1;
+  background-color: var(--md-sys-color-surface-container);
 }
 
 .m3-btn-tonal:focus-visible {
-  outline: 2px solid var(--md-sys-color-secondary);
+  outline: 2px solid var(--voltage-orange);
   outline-offset: 2px;
 }
 
@@ -101,8 +187,8 @@
   justify-content: center;
   min-height: 44px;
   padding: 0.5rem 1rem;
-  border-radius: var(--md-sys-shape-corner-sm);
-  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-xs);
+  border: 1px solid var(--hairline-light);
   background-color: transparent;
   color: var(--md-sys-color-on-surface);
   font-weight: 600;
@@ -112,27 +198,27 @@
 }
 
 .m3-btn-outlined:hover:not(:disabled) {
-  background-color: rgba(20, 20, 19, 0.06);
-  border-color: var(--md-sys-color-on-surface);
+  background-color: var(--surface-highlight);
+  border-color: var(--hero-canvas);
 }
 
 .m3-btn-outlined:focus-visible {
-  outline: 2px solid var(--md-sys-color-primary);
+  outline: 2px solid var(--voltage-orange);
   outline-offset: 2px;
 }
 
-/* M3 Assist / Filter Chip (44px tap height via padding/min-height) */
+/* M3 Assist / Filter Chip */
 .m3-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   min-height: 36px;
   padding: 0.25rem 0.75rem;
-  border-radius: var(--md-sys-shape-corner-sm);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background-color: var(--md-sys-color-surface);
+  border-radius: var(--md-sys-shape-corner-xs);
+  border: 1px solid var(--hairline-light);
+  background-color: var(--body-canvas);
   color: var(--md-sys-color-on-surface);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.75rem;
   font-weight: 500;
   transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1);
@@ -140,20 +226,19 @@
 }
 
 .m3-chip:hover {
-  background-color: var(--md-sys-color-primary-container);
-  border-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary-container);
+  background-color: var(--surface-highlight);
+  border-color: var(--hero-canvas);
 }
 
 .m3-chip:focus-visible {
-  outline: 2px solid var(--md-sys-color-primary);
+  outline: 2px solid var(--voltage-orange);
   outline-offset: 2px;
 }
 
 .m3-chip-active {
-  background-color: var(--md-sys-color-primary-container);
-  border-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary-container);
+  background-color: var(--hero-canvas);
+  border-color: var(--hero-canvas);
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -162,27 +247,28 @@
   width: 100%;
   min-height: 44px;
   padding: 0.625rem 0.875rem;
-  border-radius: var(--md-sys-shape-corner-sm);
-  border: 1px solid var(--md-sys-color-outline);
-  background-color: var(--md-sys-color-surface);
+  border-radius: var(--md-sys-shape-corner-xs);
+  border: 1px solid var(--hairline-light);
+  background-color: var(--surface-highlight);
   color: var(--md-sys-color-on-surface);
-  font-size: 0.8125rem;
-  transition: border-color 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms cubic-bezier(0.2, 0, 0, 1);
+  font-size: 0.875rem;
+  transition: border-color 150ms cubic-bezier(0.2, 0, 0, 1), background-color 150ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .m3-field-outlined::placeholder {
-  color: var(--md-sys-color-on-surface-variant);
-  opacity: 0.75;
+  color: #999999;
 }
 
 .m3-field-outlined:focus {
   outline: none;
-  border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 1px var(--md-sys-color-primary);
+  background-color: var(--body-canvas);
+  border-color: var(--hero-canvas);
+  box-shadow: 0 0 0 1px var(--hero-canvas);
 }
 
 .m3-field-error {
   border-color: var(--md-sys-color-error);
+  background-color: var(--error-surface);
 }
 
 .m3-field-error:focus {
@@ -192,31 +278,30 @@
 
 /* M3 Cards */
 .m3-card-surface {
-  background-color: var(--md-sys-color-surface-container-low);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-lg);
+  background-color: var(--body-canvas);
+  border: 1px solid var(--hairline-light);
+  border-radius: var(--md-sys-shape-corner-md);
 }
 
 .m3-card-outlined {
-  background-color: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--body-canvas);
+  border: 1px solid var(--hairline-light);
   border-radius: var(--md-sys-shape-corner-md);
   transition: border-color 150ms cubic-bezier(0.2, 0, 0, 1), background-color 150ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .m3-card-outlined:hover {
-  border-color: var(--md-sys-color-outline);
-  background-color: var(--md-sys-color-surface-container-low);
+  border-color: var(--hero-canvas);
 }
 
 .m3-card-outlined:focus-visible {
-  outline: 2px solid var(--md-sys-color-primary);
+  outline: 2px solid var(--voltage-orange);
   outline-offset: 2px;
 }
 
 .m3-card-tonal-selected {
-  background-color: var(--md-sys-color-primary-container);
-  border: 2px solid var(--md-sys-color-primary);
+  background-color: var(--body-canvas);
+  border: 2px solid var(--voltage-orange);
   border-radius: var(--md-sys-shape-corner-md);
-  color: var(--md-sys-color-on-primary-container);
+  box-shadow: 0 0 0 1px var(--voltage-orange);
 }

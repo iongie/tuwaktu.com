@@ -7,12 +7,12 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="m3-card-surface p-4 sm:p-5">
+    <div class="bg-white border border-(--hairline-light) rounded-xl p-4 sm:p-5 shadow-xs">
       <label
         for="technicianSlugInput"
-        class="block text-xs font-mono font-semibold text-[#4E4642] mb-2"
+        class="block text-xs font-mono font-semibold text-(--brand-ink)/70 mb-2"
       >
-        Cari Berdasarkan Slug URL Teknisi
+        Cari Berdasarkan Slug URL Mitra
       </label>
       <div class="flex flex-col sm:flex-row gap-2.5">
         <input
@@ -21,7 +21,7 @@ import { CommonModule } from '@angular/common';
           [value]="slugQuery()"
           (input)="onSlugInputChange($event)"
           (keydown.enter)="triggerSearch.emit()"
-          placeholder="contoh: budi-santoso"
+          placeholder="Ketik slug profil mitra..."
           class="m3-field-outlined flex-1 font-mono"
         />
         <button
@@ -29,21 +29,8 @@ import { CommonModule } from '@angular/common';
           (click)="triggerSearch.emit()"
           class="m3-btn-filled font-mono uppercase tracking-wider"
         >
-          Cari Teknisi
+          Cari Mitra
         </button>
-      </div>
-      <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#4E4642]">
-        <span class="font-medium">Profil tersedia:</span>
-        @for (presetSlug of availableSlugs; track presetSlug) {
-          <button
-            type="button"
-            (click)="selectPresetSlug.emit(presetSlug)"
-            class="m3-chip"
-            [class.m3-chip-active]="slugQuery() === presetSlug"
-          >
-            {{ presetSlug }}
-          </button>
-        }
       </div>
     </div>
   `,
@@ -54,11 +41,10 @@ export class TechnicianSearchBarComponent {
   readonly triggerSearch = output<void>();
   readonly selectPresetSlug = output<string>();
 
-  readonly availableSlugs = ['budi-santoso', 'siti-aminah'];
+  readonly availableSlugs: readonly string[] = [];
 
   onSlugInputChange(event: Event): void {
     const target = event.target as HTMLInputElement | null;
     this.slugQueryChange.emit(target?.value ?? '');
   }
 }
-

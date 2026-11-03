@@ -59,7 +59,7 @@ export class WorkerDashboardProfileComponent implements OnInit {
   readonly workerWhatsAppNumber = signal<string>('');
 
   readonly workerLookupSlugInput = signal<string>('');
-  readonly suggestedWorkerSlugs: readonly string[] = ['budi-santoso', 'siti-aminah'];
+  readonly suggestedWorkerSlugs: readonly string[] = [];
 
   readonly isProfileSubmitting = signal<boolean>(false);
   readonly isProfileLoading = signal<boolean>(false);

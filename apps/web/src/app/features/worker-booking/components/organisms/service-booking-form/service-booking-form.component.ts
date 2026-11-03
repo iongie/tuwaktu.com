@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicServiceCatalogItem } from '../../../models/worker-catalog.model';
@@ -21,352 +21,552 @@ export interface BookingFormDraft {
   imports: [CommonModule, FormsModule, LocationMapPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <aside class="m3-card-surface p-6 space-y-6 sticky top-24">
-      <div>
-        <h3 class="text-xl font-serif font-bold text-[#141413]">
-          Konfirmasi Jadwal Reservasi
-        </h3>
-        <p class="text-xs text-[#4E4642] mt-1">
-          Lengkapi detail lokasi dan waktu kunjungan teknisi.
-        </p>
-      </div>
-
-      @if (selectedService(); as selectedSvc) {
-        <div class="p-4 bg-[#FDFCFB] rounded-xl border border-[#D2C4BE] text-xs font-mono space-y-1">
-          <div class="text-[#4E4642] uppercase text-[11px]">Layanan Terpilih:</div>
-          <div class="font-bold text-sm text-[#141413]">{{ selectedSvc.name }}</div>
-          <div class="text-[#C84B31] font-bold text-sm">
-            {{ formattedServicePrice() }}
-          </div>
-        </div>
-      } @else {
-        <div class="p-4 bg-[#FFDAD3]/40 border border-[#C84B31]/40 rounded-xl text-xs text-[#3F0300] font-mono">
-          Silakan pilih salah satu layanan di daftar sebelah kiri terlebih dahulu.
-        </div>
-      }
-
-      @if (serverErrorMessage()) {
-        <div
-          role="alert"
-          class="p-3.5 bg-[#FFDAD6] border border-[#BA1A1A] rounded-xl text-xs text-[#410002] font-mono"
-        >
-          {{ serverErrorMessage() }}
-        </div>
-      }
-
-      @if (feeCalculationError(); as calcError) {
-        <div
-          role="alert"
-          class="p-3.5 border rounded-xl text-xs font-mono space-y-1"
-          [class.bg-[#FFDAD6]]="isOutOfRadius()"
-          [class.border-[#BA1A1A]]="isOutOfRadius()"
-          [class.text-[#410002]]="isOutOfRadius()"
-          [class.bg-[#FFDAD3]/50]="!isOutOfRadius()"
-          [class.border-[#C84B31]/50]="!isOutOfRadius()"
-          [class.text-[#3F0300]]="!isOutOfRadius()"
-        >
-          <div class="font-bold uppercase tracking-wider" [class.text-[#BA1A1A]]="isOutOfRadius()">
-            @if (isOutOfRadius()) {
-              Di Luar Jangkauan Layanan
-            } @else {
-              Informasi Ongkos Jalan
-            }
-          </div>
-          <div>
-            {{ calcError }}
-          </div>
-        </div>
-      }
-
-      <form (ngSubmit)="submitForm.emit()" class="space-y-4" novalidate>
-        @if (validationErrors()['service']) {
-          <p role="alert" class="text-xs text-[#BA1A1A] font-mono">
-            {{ validationErrors()['service'] }}
-          </p>
-        }
-
-        <div>
-          <label for="clientNameInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-            Nama Lengkap Klien <span class="text-[#BA1A1A]">*</span>
-          </label>
-          <input
-            id="clientNameInput"
-            type="text"
-            name="clientFullName"
-            [ngModel]="formDraft().clientFullName"
-            (ngModelChange)="updateDraftField('clientFullName', $event); clearFieldError.emit('client_name')"
-            required
-            placeholder="Masukkan nama lengkap Anda"
-            class="m3-field-outlined"
-            [class.m3-field-error]="validationErrors()['client_name']"
-          />
-          @if (validationErrors()['client_name']) {
-            <p class="mt-1.5 text-xs text-[#BA1A1A] font-mono">
-              {{ validationErrors()['client_name'] }}
-            </p>
-          }
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div>
-            <label for="clientPhoneInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-              Nomor Telepon / WhatsApp
-            </label>
-            <input
-              id="clientPhoneInput"
-              type="tel"
-              name="clientContactPhone"
-              [ngModel]="formDraft().clientContactPhone"
-              (ngModelChange)="updateDraftField('clientContactPhone', $event)"
-              placeholder="08xxxxxxxxxx"
-              class="m3-field-outlined"
-            />
-          </div>
-          <div>
-            <label for="clientEmailInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-              Alamat Email
-            </label>
-            <input
-              id="clientEmailInput"
-              type="email"
-              name="clientEmailAddress"
-              [ngModel]="formDraft().clientEmailAddress"
-              (ngModelChange)="updateDraftField('clientEmailAddress', $event)"
-              placeholder="nama@domain.com"
-              class="m3-field-outlined"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label for="serviceLocationInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-            Alamat Lengkap Lokasi Servis <span class="text-[#BA1A1A]">*</span>
-          </label>
-          <textarea
-            id="serviceLocationInput"
-            name="serviceLocationAddress"
-            [ngModel]="formDraft().serviceLocationAddress"
-            (ngModelChange)="updateDraftField('serviceLocationAddress', $event); clearFieldError.emit('location')"
-            required
-            rows="2"
-            placeholder="Nama jalan, nomor rumah, RT/RW, atau patokan lokasi"
-            class="m3-field-outlined"
-            [class.m3-field-error]="validationErrors()['location']"
-          ></textarea>
-          @if (validationErrors()['location']) {
-            <p class="mt-1.5 text-xs text-[#BA1A1A] font-mono">
-              {{ validationErrors()['location'] }}
-            </p>
-          }
-        </div>
-
-        <!-- Pemilih Titik Koordinat Peta -->
-        <div class="pt-1">
-          <app-location-map-picker
-            [latitude]="clientCoordinates()?.lat ?? null"
-            [longitude]="clientCoordinates()?.lng ?? null"
-            label="Titik Koordinat Lokasi Servis"
-            helperText="Pilih titik peta atau gunakan lokasi GPS agar sistem menghitung ongkos jalan secara otomatis."
-            (coordinatesChange)="clientCoordinatesChange.emit($event)"
-          />
-        </div>
-
-        <div>
-          <label for="serviceZoneInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-            Zona Operasional
-          </label>
-          <input
-            id="serviceZoneInput"
-            type="text"
-            name="serviceOperationalZone"
-            [ngModel]="formDraft().serviceOperationalZone"
-            (ngModelChange)="updateDraftField('serviceOperationalZone', $event); clearFieldError.emit('location')"
-            placeholder="Misal: Jakarta Selatan"
-            class="m3-field-outlined"
-          />
-        </div>
-
-        <!-- Pemilih Tanggal & Blok Waktu Kunjungan Interaktif -->
-        <div class="space-y-3 pt-1">
-          <div class="flex items-center justify-between">
-            <label for="bookingDatePickerInput" class="block text-xs font-mono font-medium text-[#4E4642]">
-              Pilih Tanggal Kunjungan <span class="text-[#BA1A1A]">*</span>
-            </label>
-            @if (formDraft().reservationScheduledDate) {
-              <span class="text-[11px] font-mono text-[#1E4D3B] font-semibold">
-                Jadwal: {{ formDraft().reservationScheduledDate | date:'dd MMM yyyy, HH:mm' }}
+    <form (ngSubmit)="submitForm.emit()" class="w-full" novalidate>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- ======================= LEFT STREAM: 4 SECTIONS CONFIGURATION (8 COLS) ======================= -->
+        <div class="lg:col-span-8 space-y-8">
+          <!-- SECTION 01 / LAYANAN & DURASI -->
+          <section class="space-y-4 bg-white p-6 rounded-xl border border-(--hairline-light) shadow-xs">
+            <div class="flex items-baseline justify-between border-b border-(--hairline-light) pb-3">
+              <div>
+                <span class="font-mono text-[10px] text-(--voltage-orange) tracking-widest uppercase font-bold block mb-1">
+                  01 / LAYANAN &amp; DURASI
+                </span>
+                <h3 class="text-lg sm:text-xl font-bold text-(--brand-ink)">
+                  Spesifikasi &amp; Durasi Layanan
+                </h3>
+              </div>
+              <span class="text-xs text-(--brand-ink)/60 hidden sm:inline-block">
+                Disesuaikan dengan volume kebutuhan Anda
               </span>
-            }
-          </div>
-
-          <input
-            id="bookingDatePickerInput"
-            type="date"
-            name="bookingDateInput"
-            [min]="minimumBookingDate"
-            [ngModel]="selectedBookingDate()"
-            (ngModelChange)="onDatePickerChange($event)"
-            class="m3-field-outlined"
-            [class.m3-field-error]="validationErrors()['booking_date']"
-          />
-
-          @if (validationErrors()['booking_date']) {
-            <p class="text-xs text-[#BA1A1A] font-mono">
-              {{ validationErrors()['booking_date'] }}
-            </p>
-          }
-
-          <!-- Blok Slot Waktu -->
-          @if (isSlotsLoading()) {
-            <div class="space-y-2 py-2" aria-label="Memuat slot ketersediaan teknisi">
-              <div class="text-[11px] font-mono text-[#4E4642] animate-pulse">
-                Memeriksa ketersediaan slot &amp; buffer transit 60 menit...
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div class="h-14 bg-[#D2C4BE]/30 rounded-xl animate-pulse"></div>
-                <div class="h-14 bg-[#D2C4BE]/30 rounded-xl animate-pulse"></div>
-                <div class="h-14 bg-[#D2C4BE]/30 rounded-xl animate-pulse"></div>
-              </div>
             </div>
-          } @else if (slotsErrorMessage()) {
-            <div class="p-3 bg-[#FFDAD6] border border-[#BA1A1A] rounded-xl text-xs text-[#410002] font-mono">
-              {{ slotsErrorMessage() }}
-            </div>
-          } @else if (!isSelectedDateWorkingDay()) {
-            <div class="p-3 bg-[#FFDAD3]/40 border border-[#C84B31]/40 rounded-xl text-xs text-[#3F0300] font-mono">
-              Teknisi libur pada hari ini. Silakan pilih tanggal kerja lain.
-            </div>
-          } @else if (availableSlots().length > 0) {
-            <div class="space-y-2">
-              <div class="text-[11px] font-mono font-medium text-[#4E4642] flex items-center justify-between">
-                <span>PILIH BLOK WAKTU KUNJUNGAN:</span>
-                <span class="text-[10px] text-[#4E4642]">Termasuk buffer transit 60 mnt</span>
-              </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" role="group" aria-label="Pilihan Slot Waktu">
-                @for (slot of availableSlots(); track slot.slot_type) {
-                  <button
-                    type="button"
-                    [disabled]="!slot.available"
-                    (click)="onSlotClick(slot)"
-                    class="min-h-[48px] p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all"
-                    [class.cursor-pointer]="slot.available"
-                    [class.cursor-not-allowed]="!slot.available"
-                    [class.opacity-60]="!slot.available"
-                    [class.bg-[#FDFCFB]]="slot.available && !isSlotSelected(slot)"
-                    [class.border-[#D2C4BE]]="slot.available && !isSlotSelected(slot)"
-                    [class.bg-[#FFDAD3]]="slot.available && isSlotSelected(slot)"
-                    [class.border-[#C84B31]]="slot.available && isSlotSelected(slot)"
-                    [class.ring-2]="slot.available && isSlotSelected(slot)"
-                    [class.ring-[#C84B31]]="slot.available && isSlotSelected(slot)"
-                    [class.bg-[#F0EDE7]]="!slot.available"
-                  >
-                    <div class="flex items-center justify-between">
-                      <span class="font-bold text-xs" [class.text-[#C84B31]]="slot.available && isSlotSelected(slot)" [class.text-[#141413]]="slot.available && !isSlotSelected(slot)" [class.text-[#4E4642]]="!slot.available">
-                        {{ slot.name }}
-                      </span>
-                      @if (slot.available) {
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold" [class.bg-[#C84B31]]="isSlotSelected(slot)" [class.text-white]="isSlotSelected(slot)" [class.bg-[#CBECE0]]="!isSlotSelected(slot)" [class.text-[#002116]]="!isSlotSelected(slot)">
-                          {{ isSlotSelected(slot) ? 'Dipilih' : 'Tersedia' }}
-                        </span>
-                      } @else {
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-medium bg-[#EAE6DF] text-[#807570]">
-                          Penuh
-                        </span>
-                      }
+            @if (selectedService(); as selectedSvc) {
+              <div class="p-4 bg-(--surface-light) rounded-xl border border-(--hairline-light) space-y-3">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <span class="inline-block px-2 py-0.5 rounded bg-(--voltage-orange) text-white font-mono text-[10px] uppercase font-bold">
+                      PILIHAN TERPILIH
+                    </span>
+                    <div class="font-bold text-base text-(--brand-ink) mt-1">
+                      {{ selectedSvc.name }}
                     </div>
-
-                    <div class="mt-1 font-mono text-[11px]" [class.text-[#141413]]="slot.available" [class.text-[#807570]]="!slot.available">
-                      {{ slot.start_time }} - {{ slot.end_time }}
+                    <p class="text-xs text-(--brand-ink)/60 mt-0.5">
+                      {{ selectedSvc.description }}
+                    </p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="text-base font-mono-rate font-bold text-(--brand-ink)">
+                      {{ formattedServicePrice() }}
                     </div>
+                    <span class="text-[11px] font-mono text-(--brand-ink)/60">
+                      {{ isHourlyService() ? 'Tarif / Jam' : 'Tarif / Sesi' }}
+                    </span>
+                  </div>
+                </div>
 
-                    @if (!slot.available && slot.reason) {
-                      <div class="text-[10px] font-mono text-[#BA1A1A] mt-0.5 truncate" [title]="slot.reason">
-                        {{ slot.reason }}
+                <!-- Interactive Duration Stepper for Hourly Services -->
+                @if (isHourlyService()) {
+                  <div class="pt-3 border-t border-(--hairline-light) flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div class="font-bold text-xs sm:text-sm text-(--brand-ink)">
+                        Durasi Pengerjaan
                       </div>
-                    }
-                  </button>
+                      <p class="text-[11px] text-(--brand-ink)/60">
+                        Minimal pengerjaan 2.0 Jam untuk standardisasi mutu mandiri.
+                      </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-(--hairline-light) shadow-xs self-start sm:self-auto">
+                      <button
+                        type="button"
+                        (click)="stepDuration(-0.5)"
+                        [disabled]="hourlyDuration() <= 2.0"
+                        class="w-7 h-7 rounded bg-(--surface-light) hover:bg-gray-200 text-(--brand-ink) font-bold text-sm flex items-center justify-center transition-colors disabled:opacity-30 cursor-pointer"
+                        title="Kurangi 30 Menit"
+                      >
+                        -
+                      </button>
+                      <span class="font-mono-rate font-bold text-sm text-(--brand-ink) w-16 text-center">
+                        {{ hourlyDuration() }} Jam
+                      </span>
+                      <button
+                        type="button"
+                        (click)="stepDuration(0.5)"
+                        [disabled]="hourlyDuration() >= 8.0"
+                        class="w-7 h-7 rounded bg-(--surface-light) hover:bg-gray-200 text-(--brand-ink) font-bold text-sm flex items-center justify-center transition-colors disabled:opacity-30 cursor-pointer"
+                        title="Tambah 30 Menit"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Live calculation formula -->
+                  <div class="flex items-center gap-1.5 font-mono text-xs text-(--brand-ink)/60 pt-1">
+                    <span>Kalkulasi Dasar: {{ hourlyDuration() }} jam × {{ formattedServicePrice() }} = <strong class="text-(--brand-ink)">{{ formattedBaseTotal() }}</strong></span>
+                  </div>
                 }
               </div>
-            </div>
-          }
-        </div>
+            } @else {
+              <div class="p-4 bg-amber-50 border border-amber-300 rounded-xl text-xs font-mono text-amber-900">
+                Silakan pilih salah satu layanan spesialis pada katalog di sebelah kiri terlebih dahulu.
+              </div>
+            }
 
-        <div>
-          <label for="clientNotesInput" class="block text-xs font-mono font-medium text-[#4E4642] mb-1.5">
-            Catatan Tambahan untuk Teknisi
-          </label>
-          <textarea
-            id="clientNotesInput"
-            name="additionalClientNotes"
-            [ngModel]="formDraft().additionalClientNotes"
-            (ngModelChange)="updateDraftField('additionalClientNotes', $event)"
-            rows="2"
-            placeholder="Keluhan unit, lantai lokasi, atau instruksi khusus"
-            class="m3-field-outlined"
-          ></textarea>
-        </div>
+            @if (validationErrors()['service']) {
+              <p role="alert" class="text-xs text-red-600 font-mono font-semibold">
+                {{ validationErrors()['service'] }}
+              </p>
+            }
+          </section>
 
-        <!-- Pricing Breakdown & Ongkos Jalan -->
-        <div class="pt-3 border-t border-[#D2C4BE] space-y-2.5">
-          <div class="text-xs font-mono font-bold text-[#141413] pb-1 border-b border-[#D2C4BE]/50 uppercase tracking-wider">
-            Rincian Pembayaran
-          </div>
-
-          <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
-            <span>Tarif Layanan Dasar:</span>
-            <span class="font-semibold text-[#141413]">{{ formattedServicePrice() }}</span>
-          </div>
-
-          @if (isCalculatingFee()) {
-            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642] animate-pulse">
-              <span>Menghitung Ongkos Jalan...</span>
-              <span class="inline-block w-3.5 h-3.5 border-2 border-[#C84B31] border-t-transparent rounded-full animate-spin"></span>
-            </div>
-          } @else if (feeCalculation(); as fee) {
-            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
-              <span>Jarak Tempuh Garis Lurus:</span>
-              <span class="font-semibold text-[#141413]">{{ fee.distance_km }} km</span>
+          <!-- SECTION 02 / LOGISTIK MANDIRI & RADIUS -->
+          <section class="space-y-4 bg-white p-6 rounded-xl border border-(--hairline-light) shadow-xs">
+            <div class="flex items-baseline justify-between border-b border-(--hairline-light) pb-3">
+              <div>
+                <span class="font-mono text-[10px] text-(--voltage-orange) tracking-widest uppercase font-bold block mb-1">
+                  02 / LOGISTIK MANDIRI
+                </span>
+                <h3 class="text-lg sm:text-xl font-bold text-(--brand-ink)">
+                  Kalkulator Radius &amp; Ongkos Jalan Otomatis
+                </h3>
+              </div>
+              <p class="text-xs text-(--brand-ink)/60 hidden sm:inline-block">
+                Transparansi subsidi radius perjalanan pekerja dari pangkalan
+              </p>
             </div>
 
-            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
-              <span>Batas Bebas Ongkos Jalan:</span>
-              <span class="text-[#1E4D3B] font-semibold">{{ fee.free_radius_km }} km</span>
+            <!-- Location Picker Molecule -->
+            <app-location-map-picker
+              [latitude]="clientCoordinates()?.lat ?? null"
+              [longitude]="clientCoordinates()?.lng ?? null"
+              [radiusKm]="feeCalculation()?.max_radius_km ?? 10"
+              label="Titik Antar / Lokasi Pemesan"
+              helperText="Pilih titik koordinat pada peta atau gunakan GPS agar tarif ongkos jalan terhitung otomatis."
+              (coordinatesChange)="onCoordinatesSelected($event)"
+            />
+
+            @if (feeCalculation(); as fee) {
+              <!-- Distance indicator pill & Visual Step Meter Bar -->
+              <div class="space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-(--brand-ink) uppercase tracking-wider">
+                    JARAK TERKALKULASI: {{ fee.distance_km }} KM
+                  </span>
+                  <span class="text-xs font-mono font-bold" [class.text-emerald-700]="fee.is_within_radius" [class.text-red-600]="!fee.is_within_radius">
+                    {{ fee.is_within_radius ? 'JANGKAUAN TERVERIFIKASI' : 'MELEBIHI RADIUS MAKSIMAL' }}
+                  </span>
+                </div>
+
+                <!-- Visual Radius Step Meter Bar from Stitch -->
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between text-[11px] font-mono">
+                    <span class="text-emerald-700 font-bold flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 0.0 - {{ fee.free_radius_km }} Km (Subsidi Bebas Ongkir)
+                    </span>
+                    <span class="text-amber-700 font-bold flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-amber-500"></span> {{ fee.free_radius_km }} - {{ fee.max_radius_km }} Km (+Rp {{ fee.extra_fee_per_km }} / km)
+                    </span>
+                    <span class="text-red-700 font-bold flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-red-500"></span> &gt; {{ fee.max_radius_km }} Km (Di Luar Jangkauan)
+                    </span>
+                  </div>
+
+                  <div class="w-full bg-gray-200 h-3.5 rounded-full overflow-hidden flex relative">
+                    <div class="h-full bg-emerald-500" style="width: 50%" title="Gratis Ongkos Jalan"></div>
+                    <div class="h-full bg-amber-400" style="width: 50%" title="Zona Tambahan Bensin"></div>
+                    @if (markerPositionPercent(); as mPos) {
+                      <div class="absolute top-0 bottom-0 w-2 bg-(--brand-ink) shadow-md" [style.left.%]="mPos" title="Posisi Lokasi Anda"></div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Transport Breakdown Ledger Box -->
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-900 text-xs">
+                  <span class="text-base leading-none">&#9888;</span>
+                  <div class="space-y-1 leading-relaxed">
+                    <strong class="font-bold block">Rincian Pembayaran &amp; Ongkos Transportasi Otomatis:</strong>
+                    <span>
+                      Jarak tempuh total <strong>{{ fee.distance_km }} km</strong>.
+                      Batas gratis hingga <strong>{{ fee.free_radius_km }} km</strong> (3 km).
+                      Kelebihan jarak: <strong>{{ getChargeableKm(fee) }} km</strong> × Rp {{ fee.extra_fee_per_km }}/km = 
+                      <strong class="font-mono font-bold">{{ formatCurrency(fee.transport_fee) }}</strong> (15.000).
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (feeCalculationError(); as calcError) {
+              <div
+                role="alert"
+                class="p-4 border rounded-xl text-xs font-mono space-y-1"
+                [class.bg-red-50]="isOutOfRadius()"
+                [class.border-red-300]="isOutOfRadius()"
+                [class.text-red-900]="isOutOfRadius()"
+                [class.bg-amber-50]="!isOutOfRadius()"
+                [class.border-amber-300]="!isOutOfRadius()"
+                [class.text-amber-900]="!isOutOfRadius()"
+              >
+                <div class="font-bold uppercase tracking-wider">
+                  @if (isOutOfRadius()) {
+                    Di Luar Jangkauan Layanan
+                  } @else {
+                    Informasi Ongkos Jalan
+                  }
+                </div>
+                <div>
+                  {{ calcError }}
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- SECTION 03 / JADWAL & BUFFER DISIPLIN -->
+          <section class="space-y-4 bg-white p-6 rounded-xl border border-(--hairline-light) shadow-xs">
+            <div class="flex items-baseline justify-between border-b border-(--hairline-light) pb-3">
+              <div>
+                <span class="font-mono text-[10px] text-(--voltage-orange) tracking-widest uppercase font-bold block mb-1">
+                  03 / JADWAL &amp; BUFFER DISIPLIN
+                </span>
+                <h3 class="text-lg sm:text-xl font-bold text-(--brand-ink)">
+                  Pilih Tanggal &amp; Slot Waktu Kedatangan
+                </h3>
+              </div>
+              <p class="text-xs text-(--brand-ink)/60 hidden sm:inline-block">
+                Sistem mengunci otomatis jeda buffer transit 60-90 menit
+              </p>
             </div>
 
-            <div class="flex items-center justify-between text-xs font-mono text-[#4E4642]">
-              <span>Biaya Ongkos Jalan:</span>
-              @if (fee.transport_fee > 0) {
-                <span class="font-bold text-[#C84B31]">+ {{ formatRupiah(fee.transport_fee) }}</span>
-              } @else {
-                <span class="font-bold text-[#1E4D3B]">Bebas Biaya (Rp 0)</span>
+            <!-- Date Selector Input -->
+            <div class="space-y-2">
+              <label for="reservationDateInput" class="block text-xs font-bold font-mono uppercase tracking-wider text-(--brand-ink)">
+                Tanggal Kedatangan Teknisi <span class="text-(--voltage-orange)">*</span>
+              </label>
+              <input
+                id="reservationDateInput"
+                type="date"
+                [ngModel]="selectedBookingDate()"
+                (ngModelChange)="onDatePickerChange($event)"
+                name="reservationScheduledDate"
+                class="m3-field-outlined font-mono w-full sm:w-64"
+              />
+            </div>
+
+            <!-- Slot Time Matrix with LOCKED 90M Transit Protection Bands -->
+            @if (isSlotsLoading()) {
+              <div class="space-y-2 animate-pulse" aria-label="Memuat ketersediaan slot waktu">
+                <div class="h-12 bg-gray-100 rounded-lg"></div>
+                <div class="h-8 bg-gray-50 rounded-lg"></div>
+                <div class="h-12 bg-gray-100 rounded-lg"></div>
+              </div>
+            } @else if (availableSlots().length > 0) {
+              <div class="space-y-2 pt-1">
+                <span class="text-xs font-mono text-(--brand-ink)/60 block mb-1">
+                  Jadwal Ketersediaan Slot Kerja (Buffer Transit Terproteksi):
+                </span>
+
+                <div role="group" aria-label="Pilihan slot waktu kedatangan" class="space-y-2">
+                  @for (slot of availableSlots(); track slot.slot_type; let idx = $index) {
+                    <!-- Slot Button -->
+                    <button
+                      type="button"
+                      [disabled]="!slot.available"
+                      (click)="onSlotClick(slot)"
+                      class="w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer min-h-[48px]"
+                      [class.bg-(--brand-ink)]="isSlotActive(slot)"
+                      [class.text-white]="isSlotActive(slot)"
+                      [class.border-(--voltage-orange)]="isSlotActive(slot)"
+                      [class.ring-2]="isSlotActive(slot)"
+                      [class.ring-(--voltage-orange)]="isSlotActive(slot)"
+                      [class.bg-white]="!isSlotActive(slot) && slot.available"
+                      [class.text-(--brand-ink)]="!isSlotActive(slot) && slot.available"
+                      [class.border-(--hairline-light)]="!isSlotActive(slot)"
+                      [class.hover:bg-(--surface-light)]="!isSlotActive(slot) && slot.available"
+                      [class.bg-gray-100]="!slot.available"
+                      [class.text-gray-400]="!slot.available"
+                      [class.cursor-not-allowed]="!slot.available"
+                      [class.opacity-60]="!slot.available"
+                    >
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="w-3 h-3 rounded-full shrink-0"
+                          [class.bg-(--voltage-orange)]="isSlotActive(slot)"
+                          [class.bg-emerald-500]="!isSlotActive(slot) && slot.available"
+                          [class.bg-gray-300]="!slot.available"
+                        ></span>
+                        <div>
+                          <div class="font-bold text-xs sm:text-sm">
+                            Slot {{ slot.name }} ({{ slot.start_time }} - {{ slot.end_time }})
+                          </div>
+                          <div class="text-[11px] font-mono mt-0.5" [class.text-white/70]="isSlotActive(slot)" [class.text-(--brand-ink)/60]="!isSlotActive(slot)">
+                            {{ slot.reason }}
+                          </div>
+                        </div>
+                      </div>
+
+                      @if (isSlotActive(slot)) {
+                        <span class="px-2 py-0.5 rounded bg-(--voltage-orange) text-white font-mono text-[10px] font-bold uppercase">
+                          PILIHAN ANDA
+                        </span>
+                      } @else if (slot.available) {
+                        <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono text-[10px] font-bold uppercase">
+                          TERSEDIA
+                        </span>
+                      } @else {
+                        <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-500 font-mono text-[10px] font-bold uppercase">
+                          PENUH / BUFFER
+                        </span>
+                      }
+                    </button>
+
+                    <!-- LOCKED 90M Transit Band separator between slots -->
+                    @if (idx < availableSlots().length - 1) {
+                      <div class="px-4 py-2 rounded-lg bg-gray-100/80 border border-(--hairline-light)/60 flex items-center justify-between text-[11px] font-mono text-(--brand-ink)/60 select-none">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs">&#128274;</span>
+                          <span>Jeda Transit &amp; Sanitasi Alat (Terkunci Otomatis Antar-Klien)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-bold tracking-wider text-[10px]">
+                          LOCKED 90M
+                        </span>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- SECTION 04 / DETAIL PEMESAN & ALAMAT -->
+          <section class="space-y-4 bg-white p-6 rounded-xl border border-(--hairline-light) shadow-xs">
+            <div class="flex items-baseline justify-between border-b border-(--hairline-light) pb-3">
+              <div>
+                <span class="font-mono text-[10px] text-(--voltage-orange) tracking-widest uppercase font-bold block mb-1">
+                  04 / DETAIL PEMESAN &amp; ALAMAT
+                </span>
+                <h3 class="text-lg sm:text-xl font-bold text-(--brand-ink)">
+                  Data Lokasi &amp; Catatan Khusus
+                </h3>
+              </div>
+              <p class="text-xs text-(--brand-ink)/60 hidden sm:inline-block">
+                Informasi ini akan terangkum rapi ke dalam teks konfirmasi WhatsApp
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Nama Pemesan -->
+              <div class="space-y-1.5">
+                <label for="clientFullNameInput" class="block text-xs font-bold font-mono uppercase tracking-wider text-(--brand-ink)">
+                  Nama Lengkap Pemesan <span class="text-(--voltage-orange)">*</span>
+                </label>
+                <input
+                  id="clientFullNameInput"
+                  type="text"
+                  [ngModel]="formDraft().clientFullName"
+                  (ngModelChange)="onFieldChange('clientFullName', $event)"
+                  name="clientFullName"
+                  placeholder="Nama Anda..."
+                  class="m3-field-outlined"
+                  [class.m3-field-error]="validationErrors()['client_name']"
+                />
+                @if (validationErrors()['client_name']) {
+                  <p role="alert" class="text-xs text-red-600 font-mono font-semibold">
+                    {{ validationErrors()['client_name'] }}
+                  </p>
+                }
+              </div>
+
+              <!-- WhatsApp Pemesan -->
+              <div class="space-y-1.5">
+                <label for="clientContactPhoneInput" class="block text-xs font-bold font-mono uppercase tracking-wider text-(--brand-ink)">
+                  Nomor WhatsApp Aktif <span class="text-(--voltage-orange)">*</span>
+                </label>
+                <input
+                  id="clientContactPhoneInput"
+                  type="tel"
+                  [ngModel]="formDraft().clientContactPhone"
+                  (ngModelChange)="onFieldChange('clientContactPhone', $event)"
+                  name="clientContactPhone"
+                  placeholder="08xxxxxxxxxx"
+                  class="m3-field-outlined font-mono"
+                />
+              </div>
+            </div>
+
+            <!-- Alamat Detail -->
+            <div class="space-y-1.5">
+              <label for="serviceLocationAddressInput" class="block text-xs font-bold font-mono uppercase tracking-wider text-(--brand-ink)">
+                Alamat Detail &amp; Patokan Rumah <span class="text-(--voltage-orange)">*</span>
+              </label>
+              <textarea
+                id="serviceLocationAddressInput"
+                rows="2"
+                [ngModel]="formDraft().serviceLocationAddress"
+                (ngModelChange)="onFieldChange('serviceLocationAddress', $event)"
+                name="serviceLocationAddress"
+                placeholder="Contoh: Jl. Senopati No. 4, Kebayoran Baru (Pagar abu-abu, seberang minimarket)"
+                class="m3-field-outlined resize-none"
+                [class.m3-field-error]="validationErrors()['location']"
+              ></textarea>
+              @if (validationErrors()['location']) {
+                <p role="alert" class="text-xs text-red-600 font-mono font-semibold">
+                  {{ validationErrors()['location'] }}
+                </p>
               }
             </div>
-          }
 
-          <div class="pt-2 border-t border-[#D2C4BE] flex items-center justify-between text-xs font-mono">
-            <span class="text-[#4E4642] font-semibold">Total Estimasi Biaya:</span>
-            <span class="text-base font-bold text-[#141413]">
-              {{ formattedTotalEstimate() }}
-            </span>
-          </div>
-
-          <button
-            type="submit"
-            [disabled]="isSubmitting() || !hasActiveProfile() || isOutOfRadius() || isCalculatingFee()"
-            class="m3-btn-filled w-full font-mono uppercase tracking-wider min-h-[48px]"
-          >
-            @if (isSubmitting()) {
-              <span>Memproses Pesanan WhatsApp...</span>
-            } @else if (isOutOfRadius()) {
-              <span>Di Luar Jangkauan Layanan</span>
-            } @else {
-              <span>Pesan &amp; Konfirmasi via WhatsApp</span>
-            }
-          </button>
+            <!-- Instruksi / Catatan Khusus -->
+            <div class="space-y-1.5">
+              <label for="additionalClientNotesInput" class="block text-xs font-bold font-mono uppercase tracking-wider text-(--brand-ink)">
+                Instruksi Spesifik / Catatan untuk Teknisi
+              </label>
+              <textarea
+                id="additionalClientNotesInput"
+                rows="2"
+                [ngModel]="formDraft().additionalClientNotes"
+                (ngModelChange)="onFieldChange('additionalClientNotes', $event)"
+                name="additionalClientNotes"
+                placeholder="Contoh: Mohon bawa tangga lipat, fokus pembersihan kerak kamar mandi utama"
+                class="m3-field-outlined resize-none"
+              ></textarea>
+            </div>
+          </section>
         </div>
-      </form>
-    </aside>
+
+        <!-- ======================= RIGHT STREAM: STICKY BOOKING TERMINAL (4 COLS) ======================= -->
+        <div class="lg:col-span-4 sticky top-24 space-y-4">
+          <div class="bg-white rounded-xl shadow-md border border-(--hairline-light) overflow-hidden space-y-4">
+            <!-- Terminal Header -->
+            <div class="p-5 bg-(--surface-light) border-b border-(--hairline-light) space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-[10px] uppercase font-bold text-(--brand-ink)/60 tracking-wider">
+                  RINGKASAN ESTIMASI MANDIRI
+                </span>
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono text-[10px] uppercase font-bold">
+                  Bebas Komisi 0%
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-(--brand-ink)">
+                Rincian Pembayaran
+              </h4>
+
+              @if (selectedTimeSlot(); as activeSlot) {
+                <div class="p-2.5 bg-white rounded-lg flex items-center justify-between text-xs font-mono shadow-xs mt-2 border border-(--hairline-light)">
+                  <span class="font-bold text-(--brand-ink)">{{ selectedBookingDate() }}</span>
+                  <span class="text-(--voltage-orange) font-bold">{{ activeSlot.start_time }} - {{ activeSlot.end_time }} WIB</span>
+                </div>
+              }
+            </div>
+
+            <!-- Ledger Financial Breakdown -->
+            <div class="p-5 space-y-3 font-mono text-xs">
+              <!-- Line 1: Layanan Dasar -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="font-bold text-(--brand-ink)">
+                    {{ selectedService()?.name || 'Layanan Belum Dipilih' }}
+                  </div>
+                  @if (isHourlyService()) {
+                    <div class="text-[11px] text-(--brand-ink)/60">
+                      {{ hourlyDuration() }} Jam @ {{ formattedServicePrice() }}
+                    </div>
+                  }
+                </div>
+                <span class="font-bold text-(--brand-ink)">
+                  {{ formattedServicePrice() }}
+                </span>
+              </div>
+
+              <!-- Line 2: Ongkos Jarak Transportasi -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="font-bold text-(--brand-ink)">
+                    Ongkos Jarak Transportasi
+                  </div>
+                  @if (feeCalculation(); as fee) {
+                    <div class="text-[11px] text-(--brand-ink)/60">
+                      {{ fee.distance_km }} km (Subsidi {{ fee.free_radius_km }} km)
+                    </div>
+                  }
+                </div>
+                <span class="font-bold text-(--brand-ink)">
+                  {{ feeCalculation() ? formatCurrency(feeCalculation()!.transport_fee) : 'Rp 0' }}
+                </span>
+              </div>
+
+              <!-- Line 3: Proteksi Alat -->
+              <div class="flex items-start justify-between text-emerald-800">
+                <div>
+                  <div class="font-bold">Proteksi Alat &amp; Sanitasi</div>
+                  <div class="text-[11px] text-emerald-700">Peralatan standar mandiri</div>
+                </div>
+                <span class="font-bold">Rp 0 (Termasuk)</span>
+              </div>
+
+              <!-- Total Estimasi Banner -->
+              <div class="pt-3 mt-3 border-t border-(--hairline-light) bg-(--surface-light) p-3 rounded-lg flex items-baseline justify-between">
+                <div>
+                  <span class="font-mono text-[10px] font-bold uppercase text-(--brand-ink)/60 tracking-wider block">
+                    TOTAL PEMESANAN
+                  </span>
+                  <span class="text-[11px] text-(--brand-ink)/60">Langsung ke teknisi</span>
+                </div>
+                <span class="font-mono-rate text-xl font-bold text-(--voltage-orange)">
+                  {{ formattedTotalEstimate() }}
+                </span>
+              </div>
+
+              <!-- Dispatch WhatsApp Button (type="submit") -->
+              <div class="pt-2">
+                <button
+                  type="submit"
+                  [disabled]="isSubmitting() || isOutOfRadius() || !hasActiveProfile()"
+                  class="w-full min-h-[48px] px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                  [class.bg-(--whatsapp-green)]="!isOutOfRadius()"
+                  [class.hover:bg-(--whatsapp-green-hover)]="!isOutOfRadius()"
+                  [class.text-white]="!isOutOfRadius()"
+                  [class.bg-gray-300]="isOutOfRadius()"
+                  [class.text-gray-500]="isOutOfRadius()"
+                  [class.cursor-not-allowed]="isOutOfRadius()"
+                >
+                  @if (isSubmitting()) {
+                    <span>Menyimpan Reservasi...</span>
+                  } @else if (isOutOfRadius()) {
+                    <span>Di Luar Jangkauan</span>
+                  } @else {
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span>Lanjutkan Pemesanan via WhatsApp</span>
+                  }
+                </button>
+                <p class="text-[11px] text-(--brand-ink)/60 text-center mt-2 leading-relaxed">
+                  Format reservasi &amp; kalkulasi akan terisi otomatis untuk chat langsung ke mitra teknisi. Tanpa akun atau login.
+                </p>
+              </div>
+
+              <!-- Trust & Guarantee Checklist -->
+              <div class="pt-2 border-t border-(--hairline-light) space-y-1.5 text-[11px] text-(--brand-ink)/70">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-700 font-bold">&#10003;</span>
+                  <span>100% Pembayaran langsung tanpa potongan aplikasi</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-700 font-bold">&#10003;</span>
+                  <span>Jaminan kepatuhan transit buffer 90 menit</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-emerald-700 font-bold">&#10003;</span>
+                  <span>Hubungan langsung mandiri &amp; terlindungi</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
   `,
 })
 export class ServiceBookingFormComponent {
@@ -376,34 +576,64 @@ export class ServiceBookingFormComponent {
   readonly serverErrorMessage = input<string | null>(null);
   readonly validationErrors = input<Record<string, string>>({});
   readonly isSubmitting = input<boolean>(false);
-  readonly hasActiveProfile = input<boolean>(false);
+  readonly hasActiveProfile = input<boolean>(true);
   readonly formDraft = input.required<BookingFormDraft>();
   readonly clientCoordinates = input<{ lat: number; lng: number } | null>(null);
   readonly feeCalculation = input<FeeCalculationResult | null>(null);
   readonly isCalculatingFee = input<boolean>(false);
   readonly feeCalculationError = input<string | null>(null);
   readonly isOutOfRadius = input<boolean>(false);
-
-  readonly availableSlots = input<AvailableTimeSlot[]>([]);
+  readonly availableSlots = input<readonly AvailableTimeSlot[]>([]);
   readonly isSlotsLoading = input<boolean>(false);
   readonly slotsErrorMessage = input<string | null>(null);
   readonly selectedTimeSlot = input<AvailableTimeSlot | null>(null);
   readonly selectedBookingDate = input<string>('');
   readonly isSelectedDateWorkingDay = input<boolean>(true);
 
-  readonly formDraftChange = output<BookingFormDraft>();
-  readonly clientCoordinatesChange = output<{ lat: number; lng: number }>();
-  readonly clearFieldError = output<string>();
-  readonly submitForm = output<void>();
   readonly dateChange = output<string>();
   readonly slotSelect = output<AvailableTimeSlot>();
+  readonly clientCoordinatesChange = output<{ lat: number; lng: number }>();
+  readonly formDraftChange = output<BookingFormDraft>();
+  readonly clearFieldError = output<string>();
+  readonly submitForm = output<void>();
 
-  get minimumBookingDate(): string {
-    const today = new Date();
-    const y = today.getFullYear();
-    const m = String(today.getMonth() + 1).padStart(2, '0');
-    const d = String(today.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  readonly hourlyDuration = signal<number>(2.5);
+
+  readonly isHourlyService = computed(() => {
+    const service = this.selectedService();
+    if (!service) return true;
+    return (service.rate_type || '').toUpperCase() !== 'UNIT';
+  });
+
+  readonly formattedBaseTotal = computed(() => {
+    const service = this.selectedService();
+    if (!service) return 'Rp 0';
+    const rate = service.base_price || service.price;
+    const total = rate * this.hourlyDuration();
+    return this.formatCurrency(total);
+  });
+
+  readonly markerPositionPercent = computed(() => {
+    const fee = this.feeCalculation();
+    if (!fee || !fee.max_radius_km || fee.max_radius_km <= 0) return null;
+    const ratio = Math.min(fee.distance_km / fee.max_radius_km, 1.0);
+    return Math.round(ratio * 100);
+  });
+
+  stepDuration(delta: number): void {
+    const current = this.hourlyDuration();
+    const next = Math.max(2.0, Math.min(8.0, current + delta));
+    this.hourlyDuration.set(next);
+  }
+
+  onFieldChange(field: keyof BookingFormDraft, value: string): void {
+    const updated = { ...this.formDraft(), [field]: value };
+    this.formDraftChange.emit(updated);
+    this.clearFieldError.emit(field);
+  }
+
+  onCoordinatesSelected(coords: { lat: number; lng: number }): void {
+    this.clientCoordinatesChange.emit(coords);
   }
 
   onDatePickerChange(dateStr: string): void {
@@ -413,36 +643,32 @@ export class ServiceBookingFormComponent {
   onSlotClick(slot: AvailableTimeSlot): void {
     if (!slot.available) return;
     this.slotSelect.emit(slot);
-    const date = this.selectedBookingDate();
-    if (date) {
-      this.updateDraftField('reservationScheduledDate', `${date}T${slot.start_time}:00`);
-      this.clearFieldError.emit('booking_date');
+
+    const bookingDate = this.selectedBookingDate();
+    if (bookingDate && slot.start_time) {
+      const scheduledIso = `${bookingDate}T${slot.start_time}:00`;
+      this.onFieldChange('reservationScheduledDate', scheduledIso);
     }
   }
 
-  isSlotSelected(slot: AvailableTimeSlot): boolean {
-    const current = this.selectedTimeSlot();
-    if (current && current.slot_type === slot.slot_type) {
-      return true;
-    }
-    const currentDraftDate = this.formDraft().reservationScheduledDate;
-    return !!currentDraftDate && currentDraftDate.includes(`T${slot.start_time}`);
+  isSlotActive(slot: AvailableTimeSlot): boolean {
+    const active = this.selectedTimeSlot();
+    return active?.slot_type === slot.slot_type;
   }
 
-  updateDraftField<K extends keyof BookingFormDraft>(field: K, value: BookingFormDraft[K]): void {
-    this.formDraftChange.emit({
-      ...this.formDraft(),
-      [field]: value,
-    });
+  triggerSubmit(): void {
+    this.submitForm.emit();
   }
 
-  formatRupiah(amount: number): string {
+  getChargeableKm(fee: FeeCalculationResult): number {
+    return Math.max(0, Number((fee.distance_km - fee.free_radius_km).toFixed(1)));
+  }
+
+  formatCurrency(value: number): string {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(value);
   }
 }
-
-

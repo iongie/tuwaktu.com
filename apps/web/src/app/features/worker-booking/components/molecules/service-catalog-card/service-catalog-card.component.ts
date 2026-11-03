@@ -12,51 +12,34 @@ import { PublicServiceCatalogItem } from '../../../models/worker-catalog.model';
       role="button"
       tabindex="0"
       [attr.aria-pressed]="isSelected()"
-      class="p-5 sm:p-6 cursor-pointer select-none transition-all rounded-xl relative"
-      [ngClass]="isSelected() ? 'bg-white ring-2 ring-[#ff5500] border-transparent shadow-md' : 'bg-white border border-[#cccccc] hover:border-[#121212] shadow-sm'"
+      class="p-space-lg rounded-xl cursor-pointer select-none transition-all relative"
+      [ngClass]="isSelected() ? 'bg-surface-container-lowest shadow-md ring-2 ring-voltage-orange' : 'bg-surface-container-low hover:bg-surface-container shadow-sm opacity-85'"
       (click)="selectService.emit(serviceItem())"
       (keydown.enter)="selectService.emit(serviceItem())"
       (keydown.space)="$event.preventDefault(); selectService.emit(serviceItem())"
     >
-      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-        <div class="flex-1 space-y-1.5">
-          <div class="flex flex-wrap items-center gap-2">
-            @if (isSelected()) {
-              <span
-                class="inline-block px-2 py-0.5 rounded bg-[#ff5500] text-white font-mono text-[10px] uppercase font-bold tracking-wider"
-              >
-                PILIHAN TERPILIH
-              </span>
-            } @else {
-              <span
-                class="inline-block px-2 py-0.5 rounded bg-[#f3f3f3] text-[#666666] font-mono text-[10px] uppercase font-semibold tracking-wider"
-              >
-                TERSEDIA
-              </span>
-            }
-            <h4 class="text-base sm:text-lg font-bold text-[#121212] tracking-tight">
-              {{ serviceItem().name }}
-            </h4>
-          </div>
-          <p class="text-xs sm:text-sm text-[#666666] leading-relaxed">
-            {{ serviceItem().description }}
-          </p>
-          <div class="flex items-center gap-3 pt-1 text-xs font-mono text-[#666666]">
-            <span class="inline-flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#1e4d3b]"></span>
-              Durasi: {{ serviceItem().duration_minutes }} menit
+      <div class="flex items-start justify-between">
+        <div>
+          @if (isSelected()) {
+            <span class="inline-block px-space-xs py-0.5 rounded bg-voltage-orange text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase font-bold">
+              PILIHAN TERPILIH
             </span>
-          </div>
+          } @else {
+            <span class="inline-block px-space-xs py-0.5 rounded bg-surface-container-high text-ink-secondary font-micro-uppercase text-micro-uppercase uppercase font-bold">
+              STANDAR
+            </span>
+          }
+          <h3 class="font-heading-h3 text-heading-h3 font-bold text-on-surface mt-1">
+            {{ serviceItem().name }}
+          </h3>
         </div>
-        <div class="text-left sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#cccccc]/40">
-          <div class="text-base sm:text-lg font-mono-rate font-bold text-[#121212]">
-            {{ formattedPrice() }}
-          </div>
-          <span class="text-[11px] font-mono text-[#666666]">
-            {{ (serviceItem().rate_type || '').toUpperCase() === 'UNIT' ? 'Per Sesi' : 'Per Jam' }}
-          </span>
-        </div>
+        <span class="font-mono-rate text-mono-rate font-bold text-on-surface">
+          {{ formattedPrice() }}
+        </span>
       </div>
+      <p class="font-caption text-caption text-ink-secondary mt-2">
+        {{ serviceItem().description }}
+      </p>
     </div>
   `,
 })

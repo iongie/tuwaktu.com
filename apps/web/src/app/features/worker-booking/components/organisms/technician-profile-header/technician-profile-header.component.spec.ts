@@ -132,4 +132,39 @@ describe('TechnicianProfileHeaderComponent', () => {
     expect(formatted).toContain('250.000');
     expect(formatted).toContain('/ Sesi');
   });
+
+  it('harus menyalin tautan dan menampilkan toast notifikasi saat copyLinkToClipboard dipanggil', async () => {
+    const clipboardSpy = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: clipboardSpy,
+      },
+    });
+
+    component.copyLinkToClipboard();
+    expect(clipboardSpy).toHaveBeenCalledWith('https://tuwaktu.com/budi-santoso');
+
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(component.isCopied()).toBe(true);
+    const toast = fixture.nativeElement.querySelector('#toastNotification');
+    expect(toast).not.toBeNull();
+    expect(toast.textContent).toContain('Tautan profil Budi Santoso berhasil disalin!');
+  });
+
+  it('harus memanggil navigator.share saat shareProfile dipanggil jika didukung browser', () => {
+    const shareSpy = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      share: shareSpy,
+    });
+
+    component.shareProfile();
+    expect(shareSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: expect.stringContaining('Budi Santoso'),
+        url: 'https://tuwaktu.com/budi-santoso',
+      })
+    );
+  });
 });

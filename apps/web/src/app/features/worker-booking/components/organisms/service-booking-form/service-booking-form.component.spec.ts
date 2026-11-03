@@ -199,4 +199,61 @@ describe('ServiceBookingFormComponent', () => {
     component.onDatePickerChange('2026-11-04');
     expect(changedDate).toBe('2026-11-04');
   });
+
+  it('harus mengatur durasi pengerjaan dengan stepDuration dalam batas 2.0 hingga 8.0 jam dan memperbarui total', () => {
+    componentRef.setInput('selectedService', {
+      id: 'svc-hourly',
+      name: 'Deep Clean Detailing',
+      description: 'Detailing mendalam',
+      price: 65000,
+      base_price: 65000,
+      duration_minutes: 120,
+      rate_type: 'HOURLY',
+    });
+    fixture.detectChanges();
+
+    expect(component.hourlyDuration()).toBe(2.5);
+
+    // Tambah 30 menit -> 3.0 jam
+    component.stepDuration(0.5);
+    expect(component.hourlyDuration()).toBe(3.0);
+    expect(component.isDurationCustomized()).toBe(true);
+
+    // 3.0 * 65.000 = 195.000
+    expect(component.formattedBaseTotal()).toContain('195.000');
+    // Grand total: 195.000 + default transport 3.600 = 198.600
+    expect(component.formattedGrandTotal()).toContain('198.600');
+
+    // Coba turunkan di bawah 2.0 jam (batas minimal 2.0)
+    component.stepDuration(-5.0);
+    expect(component.hourlyDuration()).toBe(2.0);
+
+    // Coba naikkan di atas 8.0 jam (batas maksimal 8.0)
+    component.stepDuration(10.0);
+    expect(component.hourlyDuration()).toBe(8.0);
+  });
+
+  it('harus menampilkan pesan subsidi bebas ongkir ketika chargeableKm adalah 0', () => {
+    const feeInFreeRadius: FeeCalculationResult = {
+      worker_id: 'worker-1',
+      service_id: 'svc-001',
+      service_price: 75000,
+      distance_km: 2.5,
+      max_radius_km: 15.0,
+      free_radius_km: 3.0,
+      chargeable_km: 0,
+      extra_fee_per_km: 3000,
+      transport_fee: 0,
+      total_price: 75000,
+      is_within_radius: true,
+    };
+
+    componentRef.setInput('selectedService', sampleService);
+    componentRef.setInput('feeCalculation', feeInFreeRadius);
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.textContent).toContain('bebas ongkir');
+    expect(compiled.textContent).toContain('Rp 0');
+  });
 });

@@ -8,70 +8,62 @@ import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <article class="w-full bg-[#121212] text-white relative overflow-hidden border-b border-white/10">
+    <article class="w-full bg-hero-canvas text-ink-on-dark relative overflow-hidden border-b border-white/10">
       <!-- Subtle architectural noise/grid layer from Stitch -->
       <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 relative z-10">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div class="max-w-7xl mx-auto px-margin-desktop py-space-3xl relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-2xl items-center">
           <!-- Left Hero Stream: Identity, Proof & Direct Profile Wire (7 cols) -->
-          <div class="lg:col-span-7 space-y-6">
-            <div class="flex items-start sm:items-center gap-5">
+          <div class="lg:col-span-7 space-y-space-xl">
+            <div class="flex items-start sm:items-center gap-space-lg">
               <div class="relative shrink-0">
                 @if (workerProfile().avatar_url) {
                   <img
                     [src]="workerProfile().avatar_url"
                     [alt]="'Foto profil ' + workerProfile().name"
-                    class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shadow-xl border-2 border-white/20 bg-white/10"
+                    class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shadow-xl"
                   />
                 } @else {
-                  <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-white/80 font-mono font-bold text-2xl">
+                  <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-surface-elevated-dark flex items-center justify-center text-ink-on-dark font-mono font-bold text-2xl shadow-xl">
                     {{ (workerProfile().name || 'TW').substring(0, 2).toUpperCase() }}
                   </div>
                 }
                 <span
-                  class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#008850] ring-4 ring-[#121212]"
+                  class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success ring-4 ring-hero-canvas"
                   title="Status: Aktif Menerima Reservasi"
                 ></span>
               </div>
 
-              <div class="space-y-1.5 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white truncate">
+              <div class="space-y-space-xs min-w-0">
+                <div class="flex flex-wrap items-center gap-space-xs">
+                  <span class="font-heading-h1 text-heading-h1 font-bold tracking-tight text-ink-on-dark truncate">
                     {{ workerProfile().name }}
-                  </h1>
-                  <span
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#f4eedf] text-[#6f5b37] font-mono text-[11px] font-bold uppercase tracking-wider"
-                  >
-                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                    </svg>
-                    VERIFIED PRO
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded bg-surface-warm-promo text-promo-ink font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider">
+                    <span class="material-symbols-outlined text-[12px] font-bold">verified</span> VERIFIED PRO
                   </span>
                 </div>
 
-                <p class="text-sm sm:text-base text-white/80 font-medium">
+                <p class="font-lead-body text-lead-body text-ink-secondary text-surface-highlight font-medium">
                   {{ workerProfile().bio || 'Penyedia Layanan Mandiri Terverifikasi Tuwaktu' }}
                 </p>
 
-                <div class="flex flex-wrap items-center gap-3 pt-1 text-xs font-mono text-white/70">
+                <div class="flex flex-wrap items-center gap-space-md pt-1 font-caption text-caption text-surface-variant">
                   <span class="flex items-center gap-1">
-                    <span class="text-[#ff5500] font-bold text-sm">&#9733;</span>
-                    <strong class="text-white">{{ workerProfile().rating || '5.0' }}</strong>
-                    <span class="text-white/60">({{ workerProfile().review_count || 0 }} ulasan terverifikasi)</span>
+                    <span class="material-symbols-outlined text-[16px] text-voltage-orange" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <strong class="font-body-strong text-body-strong text-ink-on-dark">{{ workerProfile().rating || '4.9' }}</strong>
+                    ({{ workerProfile().review_count || 0 }} ulasan terverifikasi)
                   </span>
-                  <span class="text-white/30">•</span>
-                  <span class="flex items-center gap-1 text-white/80">
-                    <svg class="w-3.5 h-3.5 text-white/60 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                    <span>Pangkalan:</span>
-                    <strong class="text-white">{{ workerProfile().zone }}</strong>
+                  <span class="text-ink-disabled">•</span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px] text-surface-variant">location_on</span>
+                    Pangkalan: {{ workerProfile().zone }}
                   </span>
                   @if (formattedRate(); as rateText) {
-                    <span class="text-white/30">•</span>
-                    <span class="text-white/80">
-                      Tarif Dasar: <strong class="font-bold text-[#ff5500]">{{ rateText }}</strong>
+                    <span class="text-ink-disabled">•</span>
+                    <span class="flex items-center gap-1">
+                      Tarif Dasar: <strong class="font-body-strong text-voltage-orange">{{ rateText }}</strong>
                     </span>
                   }
                 </div>
@@ -79,52 +71,81 @@ import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
             </div>
 
             <!-- Quick Copy Public Mandiri Wire -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-              <div class="flex items-center justify-between gap-2 px-3.5 py-2 bg-[#303030] rounded-lg shadow-inner max-w-md w-full border border-white/10">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="text-[#ff5500] text-xs font-mono font-bold">&#128279;</span>
-                  <span class="font-mono text-xs text-white/90 truncate select-all" id="profileUrl">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm pt-space-xs">
+              <div class="flex items-center justify-between gap-space-sm px-space-md py-2 bg-surface-elevated-dark rounded shadow-inner max-w-md w-full">
+                <div class="flex items-center gap-space-xs min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-voltage-orange">link</span>
+                  <span class="font-mono-rate text-mono-rate text-surface-variant truncate select-all" id="profileUrl">
                     tuwaktu.com/{{ workerProfile().slug }}
                   </span>
                 </div>
                 <button
                   type="button"
                   (click)="copyLinkToClipboard()"
-                  class="shrink-0 px-2.5 py-1 bg-white hover:bg-gray-100 text-[#121212] font-mono text-[10px] uppercase font-bold rounded transition-colors cursor-pointer"
+                  class="shrink-0 px-space-sm py-1 bg-surface-container-high hover:bg-surface-highlight text-ink-on-light font-micro-uppercase text-micro-uppercase uppercase font-bold rounded transition-colors cursor-pointer"
+                  [class.bg-whatsapp-surface]="isCopied()"
+                  [class.text-whatsapp-ink]="isCopied()"
+                  id="copyBtn"
                 >
-                  {{ isCopied() ? 'Tersalin!' : 'Salin Tautan' }}
+                  {{ isCopied() ? 'TERSALIN' : 'Salin Tautan' }}
                 </button>
               </div>
+              <button
+                type="button"
+                (click)="shareProfile()"
+                class="px-space-md py-2 bg-surface-elevated-dark hover:bg-surface-container-high text-surface-bright font-button-label text-button-label rounded transition-colors flex items-center justify-center gap-1 shrink-0 cursor-pointer"
+                title="Bagikan Tautan Profil Mandiri"
+              >
+                <span class="material-symbols-outlined text-[16px]">share</span>
+                <span>Bagikan</span>
+              </button>
             </div>
           </div>
 
           <!-- Right Hero Stream: Telemetry & Discipline Rules Cards (5 cols) -->
-          <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-            <div class="p-3.5 bg-[#303030] rounded-lg shadow-md flex items-center justify-between border border-white/5">
+          <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-space-sm">
+            <div class="p-space-md bg-surface-elevated-dark rounded shadow-md flex items-center justify-between">
               <div class="space-y-0.5">
-                <span class="font-mono text-[10px] text-white/50 uppercase tracking-wider block">Batas Jangkauan Maksimal</span>
-                <span class="font-bold text-xs sm:text-sm text-white">{{ workerProfile().max_radius_km || 10 }} Kilometer Radius</span>
+                <span class="font-micro-uppercase text-micro-uppercase text-ink-disabled uppercase tracking-wider block">Batas Jangkauan Maksimal</span>
+                <span class="font-body-strong text-body-strong text-ink-on-dark">{{ workerProfile().max_radius_km || 5.0 }} Kilometer Radius</span>
               </div>
-              <span class="px-2 py-1 rounded bg-[#121212] text-white/70 font-mono text-[11px] font-bold">RAD-MAX</span>
+              <span class="px-space-xs py-1 rounded bg-hero-canvas text-surface-variant font-mono-rate text-mono-rate">RAD-MAX</span>
             </div>
 
-            <div class="p-3.5 bg-[#303030] rounded-lg shadow-md flex items-center justify-between border border-white/5">
+            <div class="p-space-md bg-surface-elevated-dark rounded shadow-md flex items-center justify-between">
               <div class="space-y-0.5">
-                <span class="font-mono text-[10px] text-white/50 uppercase tracking-wider block">Buffer Transit Wajib</span>
-                <span class="font-bold text-xs sm:text-sm text-white">90 Menit Tiap Sesi</span>
+                <span class="font-micro-uppercase text-micro-uppercase text-ink-disabled uppercase tracking-wider block">Buffer Transit Wajib</span>
+                <span class="font-body-strong text-body-strong text-ink-on-dark">90 Menit Tiap Sesi</span>
               </div>
-              <span class="px-2 py-1 rounded bg-[#ff5500]/20 text-[#ff5500] font-mono text-[11px] font-bold">BUFFER 90M</span>
+              <span class="px-space-xs py-1 rounded bg-voltage-orange/20 text-voltage-orange font-mono-rate text-mono-rate">BUFFER 90M</span>
             </div>
 
-            <div class="p-3.5 bg-[#303030] rounded-lg shadow-md flex items-center justify-between border border-white/5">
+            <div class="p-space-md bg-surface-elevated-dark rounded shadow-md flex items-center justify-between">
               <div class="space-y-0.5">
-                <span class="font-mono text-[10px] text-white/50 uppercase tracking-wider block">Respon WhatsApp Mandiri</span>
-                <span class="font-bold text-xs sm:text-sm text-white">&lt; 15 Menit Rata-rata</span>
+                <span class="font-micro-uppercase text-micro-uppercase text-ink-disabled uppercase tracking-wider block">Respon WhatsApp Mandiri</span>
+                <span class="font-body-strong text-body-strong text-ink-on-dark">&lt; 15 Menit Rata-rata</span>
               </div>
-              <span class="px-2 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-mono text-[11px] font-bold">SIAP DISPATCH</span>
+              <span class="material-symbols-outlined text-[20px] text-whatsapp-surface">chat_bubble</span>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Stitch Notification Toast Modal Scrim -->
+      <div
+        id="toastNotification"
+        role="status"
+        aria-live="polite"
+        class="fixed bottom-6 right-6 z-50 bg-hero-canvas text-ink-on-dark px-space-lg py-space-md rounded-xl shadow-2xl transition-all duration-300 flex items-center gap-space-md pointer-events-none"
+        [class.translate-y-0]="isCopied()"
+        [class.opacity-100]="isCopied()"
+        [class.translate-y-24]="!isCopied()"
+        [class.opacity-0]="!isCopied()"
+      >
+        <span class="material-symbols-outlined text-success text-[20px]" id="toastIcon">check_circle</span>
+        <span class="font-body-default text-body-default font-medium" id="toastMessage">
+          Tautan profil {{ workerProfile().name }} berhasil disalin!
+        </span>
       </div>
     </article>
   `,
@@ -165,10 +186,26 @@ export class TechnicianProfileHeaderComponent {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
         this.isCopied.set(true);
-        setTimeout(() => this.isCopied.set(false), 2000);
+        setTimeout(() => this.isCopied.set(false), 2500);
       }).catch(() => {
         this.isCopied.set(false);
       });
+    }
+  }
+
+  shareProfile(): void {
+    const profile = this.workerProfile();
+    const url = `https://tuwaktu.com/${profile.slug}`;
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      navigator.share({
+        title: `Pesan Layanan dari ${profile.name} di Tuwaktu`,
+        text: profile.bio || `Pesan layanan langsung tanpa perantara komisi dari ${profile.name}`,
+        url,
+      }).catch(() => {
+        this.copyLinkToClipboard();
+      });
+    } else {
+      this.copyLinkToClipboard();
     }
   }
 }

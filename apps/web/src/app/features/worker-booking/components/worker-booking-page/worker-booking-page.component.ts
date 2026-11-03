@@ -23,7 +23,6 @@ import {
 } from '../../models/service-booking.model';
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
 import { TechnicianSearchBarComponent } from '../molecules/technician-search-bar/technician-search-bar.component';
-import { ServiceCatalogCardComponent } from '../molecules/service-catalog-card/service-catalog-card.component';
 import { TechnicianProfileHeaderComponent } from '../organisms/technician-profile-header/technician-profile-header.component';
 import {
   BookingFormDraft,
@@ -39,7 +38,6 @@ import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
     FormsModule,
     RouterLink,
     TechnicianSearchBarComponent,
-    ServiceCatalogCardComponent,
     TechnicianProfileHeaderComponent,
     ServiceBookingFormComponent,
   ],

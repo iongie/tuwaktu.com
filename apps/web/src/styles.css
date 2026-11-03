@@ -19,8 +19,124 @@
   --color-success-surface: #e6f7ee;
   --color-warning-surface: #fff8e1;
   --color-error-surface: #ffebee;
+
+  --color-background: #f9f9f9;
+  --color-surface: #f9f9f9;
+  --color-surface-bright: #f9f9f9;
+  --color-surface-dim: #dadada;
+  --color-surface-variant: #e2e2e2;
+  --color-surface-container: #eeeeee;
+  --color-surface-container-low: #f3f3f4;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #e2e2e2;
+  --color-surface-container-lowest: #ffffff;
+
+  --color-on-surface: #1a1c1c;
+  --color-on-surface-variant: #444748;
+  --color-on-background: #1a1c1c;
+  --color-on-primary: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-on-error: #ffffff;
+
+  --color-primary: #000000;
+  --color-secondary: #a63500;
+  --color-success: #008850;
+  --color-warning: #b78103;
+  --color-error: #d61348;
+
+  --color-ink-on-light: #121212;
+  --color-ink-on-dark: #ffffff;
+  --color-ink-secondary: #666666;
+  --color-ink-disabled: #999999;
+  --color-accent-link: #044dd2;
+  --color-accent-focus: #699fff;
+
+  --spacing-gutter: 1rem;
+  --spacing-gutter-desktop: 1.5rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 0.75rem;
+  --spacing-space-lg: 1rem;
+  --spacing-space-xl: 1.5rem;
+  --spacing-space-2xl: 2rem;
+  --spacing-space-3xl: 3rem;
+  --spacing-space-4xl: 4rem;
+  --spacing-margin: 1rem;
+  --spacing-margin-tablet: 1.5rem;
+  --spacing-margin-desktop: 2rem;
+
   --font-mono-rate: "JetBrains Mono", monospace;
   --font-inter: "Inter", sans-serif;
+  --font-heading-h1: "Inter", sans-serif;
+  --font-heading-h2: "Inter", sans-serif;
+  --font-heading-h3: "Inter", sans-serif;
+  --font-lead-body: "Inter", sans-serif;
+  --font-body-default: "Inter", sans-serif;
+  --font-body-strong: "Inter", sans-serif;
+  --font-caption: "Inter", sans-serif;
+  --font-micro-uppercase: "Inter", sans-serif;
+  --font-button-label: "Inter", sans-serif;
+}
+
+@utility text-heading-h1 {
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+@utility text-heading-h2 {
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+@utility text-heading-h3 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0em;
+  font-weight: 600;
+}
+@utility text-lead-body {
+  font-size: 17px;
+  line-height: 24px;
+  letter-spacing: 0em;
+  font-weight: 600;
+}
+@utility text-body-default {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0em;
+  font-weight: 400;
+}
+@utility text-body-strong {
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0em;
+  font-weight: 700;
+}
+@utility text-caption {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0em;
+  font-weight: 400;
+}
+@utility text-micro-uppercase {
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+@utility text-button-label {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+}
+@utility text-mono-rate {
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.02em;
+  font-weight: 600;
 }
 
 /* Material Design 3 (M3) System Tokens - High-Contrast Documentary Modernism */

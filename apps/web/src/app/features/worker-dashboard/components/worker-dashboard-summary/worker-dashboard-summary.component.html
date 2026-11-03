@@ -1,0 +1,319 @@
+<div class="space-y-8">
+  <!-- Ringkasan Section Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-(--voltage-orange) text-xl">space_dashboard</span>
+        <h1 class="text-xl font-bold text-(--brand-ink)">Ringkasan Status Operasional</h1>
+      </div>
+      <p class="text-xs text-(--brand-ink)/60 mt-1">
+        Pantau keandalan layanan, model tarif, logistik jangkauan, dan integrasi pemesanan WhatsApp Anda secara terpadu.
+      </p>
+    </div>
+    @if (store.workerSlugIdentifier()) {
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-mono font-bold border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Akun Aktif: {{ store.workerSlugIdentifier() }}</span>
+      </span>
+    }
+  </div>
+
+  <!-- 4 Primary Operational Bento Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Card 1: Tarif & Model Biaya -->
+    <div class="bg-white rounded-xl p-6 border border-(--hairline-light) shadow-xs flex flex-col justify-between space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-orange-50 text-(--voltage-orange) flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">payments</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-(--brand-ink)">Model Tarif &amp; Layanan</h2>
+              <span class="text-[11px] text-(--brand-ink)/60">Skema Penagihan Pelanggan</span>
+            </div>
+          </div>
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase"
+            [class.bg-emerald-50]="store.formattedBasePricePreview()"
+            [class.text-emerald-700]="store.formattedBasePricePreview()"
+            [class.bg-amber-50]="!store.formattedBasePricePreview()"
+            [class.text-amber-700]="!store.formattedBasePricePreview()"
+          >
+            {{ store.formattedBasePricePreview() ? 'TERKONFIGURASI' : 'BELUM DIATUR' }}
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-1">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-(--brand-ink)/60 block">Tarif Dasar Aktif</span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-xl font-bold font-mono text-(--brand-ink)">
+              {{ store.formattedBasePricePreview() || 'Rp 0 / Belum Diatur' }}
+            </span>
+          </div>
+          <span class="text-[11px] text-(--brand-ink)/70 block">
+            Skema: <strong>{{ store.workerRateType() === 'UNIT' ? 'Per Sesi (Flat)' : 'Per Jam (Proporsional)' }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <a
+        routerLink="/dashboard/tarif-layanan"
+        queryParamsHandling="preserve"
+        class="inline-flex items-center justify-between text-xs font-semibold text-(--voltage-orange) hover:underline pt-2 border-t border-(--hairline-light)/60"
+      >
+        <span>Ubah Pengaturan Tarif</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Card 2: Logistik Basecamp & Radius -->
+    <div class="bg-white rounded-xl p-6 border border-(--hairline-light) shadow-xs flex flex-col justify-between space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">near_me</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-(--brand-ink)">Logistik &amp; Radius Tempuh</h2>
+              <span class="text-[11px] text-(--brand-ink)/60">Basecamp &amp; Proteksi Area</span>
+            </div>
+          </div>
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase"
+            [class.bg-emerald-50]="store.workerLat() !== null"
+            [class.text-emerald-700]="store.workerLat() !== null"
+            [class.bg-amber-50]="store.workerLat() === null"
+            [class.text-amber-700]="store.workerLat() === null"
+          >
+            {{ store.workerLat() !== null ? 'GPS TERKUNCI' : 'BUTUH KOORDINAT' }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="p-2.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) text-center">
+            <span class="text-[10px] font-mono text-(--brand-ink)/60 block">Bebas Ongkir</span>
+            <span class="font-mono text-xs font-bold text-emerald-700">{{ store.workerFreeRadiusKm() }} Km</span>
+          </div>
+          <div class="p-2.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) text-center">
+            <span class="text-[10px] font-mono text-(--brand-ink)/60 block">Tarif / Km</span>
+            <span class="font-mono text-xs font-bold text-amber-700">{{ store.formattedExtraFeePreview() }}</span>
+          </div>
+          <div class="p-2.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) text-center">
+            <span class="text-[10px] font-mono text-(--brand-ink)/60 block">Radius Maks</span>
+            <span class="font-mono text-xs font-bold text-red-600">{{ store.workerMaxRadiusKm() }} Km</span>
+          </div>
+        </div>
+      </div>
+
+      <a
+        routerLink="/dashboard/logistik-radius"
+        queryParamsHandling="preserve"
+        class="inline-flex items-center justify-between text-xs font-semibold text-(--voltage-orange) hover:underline pt-2 border-t border-(--hairline-light)/60"
+      >
+        <span>Atur Titik Peta &amp; Radius</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Card 3: Integrasi WhatsApp & Profil -->
+    <div class="bg-white rounded-xl p-6 border border-(--hairline-light) shadow-xs flex flex-col justify-between space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-green-50 text-(--whatsapp-green) flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">chat</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-(--brand-ink)">Integrasi WhatsApp Dispatch</h2>
+              <span class="text-[11px] text-(--brand-ink)/60">Penerimaan Pesanan Otomatis</span>
+            </div>
+          </div>
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase"
+            [class.bg-emerald-50]="store.workerWhatsAppNumber()"
+            [class.text-emerald-700]="store.workerWhatsAppNumber()"
+            [class.bg-amber-50]="!store.workerWhatsAppNumber()"
+            [class.text-amber-700]="!store.workerWhatsAppNumber()"
+          >
+            {{ store.workerWhatsAppNumber() ? 'TERHUBUNG' : 'BUTUH NOMOR WA' }}
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-1">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-(--brand-ink)/60 block">Nomor WhatsApp Aktif</span>
+          <div class="font-mono text-sm font-bold text-(--brand-ink)">
+            {{ store.workerWhatsAppNumber() || 'Nomor WhatsApp belum dikonfigurasi' }}
+          </div>
+          <span class="text-[11px] text-(--brand-ink)/70 block">
+            Operator: <strong>{{ store.workerFullName() || 'Mitra Mandiri' }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <a
+        routerLink="/dashboard/integrasi-whatsapp"
+        queryParamsHandling="preserve"
+        class="inline-flex items-center justify-between text-xs font-semibold text-(--voltage-orange) hover:underline pt-2 border-t border-(--hairline-light)/60"
+      >
+        <span>Kelola WhatsApp &amp; Profil</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Card 4: Kalender Kerja & Transit Buffer -->
+    <div class="bg-white rounded-xl p-6 border border-(--hairline-light) shadow-xs flex flex-col justify-between space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">calendar_month</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-(--brand-ink)">Kalender Kerja &amp; Buffer Transit</h2>
+              <span class="text-[11px] text-(--brand-ink)/60">Ketersediaan Slot Harian</span>
+            </div>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-mono font-bold uppercase">
+            {{ store.activeScheduleDaysCount() }} HARI AKTIF
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-(--brand-ink)/60">Buffer Transit Wajib</span>
+            <span class="text-[11px] font-mono font-bold text-(--voltage-orange)">60-90 MENIT</span>
+          </div>
+          <p class="text-xs text-(--brand-ink)/70 mt-1">
+            Waktu istirahat dan perjalanan antar-klien dikunci otomatis agar stamina dan keselamatan Anda tetap prima.
+          </p>
+        </div>
+      </div>
+
+      <a
+        routerLink="/dashboard/kalender-slot"
+        queryParamsHandling="preserve"
+        class="inline-flex items-center justify-between text-xs font-semibold text-(--voltage-orange) hover:underline pt-2 border-t border-(--hairline-light)/60"
+      >
+        <span>Atur Hari &amp; Slot Jam Kerja</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Card 5: Paket Langganan & Kemitraan (Plan Pro) -->
+    <div class="bg-white rounded-xl p-6 border border-(--hairline-light) shadow-xs flex flex-col justify-between space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">workspace_premium</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-(--brand-ink)">Paket Kemitraan Mandiri</h2>
+              <span class="text-[11px] text-(--brand-ink)/60">Kedaulatan Finansial 0% Komisi</span>
+            </div>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-mono font-bold uppercase">
+            {{ store.currentPlanTier() === 'PRO' ? 'PRO AKTIF' : store.currentPlanTier() === 'STARTER' ? 'STARTER' : 'TIM FLEET' }}
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-1">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-(--brand-ink)/60 block">Status Langganan</span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-xl font-bold font-mono text-(--brand-ink)">
+              {{ store.currentPlanTier() === 'PRO' ? 'Rp 49.000 / Bulan' : store.currentPlanTier() === 'STARTER' ? 'Rp 0 / Selamanya' : 'Rp 149.000 / Bulan' }}
+            </span>
+          </div>
+          <span class="text-[11px] text-emerald-700 font-semibold block">
+            Bebas potongan komisi • Hak penghasilan penuh milik Anda
+          </span>
+        </div>
+      </div>
+
+      <a
+        routerLink="/dashboard/plan"
+        queryParamsHandling="preserve"
+        class="inline-flex items-center justify-between text-xs font-semibold text-(--voltage-orange) hover:underline pt-2 border-t border-(--hairline-light)/60"
+      >
+        <span>Kelola Paket Langganan</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Card 6: Boost Visibilitas & Prioritas Radar -->
+    <div class="bg-white rounded-xl p-6 border border-(--hairline-light) shadow-xs flex flex-col justify-between space-y-4">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-orange-50 text-(--voltage-orange) flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">bolt</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-(--brand-ink)">Boost Visibilitas &amp; Radar</h2>
+              <span class="text-[11px] text-(--brand-ink)/60">Prioritas Pencarian Lokal</span>
+            </div>
+          </div>
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase"
+            [class.bg-emerald-50]="store.isBoostActive()"
+            [class.text-emerald-700]="store.isBoostActive()"
+            [class.bg-gray-100]="!store.isBoostActive()"
+            [class.text-gray-500]="!store.isBoostActive()"
+          >
+            {{ store.isBoostActive() ? 'RADAR AKTIF' : 'STANDBY' }}
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-(--brand-ink)/60">Dampak Radar Aktif</span>
+            <span class="text-[11px] font-mono font-bold text-(--voltage-orange)">3.5x Multiplier</span>
+          </div>
+          <p class="text-xs text-(--brand-ink)/70 mt-1">
+            Meningkatkan frekuensi tayang di hasil pencarian klien sekitar basecamp tanpa melanggar batas radius aman.
+          </p>
+        </div>
+      </div>
+
+      <a
+        routerLink="/dashboard/boost"
+        queryParamsHandling="preserve"
+        class="inline-flex items-center justify-between text-xs font-semibold text-(--voltage-orange) hover:underline pt-2 border-t border-(--hairline-light)/60"
+      >
+        <span>Konfigurasi Boost Visibilitas</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Zero-Commission Philosophy Authority Strip -->
+  <section class="bg-(--surface-light) rounded-xl p-6 border border-(--hairline-light) space-y-4">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-emerald-700 text-lg">verified_user</span>
+      <h3 class="text-sm font-bold text-(--brand-ink)">Prinsip Kedaulatan Mitra Tuwaktu</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+      <div class="p-4 rounded-lg bg-white border border-(--hairline-light) space-y-1">
+        <span class="font-bold text-(--brand-ink) block">100% Bebas Komisi Aplikasi</span>
+        <p class="text-(--brand-ink)/70 leading-relaxed">
+          Seluruh pendapatan jasa adalah hak penuh Anda. Tuwaktu tidak memotong persentase sepeser pun dari penghasilan order.
+        </p>
+      </div>
+      <div class="p-4 rounded-lg bg-white border border-(--hairline-light) space-y-1">
+        <span class="font-bold text-(--brand-ink) block">Koneksi Langsung WhatsApp</span>
+        <p class="text-(--brand-ink)/70 leading-relaxed">
+          Pesanan terkirim langsung ke nomor WhatsApp pribadi Anda tanpa perantara penengah yang menahan dana pelanggan.
+        </p>
+      </div>
+      <div class="p-4 rounded-lg bg-white border border-(--hairline-light) space-y-1">
+        <span class="font-bold text-(--brand-ink) block">Proteksi Kelelahan Tempuh</span>
+        <p class="text-(--brand-ink)/70 leading-relaxed">
+          Algoritma radius menolak otomatis pesanan di luar batas jarak dan menjamin buffer istirahat 60-90 menit antar-pekerjaan.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+

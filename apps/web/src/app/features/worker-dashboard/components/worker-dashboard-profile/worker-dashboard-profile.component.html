@@ -53,7 +53,7 @@
           [class.hover:bg-white/5]="activeDashboardSection() !== 'all'"
           [class.hover:text-white]="activeDashboardSection() !== 'all'"
         >
-          <span class="text-base">&#128202;</span>
+          <span class="material-symbols-outlined text-base">space_dashboard</span>
           <span>Ringkasan / Semua</span>
         </button>
 
@@ -71,7 +71,7 @@
           [class.hover:bg-white/5]="activeDashboardSection() !== 'rates'"
           [class.hover:text-white]="activeDashboardSection() !== 'rates'"
         >
-          <span class="text-base">&#128176;</span>
+          <span class="material-symbols-outlined text-base">payments</span>
           <span>Tarif &amp; Layanan</span>
         </button>
 
@@ -89,7 +89,7 @@
           [class.hover:bg-white/5]="activeDashboardSection() !== 'location'"
           [class.hover:text-white]="activeDashboardSection() !== 'location'"
         >
-          <span class="text-base">&#128205;</span>
+          <span class="material-symbols-outlined text-base">near_me</span>
           <span>Logistik &amp; Radius</span>
         </button>
 
@@ -107,7 +107,7 @@
           [class.hover:bg-white/5]="activeDashboardSection() !== 'schedule'"
           [class.hover:text-white]="activeDashboardSection() !== 'schedule'"
         >
-          <span class="text-base">&#128197;</span>
+          <span class="material-symbols-outlined text-base">calendar_month</span>
           <span>Kalender &amp; Slot</span>
         </button>
 
@@ -125,7 +125,7 @@
           [class.hover:bg-white/5]="activeDashboardSection() !== 'profile'"
           [class.hover:text-white]="activeDashboardSection() !== 'profile'"
         >
-          <span class="text-base">&#128172;</span>
+          <span class="material-symbols-outlined text-base">chat</span>
           <span>WhatsApp &amp; Profil</span>
         </button>
       </nav>
@@ -140,7 +140,7 @@
           class="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs transition-colors"
         >
           <span class="flex items-center gap-2">
-            <span>&#8599;</span>
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
             <span>Lihat Tautan Publik</span>
           </span>
           <span class="text-white/40">&rarr;</span>
@@ -182,7 +182,7 @@
 
       <div class="flex items-center gap-4">
         <div class="hidden sm:flex items-center gap-1.5 text-xs text-(--brand-ink)/70 font-semibold">
-          <span class="text-emerald-700">&#10003;</span>
+          <span class="material-symbols-outlined text-emerald-700 text-sm">verified</span>
           <span>Terverifikasi Mandiri</span>
         </div>
 
@@ -191,7 +191,7 @@
           target="_blank"
           class="h-9 px-3.5 rounded-lg bg-(--whatsapp-green) hover:bg-(--whatsapp-green-hover) text-white flex items-center gap-1.5 text-xs font-bold transition-colors shadow-xs"
         >
-          <span>&#128172;</span>
+          <span class="material-symbols-outlined text-sm">send</span>
           <span>Tes WhatsApp Dispatch</span>
         </a>
 
@@ -349,7 +349,8 @@
                     {{ workerFullName() || 'Sarah Melinda' }}
                   </h1>
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-(--surface-warm-promo) text-(--promo-ink) font-mono text-[10px] uppercase font-bold tracking-wider">
-                    &#10003; VERIFIED PRO
+                    <span class="material-symbols-outlined text-xs">verified</span>
+                    VERIFIED PRO
                   </span>
                   @if (workerRecordId()) {
                     <span class="text-[11px] font-mono text-white/50">
@@ -398,7 +399,7 @@
                   (click)="copyPublicProfileLink()"
                   class="h-10 px-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
                 >
-                  <span>&#128279;</span>
+                  <span class="material-symbols-outlined text-sm">content_copy</span>
                   <span class="font-mono">{{ clipboardFeedbackMessage() || (publicProfileRelativeUrl() ? 'tuwaktu.com' + publicProfileRelativeUrl() : 'Salin Tautan') }}</span>
                 </button>
 
@@ -408,7 +409,7 @@
                     target="_blank"
                     class="h-10 px-3.5 rounded-lg bg-(--voltage-orange) hover:bg-[#e04b00] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
                   >
-                    <span>&#8599;</span>
+                    <span class="material-symbols-outlined text-sm">open_in_new</span>
                     <span>Pratinjau Publik</span>
                   </a>
                 }
@@ -474,7 +475,7 @@
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-(--hairline-light)">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-(--voltage-orange) text-lg">&#128176;</span>
+                    <span class="material-symbols-outlined text-(--voltage-orange) text-lg">payments</span>
                     <h2 class="text-lg font-bold text-(--brand-ink)">Katalog &amp; Model Tarif</h2>
                   </div>
                   <p class="text-xs text-(--brand-ink)/60 mt-0.5">
@@ -607,7 +608,7 @@
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-(--hairline-light)">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-(--voltage-orange) text-lg">&#128205;</span>
+                    <span class="material-symbols-outlined text-(--voltage-orange) text-lg">near_me</span>
                     <h2 class="text-lg font-bold text-(--brand-ink)">Logistik, Basecamp &amp; Radius</h2>
                   </div>
                   <p class="text-xs text-(--brand-ink)/60 mt-0.5">
@@ -615,7 +616,8 @@
                   </p>
                 </div>
                 <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-xs font-mono font-bold flex items-center gap-1">
-                  &#10003; GPS Terkunci
+                  <span class="material-symbols-outlined text-xs">verified</span>
+                  <span>GPS Terkunci</span>
                 </span>
               </div>
 
@@ -766,7 +768,7 @@
               <div class="flex items-center justify-between pb-4 border-b border-(--hairline-light)">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-(--voltage-orange) text-lg">&#128197;</span>
+                    <span class="material-symbols-outlined text-(--voltage-orange) text-lg">calendar_month</span>
                     <h2 class="text-lg font-bold text-(--brand-ink)">Slot &amp; Buffer Transit</h2>
                   </div>
                   <p class="text-xs text-(--brand-ink)/60 mt-0.5">
@@ -782,7 +784,8 @@
               <div class="p-4 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-xs text-(--brand-ink) flex items-center gap-1.5">
-                    <span>&#128737;</span> Jeda Wajib Antar Pemesanan
+                    <span class="material-symbols-outlined text-sm text-(--voltage-orange)">shield</span>
+                    <span>Jeda Wajib Antar Pemesanan</span>
                   </span>
                   <span class="font-mono text-xs font-bold text-(--voltage-orange)">
                     60-90 MENIT AKTIF
@@ -921,15 +924,16 @@
               <div class="flex items-center justify-between pb-4 border-b border-(--hairline-light)">
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-(--whatsapp-green) text-lg">&#128172;</span>
+                    <span class="material-symbols-outlined text-(--whatsapp-green) text-lg">chat</span>
                     <h2 class="text-lg font-bold text-(--brand-ink)">Integrasi WhatsApp &amp; Profil</h2>
                   </div>
                   <p class="text-xs text-(--brand-ink)/60 mt-0.5">
                     Hubungkan nomor WhatsApp untuk menerima notifikasi booking otomatis.
                   </p>
                 </div>
-                <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-xs font-mono font-bold">
-                  Terhubung
+                <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-xs font-mono font-bold flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs">verified</span>
+                  <span>Terhubung</span>
                 </span>
               </div>
 
@@ -941,7 +945,7 @@
                 <div class="p-4 rounded-xl bg-[#e5ddd5] text-[#111b21] shadow-inner space-y-2">
                   <div class="bg-white p-3.5 rounded-lg shadow-xs space-y-2 max-w-full text-xs leading-relaxed">
                     <div class="font-semibold text-(--whatsapp-green) flex items-center gap-1 border-b border-gray-100 pb-1">
-                      <span>&#9889;</span>
+                      <span class="material-symbols-outlined text-sm">bolt</span>
                       <span>Tuwaktu Dispatch Protocol • Pesanan Baru</span>
                     </div>
                     <p>
@@ -1074,7 +1078,7 @@
       <div class="sticky bottom-4 z-30 w-full bg-(--hero-canvas)/95 backdrop-blur-md rounded-xl p-4 sm:p-5 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-(--whatsapp-green) flex items-center justify-center text-white shrink-0">
-            <span>&#10003;</span>
+            <span class="material-symbols-outlined text-base">check</span>
           </div>
           <div class="flex flex-col">
             <span class="font-bold text-xs sm:text-sm text-white">Semua Perubahan Disinkronkan Otomatis</span>

@@ -166,7 +166,9 @@ export class TechnicianProfileHeaderComponent {
       navigator.clipboard.writeText(url).then(() => {
         this.isCopied.set(true);
         setTimeout(() => this.isCopied.set(false), 2000);
-      }).catch(() => {});
+      }).catch(() => {
+        this.isCopied.set(false);
+      });
     }
   }
 }

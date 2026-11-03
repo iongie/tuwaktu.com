@@ -9,16 +9,98 @@ export const appRoutes: Route[] = [
       ).then((m) => m.WorkerBookingPageComponent),
   },
   {
-    path: 'dashboard',
-    redirectTo: 'dashboard/profile',
-    pathMatch: 'full',
-  },
-  {
     path: 'dashboard/profile',
     loadComponent: () =>
       import(
         './features/worker-dashboard/components/worker-dashboard-profile/worker-dashboard-profile.component'
       ).then((m) => m.WorkerDashboardProfileComponent),
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import(
+        './features/worker-dashboard/components/worker-dashboard-layout/worker-dashboard-layout.component'
+      ).then((m) => m.WorkerDashboardLayoutComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'ringkasan',
+      },
+      {
+        path: 'ringkasan',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-summary/worker-dashboard-summary.component'
+          ).then((m) => m.WorkerDashboardSummaryComponent),
+      },
+      {
+        path: 'tarif-layanan',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-rates/worker-dashboard-rates.component'
+          ).then((m) => m.WorkerDashboardRatesComponent),
+      },
+      {
+        path: 'tarif',
+        redirectTo: 'tarif-layanan',
+      },
+      {
+        path: 'logistik-radius',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-logistics/worker-dashboard-logistics.component'
+          ).then((m) => m.WorkerDashboardLogisticsComponent),
+      },
+      {
+        path: 'logistik',
+        redirectTo: 'logistik-radius',
+      },
+      {
+        path: 'kalender-slot',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-schedule/worker-dashboard-schedule.component'
+          ).then((m) => m.WorkerDashboardScheduleComponent),
+      },
+      {
+        path: 'jadwal',
+        redirectTo: 'kalender-slot',
+      },
+      {
+        path: 'integrasi-whatsapp',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-whatsapp/worker-dashboard-whatsapp.component'
+          ).then((m) => m.WorkerDashboardWhatsAppProfileComponent),
+      },
+      {
+        path: 'whatsapp',
+        redirectTo: 'integrasi-whatsapp',
+      },
+      {
+        path: 'plan',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-plan/worker-dashboard-plan.component'
+          ).then((m) => m.WorkerDashboardPlanComponent),
+      },
+      {
+        path: 'boost',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/worker-dashboard-boost/worker-dashboard-boost.component'
+          ).then((m) => m.WorkerDashboardBoostComponent),
+      },
+    ],
+  },
+  {
+    path: 'plan',
+    redirectTo: 'dashboard/plan',
+  },
+  {
+    path: 'boost',
+    redirectTo: 'dashboard/boost',
   },
   {
     path: ':slug',

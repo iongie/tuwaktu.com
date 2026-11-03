@@ -1,0 +1,187 @@
+<section class="space-y-8">
+  <!-- Boost Section Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-(--voltage-orange) text-xl">bolt</span>
+        <h1 class="text-xl font-bold text-(--brand-ink)">Boost Visibilitas &amp; Prioritas Radar</h1>
+      </div>
+      <p class="text-xs text-(--brand-ink)/60 mt-1">
+        Sorot profil Anda di peringkat teratas pencarian klien sekitar basecamp saat jam sibuk tanpa merusak batasan radius kerja aman Anda.
+      </p>
+    </div>
+
+    <!-- Master Radar State Pill -->
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-(--hero-canvas) text-white text-xs border border-white/10">
+        <span
+          class="w-2 h-2 rounded-full"
+          [class.bg-emerald-400]="store.isBoostActive()"
+          [class.bg-gray-500]="!store.isBoostActive()"
+          [class.animate-pulse]="store.isBoostActive()"
+        ></span>
+        <span class="font-mono font-bold">
+          {{ store.isBoostActive() ? 'RADAR AKTIF' : 'RADAR STANDBY' }}
+        </span>
+      </div>
+      <button
+        type="button"
+        (click)="toggleRadarBoost()"
+        class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-(--hairline-light) bg-white hover:bg-(--surface-light) text-(--brand-ink) cursor-pointer"
+      >
+        {{ store.isBoostActive() ? 'Jeda Sementara' : 'Aktifkan Kembali' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Radar Status Bento Hero Box -->
+  <div class="p-6 rounded-xl bg-(--hero-canvas) text-white shadow-xl border border-white/10 relative overflow-hidden space-y-6">
+    <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-(--voltage-orange)/10 blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-400 text-lg">radar</span>
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-white/70">
+            Cakupan Radar Geografis
+          </span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          Pusat Basecamp: {{ store.workerProfessionZone() || 'Jakarta Selatan' }}
+        </h2>
+        <p class="text-xs text-white/70 max-w-xl leading-relaxed">
+          Algoritma Tuwaktu memprioritaskan profil Anda kepada calon pemesan di radius <strong>{{ store.workerMaxRadiusKm() }} Km</strong> dari pangkalan Anda.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 shrink-0">
+        <div class="p-3.5 rounded-lg bg-white/5 border border-white/10 text-center">
+          <span class="text-[10px] text-white/50 font-mono uppercase block">Multiplier Visibilitas</span>
+          <span class="text-xl font-bold font-mono text-(--voltage-orange)">
+            {{ activePackageDetails().multiplierText }}
+          </span>
+        </div>
+        <div class="p-3.5 rounded-lg bg-white/5 border border-white/10 text-center">
+          <span class="text-[10px] text-white/50 font-mono uppercase block">Estimasi Calon Klien</span>
+          <span class="text-xl font-bold font-mono text-emerald-400">~2.400</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 Boost Option Packages -->
+  <div class="space-y-3">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-bold uppercase tracking-wider text-(--brand-ink)">
+        Pilih Durasi Boost Yang Diinginkan:
+      </span>
+      <span class="text-[11px] font-mono text-(--brand-ink)/60">
+        Pembayaran instan bebas komisi
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+      @for (pkg of boostPackages; track pkg.id) {
+        <div
+          class="rounded-xl p-6 bg-white border flex flex-col justify-between transition-all relative"
+          [class.border-(--voltage-orange)]="pkg.id === selectedBoostPackage()"
+          [class.shadow-md]="pkg.id === selectedBoostPackage()"
+          [class.ring-2]="pkg.id === selectedBoostPackage()"
+          [class.ring-(--voltage-orange)]="pkg.id === selectedBoostPackage()"
+          [class.border-(--hairline-light)]="pkg.id !== selectedBoostPackage()"
+        >
+          <!-- Top Tag -->
+          <div class="flex items-center justify-between mb-4">
+            <span
+              class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+              [class.bg-(--voltage-orange)]="pkg.isPopular"
+              [class.text-white]="pkg.isPopular"
+              [class.bg-(--surface-light)]="!pkg.isPopular"
+              [class.text-(--brand-ink)/70]="!pkg.isPopular"
+            >
+              {{ pkg.badge }}
+            </span>
+
+            <input
+              type="radio"
+              name="boostPackageSelection"
+              [value]="pkg.id"
+              [checked]="pkg.id === selectedBoostPackage()"
+              (change)="selectBoostPackage(pkg.id)"
+              class="w-4 h-4 text-(--voltage-orange) focus:ring-(--voltage-orange) cursor-pointer"
+            />
+          </div>
+
+          <!-- Package Details -->
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-(--brand-ink)">{{ pkg.name }}</h3>
+              <p class="text-xs text-(--brand-ink)/60 mt-1 leading-relaxed">
+                {{ pkg.description }}
+              </p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-1">
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold font-mono text-(--brand-ink)">{{ pkg.priceDisplay }}</span>
+                <span class="text-xs font-mono font-bold text-(--voltage-orange)">{{ pkg.multiplierText }}</span>
+              </div>
+              <span class="text-[11px] text-(--brand-ink)/60 block font-mono">Durasi: {{ pkg.durationText }}</span>
+            </div>
+
+            <!-- Bullet Highlights -->
+            <ul class="space-y-2 text-xs text-(--brand-ink)/80 pt-1">
+              @for (item of pkg.highlights; track item) {
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm text-(--voltage-orange) shrink-0">check</span>
+                  <span>{{ item }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- Bottom Select State -->
+          <div class="pt-6 mt-6 border-t border-(--hairline-light)">
+            <button
+              type="button"
+              (click)="selectBoostPackage(pkg.id)"
+              class="w-full text-xs font-bold py-2.5 rounded-lg transition-colors cursor-pointer min-h-[44px]"
+              [class.bg-(--voltage-orange)]="pkg.id === selectedBoostPackage()"
+              [class.text-white]="pkg.id === selectedBoostPackage()"
+              [class.bg-(--surface-light)]="pkg.id !== selectedBoostPackage()"
+              [class.text-(--brand-ink)/70]="pkg.id !== selectedBoostPackage()"
+            >
+              {{ pkg.id === selectedBoostPackage() ? 'Paket Terpilih' : 'Pilih Paket Ini' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Primary Confirmation Action Strip -->
+  <div class="p-5 rounded-xl bg-white border border-(--hairline-light) shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-orange-50 text-(--voltage-orange) flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-xl">trending_up</span>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-(--brand-ink)">
+          Aktivasi {{ activePackageDetails().name }} ({{ activePackageDetails().priceDisplay }})
+        </h3>
+        <p class="text-xs text-(--brand-ink)/60 mt-0.5">
+          Profil {{ store.workerFullName() || 'Mitra' }} langsung melesat ke peringkat teratas dalam hitungan detik.
+        </p>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      (click)="activateBoost()"
+      class="m3-btn-filled text-xs px-6 h-11 flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
+    >
+      <span class="material-symbols-outlined text-base">bolt</span>
+      <span>Aktifkan Boost Visibilitas Sekarang</span>
+    </button>
+  </div>
+</section>

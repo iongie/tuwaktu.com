@@ -27,9 +27,9 @@ export interface GeoCoordinatePreset {
     <div class="space-y-3.5">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
         <div>
-          <label class="block text-xs font-mono font-semibold text-[#141413]">
+          <span class="block text-xs font-mono font-semibold text-[#141413]">
             {{ label() }}
-          </label>
+          </span>
           <p class="text-[11px] text-[#4E4642] mt-0.5">
             {{ helperText() }}
           </p>

@@ -1,0 +1,151 @@
+<section class="bg-white rounded-xl p-6 sm:p-8 border border-(--hairline-light) shadow-xs space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-(--hairline-light)">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-(--whatsapp-green) text-xl">chat</span>
+        <h1 class="text-xl font-bold text-(--brand-ink)">Integrasi WhatsApp &amp; Profil</h1>
+      </div>
+      <p class="text-xs text-(--brand-ink)/60 mt-1">
+        Hubungkan nomor WhatsApp untuk menerima notifikasi booking otomatis secara langsung.
+      </p>
+    </div>
+    <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-xs font-mono font-bold flex items-center gap-1">
+      <span class="material-symbols-outlined text-xs">verified</span>
+      <span>{{ store.workerWhatsAppNumber() ? 'Terhubung' : 'Siap Dihubungkan' }}</span>
+    </span>
+  </div>
+
+  <!-- WhatsApp Mock Bubble Box from Stitch -->
+  <div class="space-y-2">
+    <span class="text-xs font-bold uppercase tracking-wider text-(--brand-ink) block">
+      Pratinjau Pesanan Masuk (Mock Bubble):
+    </span>
+    <div class="p-4 rounded-xl bg-[#e5ddd5] text-[#111b21] shadow-inner space-y-2">
+      <div class="bg-white p-3.5 rounded-lg shadow-xs space-y-2 max-w-full text-xs leading-relaxed">
+        <div class="font-semibold text-(--whatsapp-green) flex items-center gap-1 border-b border-gray-100 pb-1">
+          <span class="material-symbols-outlined text-sm">bolt</span>
+          <span>Tuwaktu Dispatch Protocol • Pesanan Baru</span>
+        </div>
+        <p>
+          Halo Kak <strong>{{ store.workerFullName() || 'Mitra' }}</strong>! Ada pesanan masuk via Tuwaktu:
+        </p>
+        <div class="bg-gray-50 p-2.5 rounded font-mono text-[11px] space-y-0.5 text-gray-800">
+          <div>• Layanan: {{ store.formattedBasePricePreview() || 'Spesialis Mandiri' }}</div>
+          <div>• Wilayah: {{ store.workerProfessionZone() || 'Area Layanan Anda' }}</div>
+          <div>• Nomor WA: {{ store.workerWhatsAppNumber() || 'Nomor Belum Diatur' }}</div>
+        </div>
+        <div class="text-[10px] text-gray-400 text-right">10:42 • Terverifikasi via Tuwaktu Web</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Identitas Profil Mitra -->
+  <form (ngSubmit)="submitProfile()" class="space-y-4 pt-2">
+    <!-- Nama Lengkap -->
+    <div class="space-y-1.5">
+      <label for="workerFullNameInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
+        Nama Lengkap <span class="text-(--voltage-orange)">*</span>
+      </label>
+      <input
+        id="workerFullNameInput"
+        type="text"
+        [ngModel]="store.workerFullName()"
+        (ngModelChange)="onFullNameChange($event)"
+        name="workerFullName"
+        placeholder="Contoh: Budi Santoso"
+        class="m3-field-outlined"
+        [class.m3-field-error]="store.inputValidationErrors()['name']"
+      />
+      @if (store.inputValidationErrors()['name']) {
+        <p class="text-xs font-semibold text-red-600 font-mono">
+          {{ store.inputValidationErrors()['name'] }}
+        </p>
+      }
+    </div>
+
+    <!-- Nomor WhatsApp -->
+    <div class="space-y-1.5">
+      <label for="workerWhatsAppNumberInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
+        Nomor WhatsApp Penerima Order <span class="text-(--voltage-orange)">*</span>
+      </label>
+      <input
+        id="workerWhatsAppNumberInput"
+        type="tel"
+        [ngModel]="store.workerWhatsAppNumber()"
+        (ngModelChange)="onWhatsAppChange($event)"
+        name="workerWhatsAppNumber"
+        placeholder="Contoh: 6281234567890"
+        class="m3-field-outlined font-mono"
+        [class.m3-field-error]="store.inputValidationErrors()['whatsapp_number']"
+      />
+      @if (store.inputValidationErrors()['whatsapp_number']) {
+        <p class="text-xs font-semibold text-red-600 font-mono">
+          {{ store.inputValidationErrors()['whatsapp_number'] }}
+        </p>
+      }
+    </div>
+
+    <!-- Profesi / Wilayah -->
+    <div class="space-y-1.5">
+      <label for="workerProfessionZoneInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
+        Profesi &amp; Wilayah Operasional
+      </label>
+      <input
+        id="workerProfessionZoneInput"
+        type="text"
+        [ngModel]="store.workerProfessionZone()"
+        (ngModelChange)="onProfessionZoneChange($event)"
+        name="workerProfessionZone"
+        placeholder="Contoh: Spesialis Servis AC (Jakarta Selatan)"
+        class="m3-field-outlined"
+      />
+    </div>
+
+    <!-- Bio / Deskripsi -->
+    <div class="space-y-1.5">
+      <label for="workerBioInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
+        Bio &amp; Deskripsi Keahlian
+      </label>
+      <textarea
+        id="workerBioInput"
+        rows="3"
+        [ngModel]="store.workerBioDescription()"
+        (ngModelChange)="onBioChange($event)"
+        name="workerBioDescription"
+        placeholder="Ceritakan sertifikasi, keahlian, dan komitmen layanan Anda..."
+        class="m3-field-outlined resize-none"
+      ></textarea>
+    </div>
+
+    <!-- URL Foto Profil -->
+    <div class="space-y-1.5">
+      <label for="workerAvatarUrlInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
+        URL Foto Profil
+      </label>
+      <input
+        id="workerAvatarUrlInput"
+        type="url"
+        [ngModel]="store.workerAvatarUrl()"
+        (ngModelChange)="onAvatarUrlChange($event)"
+        name="workerAvatarUrl"
+        placeholder="https://example.com/foto.jpg"
+        class="m3-field-outlined font-mono text-xs"
+      />
+    </div>
+
+    <div class="pt-4 border-t border-(--hairline-light) flex items-center justify-end">
+      <button
+        type="submit"
+        [disabled]="store.isProfileSubmitting()"
+        class="m3-btn-filled text-xs px-6 min-h-[44px]"
+      >
+        @if (store.isProfileSubmitting()) {
+          <span>Menyimpan Profil...</span>
+        } @else {
+          <span>Simpan Informasi Profil</span>
+        }
+      </button>
+    </div>
+  </form>
+</section>
+

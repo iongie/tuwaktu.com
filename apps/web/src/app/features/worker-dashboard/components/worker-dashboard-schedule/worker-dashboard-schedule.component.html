@@ -1,0 +1,153 @@
+<section class="bg-white rounded-xl p-6 sm:p-8 border border-(--hairline-light) shadow-xs space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-(--hairline-light)">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-(--voltage-orange) text-xl">calendar_month</span>
+        <h1 class="text-xl font-bold text-(--brand-ink)">Slot &amp; Buffer Transit</h1>
+      </div>
+      <p class="text-xs text-(--brand-ink)/60 mt-1">
+        Atur jendela waktu kerja rutin harian Anda demi ketepatan janji dan stamina optimal.
+      </p>
+    </div>
+    <span class="px-2.5 py-1 rounded bg-(--surface-light) border border-(--hairline-light) text-xs font-mono text-(--brand-ink)/70 font-bold">
+      WIB (GMT+7)
+    </span>
+  </div>
+
+  <!-- Buffer Policy Guard Select from Stitch -->
+  <div class="p-4 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-2">
+    <div class="flex items-center justify-between">
+      <span class="font-bold text-xs text-(--brand-ink) flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-(--voltage-orange)">shield</span>
+        <span>Jeda Wajib Antar Pemesanan</span>
+      </span>
+      <span class="font-mono text-xs font-bold text-(--voltage-orange)">
+        60-90 MENIT AKTIF
+      </span>
+    </div>
+    <p class="text-xs text-(--brand-ink)/60 leading-relaxed">
+      Sistem otomatis mengunci slot selama <strong>60-90 menit</strong> setelah setiap pekerjaan selesai agar Anda memiliki waktu istirahat dan berkendara aman.
+    </p>
+  </div>
+
+  <!-- Operating Slots List -->
+  @if (store.isScheduleLoading()) {
+    <div class="space-y-3 animate-pulse">
+      <div class="h-14 bg-gray-100 rounded-lg"></div>
+      <div class="h-14 bg-gray-100 rounded-lg"></div>
+      <div class="h-14 bg-gray-100 rounded-lg"></div>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      <span class="text-xs font-bold uppercase tracking-wider text-(--brand-ink) block">
+        Jadwal Ketersediaan Hari Kerja Rutin
+      </span>
+
+      @for (schedule of store.workerSchedules(); track schedule.day_of_week) {
+        <div
+          class="p-3.5 rounded-xl border transition-all space-y-3"
+          [class.bg-white]="schedule.is_active"
+          [class.border-(--hairline-light)]="schedule.is_active"
+          [class.bg-gray-50]="!schedule.is_active"
+          [class.opacity-60]="!schedule.is_active"
+        >
+          <!-- Day Toggle -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  [checked]="schedule.is_active"
+                  (change)="toggleDay(schedule.day_of_week)"
+                  class="sr-only peer"
+                />
+                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-(--voltage-orange)"></div>
+              </label>
+              <span class="font-bold text-sm text-(--brand-ink)">
+                {{ schedule.day_name || 'Hari ' + schedule.day_of_week }}
+              </span>
+            </div>
+            <span class="text-[11px] font-mono font-semibold" [class.text-emerald-700]="schedule.is_active" [class.text-gray-400]="!schedule.is_active">
+              {{ schedule.is_active ? 'Hari Aktif' : 'Libur' }}
+            </span>
+          </div>
+
+          <!-- Slots (Pagi, Siang, Sore) -->
+          @if (schedule.is_active) {
+            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-(--hairline-light)/60">
+              <!-- Pagi -->
+              <button
+                type="button"
+                (click)="toggleSlot(schedule.day_of_week, 'slot_morning')"
+                class="py-1.5 px-2 rounded-lg border text-[11px] font-mono font-medium transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center min-h-[44px] justify-center"
+                [class.bg-white]="schedule.slot_morning"
+                [class.text-(--brand-ink)]="schedule.slot_morning"
+                [class.border-(--voltage-orange)]="schedule.slot_morning"
+                [class.ring-1]="schedule.slot_morning"
+                [class.ring-(--voltage-orange)]="schedule.slot_morning"
+                [class.bg-(--surface-light)]="!schedule.slot_morning"
+                [class.text-(--brand-ink)/40]="!schedule.slot_morning"
+                [class.border-(--hairline-light)]="!schedule.slot_morning"
+              >
+                <span class="font-bold">Pagi</span>
+                <span class="text-[10px]">08:00 - 11:30</span>
+              </button>
+
+              <!-- Siang -->
+              <button
+                type="button"
+                (click)="toggleSlot(schedule.day_of_week, 'slot_afternoon')"
+                class="py-1.5 px-2 rounded-lg border text-[11px] font-mono font-medium transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center min-h-[44px] justify-center"
+                [class.bg-white]="schedule.slot_afternoon"
+                [class.text-(--brand-ink)]="schedule.slot_afternoon"
+                [class.border-(--voltage-orange)]="schedule.slot_afternoon"
+                [class.ring-1]="schedule.slot_afternoon"
+                [class.ring-(--voltage-orange)]="schedule.slot_afternoon"
+                [class.bg-(--surface-light)]="!schedule.slot_afternoon"
+                [class.text-(--brand-ink)/40]="!schedule.slot_afternoon"
+                [class.border-(--hairline-light)]="!schedule.slot_afternoon"
+              >
+                <span class="font-bold">Siang</span>
+                <span class="text-[10px]">13:00 - 16:30</span>
+              </button>
+
+              <!-- Sore -->
+              <button
+                type="button"
+                (click)="toggleSlot(schedule.day_of_week, 'slot_evening')"
+                class="py-1.5 px-2 rounded-lg border text-[11px] font-mono font-medium transition-all cursor-pointer flex flex-col items-center gap-0.5 text-center min-h-[44px] justify-center"
+                [class.bg-white]="schedule.slot_evening"
+                [class.text-(--brand-ink)]="schedule.slot_evening"
+                [class.border-(--voltage-orange)]="schedule.slot_evening"
+                [class.ring-1]="schedule.slot_evening"
+                [class.ring-(--voltage-orange)]="schedule.slot_evening"
+                [class.bg-(--surface-light)]="!schedule.slot_evening"
+                [class.text-(--brand-ink)/40]="!schedule.slot_evening"
+                [class.border-(--hairline-light)]="!schedule.slot_evening"
+              >
+                <span class="font-bold">Sore</span>
+                <span class="text-[10px]">17:00 - 20:30</span>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="pt-4 border-t border-(--hairline-light) flex items-center justify-end">
+      <button
+        type="button"
+        (click)="submitSchedule()"
+        [disabled]="store.isScheduleSubmitting() || !store.hasActiveWorker()"
+        class="m3-btn-filled text-xs px-6 min-h-[44px]"
+      >
+        @if (store.isScheduleSubmitting()) {
+          <span>Menyimpan Jadwal...</span>
+        } @else {
+          <span>Simpan Konfigurasi Jadwal</span>
+        }
+      </button>
+    </div>
+  }
+</section>
+

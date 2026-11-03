@@ -90,6 +90,23 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 /* shortcut: M3 Atom primitives implemented as CSS classes to avoid 1-line Angular wrapper bloat */
 
 /* M3 WhatsApp Dispatch Button (Terminal Action) */

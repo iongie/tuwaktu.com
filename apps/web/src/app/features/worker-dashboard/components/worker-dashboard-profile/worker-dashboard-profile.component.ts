@@ -116,6 +116,25 @@ export class WorkerDashboardProfileComponent implements OnInit {
 
   private clipboardTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
+  readonly isStoreOnline = signal<boolean>(true);
+
+  toggleStoreStatus(): void {
+    this.isStoreOnline.update((val) => !val);
+  }
+
+  saveAllSettings(): void {
+    const currentTab = this.activeDashboardSection();
+    if (currentTab === 'rates') {
+      this.submitRatesUpdate();
+    } else if (currentTab === 'location') {
+      this.submitLocationSettingsUpdate();
+    } else if (currentTab === 'schedule') {
+      this.submitScheduleUpdate();
+    } else {
+      this.submitProfileUpdate();
+    }
+  }
+
   readonly publicProfileRelativeUrl = computed(() => {
     const slug = this.workerSlugIdentifier().trim();
     return slug ? `/${slug}` : '';

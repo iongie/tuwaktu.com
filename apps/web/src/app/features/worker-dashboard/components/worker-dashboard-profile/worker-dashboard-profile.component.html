@@ -87,7 +87,7 @@
     </section>
 
     <!-- Navigation Menu Bar per Section -->
-    <nav aria-label="Menu Pengaturan Profil" class="p-1.5 rounded-2xl bg-(--md-sys-color-surface-container) border border-(--md-sys-color-outline-variant)">
+    <nav aria-label="Menu Pengaturan Profil" class="sticky top-4 z-30 p-1.5 rounded-2xl bg-[var(--md-sys-color-surface-container)]/95 backdrop-blur-md shadow-sm border border-[var(--md-sys-color-outline-variant)]">
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none" role="tablist">
         @for (item of dashboardSectionMenuItems; track item.id) {
           <button
@@ -97,13 +97,13 @@
             [attr.aria-selected]="activeDashboardSection() === item.id"
             [attr.aria-controls]="'section-' + item.id"
             (click)="setActiveDashboardSection(item.id)"
-            class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-12 cursor-pointer"
-            [class.bg-[(--md-sys-color-primary)]]="activeDashboardSection() === item.id"
-            [class.text-[(--md-sys-color-on-primary)]]="activeDashboardSection() === item.id"
+            class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-[48px] cursor-pointer"
+            [class.bg-[var(--md-sys-color-primary)]]="activeDashboardSection() === item.id"
+            [class.text-[var(--md-sys-color-on-primary)]]="activeDashboardSection() === item.id"
             [class.shadow-sm]="activeDashboardSection() === item.id"
-            [class.text-[(--md-sys-color-on-surface-variant)]]="activeDashboardSection() !== item.id"
-            [class.hover:bg-[(--md-sys-color-surface-container-high)]]="activeDashboardSection() !== item.id"
-            [class.hover:text-[(--md-sys-color-on-surface)]]="activeDashboardSection() !== item.id"
+            [class.text-[var(--md-sys-color-on-surface-variant)]]="activeDashboardSection() !== item.id"
+            [class.hover:bg-[var(--md-sys-color-surface-container-high)]]="activeDashboardSection() !== item.id"
+            [class.hover:text-[var(--md-sys-color-on-surface)]]="activeDashboardSection() !== item.id"
           >
             @switch (item.icon) {
               @case ('profile') {

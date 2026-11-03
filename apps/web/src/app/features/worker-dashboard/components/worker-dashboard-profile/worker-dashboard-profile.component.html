@@ -1,72 +1,35 @@
-<div class="min-h-screen bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] py-10 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-(--md-sys-color-surface) text-(--md-sys-color-on-surface) py-10 px-4 sm:px-6 lg:px-8">
   <div class="max-w-4xl mx-auto space-y-8">
 
     <!-- Header Section -->
-    <header class="space-y-2 border-b border-[var(--md-sys-color-outline-variant)] pb-6">
-      <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-semibold tracking-wider text-[var(--md-sys-color-primary)] uppercase">
+    <header class="space-y-2 border-b border-(--md-sys-color-outline-variant) pb-6">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-semibold tracking-wider text-(--md-sys-color-primary) uppercase">
         <a routerLink="/" class="hover:underline">Beranda Reservasi</a>
         <span>/</span>
         <span>Dasbor Mitra</span>
         <span>/</span>
-        <span class="text-[var(--md-sys-color-on-surface-variant)]">Pengaturan Profil</span>
+        <span class="text-(--md-sys-color-on-surface-variant)">Pengaturan Profil</span>
       </nav>
       <h1 class="text-3xl font-extrabold tracking-tight">Pengaturan Profil Pekerja</h1>
-      <p class="text-sm text-[var(--md-sys-color-on-surface-variant)]">
+      <p class="text-sm text-(--md-sys-color-on-surface-variant)">
         Kelola identitas, deskripsi keahlian, dan tautan halaman reservasi publik Anda di Tuwaktu.
       </p>
     </header>
-
-    <!-- Feedback Alerts -->
-    @if (profileFeedbackSuccess()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="font-medium">{{ profileFeedbackSuccess() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="profileFeedbackSuccess.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
-
-    @if (profileFeedbackError()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="font-medium">{{ profileFeedbackError() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="profileFeedbackError.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
 
     <!-- Worker Selection & Lookup Card -->
     <section class="m3-card-surface p-6 space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">
+          <h2 class="text-lg font-bold text-(--md-sys-color-on-surface)">
             @if (workerRecordId()) {
               Profil Mitra Aktif
             } @else {
               Pilih Profil Mitra
             }
           </h2>
-          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+          <p class="text-xs text-(--md-sys-color-on-surface-variant) mt-1">
             @if (workerRecordId()) {
-              Menyunting data akun mitra <span class="font-mono font-bold text-[var(--md-sys-color-primary)]">{{ workerSlugIdentifier() }}</span>
+              Menyunting data akun mitra <span class="font-mono font-bold text-(--md-sys-color-primary)">{{ workerSlugIdentifier() }}</span>
             } @else {
               Ketik slug pekerja atau pilih dari mitra terdaftar untuk memuat dan menyunting profil.
             }
@@ -77,7 +40,7 @@
           <button
             type="button"
             (click)="resetWorkerSelection()"
-            class="m3-btn-outlined text-xs min-h-[44px]"
+            class="m3-btn-outlined text-xs min-h-11"
           >
             Ganti Mitra
           </button>
@@ -99,7 +62,7 @@
           type="button"
           (click)="loadProfileByLookupInput()"
           [disabled]="isProfileLoading() || !workerLookupSlugInput().trim()"
-          class="m3-btn-filled min-h-[44px]"
+          class="m3-btn-filled min-h-11"
         >
           @if (isProfileLoading()) {
             <span>Memuat...</span>
@@ -110,7 +73,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2 pt-1">
-        <span class="text-xs text-[var(--md-sys-color-on-surface-variant)]">Mitra Terdaftar:</span>
+        <span class="text-xs text-(--md-sys-color-on-surface-variant)">Mitra Terdaftar:</span>
         @for (slug of suggestedWorkerSlugs; track slug) {
           <button
             type="button"
@@ -123,117 +86,355 @@
       </div>
     </section>
 
-    <!-- Bento Card: Tautan Profil Publik -->
-    <section class="m3-card-surface p-6 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Tautan Profil Publik</h2>
-          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
-            Gunakan tautan unik ini untuk menerima booking langsung dari calon klien Anda.
-          </p>
-        </div>
+    <!-- Navigation Menu Bar per Section -->
+    <nav aria-label="Menu Pengaturan Profil" class="p-1.5 rounded-2xl bg-(--md-sys-color-surface-container) border border-(--md-sys-color-outline-variant)">
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none" role="tablist">
+        @for (item of dashboardSectionMenuItems; track item.id) {
+          <button
+            type="button"
+            role="tab"
+            [id]="'tab-' + item.id"
+            [attr.aria-selected]="activeDashboardSection() === item.id"
+            [attr.aria-controls]="'section-' + item.id"
+            (click)="setActiveDashboardSection(item.id)"
+            class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-12 cursor-pointer"
+            [class.bg-[(--md-sys-color-primary)]]="activeDashboardSection() === item.id"
+            [class.text-[(--md-sys-color-on-primary)]]="activeDashboardSection() === item.id"
+            [class.shadow-sm]="activeDashboardSection() === item.id"
+            [class.text-[(--md-sys-color-on-surface-variant)]]="activeDashboardSection() !== item.id"
+            [class.hover:bg-[(--md-sys-color-surface-container-high)]]="activeDashboardSection() !== item.id"
+            [class.hover:text-[(--md-sys-color-on-surface)]]="activeDashboardSection() !== item.id"
+          >
+            @switch (item.icon) {
+              @case ('profile') {
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              }
+              @case ('rates') {
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+              @case ('location') {
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              }
+              @case ('schedule') {
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              }
+              @case ('all') {
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              }
+            }
+            <span>{{ item.label }}</span>
+          </button>
+        }
+      </div>
+    </nav>
 
-        @if (clipboardFeedbackMessage()) {
-          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold border border-[var(--md-sys-color-secondary)]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span>{{ clipboardFeedbackMessage() }}</span>
+    <!-- SECTION 1: PROFIL & WHATSAPP -->
+    @if (activeDashboardSection() === 'profile' || activeDashboardSection() === 'all') {
+      <div id="section-profile" class="space-y-6">
+        <!-- Profile Feedback Alerts -->
+        @if (profileFeedbackSuccess()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-secondary-container)] text-[(--md-sys-color-on-secondary-container)] border border-[(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="font-medium">{{ profileFeedbackSuccess() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="profileFeedbackSuccess.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
           </div>
         }
-      </div>
 
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-        <div class="flex-1 flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-4 py-2.5 rounded-lg border border-[var(--md-sys-color-outline-variant)]">
-          <svg class="w-4 h-4 text-[var(--md-sys-color-on-surface-variant)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-          </svg>
-          <span class="font-mono text-xs sm:text-sm text-[var(--md-sys-color-on-surface)] select-all truncate">
-            @if (workerSlugIdentifier()) {
-              {{ publicProfileRelativeUrl() }}
-            } @else {
-              <span class="text-[var(--md-sys-color-on-surface-variant)] italic">Slug profil belum aktif</span>
-            }
-          </span>
-        </div>
-
-        <button
-          type="button"
-          (click)="copyPublicProfileLink()"
-          [disabled]="!workerSlugIdentifier()"
-          class="m3-btn-outlined gap-2 min-h-[44px]"
-          aria-label="Salin Tautan Profil"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          <span>Salin Tautan</span>
-        </button>
-
-        @if (workerSlugIdentifier()) {
-          <a
-            [routerLink]="publicProfileRelativeUrl()"
-            target="_blank"
-            class="m3-btn-tonal gap-2 min-h-[44px]"
-          >
-            <span>Lihat Profil</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
+        @if (profileFeedbackError()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-error-container)] text-[(--md-sys-color-on-error-container)] border border-[(--md-sys-color-error)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="font-medium">{{ profileFeedbackError() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="profileFeedbackError.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         }
-      </div>
-    </section>
 
-    <!-- Rates Feedback Alerts -->
-    @if (ratesFeedbackSuccess()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="font-medium">{{ ratesFeedbackSuccess() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="ratesFeedbackSuccess.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
+        <!-- Bento Card: Tautan Profil Publik -->
+        <section class="m3-card-surface p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-bold text-[(--md-sys-color-on-surface)]">Tautan Profil Publik</h2>
+              <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-1">
+                Gunakan tautan unik ini untuk menerima booking langsung dari calon klien Anda.
+              </p>
+            </div>
+
+            @if (clipboardFeedbackMessage()) {
+              <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[(--md-sys-color-secondary-container)] text-[(--md-sys-color-on-secondary-container)] text-xs font-bold border border-[(--md-sys-color-secondary)]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{{ clipboardFeedbackMessage() }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <div class="flex-1 flex items-center gap-2 bg-[(--md-sys-color-surface-container)] px-4 py-2.5 rounded-lg border border-[(--md-sys-color-outline-variant)]">
+              <svg class="w-4 h-4 text-[(--md-sys-color-on-surface-variant)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span class="font-mono text-xs sm:text-sm text-[(--md-sys-color-on-surface)] select-all truncate">
+                @if (workerSlugIdentifier()) {
+                  {{ publicProfileRelativeUrl() }}
+                } @else {
+                  <span class="text-[(--md-sys-color-on-surface-variant)] italic">Slug profil belum aktif</span>
+                }
+              </span>
+            </div>
+
+            <button
+              type="button"
+              (click)="copyPublicProfileLink()"
+              [disabled]="!workerSlugIdentifier()"
+              class="m3-btn-outlined gap-2 min-h-11"
+              aria-label="Salin Tautan Profil"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>Salin Tautan</span>
+            </button>
+
+            @if (workerSlugIdentifier()) {
+              <a
+                [routerLink]="publicProfileRelativeUrl()"
+                target="_blank"
+                class="m3-btn-tonal gap-2 min-h-11"
+              >
+                <span>Lihat Profil</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            }
+          </div>
+        </section>
+
+        <!-- Form Section: Informasi Profil Mitra -->
+        <section class="m3-card-surface p-6 space-y-6">
+          <div class="border-b border-[(--md-sys-color-outline-variant)] pb-4">
+            <h2 class="text-lg font-bold text-[(--md-sys-color-on-surface)]">Informasi Profil Mitra</h2>
+            <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-1">
+              Lengkapi data profil agar calon pengguna yakin memilih layanan keahlian Anda.
+            </p>
+          </div>
+
+          <form (ngSubmit)="submitProfileUpdate()" class="space-y-6">
+            <!-- Nama Lengkap -->
+            <div class="space-y-2">
+              <label for="workerFullNameInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+                Nama Lengkap <span class="text-[(--md-sys-color-primary)]">*</span>
+              </label>
+              <input
+                id="workerFullNameInput"
+                type="text"
+                [ngModel]="workerFullName()"
+                (ngModelChange)="workerFullName.set($event); clearInputValidationError('name')"
+                name="workerFullName"
+                placeholder="Contoh: Budi Santoso"
+                class="m3-field-outlined"
+                [class.m3-field-error]="inputValidationErrors()['name']"
+              />
+              @if (inputValidationErrors()['name']) {
+                <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
+                  {{ inputValidationErrors()['name'] }}
+                </p>
+              }
+            </div>
+
+            <!-- Nomor WhatsApp -->
+            <div class="space-y-2">
+              <label for="workerWhatsAppNumberInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+                Nomor WhatsApp
+              </label>
+              <input
+                id="workerWhatsAppNumberInput"
+                type="tel"
+                [ngModel]="workerWhatsAppNumber()"
+                (ngModelChange)="workerWhatsAppNumber.set($event); clearInputValidationError('whatsapp_number')"
+                name="workerWhatsAppNumber"
+                placeholder="Contoh: 6281234567890"
+                class="m3-field-outlined font-mono"
+                [class.m3-field-error]="inputValidationErrors()['whatsapp_number']"
+              />
+              <p class="text-xs text-[(--md-sys-color-on-surface-variant)]">
+                Gunakan format internasional diawali kode negara (misal: 628123456789). Nomor ini digunakan klien untuk konfirmasi pesanan via WhatsApp.
+              </p>
+              @if (inputValidationErrors()['whatsapp_number']) {
+                <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
+                  {{ inputValidationErrors()['whatsapp_number'] }}
+                </p>
+              }
+            </div>
+
+            <!-- Profesi & Wilayah Operasional -->
+            <div class="space-y-2">
+              <label for="workerProfessionZoneInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+                Profesi / Keahlian & Wilayah Operasional
+              </label>
+              <input
+                id="workerProfessionZoneInput"
+                type="text"
+                [ngModel]="workerProfessionZone()"
+                (ngModelChange)="workerProfessionZone.set($event)"
+                name="workerProfessionZone"
+                placeholder="Contoh: Spesialis Servis AC (Jakarta Selatan)"
+                class="m3-field-outlined"
+              />
+              <p class="text-xs text-[(--md-sys-color-on-surface-variant)]">
+                Tampilkan keahlian utama dan area layanan yang Anda jangkau.
+              </p>
+            </div>
+
+            <!-- Bio / Deskripsi -->
+            <div class="space-y-2">
+              <label for="workerBioInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+                Bio & Deskripsi Keahlian
+              </label>
+              <textarea
+                id="workerBioInput"
+                rows="4"
+                [ngModel]="workerBioDescription()"
+                (ngModelChange)="workerBioDescription.set($event)"
+                name="workerBioDescription"
+                placeholder="Ceritakan pengalaman kerja, lisensi/sertifikasi, standar mutu, dan komitmen layanan Anda..."
+                class="m3-field-outlined resize-y"
+              ></textarea>
+            </div>
+
+            <!-- URL Foto Profil -->
+            <div class="space-y-2">
+              <label for="workerAvatarUrlInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+                URL Foto Profil
+              </label>
+              <input
+                id="workerAvatarUrlInput"
+                type="url"
+                [ngModel]="workerAvatarUrl()"
+                (ngModelChange)="workerAvatarUrl.set($event)"
+                name="workerAvatarUrl"
+                placeholder="https://example.com/foto-profil.jpg"
+                class="m3-field-outlined"
+              />
+
+              @if (workerAvatarUrl()) {
+                <div class="flex items-center gap-3 pt-2">
+                  <img
+                    [src]="workerAvatarUrl()"
+                    alt="Pratinjau foto profil"
+                    class="w-12 h-12 rounded-full object-cover border border-[(--md-sys-color-outline)]"
+                  />
+                  <span class="text-xs text-[(--md-sys-color-on-surface-variant)]">Pratinjau Foto Profil</span>
+                </div>
+              }
+            </div>
+
+            <!-- Form Action -->
+            <div class="pt-4 border-t border-[(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+              <button
+                type="submit"
+                [disabled]="isProfileSubmitting()"
+                class="m3-btn-filled gap-2 min-h-12 px-6"
+              >
+                @if (isProfileSubmitting()) {
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Menyimpan...</span>
+                } @else {
+                  <span>Simpan Perubahan</span>
+                }
+              </button>
+            </div>
+          </form>
+        </section>
       </div>
     }
 
-    @if (ratesFeedbackError()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="font-medium">{{ ratesFeedbackError() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="ratesFeedbackError.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
+    <!-- SECTION 2: TARIF LAYANAN -->
+    @if (activeDashboardSection() === 'rates' || activeDashboardSection() === 'all') {
+      <div id="section-rates" class="space-y-6">
+        <!-- Rates Feedback Alerts -->
+        @if (ratesFeedbackSuccess()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-secondary-container)] text-[(--md-sys-color-on-secondary-container)] border border-[(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="font-medium">{{ ratesFeedbackSuccess() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="ratesFeedbackSuccess.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        }
 
-    <!-- Bento Card: Pengaturan Tarif Layanan -->
-    <section class="m3-card-surface p-6 space-y-6">
-      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+        @if (ratesFeedbackError()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-error-container)] text-[(--md-sys-color-on-error-container)] border border-[(--md-sys-color-error)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="font-medium">{{ ratesFeedbackError() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="ratesFeedbackError.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        }
+
+        <!-- Bento Card: Pengaturan Tarif Layanan -->
+        <section class="m3-card-surface p-6 space-y-6">
+      <div class="border-b border-[(--md-sys-color-outline-variant)] pb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Pengaturan Tarif Layanan</h2>
-            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+            <h2 class="text-lg font-bold text-[(--md-sys-color-on-surface)]">Pengaturan Tarif Layanan</h2>
+            <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-1">
               Atur harga dasar dan skema perhitungan biaya yang akan ditampilkan di profil publik dan halaman booking.
             </p>
           </div>
           @if (formattedBasePricePreview(); as preview) {
-            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-xs font-mono font-bold">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[(--md-sys-color-primary-container)] text-[(--md-sys-color-on-primary-container)] text-xs font-mono font-bold">
               <span>Tarif Aktif: {{ preview }}</span>
             </div>
           }
@@ -243,11 +444,11 @@
       <form (ngSubmit)="submitRatesUpdate()" class="space-y-6">
         <!-- Nominal Tarif Dasar (Rupiah) -->
         <div class="space-y-2">
-          <label for="workerBasePriceInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Nominal Tarif Dasar (Rupiah) <span class="text-[var(--md-sys-color-primary)]">*</span>
+          <label for="workerBasePriceInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+            Nominal Tarif Dasar (Rupiah) <span class="text-[(--md-sys-color-primary)]">*</span>
           </label>
           <div class="flex items-center gap-2">
-            <span class="px-3.5 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-sm font-bold text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="px-3.5 py-2.5 bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] rounded-lg font-mono text-sm font-bold text-[(--md-sys-color-on-surface-variant)]">
               Rp
             </span>
             <div class="flex-1">
@@ -266,28 +467,28 @@
             </div>
           </div>
           @if (ratesValidationErrors()['base_price']) {
-            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+            <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
               {{ ratesValidationErrors()['base_price'] }}
             </p>
           } @else if (formattedBasePricePreview(); as preview) {
-            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-mono">
-              Pratinjau tampilan harga: <strong class="text-[var(--md-sys-color-primary)] font-bold">{{ preview }}</strong>
+            <p class="text-xs text-[(--md-sys-color-on-surface-variant)] font-mono">
+              Pratinjau tampilan harga: <strong class="text-[(--md-sys-color-primary)] font-bold">{{ preview }}</strong>
             </p>
           }
         </div>
 
         <!-- Pilihan Tipe Tarif (Radio button / Skema) -->
         <div class="space-y-3">
-          <span class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Skema Penagihan Tarif <span class="text-[var(--md-sys-color-primary)]">*</span>
+          <span class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+            Skema Penagihan Tarif <span class="text-[(--md-sys-color-primary)]">*</span>
           </span>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Pilihan: Tarif Per Jam -->
             <label
               class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-colors"
-              [class.border-[var(--md-sys-color-primary)]]="workerRateType() === 'HOURLY'"
-              [class.bg-[var(--md-sys-color-primary-container)]/20]="workerRateType() === 'HOURLY'"
-              [class.border-[var(--md-sys-color-outline-variant)]]="workerRateType() !== 'HOURLY'"
+              [class.border-[(--md-sys-color-primary)]]="workerRateType() === 'HOURLY'"
+              [class.bg-[(--md-sys-color-primary-container)]/20]="workerRateType() === 'HOURLY'"
+              [class.border-[(--md-sys-color-outline-variant)]]="workerRateType() !== 'HOURLY'"
             >
               <div class="flex items-center gap-3">
                 <input
@@ -296,18 +497,18 @@
                   value="HOURLY"
                   [checked]="workerRateType() === 'HOURLY'"
                   (change)="setRateType('HOURLY')"
-                  class="w-4 h-4 text-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)]"
+                  class="w-4 h-4 text-[(--md-sys-color-primary)] focus:ring-[(--md-sys-color-primary)]"
                 />
                 <div>
-                  <span class="block text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                  <span class="block text-sm font-bold text-[(--md-sys-color-on-surface)]">
                     Tarif Per Jam
                   </span>
-                  <span class="text-[11px] font-mono text-[var(--md-sys-color-primary)] font-semibold">
+                  <span class="text-[11px] font-mono text-[(--md-sys-color-primary)] font-semibold">
                     HOURLY
                   </span>
                 </div>
               </div>
-              <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-2 pl-7 leading-relaxed">
+              <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-2 pl-7 leading-relaxed">
                 Biaya dihitung proporsional terhadap durasi pengerjaan. Cocok untuk servis AC berkala, kelistrikan, atau pekerjaan fleksibel.
               </p>
             </label>
@@ -315,9 +516,9 @@
             <!-- Pilihan: Tarif Per Sesi -->
             <label
               class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-colors"
-              [class.border-[var(--md-sys-color-primary)]]="workerRateType() === 'UNIT'"
-              [class.bg-[var(--md-sys-color-primary-container)]/20]="workerRateType() === 'UNIT'"
-              [class.border-[var(--md-sys-color-outline-variant)]]="workerRateType() !== 'UNIT'"
+              [class.border-[(--md-sys-color-primary)]]="workerRateType() === 'UNIT'"
+              [class.bg-[(--md-sys-color-primary-container)]/20]="workerRateType() === 'UNIT'"
+              [class.border-[(--md-sys-color-outline-variant)]]="workerRateType() !== 'UNIT'"
             >
               <div class="flex items-center gap-3">
                 <input
@@ -326,36 +527,36 @@
                   value="UNIT"
                   [checked]="workerRateType() === 'UNIT'"
                   (change)="setRateType('UNIT')"
-                  class="w-4 h-4 text-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)]"
+                  class="w-4 h-4 text-[(--md-sys-color-primary)] focus:ring-[(--md-sys-color-primary)]"
                 />
                 <div>
-                  <span class="block text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                  <span class="block text-sm font-bold text-[(--md-sys-color-on-surface)]">
                     Tarif Per Sesi
                   </span>
-                  <span class="text-[11px] font-mono text-[var(--md-sys-color-primary)] font-semibold">
+                  <span class="text-[11px] font-mono text-[(--md-sys-color-primary)] font-semibold">
                     UNIT
                   </span>
                 </div>
               </div>
-              <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-2 pl-7 leading-relaxed">
+              <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-2 pl-7 leading-relaxed">
                 Biaya flat per kedatangan atau per unit tugas tuntas. Cocok untuk deep cleaning, instalasi unit baru, atau paket borongan.
               </p>
             </label>
           </div>
 
           @if (ratesValidationErrors()['rate_type']) {
-            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+            <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
               {{ ratesValidationErrors()['rate_type'] }}
             </p>
           }
         </div>
 
         <!-- Form Action -->
-        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+        <div class="pt-4 border-t border-[(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
           <button
             type="submit"
             [disabled]="isRatesSubmitting() || !workerRecordId()"
-            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+            class="m3-btn-filled gap-2 min-h-12 px-6"
           >
             @if (isRatesSubmitting()) {
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -370,58 +571,63 @@
         </div>
       </form>
     </section>
+  </div>
+}
 
-    <!-- Location Feedback Alerts -->
-    @if (locationFeedbackSuccess()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="font-medium">{{ locationFeedbackSuccess() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="locationFeedbackSuccess.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
+    <!-- SECTION 3: LOKASI & RADIUS JANGKAUAN -->
+    @if (activeDashboardSection() === 'location' || activeDashboardSection() === 'all') {
+      <div id="section-location" class="space-y-6">
+        <!-- Location Feedback Alerts -->
+        @if (locationFeedbackSuccess()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-secondary-container)] text-[(--md-sys-color-on-secondary-container)] border border-[(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="font-medium">{{ locationFeedbackSuccess() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="locationFeedbackSuccess.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        }
 
-    @if (locationFeedbackError()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="font-medium">{{ locationFeedbackError() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="locationFeedbackError.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
+        @if (locationFeedbackError()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-error-container)] text-[(--md-sys-color-on-error-container)] border border-[(--md-sys-color-error)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="font-medium">{{ locationFeedbackError() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="locationFeedbackError.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        }
 
-    <!-- Bento Card: Pengaturan Lokasi & Radius Layanan -->
-    <section class="m3-card-surface p-6 space-y-6">
-      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+        <!-- Bento Card: Pengaturan Lokasi & Radius Layanan -->
+        <section class="m3-card-surface p-6 space-y-6">
+      <div class="border-b border-[(--md-sys-color-outline-variant)] pb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Pengaturan Lokasi & Radius Layanan</h2>
-            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+            <h2 class="text-lg font-bold text-[(--md-sys-color-on-surface)]">Pengaturan Lokasi & Radius Layanan</h2>
+            <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-1">
               Tentukan titik pangkalan atau tempat tinggal Anda untuk mengaktifkan validasi jangkauan dan perhitungan ongkos jalan otomatis.
             </p>
           </div>
           @if (workerLat() !== null && workerLng() !== null) {
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] text-xs font-mono">
-              <span class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)]"></span>
-              <span class="font-bold text-[var(--md-sys-color-on-surface)]">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] text-xs font-mono">
+              <span class="w-2 h-2 rounded-full bg-[(--md-sys-color-primary)]"></span>
+              <span class="font-bold text-[(--md-sys-color-on-surface)]">
                 Radius Maks: {{ workerMaxRadiusKm() }} km
               </span>
             </div>
@@ -441,7 +647,7 @@
         />
 
         @if (locationValidationErrors()['coordinates']) {
-          <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+          <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
             {{ locationValidationErrors()['coordinates'] }}
           </p>
         }
@@ -451,10 +657,10 @@
           <!-- Slider Batas Jangkauan Maksimal -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label for="workerMaxRadiusSlider" class="text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-                Jangkauan Maksimal (km) <span class="text-[var(--md-sys-color-primary)]">*</span>
+              <label for="workerMaxRadiusSlider" class="text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+                Jangkauan Maksimal (km) <span class="text-[(--md-sys-color-primary)]">*</span>
               </label>
-              <span class="px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+              <span class="px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-[(--md-sys-color-primary-container)] text-[(--md-sys-color-on-primary-container)]">
                 {{ workerMaxRadiusKm() }} km
               </span>
             </div>
@@ -467,13 +673,13 @@
               [ngModel]="workerMaxRadiusKm()"
               (ngModelChange)="onMaxRadiusKmChange($event)"
               name="workerMaxRadiusSlider"
-              class="w-full accent-[var(--md-sys-color-primary)] cursor-pointer h-2 bg-[var(--md-sys-color-surface-container)] rounded-lg"
+              class="w-full accent-[(--md-sys-color-primary)] cursor-pointer h-2 bg-[(--md-sys-color-surface-container)] rounded-lg"
             />
-            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] leading-relaxed">
+            <p class="text-[11px] text-[(--md-sys-color-on-surface-variant)] leading-relaxed">
               Order reservasi di luar jarak {{ workerMaxRadiusKm() }} km akan ditolak otomatis dengan status di luar jangkauan.
             </p>
             @if (locationValidationErrors()['max_radius_km']) {
-              <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
                 {{ locationValidationErrors()['max_radius_km'] }}
               </p>
             }
@@ -481,8 +687,8 @@
 
           <!-- Radius Bebas Ongkir -->
           <div class="space-y-2">
-            <label for="workerFreeRadiusInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-              Batas Bebas Ongkir (km) <span class="text-[var(--md-sys-color-primary)]">*</span>
+            <label for="workerFreeRadiusInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+              Batas Bebas Ongkir (km) <span class="text-[(--md-sys-color-primary)]">*</span>
             </label>
             <div class="flex items-center gap-2">
               <input
@@ -498,15 +704,15 @@
                 class="m3-field-outlined font-mono"
                 [class.m3-field-error]="locationValidationErrors()['free_radius_km']"
               />
-              <span class="px-3 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">
+              <span class="px-3 py-2.5 bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] rounded-lg font-mono text-xs font-bold text-[(--md-sys-color-on-surface-variant)]">
                 km
               </span>
             </div>
-            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+            <p class="text-[11px] text-[(--md-sys-color-on-surface-variant)]">
               Jarak hingga {{ workerFreeRadiusKm() }} km tidak dikenakan biaya ongkos jalan (gratis).
             </p>
             @if (locationValidationErrors()['free_radius_km']) {
-              <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+              <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
                 {{ locationValidationErrors()['free_radius_km'] }}
               </p>
             }
@@ -515,11 +721,11 @@
 
         <!-- Tarif Tambahan Ongkos Jalan Per Km -->
         <div class="space-y-2">
-          <label for="workerExtraFeeInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Tarif Tambahan Ongkos Jalan (Per Km) <span class="text-[var(--md-sys-color-primary)]">*</span>
+          <label for="workerExtraFeeInput" class="block text-xs font-bold tracking-wide uppercase text-[(--md-sys-color-on-surface)]">
+            Tarif Tambahan Ongkos Jalan (Per Km) <span class="text-[(--md-sys-color-primary)]">*</span>
           </label>
           <div class="flex items-center gap-2">
-            <span class="px-3.5 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-sm font-bold text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="px-3.5 py-2.5 bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] rounded-lg font-mono text-sm font-bold text-[(--md-sys-color-on-surface-variant)]">
               Rp
             </span>
             <div class="flex-1">
@@ -536,47 +742,47 @@
                 [class.m3-field-error]="locationValidationErrors()['extra_fee_per_km']"
               />
             </div>
-            <span class="px-3 py-2.5 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-lg font-mono text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="px-3 py-2.5 bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] rounded-lg font-mono text-xs font-bold text-[(--md-sys-color-on-surface-variant)]">
               / km
             </span>
           </div>
-          <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono">
-            Tarif aktif: <strong class="text-[var(--md-sys-color-primary)]">{{ formattedExtraFeePreview() }} / km</strong> untuk kelebihan jarak di atas {{ workerFreeRadiusKm() }} km.
+          <p class="text-[11px] text-[(--md-sys-color-on-surface-variant)] font-mono">
+            Tarif aktif: <strong class="text-[(--md-sys-color-primary)]">{{ formattedExtraFeePreview() }} / km</strong> untuk kelebihan jarak di atas {{ workerFreeRadiusKm() }} km.
           </p>
           @if (locationValidationErrors()['extra_fee_per_km']) {
-            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
+            <p class="text-xs font-semibold text-[(--md-sys-color-error)]">
               {{ locationValidationErrors()['extra_fee_per_km'] }}
             </p>
           }
         </div>
 
         <!-- Skema Simulasi Ongkos Jalan -->
-        <div class="p-4 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] space-y-2">
-          <span class="block text-xs font-bold font-mono text-[var(--md-sys-color-on-surface)]">
+        <div class="p-4 rounded-xl bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] space-y-2">
+          <span class="block text-xs font-bold font-mono text-[(--md-sys-color-on-surface)]">
             Simulasi Perhitungan Ongkos Jalan:
           </span>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
-            <div class="p-2.5 rounded-lg bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]">
-              <span class="text-[var(--md-sys-color-on-surface-variant)] block text-[11px]">Jarak 0 - {{ workerFreeRadiusKm() }} km</span>
-              <span class="font-bold text-[var(--md-sys-color-secondary)]">Rp 0 (Bebas Ongkir)</span>
+            <div class="p-2.5 rounded-lg bg-[(--md-sys-color-surface)] border border-[(--md-sys-color-outline-variant)]">
+              <span class="text-[(--md-sys-color-on-surface-variant)] block text-[11px]">Jarak 0 - {{ workerFreeRadiusKm() }} km</span>
+              <span class="font-bold text-[(--md-sys-color-secondary)]">Rp 0 (Bebas Ongkir)</span>
             </div>
-            <div class="p-2.5 rounded-lg bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]">
-              <span class="text-[var(--md-sys-color-on-surface-variant)] block text-[11px]">Kelebihan Jarak</span>
-              <span class="font-bold text-[var(--md-sys-color-primary)]">+ {{ formattedExtraFeePreview() }} / km</span>
+            <div class="p-2.5 rounded-lg bg-[(--md-sys-color-surface)] border border-[(--md-sys-color-outline-variant)]">
+              <span class="text-[(--md-sys-color-on-surface-variant)] block text-[11px]">Kelebihan Jarak</span>
+              <span class="font-bold text-[(--md-sys-color-primary)]">+ {{ formattedExtraFeePreview() }} / km</span>
             </div>
-            <div class="p-2.5 rounded-lg bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]">
-              <span class="text-[var(--md-sys-color-on-surface-variant)] block text-[11px]">Jarak > {{ workerMaxRadiusKm() }} km</span>
-              <span class="font-bold text-[var(--md-sys-color-error)]">Di Luar Jangkauan</span>
+            <div class="p-2.5 rounded-lg bg-[(--md-sys-color-surface)] border border-[(--md-sys-color-outline-variant)]">
+              <span class="text-[(--md-sys-color-on-surface-variant)] block text-[11px]">Jarak > {{ workerMaxRadiusKm() }} km</span>
+              <span class="font-bold text-[(--md-sys-color-error)]">Di Luar Jangkauan</span>
             </div>
           </div>
         </div>
 
         <!-- Form Action -->
-        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+        <div class="pt-4 border-t border-[(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
           <button
             type="submit"
             [disabled]="isLocationSubmitting() || !workerRecordId()"
-            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+            class="m3-btn-filled gap-2 min-h-12 px-6"
           >
             @if (isLocationSubmitting()) {
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -591,58 +797,63 @@
         </div>
       </form>
     </section>
+  </div>
+}
 
-    <!-- Schedule Feedback Alerts -->
-    @if (scheduleFeedbackSuccess()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="font-medium">{{ scheduleFeedbackSuccess() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="scheduleFeedbackSuccess.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
+    <!-- SECTION 4: JADWAL KERJA & SLOT WAKTU -->
+    @if (activeDashboardSection() === 'schedule' || activeDashboardSection() === 'all') {
+      <div id="section-schedule" class="space-y-6">
+        <!-- Schedule Feedback Alerts -->
+        @if (scheduleFeedbackSuccess()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-secondary-container)] text-[(--md-sys-color-on-secondary-container)] border border-[(--md-sys-color-secondary)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="font-medium">{{ scheduleFeedbackSuccess() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="scheduleFeedbackSuccess.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        }
 
-    @if (scheduleFeedbackError()) {
-      <div class="p-4 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] border border-[var(--md-sys-color-error)] text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="font-medium">{{ scheduleFeedbackError() }}</span>
-        </div>
-        <button
-          type="button"
-          (click)="scheduleFeedbackError.set(null)"
-          class="text-xs font-semibold underline cursor-pointer"
-        >
-          Tutup
-        </button>
-      </div>
-    }
+        @if (scheduleFeedbackError()) {
+          <div class="p-4 rounded-lg bg-[(--md-sys-color-error-container)] text-[(--md-sys-color-on-error-container)] border border-[(--md-sys-color-error)] text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="font-medium">{{ scheduleFeedbackError() }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="scheduleFeedbackError.set(null)"
+              class="text-xs font-semibold underline cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        }
 
-    <!-- Bento Card: Pengaturan Jadwal Kerja & Blok Slot Waktu Mingguan -->
+        <!-- Bento Card: Pengaturan Jadwal Kerja & Blok Slot Waktu Mingguan -->
     <section class="m3-card-surface p-6 space-y-6">
-      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
+      <div class="border-b border-[(--md-sys-color-outline-variant)] pb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">
+            <h2 class="text-lg font-bold text-[(--md-sys-color-on-surface)]">
               Jadwal Kerja &amp; Blok Waktu Mingguan
             </h2>
-            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+            <p class="text-xs text-[(--md-sys-color-on-surface-variant)] mt-1">
               Atur ketersediaan hari kerja rutin dan aktifkan blok waktu (Pagi, Siang, Sore) untuk menerima reservasi pesanan klien.
             </p>
           </div>
           @if (workerRecordId()) {
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] text-xs font-mono text-[var(--md-sys-color-on-surface)]">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[(--md-sys-color-surface-container)] border border-[(--md-sys-color-outline-variant)] text-xs font-mono text-[(--md-sys-color-on-surface)]">
               Jeda Transit Otomatis: 60 Menit
             </span>
           }
@@ -651,37 +862,37 @@
 
       @if (isScheduleLoading()) {
         <div class="space-y-3 animate-pulse" aria-label="Memuat jadwal kerja">
-          <div class="h-16 bg-[var(--md-sys-color-surface-container)] rounded-lg"></div>
-          <div class="h-16 bg-[var(--md-sys-color-surface-container)] rounded-lg"></div>
-          <div class="h-16 bg-[var(--md-sys-color-surface-container)] rounded-lg"></div>
+          <div class="h-16 bg-[(--md-sys-color-surface-container)] rounded-lg"></div>
+          <div class="h-16 bg-[(--md-sys-color-surface-container)] rounded-lg"></div>
+          <div class="h-16 bg-[(--md-sys-color-surface-container)] rounded-lg"></div>
         </div>
       } @else {
         <div class="space-y-4">
           @for (schedule of workerSchedules(); track schedule.day_of_week) {
             <div
               class="p-4 rounded-xl border transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-              [class.bg-[var(--md-sys-color-surface-container-low)]]="schedule.is_active"
-              [class.border-[var(--md-sys-color-outline-variant)]]="schedule.is_active"
-              [class.bg-[var(--md-sys-color-surface)]]="!schedule.is_active"
+              [class.bg-[(--md-sys-color-surface-container-low)]]="schedule.is_active"
+              [class.border-[(--md-sys-color-outline-variant)]]="schedule.is_active"
+              [class.bg-[(--md-sys-color-surface)]]="!schedule.is_active"
               [class.border-dashed]="!schedule.is_active"
               [class.opacity-70]="!schedule.is_active"
             >
               <!-- Day Toggle & Label -->
-              <div class="flex items-center gap-3 min-w-[140px]">
-                <label class="relative inline-flex items-center cursor-pointer min-h-[48px]">
+              <div class="flex items-center gap-3 min-w-35">
+                <label class="relative inline-flex items-center cursor-pointer min-h-12">
                   <input
                     type="checkbox"
                     [checked]="schedule.is_active"
                     (change)="toggleScheduleDayActive(schedule.day_of_week)"
                     class="sr-only peer"
                   />
-                  <div class="w-11 h-6 bg-[var(--md-sys-color-outline-variant)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--md-sys-color-primary)]"></div>
+                  <div class="w-11 h-6 bg-[(--md-sys-color-outline-variant)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-3.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[(--md-sys-color-primary)]"></div>
                 </label>
                 <div>
-                  <span class="font-bold text-sm text-[var(--md-sys-color-on-surface)] block">
+                  <span class="font-bold text-sm text-[(--md-sys-color-on-surface)] block">
                     {{ schedule.day_name || 'Hari ' + schedule.day_of_week }}
                   </span>
-                  <span class="text-[11px] font-mono" [class.text-[var(--md-sys-color-secondary)]]="schedule.is_active" [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.is_active">
+                  <span class="text-[11px] font-mono" [class.text-[(--md-sys-color-secondary)]]="schedule.is_active" [class.text-[(--md-sys-color-on-surface-variant)]]="!schedule.is_active">
                     {{ schedule.is_active ? 'Hari Kerja Aktif' : 'Libur (Nonaktif)' }}
                   </span>
                 </div>
@@ -694,15 +905,15 @@
                   <button
                     type="button"
                     (click)="toggleScheduleSlot(schedule.day_of_week, 'slot_morning')"
-                    class="min-h-[48px] px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
-                    [class.bg-[var(--md-sys-color-primary-container)]]="schedule.slot_morning"
-                    [class.text-[var(--md-sys-color-on-primary-container)]]="schedule.slot_morning"
-                    [class.border-[var(--md-sys-color-primary)]]="schedule.slot_morning"
-                    [class.bg-[var(--md-sys-color-surface)]]="!schedule.slot_morning"
-                    [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.slot_morning"
-                    [class.border-[var(--md-sys-color-outline-variant)]]="!schedule.slot_morning"
+                    class="min-h-12 px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
+                    [class.bg-[(--md-sys-color-primary-container)]]="schedule.slot_morning"
+                    [class.text-[(--md-sys-color-on-primary-container)]]="schedule.slot_morning"
+                    [class.border-[(--md-sys-color-primary)]]="schedule.slot_morning"
+                    [class.bg-[(--md-sys-color-surface)]]="!schedule.slot_morning"
+                    [class.text-[(--md-sys-color-on-surface-variant)]]="!schedule.slot_morning"
+                    [class.border-[(--md-sys-color-outline-variant)]]="!schedule.slot_morning"
                   >
-                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[var(--md-sys-color-primary)]]="schedule.slot_morning" [class.bg-[var(--md-sys-color-outline-variant)]]="!schedule.slot_morning"></span>
+                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[(--md-sys-color-primary)]]="schedule.slot_morning" [class.bg-[(--md-sys-color-outline-variant)]]="!schedule.slot_morning"></span>
                     <span class="font-bold">Pagi</span>
                     <span class="opacity-80">08:00 - 11:30</span>
                   </button>
@@ -711,15 +922,15 @@
                   <button
                     type="button"
                     (click)="toggleScheduleSlot(schedule.day_of_week, 'slot_afternoon')"
-                    class="min-h-[48px] px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
-                    [class.bg-[var(--md-sys-color-primary-container)]]="schedule.slot_afternoon"
-                    [class.text-[var(--md-sys-color-on-primary-container)]]="schedule.slot_afternoon"
-                    [class.border-[var(--md-sys-color-primary)]]="schedule.slot_afternoon"
-                    [class.bg-[var(--md-sys-color-surface)]]="!schedule.slot_afternoon"
-                    [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.slot_afternoon"
-                    [class.border-[var(--md-sys-color-outline-variant)]]="!schedule.slot_afternoon"
+                    class="min-h-12 px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
+                    [class.bg-[(--md-sys-color-primary-container)]]="schedule.slot_afternoon"
+                    [class.text-[(--md-sys-color-on-primary-container)]]="schedule.slot_afternoon"
+                    [class.border-[(--md-sys-color-primary)]]="schedule.slot_afternoon"
+                    [class.bg-[(--md-sys-color-surface)]]="!schedule.slot_afternoon"
+                    [class.text-[(--md-sys-color-on-surface-variant)]]="!schedule.slot_afternoon"
+                    [class.border-[(--md-sys-color-outline-variant)]]="!schedule.slot_afternoon"
                   >
-                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[var(--md-sys-color-primary)]]="schedule.slot_afternoon" [class.bg-[var(--md-sys-color-outline-variant)]]="!schedule.slot_afternoon"></span>
+                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[(--md-sys-color-primary)]]="schedule.slot_afternoon" [class.bg-[(--md-sys-color-outline-variant)]]="!schedule.slot_afternoon"></span>
                     <span class="font-bold">Siang</span>
                     <span class="opacity-80">13:00 - 16:30</span>
                   </button>
@@ -728,21 +939,21 @@
                   <button
                     type="button"
                     (click)="toggleScheduleSlot(schedule.day_of_week, 'slot_evening')"
-                    class="min-h-[48px] px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
-                    [class.bg-[var(--md-sys-color-primary-container)]]="schedule.slot_evening"
-                    [class.text-[var(--md-sys-color-on-primary-container)]]="schedule.slot_evening"
-                    [class.border-[var(--md-sys-color-primary)]]="schedule.slot_evening"
-                    [class.bg-[var(--md-sys-color-surface)]]="!schedule.slot_evening"
-                    [class.text-[var(--md-sys-color-on-surface-variant)]]="!schedule.slot_evening"
-                    [class.border-[var(--md-sys-color-outline-variant)]]="!schedule.slot_evening"
+                    class="min-h-12 px-3.5 py-2 rounded-lg border text-xs font-mono font-medium flex items-center gap-2 transition-all cursor-pointer"
+                    [class.bg-[(--md-sys-color-primary-container)]]="schedule.slot_evening"
+                    [class.text-[(--md-sys-color-on-primary-container)]]="schedule.slot_evening"
+                    [class.border-[(--md-sys-color-primary)]]="schedule.slot_evening"
+                    [class.bg-[(--md-sys-color-surface)]]="!schedule.slot_evening"
+                    [class.text-[(--md-sys-color-on-surface-variant)]]="!schedule.slot_evening"
+                    [class.border-[(--md-sys-color-outline-variant)]]="!schedule.slot_evening"
                   >
-                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[var(--md-sys-color-primary)]]="schedule.slot_evening" [class.bg-[var(--md-sys-color-outline-variant)]]="!schedule.slot_evening"></span>
+                    <span class="w-2.5 h-2.5 rounded-full" [class.bg-[(--md-sys-color-primary)]]="schedule.slot_evening" [class.bg-[(--md-sys-color-outline-variant)]]="!schedule.slot_evening"></span>
                     <span class="font-bold">Sore</span>
                     <span class="opacity-80">17:00 - 20:30</span>
                   </button>
                 </div>
               } @else {
-                <div class="text-xs font-mono text-[var(--md-sys-color-on-surface-variant)] py-2">
+                <div class="text-xs font-mono text-[(--md-sys-color-on-surface-variant)] py-2">
                   Tidak menerima pesanan kunjungan pada hari ini.
                 </div>
               }
@@ -751,12 +962,12 @@
         </div>
 
         <!-- Form Action -->
-        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
+        <div class="pt-4 border-t border-[(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
           <button
             type="button"
             (click)="submitScheduleUpdate()"
             [disabled]="isScheduleSubmitting() || !workerRecordId()"
-            class="m3-btn-filled gap-2 min-h-[48px] px-6"
+            class="m3-btn-filled gap-2 min-h-12 px-6"
           >
             @if (isScheduleSubmitting()) {
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -771,146 +982,8 @@
         </div>
       }
     </section>
-
-    <!-- Form Section -->
-    <section class="m3-card-surface p-6 space-y-6">
-      <div class="border-b border-[var(--md-sys-color-outline-variant)] pb-4">
-        <h2 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">Informasi Profil Mitra</h2>
-        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
-          Lengkapi data profil agar calon pengguna yakin memilih layanan keahlian Anda.
-        </p>
-      </div>
-
-      <form (ngSubmit)="submitProfileUpdate()" class="space-y-6">
-        <!-- Nama Lengkap -->
-        <div class="space-y-2">
-          <label for="workerFullNameInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Nama Lengkap <span class="text-[var(--md-sys-color-primary)]">*</span>
-          </label>
-          <input
-            id="workerFullNameInput"
-            type="text"
-            [ngModel]="workerFullName()"
-            (ngModelChange)="workerFullName.set($event); clearInputValidationError('name')"
-            name="workerFullName"
-            placeholder="Contoh: Budi Santoso"
-            class="m3-field-outlined"
-            [class.m3-field-error]="inputValidationErrors()['name']"
-          />
-          @if (inputValidationErrors()['name']) {
-            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
-              {{ inputValidationErrors()['name'] }}
-            </p>
-          }
-        </div>
-
-        <!-- Nomor WhatsApp -->
-        <div class="space-y-2">
-          <label for="workerWhatsAppNumberInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Nomor WhatsApp
-          </label>
-          <input
-            id="workerWhatsAppNumberInput"
-            type="tel"
-            [ngModel]="workerWhatsAppNumber()"
-            (ngModelChange)="workerWhatsAppNumber.set($event); clearInputValidationError('whatsapp_number')"
-            name="workerWhatsAppNumber"
-            placeholder="Contoh: 6281234567890"
-            class="m3-field-outlined font-mono"
-            [class.m3-field-error]="inputValidationErrors()['whatsapp_number']"
-          />
-          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">
-            Gunakan format internasional diawali kode negara (misal: 628123456789). Nomor ini digunakan klien untuk konfirmasi pesanan via WhatsApp.
-          </p>
-          @if (inputValidationErrors()['whatsapp_number']) {
-            <p class="text-xs font-semibold text-[var(--md-sys-color-error)]">
-              {{ inputValidationErrors()['whatsapp_number'] }}
-            </p>
-          }
-        </div>
-
-        <!-- Profesi & Wilayah Operasional -->
-        <div class="space-y-2">
-          <label for="workerProfessionZoneInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Profesi / Keahlian & Wilayah Operasional
-          </label>
-          <input
-            id="workerProfessionZoneInput"
-            type="text"
-            [ngModel]="workerProfessionZone()"
-            (ngModelChange)="workerProfessionZone.set($event)"
-            name="workerProfessionZone"
-            placeholder="Contoh: Spesialis Servis AC (Jakarta Selatan)"
-            class="m3-field-outlined"
-          />
-          <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">
-            Tampilkan keahlian utama dan area layanan yang Anda jangkau.
-          </p>
-        </div>
-
-        <!-- Bio / Deskripsi -->
-        <div class="space-y-2">
-          <label for="workerBioInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            Bio & Deskripsi Keahlian
-          </label>
-          <textarea
-            id="workerBioInput"
-            rows="4"
-            [ngModel]="workerBioDescription()"
-            (ngModelChange)="workerBioDescription.set($event)"
-            name="workerBioDescription"
-            placeholder="Ceritakan pengalaman kerja, lisensi/sertifikasi, standar mutu, dan komitmen layanan Anda..."
-            class="m3-field-outlined resize-y"
-          ></textarea>
-        </div>
-
-        <!-- URL Foto Profil -->
-        <div class="space-y-2">
-          <label for="workerAvatarUrlInput" class="block text-xs font-bold tracking-wide uppercase text-[var(--md-sys-color-on-surface)]">
-            URL Foto Profil
-          </label>
-          <input
-            id="workerAvatarUrlInput"
-            type="url"
-            [ngModel]="workerAvatarUrl()"
-            (ngModelChange)="workerAvatarUrl.set($event)"
-            name="workerAvatarUrl"
-            placeholder="https://example.com/foto-profil.jpg"
-            class="m3-field-outlined"
-          />
-
-          @if (workerAvatarUrl()) {
-            <div class="flex items-center gap-3 pt-2">
-              <img
-                [src]="workerAvatarUrl()"
-                alt="Pratinjau foto profil"
-                class="w-12 h-12 rounded-full object-cover border border-[var(--md-sys-color-outline)]"
-              />
-              <span class="text-xs text-[var(--md-sys-color-on-surface-variant)]">Pratinjau Foto Profil</span>
-            </div>
-          }
-        </div>
-
-        <!-- Form Action -->
-        <div class="pt-4 border-t border-[var(--md-sys-color-outline-variant)] flex items-center justify-end gap-3">
-          <button
-            type="submit"
-            [disabled]="isProfileSubmitting()"
-            class="m3-btn-filled gap-2 min-h-[48px] px-6"
-          >
-            @if (isProfileSubmitting()) {
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Menyimpan...</span>
-            } @else {
-              <span>Simpan Perubahan</span>
-            }
-          </button>
-        </div>
-      </form>
-    </section>
+  </div>
+}
 
   </div>
 </div>

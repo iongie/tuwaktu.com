@@ -18,6 +18,15 @@ import {
 } from '../../models/worker-profile.model';
 import { LocationMapPickerComponent } from '../../../worker-booking/components/molecules/location-map-picker/location-map-picker.component';
 
+export type DashboardSectionTab = 'profile' | 'rates' | 'location' | 'schedule' | 'all';
+
+export interface DashboardSectionMenuItem {
+  readonly id: DashboardSectionTab;
+  readonly label: string;
+  readonly shortLabel: string;
+  readonly icon: string;
+}
+
 @Component({
   selector: 'app-worker-dashboard-profile',
   standalone: true,
@@ -30,6 +39,16 @@ export class WorkerDashboardProfileComponent implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly activeDashboardSection = signal<DashboardSectionTab>('profile');
+
+  readonly dashboardSectionMenuItems: readonly DashboardSectionMenuItem[] = [
+    { id: 'profile', label: 'Profil & WhatsApp', shortLabel: 'Profil', icon: 'profile' },
+    { id: 'rates', label: 'Tarif Layanan', shortLabel: 'Tarif', icon: 'rates' },
+    { id: 'location', label: 'Lokasi & Radius', shortLabel: 'Lokasi', icon: 'location' },
+    { id: 'schedule', label: 'Jadwal Kerja', shortLabel: 'Jadwal', icon: 'schedule' },
+    { id: 'all', label: 'Semua Pengaturan', shortLabel: 'Semua', icon: 'all' },
+  ];
 
   readonly workerRecordId = signal<string>('');
   readonly workerSlugIdentifier = signal<string>('');
@@ -119,7 +138,26 @@ export class WorkerDashboardProfileComponent implements OnInit {
         if (querySlug && querySlug.trim()) {
           this.loadExistingWorkerProfile(querySlug.trim());
         }
+        const querySection = params.get('section');
+        if (
+          querySection === 'profile' ||
+          querySection === 'rates' ||
+          querySection === 'location' ||
+          querySection === 'schedule' ||
+          querySection === 'all'
+        ) {
+          this.activeDashboardSection.set(querySection);
+        }
       });
+  }
+
+  setActiveDashboardSection(section: DashboardSectionTab): void {
+    this.activeDashboardSection.set(section);
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: { section },
+      queryParamsHandling: 'merge',
+    });
   }
 
   loadProfileByLookupInput(): void {

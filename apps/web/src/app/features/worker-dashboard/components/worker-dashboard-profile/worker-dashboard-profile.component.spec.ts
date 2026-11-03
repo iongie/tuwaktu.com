@@ -581,5 +581,59 @@ describe('WorkerDashboardProfileComponent', () => {
     expect(mockApiService.updateWorkerSchedules).not.toHaveBeenCalled();
     expect(component.scheduleFeedbackError()).toContain('ID pekerja belum tersedia');
   });
+
+  describe('Menu Navigasi Per-Section', () => {
+    it('harus memiliki tab default "profile"', () => {
+      expect(component.activeDashboardSection()).toBe('profile');
+    });
+
+    it('harus memiliki 5 pilihan item menu navigasi', () => {
+      expect(component.dashboardSectionMenuItems.length).toBe(5);
+      expect(component.dashboardSectionMenuItems.map((item) => item.id)).toEqual([
+        'profile',
+        'rates',
+        'location',
+        'schedule',
+        'all',
+      ]);
+    });
+
+    it('harus mengubah tab aktif saat setActiveDashboardSection dipanggil', () => {
+      component.setActiveDashboardSection('rates');
+      expect(component.activeDashboardSection()).toBe('rates');
+
+      component.setActiveDashboardSection('location');
+      expect(component.activeDashboardSection()).toBe('location');
+
+      component.setActiveDashboardSection('schedule');
+      expect(component.activeDashboardSection()).toBe('schedule');
+
+      component.setActiveDashboardSection('all');
+      expect(component.activeDashboardSection()).toBe('all');
+    });
+
+    it('harus hanya merender section yang sesuai dengan tab aktif di template', () => {
+      component.activeDashboardSection.set('rates');
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('#section-rates')).not.toBeNull();
+      expect(compiled.querySelector('#section-profile')).toBeNull();
+      expect(compiled.querySelector('#section-location')).toBeNull();
+      expect(compiled.querySelector('#section-schedule')).toBeNull();
+
+      component.activeDashboardSection.set('profile');
+      fixture.detectChanges();
+      expect(compiled.querySelector('#section-profile')).not.toBeNull();
+      expect(compiled.querySelector('#section-rates')).toBeNull();
+
+      component.activeDashboardSection.set('all');
+      fixture.detectChanges();
+      expect(compiled.querySelector('#section-profile')).not.toBeNull();
+      expect(compiled.querySelector('#section-rates')).not.toBeNull();
+      expect(compiled.querySelector('#section-location')).not.toBeNull();
+      expect(compiled.querySelector('#section-schedule')).not.toBeNull();
+    });
+  });
 });
 

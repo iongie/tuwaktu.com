@@ -10,10 +10,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'dashboard/profile',
-    loadComponent: () =>
-      import(
-        './features/worker-dashboard/components/pages/worker-dashboard-profile/worker-dashboard-profile.component'
-      ).then((m) => m.WorkerDashboardProfileComponent),
+    redirectTo: 'dashboard/integrasi-whatsapp',
   },
   {
     path: 'dashboard',
@@ -76,6 +73,10 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'whatsapp',
+        redirectTo: 'integrasi-whatsapp',
+      },
+      {
+        path: 'profile',
         redirectTo: 'integrasi-whatsapp',
       },
       {

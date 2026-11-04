@@ -49,53 +49,6 @@
         />
       }
 
-      <!-- Dynamic Slug Input Box -->
-      <section
-        class="bg-white border border-(--hairline-light) rounded-xl p-5 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
-      >
-        <div>
-          <h2 class="text-sm font-bold text-(--brand-ink)">
-            @if (store.workerRecordId()) {
-              Profil Aktif: {{ store.workerFullName() || store.workerSlugIdentifier() }}
-            } @else {
-              Buka / Kelola Profil Berdasarkan Slug
-            }
-          </h2>
-          <p class="text-xs text-(--brand-ink)/60 mt-0.5">
-            Ketik slug pekerja untuk memuat seluruh konfigurasi dari backend API secara langsung.
-          </p>
-        </div>
-
-        <form
-          (ngSubmit)="loadProfileByLookupInput()"
-          class="flex items-center gap-2 max-w-md w-full sm:w-auto"
-        >
-          <div class="relative flex-1">
-            <span
-              class="absolute left-3 top-1/2 -translate-y-1/2 text-(--brand-ink)/40 font-mono text-xs select-none"
-            >&#64;</span>
-            <input
-              type="text"
-              name="workerSlug"
-              [ngModel]="store.workerLookupSlugInput()"
-              (ngModelChange)="store.workerLookupSlugInput.set($event)"
-              placeholder="contoh: budi-santoso"
-              class="w-full pl-7 pr-3 py-2 bg-(--surface-container-low) border border-(--hairline-light) rounded-lg text-xs font-mono text-(--brand-ink) focus:bg-white focus:outline-none focus:ring-1 focus:ring-(--voltage-orange) transition-all"
-            />
-          </div>
-          <button
-            type="submit"
-            [disabled]="store.isProfileLoading()"
-            class="h-9 px-4 rounded-lg bg-(--brand-ink) hover:bg-black text-white text-xs font-semibold whitespace-nowrap transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            {{ store.isProfileLoading() ? 'Memuat...' : 'Terapkan' }}
-          </button>
-        </form>
-      </section>
-
-      <!-- Sovereign Operator Hero Banner Organism (Dual-Canvas #121212 & Bento Metrics) -->
-      <app-worker-dashboard-hero-banner />
-
       <!-- Sub-Page Routing Workspace -->
       <section class="pt-2">
         <router-outlet />

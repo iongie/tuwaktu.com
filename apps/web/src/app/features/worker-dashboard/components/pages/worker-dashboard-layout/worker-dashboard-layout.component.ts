@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { WorkerDashboardSidebarComponent } from '../../organisms/worker-dashboard-sidebar/worker-dashboard-sidebar.component';
 import { WorkerDashboardHeaderComponent } from '../../organisms/worker-dashboard-header/worker-dashboard-header.component';
-import { WorkerDashboardHeroBannerComponent } from '../../organisms/worker-dashboard-hero-banner/worker-dashboard-hero-banner.component';
 import { WorkerDashboardFooterBarComponent } from '../../organisms/worker-dashboard-footer-bar/worker-dashboard-footer-bar.component';
 import { FeedbackAlertBannerComponent } from '../../molecules/feedback-alert-banner/feedback-alert-banner.component';
 
@@ -22,11 +20,9 @@ export interface DashboardNavMenuItem {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     RouterOutlet,
     WorkerDashboardSidebarComponent,
     WorkerDashboardHeaderComponent,
-    WorkerDashboardHeroBannerComponent,
     WorkerDashboardFooterBarComponent,
     FeedbackAlertBannerComponent,
   ],

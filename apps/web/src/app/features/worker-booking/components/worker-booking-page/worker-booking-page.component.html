@@ -27,7 +27,8 @@
             Katalog Layanan
           </a>
           <a
-            routerLink="/dashboard/profile"
+            routerLink="/dashboard/integrasi-whatsapp"
+            [queryParams]="store.activeTechnicianProfile() ? { slug: store.activeTechnicianProfile()!.slug } : null"
             class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
           >
             Tentang Mandiri
@@ -66,7 +67,8 @@
               <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary uppercase">{{ worker.zone }}</span>
             </div>
             <a
-              routerLink="/dashboard/profile"
+              routerLink="/dashboard/integrasi-whatsapp"
+              [queryParams]="{ slug: worker.slug }"
               class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle cursor-pointer hover:ring-voltage-orange transition-all overflow-hidden"
               title="Masuk Profil Mitra"
             >
@@ -78,7 +80,7 @@
             </a>
           } @else {
             <a
-              routerLink="/dashboard/profile"
+              routerLink="/dashboard/integrasi-whatsapp"
               class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle cursor-pointer hover:ring-voltage-orange transition-all"
               title="Masuk Dasbor"
             >

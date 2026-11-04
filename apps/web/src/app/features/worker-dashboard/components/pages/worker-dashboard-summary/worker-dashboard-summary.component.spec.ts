@@ -47,5 +47,13 @@ describe('WorkerDashboardSummaryComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('75.000');
   });
+
+  it('harus memanggil fetchWorkerProfile saat loadProfileByLookupInput dipanggil', () => {
+    const apiService = TestBed.inject(WorkerDashboardApiService);
+    store.workerLookupSlugInput.set('budi-santoso');
+    component.loadProfileByLookupInput();
+
+    expect(apiService.fetchWorkerProfile).toHaveBeenCalledWith('budi-santoso');
+  });
 });
 

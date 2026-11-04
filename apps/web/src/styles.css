@@ -40,9 +40,15 @@
 
   --color-primary: #000000;
   --color-secondary: #a63500;
+  --color-secondary-fixed: #ffdbcf;
+  --color-secondary-fixed-dim: #ffb59c;
+  --color-on-secondary-fixed: #390c00;
+  --color-on-secondary-fixed-variant: #822700;
   --color-success: #008850;
   --color-warning: #b78103;
   --color-error: #d61348;
+  --color-error-dark: #b40030;
+  --color-inverse-primary: #c8c6c5;
 
   --color-ink-on-light: #121212;
   --color-ink-on-dark: #ffffff;

@@ -74,6 +74,65 @@ export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
   },
 ];
 
+export const DEFAULT_WEEKLY_SCHEDULES: WorkerScheduleItem[] = [
+  {
+    day_of_week: 1,
+    day_name: 'Senin',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 2,
+    day_name: 'Selasa',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 3,
+    day_name: 'Rabu',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 4,
+    day_name: 'Kamis',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 5,
+    day_name: 'Jumat',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 6,
+    day_name: 'Sabtu',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 0,
+    day_name: 'Minggu',
+    is_active: false,
+    slot_morning: false,
+    slot_afternoon: false,
+    slot_evening: false,
+  },
+];
+
 
 export interface WhatsAppPreviewSampleData {
   readonly clientName: string;
@@ -208,6 +267,7 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly isMobileSidebarOpen = signal<boolean>(false);
   readonly lastRatesSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
   readonly lastLocationSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
+  readonly lastScheduleSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
 
   readonly activeServicesCount = computed(
     () => this.workerServices().filter((s) => s.status === 'ACTIVE').length
@@ -231,7 +291,15 @@ export class WorkerDashboardStore implements OnDestroy {
     'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
   );
 
-  readonly workerSchedules = signal<WorkerScheduleItem[]>([]);
+  readonly workerSchedules = signal<WorkerScheduleItem[]>(DEFAULT_WEEKLY_SCHEDULES);
+  readonly transitBufferMinutes = signal<number>(90);
+  readonly autoPeakHourBuffer = signal<boolean>(true);
+  readonly mandatoryLunchBreak = signal<boolean>(true);
+  readonly isTodayEmergencyLocked = signal<boolean>(false);
+  readonly orderLeadTimeHours = signal<number>(3);
+  readonly autoBlockPersonalAgenda = signal<boolean>(true);
+  readonly selectedScheduleDateSegment = signal<string>('Besok (25 Okt)');
+  readonly isSlot3Locked = signal<boolean>(false);
 
   readonly isProfileLoading = signal<boolean>(false);
   readonly isProfileSubmitting = signal<boolean>(false);
@@ -1248,6 +1316,7 @@ export class WorkerDashboardStore implements OnDestroy {
       next: (response) => {
         this.isScheduleSubmitting.set(false);
         if (response.success) {
+          this.updateScheduleSyncTimestamp();
           this.scheduleFeedbackSuccess.set(
             response.message || 'Konfigurasi jadwal kerja mingguan berhasil disimpan!'
           );
@@ -1265,6 +1334,65 @@ export class WorkerDashboardStore implements OnDestroy {
         );
       },
     });
+  }
+
+  setTransitBufferMinutes(minutes: number): void {
+    this.transitBufferMinutes.set(minutes);
+    this.updateScheduleSyncTimestamp();
+  }
+
+  toggleAutoPeakHourBuffer(): void {
+    this.autoPeakHourBuffer.update((val) => !val);
+    this.updateScheduleSyncTimestamp();
+  }
+
+  toggleMandatoryLunchBreak(): void {
+    this.mandatoryLunchBreak.update((val) => !val);
+    this.updateScheduleSyncTimestamp();
+  }
+
+  toggleTodayEmergencyLock(): void {
+    this.isTodayEmergencyLocked.update((val) => !val);
+    this.updateScheduleSyncTimestamp();
+  }
+
+  setOrderLeadTimeHours(hours: number): void {
+    this.orderLeadTimeHours.set(hours);
+    this.updateScheduleSyncTimestamp();
+  }
+
+  toggleAutoBlockPersonalAgenda(): void {
+    this.autoBlockPersonalAgenda.update((val) => !val);
+    this.updateScheduleSyncTimestamp();
+  }
+
+  setSelectedScheduleDateSegment(segment: string): void {
+    this.selectedScheduleDateSegment.set(segment);
+  }
+
+  toggleSlot3Lock(): void {
+    this.isSlot3Locked.update((val) => !val);
+  }
+
+  resetScheduleToDefault(): void {
+    this.workerSchedules.set(this.createDefaultWeeklySchedule());
+    this.transitBufferMinutes.set(90);
+    this.autoPeakHourBuffer.set(true);
+    this.mandatoryLunchBreak.set(true);
+    this.isTodayEmergencyLocked.set(false);
+    this.orderLeadTimeHours.set(3);
+    this.autoBlockPersonalAgenda.set(true);
+    this.selectedScheduleDateSegment.set('Besok (25 Okt)');
+    this.isSlot3Locked.set(false);
+    this.updateScheduleSyncTimestamp();
+    this.scheduleFeedbackSuccess.set('Jadwal kerja dan aturan buffer berhasil diatur ulang ke default!');
+  }
+
+  updateScheduleSyncTimestamp(): void {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    this.lastScheduleSyncTimestamp.set(`Hari ini, ${hours}:${minutes} WIB`);
   }
 
   async copyPublicProfileLink(): Promise<void> {

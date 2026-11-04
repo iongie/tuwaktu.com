@@ -71,4 +71,36 @@ describe('WorkerDashboardFooterBarComponent', () => {
     component.cancelChanges();
     expect(store.resetLocationToDefault).toHaveBeenCalled();
   });
+
+  it('harus memanggil submitScheduleUpdate saat simpan diklik pada rute kalender', () => {
+    mockRouter.url = '/dashboard/kalender-slot';
+    fixture.detectChanges();
+
+    jest.spyOn(store, 'submitScheduleUpdate');
+    component.saveChanges();
+    expect(store.submitScheduleUpdate).toHaveBeenCalled();
+  });
+
+  it('harus memanggil resetScheduleToDefault saat Batal diklik pada rute kalender', () => {
+    mockRouter.url = '/dashboard/kalender-slot';
+    fixture.detectChanges();
+
+    jest.spyOn(store, 'resetScheduleToDefault');
+    component.cancelChanges();
+    expect(store.resetScheduleToDefault).toHaveBeenCalled();
+  });
+
+  it('harus menampilkan teks dan tombol operasional presisi Stitch saat berada di rute kalender-slot', () => {
+    mockRouter.url = '/dashboard/kalender-slot';
+    component.cdr.markForCheck();
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Sinkronisasi Instan ke WhatsApp Pemesan');
+    expect(el.textContent).toContain('Atur Ulang Default');
+    expect(el.textContent).toContain('Simpan Perubahan Jadwal');
+
+    const saveBtn = el.querySelector('#saveScheduleBtn');
+    expect(saveBtn).toBeTruthy();
+  });
 });

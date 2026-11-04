@@ -61,5 +61,28 @@ describe('WorkerDashboardWhatsAppProfileComponent', () => {
       })
     );
   });
-});
 
+  it('harus mereset template ke default saat tombol Reset Default diklik', () => {
+    store.setWhatsAppTemplate('Template sementara yang diubah');
+    store.includeGmapsLocation.set(false);
+
+    component.resetDefault();
+
+    expect(store.includeGmapsLocation()).toBe(true);
+    expect(store.whatsappMessageTemplate()).toContain('{{LAYANAN}}');
+  });
+
+  it('harus membuka tautan deep link wa.me saat Uji Kirim WhatsApp dipanggil', () => {
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+    component.testSendWhatsApp();
+
+    expect(openSpy).toHaveBeenCalledWith(
+      expect.stringContaining('https://wa.me/'),
+      '_blank',
+      'noopener,noreferrer'
+    );
+
+    openSpy.mockRestore();
+  });
+});

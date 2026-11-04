@@ -120,6 +120,11 @@ describe('WorkerDashboardStore', () => {
     store = TestBed.inject(WorkerDashboardStore);
   });
 
+  afterEach(() => {
+    store.clearOtpTimer();
+    localStorage.clear();
+  });
+
   it('harus membuat instance store dengan nilai awal default yang bersih', () => {
     expect(store).toBeTruthy();
     expect(store.workerRecordId()).toBe('');
@@ -271,5 +276,102 @@ describe('WorkerDashboardStore', () => {
     expect(store.isBoostActive()).toBe(false);
     expect(store.boostFeedbackSuccess()).toContain('dinonaktifkan sementara');
   });
+
+  it('harus memformat nomor WhatsApp tampilan dengan awalan negara +62', () => {
+    store.workerWhatsAppNumber.set('6281288992211');
+    expect(store.displayFormattedWhatsAppNumber()).toBe('+62 812-8899-2211');
+
+    store.workerWhatsAppNumber.set('');
+    expect(store.displayFormattedWhatsAppNumber()).toBe('+62 812-8899-2211');
+  });
+
+  it('harus merender pratinjau pesan WhatsApp dinamis sesuai variabel dan switch', () => {
+    store.resetWhatsAppTemplateToDefault();
+    store.insertTokenIntoWhatsAppTemplate('{{NAMA_KLIEN}}');
+    const rendered = store.renderedWhatsAppMessagePreview();
+
+    expect(rendered).toContain('Bima Satria');
+    expect(rendered).toContain('Deep Clean Detailing (2.5 Jam)');
+    expect(rendered).toContain('https://maps.google.com/?q=-6.2297,106.8093');
+    expect(rendered).toContain('Rp 166.100');
+
+    // Matikan gmaps dan rincian ongkos
+    store.toggleGmapsOption();
+    store.toggleBreakdownOption();
+    const renderedWithoutGmaps = store.renderedWhatsAppMessagePreview();
+
+    expect(renderedWithoutGmaps).not.toContain('https://maps.google.com');
+    expect(renderedWithoutGmaps).toContain('Rp 166.100 Nett');
+  });
+
+  it('harus menyisipkan token ke dalam template WhatsApp pada posisi kursor', () => {
+    store.setWhatsAppTemplate('Pesanan: ');
+    store.insertTokenIntoWhatsAppTemplate('{{LAYANAN}}', 9);
+
+    expect(store.whatsappMessageTemplate()).toBe('Pesanan: {{LAYANAN}}');
+  });
+
+  it('harus menghasilkan deep link wa.me yang valid', () => {
+    store.workerWhatsAppNumber.set('6281288992211');
+    const link = store.generatedWhatsAppDeepLink();
+
+    expect(link.startsWith('https://wa.me/6281288992211?text=')).toBe(true);
+  });
+
+  it('harus menjalankan simulasi OTP dengan timeout otomatis', () => {
+    jest.useFakeTimers();
+    store.triggerOtpTest();
+    expect(store.otpFeedbackMessage()).toBe('Kode Dikirim ✓');
+
+    jest.advanceTimersByTime(3000);
+    expect(store.otpFeedbackMessage()).toBeNull();
+    jest.useRealTimers();
+  });
+
+  it('harus menormalisasi format nomor telepon Indonesia 08... menjadi 628... pada deep link', () => {
+    store.workerWhatsAppNumber.set('081288992211');
+    const link = store.generatedWhatsAppDeepLink();
+    expect(link.startsWith('https://wa.me/6281288992211?text=')).toBe(true);
+
+    store.workerWhatsAppNumber.set('81288992211');
+    expect(store.generatedWhatsAppDeepLink().startsWith('https://wa.me/6281288992211?text=')).toBe(true);
+  });
+
+  it('harus menormalisasi format nomor saat saveEditedWhatsAppNumber dipanggil', () => {
+    store.startEditingWhatsAppNumber();
+    store.editWhatsAppNumberInput.set('081234567890');
+    store.saveEditedWhatsAppNumber();
+
+    expect(store.workerWhatsAppNumber()).toBe('6281234567890');
+  });
+
+  it('harus menyimpan dan memuat konfigurasi WhatsApp ke localStorage', () => {
+    store.workerSlugIdentifier.set('sarah-cleaning');
+    store.setWhatsAppTemplate('Format template tersimpan khusus');
+    store.includeGmapsLocation.set(false);
+    store.saveWhatsAppSettingsToStorage();
+
+    // Reset ke state default
+    store.whatsappMessageTemplate.set('Default');
+    store.includeGmapsLocation.set(true);
+
+    const loaded = store.loadWhatsAppSettingsFromStorage('sarah-cleaning');
+    expect(loaded).toBe(true);
+    expect(store.whatsappMessageTemplate()).toBe('Format template tersimpan khusus');
+    expect(store.includeGmapsLocation()).toBe(false);
+  });
+
+  it('harus mempersonalisasi template default saat memuat profil pekerja', () => {
+    store.populateWorkerProfileState('uuid-123', {
+      slug: 'budi-santoso',
+      name: 'Budi Santoso',
+      zone: 'Jakarta Selatan',
+      whatsapp_number: '6281234567890',
+    });
+
+    expect(store.whatsappMessageTemplate()).toContain('Halo Kak Budi Santoso!');
+    expect(store.whatsappMessageTemplate()).toContain('Kak Budi');
+  });
 });
+
 

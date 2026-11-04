@@ -70,6 +70,9 @@
   --font-heading-h1: "Inter", sans-serif;
   --font-heading-h2: "Inter", sans-serif;
   --font-heading-h3: "Inter", sans-serif;
+  --font-heading-1: "Inter", sans-serif;
+  --font-heading-2: "Inter", sans-serif;
+  --font-heading-3: "Inter", sans-serif;
   --font-lead-body: "Inter", sans-serif;
   --font-body-default: "Inter", sans-serif;
   --font-body-strong: "Inter", sans-serif;
@@ -84,13 +87,31 @@
   letter-spacing: -0.01em;
   font-weight: 600;
 }
+@utility text-heading-1 {
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
 @utility text-heading-h2 {
   font-size: 22px;
   line-height: 28px;
   letter-spacing: -0.01em;
   font-weight: 600;
 }
+@utility text-heading-2 {
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
 @utility text-heading-h3 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0em;
+  font-weight: 600;
+}
+@utility text-heading-3 {
   font-size: 18px;
   line-height: 24px;
   letter-spacing: 0em;

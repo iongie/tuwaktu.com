@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { WorkerDashboardApiService } from './worker-dashboard-api.service';
 import {
   WorkerProfileUpdatePayload,
@@ -7,10 +7,118 @@ import {
   WorkerScheduleItem,
 } from '../models/worker-profile.model';
 
+export interface WhatsAppPreviewSampleData {
+  readonly clientName: string;
+  readonly serviceName: string;
+  readonly scheduleDateTime: string;
+  readonly clientAddress: string;
+  readonly distanceKm: string;
+  readonly travelFeeBreakdown: string;
+  readonly totalCost: string;
+  readonly specialNotes: string;
+  readonly mapsLocationUrl: string;
+}
+
+export const DEFAULT_WHATSAPP_SAMPLE_DATA: WhatsAppPreviewSampleData = {
+  clientName: 'Bima Satria',
+  serviceName: 'Deep Clean Detailing (2.5 Jam)',
+  scheduleDateTime: 'Sabtu, 25 Mei (13:00 - 15:30 WIB)',
+  clientAddress: 'Jl. Senopati Dalam No. 4A',
+  distanceKm: '4.2 km',
+  travelFeeBreakdown: 'Jasa Rp 162.500 + Ongkir Rp 3.600',
+  totalCost: 'Rp 166.100',
+  specialNotes: 'Tolong bawa disinfektan sendiri, fokus kerak kamar mandi utama',
+  mapsLocationUrl: 'https://maps.google.com/?q=-6.2297,106.8093',
+};
+
+export function buildDefaultWhatsAppTemplate(workerFullName?: string): string {
+  const name = (workerFullName || '').trim() || 'Sarah Melinda';
+  const firstName = name.split(' ')[0] || name;
+  return `Halo Kak ${name}! Saya ingin memesan jadwal lewat Tuwaktu:
+• Layanan: {{LAYANAN}}
+• Jadwal: {{TANGGAL_JAM}}
+• Alamat: {{ALAMAT}} ({{JARAK_KM}})
+• Catatan: {{CATATAN}}
+• Rincian: {{ONGKOS_JALAN}}
+• Total: {{TOTAL_BIAYA}} (Bebas Biaya Admin)
+
+Mohon konfirmasinya ya Kak ${firstName}, terima kasih!
+[VERIFIKASI SISTEM TUWAKTU ✓✓]`;
+}
+
+export function formatWhatsAppDisplay(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) {
+    return '+62 812-8899-2211';
+  }
+  if (digits.startsWith('62')) {
+    const rest = digits.substring(2);
+    if (rest.length >= 8) {
+      const p1 = rest.substring(0, 3);
+      const p2 = rest.substring(3, 7);
+      const p3 = rest.substring(7);
+      return `+62 ${p1}-${p2}-${p3}`;
+    }
+    return `+62 ${rest}`;
+  }
+  if (digits.startsWith('0')) {
+    const rest = digits.substring(1);
+    if (rest.length >= 8) {
+      const p1 = rest.substring(0, 3);
+      const p2 = rest.substring(3, 7);
+      const p3 = rest.substring(7);
+      return `+62 ${p1}-${p2}-${p3}`;
+    }
+    return `+62 ${rest}`;
+  }
+  return `+${digits}`;
+}
+
+export const STORAGE_WHATSAPP_CONFIG_KEY_PREFIX = 'tuwaktu_worker_whatsapp_config_';
+
+export function normalizeWhatsAppNumberForWaMe(phone: string): string {
+  let digits = (phone || '').replace(/\D/g, '');
+  if (!digits) {
+    return '6281288992211';
+  }
+  if (digits.startsWith('08')) {
+    digits = '62' + digits.slice(1);
+  } else if (digits.startsWith('8')) {
+    digits = '62' + digits;
+  }
+  return digits;
+}
+
+export function renderWhatsAppMessageText(
+  template: string,
+  sample: WhatsAppPreviewSampleData,
+  includeGmaps: boolean,
+  includeBreakdown: boolean,
+  includeNotes: boolean
+): string {
+  let text = template;
+  const alamatVal = includeGmaps
+    ? `${sample.clientAddress} (${sample.mapsLocationUrl})`
+    : sample.clientAddress;
+  const rincianVal = includeBreakdown ? sample.travelFeeBreakdown : 'Rp 166.100 Nett';
+  const catatanVal = includeNotes ? sample.specialNotes : '-';
+
+  text = text.replace(/\{\{NAMA_KLIEN\}\}/g, sample.clientName);
+  text = text.replace(/\{\{LAYANAN\}\}/g, sample.serviceName);
+  text = text.replace(/\{\{TANGGAL_JAM\}\}/g, sample.scheduleDateTime);
+  text = text.replace(/\{\{ALAMAT\}\}/g, alamatVal);
+  text = text.replace(/\{\{JARAK_KM\}\}/g, sample.distanceKm);
+  text = text.replace(/\{\{ONGKOS_JALAN\}\}/g, rincianVal);
+  text = text.replace(/\{\{TOTAL_BIAYA\}\}/g, sample.totalCost);
+  text = text.replace(/\{\{CATATAN\}\}/g, catatanVal);
+
+  return text;
+}
+
 @Injectable({
   providedIn: 'root',
 })
-export class WorkerDashboardStore {
+export class WorkerDashboardStore implements OnDestroy {
   private readonly apiService = inject(WorkerDashboardApiService);
 
   readonly workerRecordId = signal<string>('');
@@ -57,11 +165,21 @@ export class WorkerDashboardStore {
   readonly isBoostActive = signal<boolean>(true);
   readonly clipboardFeedbackMessage = signal<string | null>(null);
 
+  readonly whatsappMessageTemplate = signal<string>(buildDefaultWhatsAppTemplate());
+  readonly includeGmapsLocation = signal<boolean>(true);
+  readonly includeCostBreakdown = signal<boolean>(true);
+  readonly includeSpecialNotes = signal<boolean>(true);
+  readonly isBackupNotificationEnabled = signal<boolean>(true);
+  readonly otpFeedbackMessage = signal<string | null>(null);
+  readonly isEditingWhatsAppNumber = signal<boolean>(false);
+  readonly editWhatsAppNumberInput = signal<string>('');
+
   readonly inputValidationErrors = signal<Record<string, string>>({});
   readonly ratesValidationErrors = signal<Record<string, string>>({});
   readonly locationValidationErrors = signal<Record<string, string>>({});
 
   private clipboardTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private otpTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly hasActiveWorker = computed(() => !!this.workerRecordId().trim());
 
@@ -69,6 +187,81 @@ export class WorkerDashboardStore {
     const slug = this.workerSlugIdentifier().trim();
     return slug ? `/${slug}` : '';
   });
+
+  readonly displayFormattedWhatsAppNumber = computed(() => {
+    return formatWhatsAppDisplay(this.workerWhatsAppNumber());
+  });
+
+  readonly whatsappMessageCharacterCount = computed(() => {
+    return this.whatsappMessageTemplate().length;
+  });
+
+  readonly renderedWhatsAppMessagePreview = computed(() => {
+    return renderWhatsAppMessageText(
+      this.whatsappMessageTemplate(),
+      DEFAULT_WHATSAPP_SAMPLE_DATA,
+      this.includeGmapsLocation(),
+      this.includeCostBreakdown(),
+      this.includeSpecialNotes()
+    );
+  });
+
+  readonly generatedWhatsAppDeepLink = computed(() => {
+    const cleanPhone = normalizeWhatsAppNumberForWaMe(this.workerWhatsAppNumber());
+    const encodedText = encodeURIComponent(this.renderedWhatsAppMessagePreview());
+    return `https://wa.me/${cleanPhone}?text=${encodedText}`;
+  });
+
+  saveWhatsAppSettingsToStorage(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      const key = `${STORAGE_WHATSAPP_CONFIG_KEY_PREFIX}${this.workerSlugIdentifier() || 'default'}`;
+      const config = {
+        template: this.whatsappMessageTemplate(),
+        includeGmaps: this.includeGmapsLocation(),
+        includeBreakdown: this.includeCostBreakdown(),
+        includeNotes: this.includeSpecialNotes(),
+        backupNotification: this.isBackupNotificationEnabled(),
+      };
+      localStorage.setItem(key, JSON.stringify(config));
+    } catch {
+      // Storage unavailable or quota exceeded
+    }
+  }
+
+  loadWhatsAppSettingsFromStorage(slug?: string): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    try {
+      const key = `${STORAGE_WHATSAPP_CONFIG_KEY_PREFIX}${slug || this.workerSlugIdentifier() || 'default'}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        return false;
+      }
+      const config = JSON.parse(raw);
+      if (typeof config?.template === 'string' && config.template.trim()) {
+        this.whatsappMessageTemplate.set(config.template);
+      }
+      if (typeof config?.includeGmaps === 'boolean') {
+        this.includeGmapsLocation.set(config.includeGmaps);
+      }
+      if (typeof config?.includeBreakdown === 'boolean') {
+        this.includeCostBreakdown.set(config.includeBreakdown);
+      }
+      if (typeof config?.includeNotes === 'boolean') {
+        this.includeSpecialNotes.set(config.includeNotes);
+      }
+      if (typeof config?.backupNotification === 'boolean') {
+        this.isBackupNotificationEnabled.set(config.backupNotification);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   readonly formattedBasePricePreview = computed(() => {
     const price = this.workerBasePrice();
@@ -99,6 +292,112 @@ export class WorkerDashboardStore {
 
   toggleStoreStatus(): void {
     this.isStoreOnline.update((online) => !online);
+  }
+
+  resetWhatsAppTemplateToDefault(): void {
+    this.whatsappMessageTemplate.set(buildDefaultWhatsAppTemplate(this.workerFullName()));
+    this.includeGmapsLocation.set(true);
+    this.includeCostBreakdown.set(true);
+    this.includeSpecialNotes.set(true);
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  setWhatsAppTemplate(template: string): void {
+    this.whatsappMessageTemplate.set(template);
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  insertTokenIntoWhatsAppTemplate(token: string, cursorPos?: number): void {
+    const current = this.whatsappMessageTemplate();
+    if (cursorPos === undefined || cursorPos === null || cursorPos < 0 || cursorPos > current.length) {
+      this.whatsappMessageTemplate.set(current + ' ' + token);
+    } else {
+      const before = current.substring(0, cursorPos);
+      const after = current.substring(cursorPos);
+      this.whatsappMessageTemplate.set(before + token + after);
+    }
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  toggleGmapsOption(): void {
+    this.includeGmapsLocation.update((val) => !val);
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  toggleBreakdownOption(): void {
+    this.includeCostBreakdown.update((val) => !val);
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  toggleNotesOption(): void {
+    this.includeSpecialNotes.update((val) => !val);
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  toggleBackupNotification(): void {
+    this.isBackupNotificationEnabled.update((val) => !val);
+    this.saveWhatsAppSettingsToStorage();
+  }
+
+  triggerOtpTest(): void {
+    this.clearOtpTimer();
+    this.otpFeedbackMessage.set('Kode Dikirim ✓');
+    this.otpTimeoutId = setTimeout(() => {
+      this.otpFeedbackMessage.set(null);
+      this.otpTimeoutId = null;
+    }, 3000);
+    const timerObj = this.otpTimeoutId as unknown;
+    if (
+      timerObj &&
+      typeof timerObj === 'object' &&
+      'unref' in timerObj &&
+      typeof (timerObj as { unref: () => void }).unref === 'function'
+    ) {
+      (timerObj as { unref: () => void }).unref();
+    }
+  }
+
+  clearOtpTimer(): void {
+    if (this.otpTimeoutId) {
+      clearTimeout(this.otpTimeoutId);
+      this.otpTimeoutId = null;
+    }
+  }
+
+  startEditingWhatsAppNumber(): void {
+    this.editWhatsAppNumberInput.set(this.workerWhatsAppNumber() || '6281288992211');
+    this.isEditingWhatsAppNumber.set(true);
+  }
+
+  cancelEditingWhatsAppNumber(): void {
+    this.isEditingWhatsAppNumber.set(false);
+    this.editWhatsAppNumberInput.set('');
+  }
+
+  saveEditedWhatsAppNumber(): void {
+    let newNumber = this.editWhatsAppNumberInput().trim();
+    const cleanDigits = newNumber.replace(/\D/g, '');
+    if (cleanDigits.startsWith('08')) {
+      newNumber = '62' + cleanDigits.slice(1);
+    } else if (cleanDigits.startsWith('8')) {
+      newNumber = '62' + cleanDigits;
+    } else if (cleanDigits) {
+      newNumber = cleanDigits;
+    }
+    this.workerWhatsAppNumber.set(newNumber);
+    this.isEditingWhatsAppNumber.set(false);
+    this.clearInputValidationError('whatsapp_number');
+    this.saveWhatsAppSettingsToStorage();
+
+    if (this.hasActiveWorker()) {
+      this.submitProfileUpdate();
+    }
+  }
+
+  openWhatsAppDeepLink(): void {
+    if (typeof window !== 'undefined') {
+      window.open(this.generatedWhatsAppDeepLink(), '_blank', 'noopener,noreferrer');
+    }
   }
 
   setRateType(type: 'HOURLY' | 'UNIT'): void {
@@ -388,6 +687,11 @@ export class WorkerDashboardStore {
     } else {
       this.workerExtraFeePerKm.set(0);
     }
+
+    const hasCustomConfig = this.loadWhatsAppSettingsFromStorage(profile.slug);
+    if (!hasCustomConfig && profile.name) {
+      this.whatsappMessageTemplate.set(buildDefaultWhatsAppTemplate(profile.name));
+    }
   }
 
   resetWorkerSelection(): void {
@@ -410,6 +714,9 @@ export class WorkerDashboardStore {
     this.inputValidationErrors.set({});
     this.ratesValidationErrors.set({});
     this.locationValidationErrors.set({});
+    this.resetWhatsAppTemplateToDefault();
+    this.isEditingWhatsAppNumber.set(false);
+    this.clearOtpTimer();
     this.clearAllFeedbacks();
   }
 
@@ -430,7 +737,8 @@ export class WorkerDashboardStore {
     this.profileFeedbackSuccess.set(null);
     this.profileFeedbackError.set(null);
 
-    const sanitizedWhatsApp = this.workerWhatsAppNumber().trim().replace(/\D/g, '');
+    const rawNumber = this.workerWhatsAppNumber().trim();
+    const sanitizedWhatsApp = rawNumber ? normalizeWhatsAppNumberForWaMe(rawNumber) : '';
     const payload: WorkerProfileUpdatePayload = {
       name: this.workerFullName().trim(),
       zone: this.workerProfessionZone().trim(),
@@ -795,6 +1103,7 @@ export class WorkerDashboardStore {
   }
 
   saveAllSettings(): void {
+    this.saveWhatsAppSettingsToStorage();
     if (this.workerRecordId().trim()) {
       const basePrice = this.workerBasePrice();
       if (basePrice !== null && basePrice > 0) {
@@ -809,6 +1118,14 @@ export class WorkerDashboardStore {
       if (this.workerSchedules().length > 0) {
         this.submitScheduleUpdate();
       }
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearOtpTimer();
+    if (this.clipboardTimeoutId) {
+      clearTimeout(this.clipboardTimeoutId);
+      this.clipboardTimeoutId = null;
     }
   }
 }

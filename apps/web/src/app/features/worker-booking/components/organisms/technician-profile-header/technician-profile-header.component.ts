@@ -1,11 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
+import { AuthService } from '../../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-technician-profile-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article class="w-full bg-hero-canvas text-ink-on-dark relative overflow-hidden border-b border-white/10">
@@ -99,6 +108,17 @@ import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
                 <span class="material-symbols-outlined text-[16px]">share</span>
                 <span>Bagikan</span>
               </button>
+              @if (authService.isLoggedIn()) {
+                <a
+                  routerLink="/dashboard"
+                  class="px-space-md py-2 bg-voltage-orange/20 hover:bg-voltage-orange/30 text-voltage-orange font-button-label text-button-label rounded transition-colors flex items-center justify-center gap-1 shrink-0 min-h-[44px] cursor-pointer"
+                  title="Buka Dasbor Kerja Anda"
+                  id="heroDashboardBtn"
+                >
+                  <span class="material-symbols-outlined text-[16px]">dashboard</span>
+                  <span>Kelola di Dasbor</span>
+                </a>
+              }
             </div>
           </div>
 
@@ -151,6 +171,7 @@ import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
   `,
 })
 export class TechnicianProfileHeaderComponent {
+  readonly authService = inject(AuthService);
   readonly workerProfile = input.required<PublicTechnicianProfile>();
   readonly isCopied = signal<boolean>(false);
 

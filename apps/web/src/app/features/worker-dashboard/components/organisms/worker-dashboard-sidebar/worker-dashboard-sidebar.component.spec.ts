@@ -1,27 +1,41 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WorkerDashboardSidebarComponent } from './worker-dashboard-sidebar.component';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
+import { AuthService } from '../../../../auth/services/auth.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { Component } from '@angular/core';
+
+@Component({ standalone: true, template: '' })
+class DummyLoginComponent {}
 
 describe('WorkerDashboardSidebarComponent', () => {
   let fixture: ComponentFixture<WorkerDashboardSidebarComponent>;
   let component: WorkerDashboardSidebarComponent;
+  let authService: AuthService;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WorkerDashboardSidebarComponent],
       providers: [
-        provideRouter([]),
+        provideRouter([
+          { path: 'login', component: DummyLoginComponent },
+          { path: '**', component: DummyLoginComponent },
+        ]),
         provideHttpClient(),
         provideHttpClientTesting(),
         WorkerDashboardStore,
+        AuthService,
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WorkerDashboardSidebarComponent);
     component = fixture.componentInstance;
+    authService = TestBed.inject(AuthService);
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -52,6 +66,30 @@ describe('WorkerDashboardSidebarComponent', () => {
 
     backdropBtn.click();
     expect(store.isMobileSidebarOpen()).toBe(false);
+  });
+
+  it('harus merender tombol Keluar Konsol dan membuka modal saat diklik', () => {
+    const logoutBtn = fixture.nativeElement.querySelector('#sidebarLogoutBtn');
+    expect(logoutBtn).toBeTruthy();
+    expect(logoutBtn.textContent).toContain('Keluar Konsol');
+
+    logoutBtn.click();
+    fixture.detectChanges();
+
+    expect(component.isLogoutModalOpen()).toBe(true);
+    const modal = fixture.nativeElement.querySelector('[role="alertdialog"]');
+    expect(modal).toBeTruthy();
+  });
+
+  it('harus memanggil authService.logout dan redirect saat konfirmasi logout disetujui', () => {
+    const logoutSpy = jest.spyOn(authService, 'logout');
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.executeLogout();
+
+    expect(logoutSpy).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(component.isLogoutModalOpen()).toBe(false);
   });
 });
 

@@ -3,10 +3,14 @@ import { ComponentRef } from '@angular/core';
 import { TechnicianProfileHeaderComponent } from './technician-profile-header.component';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
 
+import { provideRouter } from '@angular/router';
+import { AuthService } from '../../../../auth/services/auth.service';
+
 describe('TechnicianProfileHeaderComponent', () => {
   let component: TechnicianProfileHeaderComponent;
   let componentRef: ComponentRef<TechnicianProfileHeaderComponent>;
   let fixture: ComponentFixture<TechnicianProfileHeaderComponent>;
+  let authService: AuthService;
 
   const baseWorker: PublicTechnicianProfile = {
     id: 'worker-header-1',
@@ -25,7 +29,11 @@ describe('TechnicianProfileHeaderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TechnicianProfileHeaderComponent],
+      providers: [provideRouter([]), AuthService],
     }).compileComponents();
+
+    authService = TestBed.inject(AuthService);
+    authService.logout();
 
     fixture = TestBed.createComponent(TechnicianProfileHeaderComponent);
     component = fixture.componentInstance;
@@ -166,5 +174,23 @@ describe('TechnicianProfileHeaderComponent', () => {
         url: 'https://tuwaktu.com/budi-santoso',
       })
     );
+  });
+
+  it('harus menampilkan tombol Kelola di Dasbor jika pekerja sedang login', () => {
+    let dashboardBtn = fixture.nativeElement.querySelector('#heroDashboardBtn');
+    expect(dashboardBtn).toBeNull();
+
+    authService.setSession({
+      id: 'usr-1',
+      name: 'Budi Santoso',
+      slug: 'budi-santoso',
+      role: 'worker',
+    });
+    fixture.detectChanges();
+
+    dashboardBtn = fixture.nativeElement.querySelector('#heroDashboardBtn');
+    expect(dashboardBtn).toBeTruthy();
+    expect(dashboardBtn.textContent).toContain('Kelola di Dasbor');
+    expect(dashboardBtn.getAttribute('routerLink')).toBe('/dashboard');
   });
 });

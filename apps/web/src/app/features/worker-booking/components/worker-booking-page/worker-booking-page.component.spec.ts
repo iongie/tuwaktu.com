@@ -258,4 +258,15 @@ it('harus mengarahkan tautan navigasi dan avatar mitra ke rute dashboard/integra
   expect(avatarLink).toBeTruthy();
   expect(avatarLink?.getAttribute('routerLink')).toBe('/dashboard/integrasi-whatsapp');
 });
+
+it('harus menyediakan akses tombol Masuk dan Daftar Mitra di navbar atas', () => {
+  const el = fixture.nativeElement as HTMLElement;
+  const loginBtn = el.querySelector('#navLoginBtn');
+  const registerBtn = el.querySelector('#navRegisterBtn');
+
+  expect(loginBtn).toBeTruthy();
+  expect(loginBtn?.textContent).toContain('Masuk');
+  expect(registerBtn).toBeTruthy();
+  expect(registerBtn?.textContent).toContain('Daftar Mitra');
+});
 });

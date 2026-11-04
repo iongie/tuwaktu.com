@@ -7,19 +7,33 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { WorkerDashboardApiService } from '../../../services/worker-dashboard-api.service';
 import { of } from 'rxjs';
 
+import { AuthService } from '../../../../auth/services/auth.service';
+import { Router } from '@angular/router';
+
+import { Component } from '@angular/core';
+
+@Component({ standalone: true, template: '' })
+class DummyLoginComponent {}
+
 describe('WorkerDashboardHeaderComponent', () => {
   let fixture: ComponentFixture<WorkerDashboardHeaderComponent>;
   let component: WorkerDashboardHeaderComponent;
   let store: WorkerDashboardStore;
+  let authService: AuthService;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WorkerDashboardHeaderComponent],
       providers: [
-        provideRouter([]),
+        provideRouter([
+          { path: 'login', component: DummyLoginComponent },
+          { path: '**', component: DummyLoginComponent },
+        ]),
         provideHttpClient(),
         provideHttpClientTesting(),
         WorkerDashboardStore,
+        AuthService,
         {
           provide: WorkerDashboardApiService,
           useValue: {
@@ -32,6 +46,8 @@ describe('WorkerDashboardHeaderComponent', () => {
     fixture = TestBed.createComponent(WorkerDashboardHeaderComponent);
     component = fixture.componentInstance;
     store = TestBed.inject(WorkerDashboardStore);
+    authService = TestBed.inject(AuthService);
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -77,5 +93,29 @@ describe('WorkerDashboardHeaderComponent', () => {
     component.closeSwitcher();
     component.toggleSwitcher();
     expect(store.profileFeedbackError()).toBe('');
+  });
+
+  it('harus membuka modal konfirmasi saat tombol Keluar di header diklik', () => {
+    const logoutBtn = fixture.nativeElement.querySelector('#headerLogoutBtn');
+    expect(logoutBtn).toBeTruthy();
+
+    logoutBtn.click();
+    fixture.detectChanges();
+
+    expect(component.isLogoutModalOpen()).toBe(true);
+    const modal = fixture.nativeElement.querySelector('[role="alertdialog"]');
+    expect(modal).toBeTruthy();
+    expect(modal.textContent).toContain('Konfirmasi Keluar Akun');
+  });
+
+  it('harus memanggil authService.logout dan redirect saat konfirmasi logout diterima', () => {
+    const logoutSpy = jest.spyOn(authService, 'logout');
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.executeLogout();
+
+    expect(logoutSpy).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(component.isLogoutModalOpen()).toBe(false);
   });
 });

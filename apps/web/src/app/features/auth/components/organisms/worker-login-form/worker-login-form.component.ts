@@ -378,6 +378,7 @@ export class WorkerLoginFormComponent implements OnDestroy {
       return;
     }
 
+    this.authService.login(payload);
     this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...');
 
     this.redirectTimeoutId = setTimeout(() => {

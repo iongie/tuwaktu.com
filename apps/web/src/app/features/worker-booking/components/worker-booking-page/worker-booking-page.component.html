@@ -60,34 +60,8 @@
 
         <div class="h-5 w-px bg-hairline-subtle mx-space-xs hidden sm:block"></div>
 
-        <div class="flex items-center gap-space-sm">
-          @if (store.activeTechnicianProfile(); as worker) {
-            <div class="hidden xl:flex flex-col text-right">
-              <span class="font-body-strong text-body-strong text-on-surface leading-tight">{{ worker.name }}</span>
-              <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary uppercase">{{ worker.zone }}</span>
-            </div>
-            <a
-              routerLink="/dashboard/integrasi-whatsapp"
-              [queryParams]="{ slug: worker.slug }"
-              class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle cursor-pointer hover:ring-voltage-orange transition-all overflow-hidden"
-              title="Masuk Profil Mitra"
-            >
-              @if (worker.avatar_url) {
-                <img [src]="worker.avatar_url" [alt]="worker.name" class="w-full h-full object-cover" />
-              } @else {
-                <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
-              }
-            </a>
-          } @else {
-            <a
-              routerLink="/dashboard/integrasi-whatsapp"
-              class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle cursor-pointer hover:ring-voltage-orange transition-all"
-              title="Masuk Dasbor"
-            >
-              <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
-            </a>
-          }
-        </div>
+        <!-- Account Authentication & Navigation Menu Molecule -->
+        <app-booking-nav-account-menu [activeWorker]="store.activeTechnicianProfile()" />
       </div>
     </div>
   </header>

@@ -392,6 +392,7 @@ export class WorkerRegisterFormComponent implements OnDestroy {
       return;
     }
 
+    this.authService.register(payload);
     this.formSuccess.set(
       `Selamat! Profil kedaulatan Anda berhasil diaktifkan. Tautan resmi: tuwaktu.com/${this.customSlug}`
     );

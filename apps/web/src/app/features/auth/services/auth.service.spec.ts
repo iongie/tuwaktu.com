@@ -183,4 +183,103 @@ describe('AuthService', () => {
       expect(res.error).toContain('6 digit');
     });
   });
+
+  describe('Session and Authentication Lifecycle', () => {
+    beforeEach(() => {
+      service.logout();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.clear();
+      }
+    });
+
+    it('harus memiliki status awal tidak login jika belum ada sesi', () => {
+      expect(service.isLoggedIn()).toBe(false);
+      expect(service.currentUser()).toBeNull();
+      expect(service.currentWorker()).toBeNull();
+    });
+
+    it('harus berhasil login dengan payload WhatsApp dan memperbarui sinyal sesi', () => {
+      const loginResult = service.login({
+        method: 'wa',
+        waNumber: '081288992211',
+        workerId: '',
+        pin: '123456',
+        rememberDevice: true,
+      });
+
+      expect(loginResult.success).toBe(true);
+      expect(service.isLoggedIn()).toBe(true);
+      expect(service.currentUser()?.name).toContain('081288992211');
+      expect(service.currentUser()?.slug).toContain('2211');
+      expect(service.currentWorker()).toEqual(service.currentUser());
+    });
+
+    it('harus menolak login jika data kredensial tidak valid', () => {
+      const loginResult = service.login({
+        method: 'wa',
+        waNumber: '123',
+        workerId: '',
+        pin: '12',
+        rememberDevice: false,
+      });
+
+      expect(loginResult.success).toBe(false);
+      expect(loginResult.error).toBeDefined();
+      expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('harus berhasil registrasi pekerja baru dan langsung mengaktifkan sesi', () => {
+      const registerResult = service.register({
+        fullName: 'Eko Prasetyo',
+        specialtyId: 'ac-electric',
+        specialtyLabel: 'Teknisi AC & Kelistrikan',
+        waNumber: '081987654321',
+        basecamp: 'Cilandak, Jakarta Selatan',
+        customSlug: 'eko-teknisi-ac',
+        pin: '654321',
+        pinConfirm: '654321',
+        doctrineAccepted: true,
+      });
+
+      expect(registerResult.success).toBe(true);
+      expect(service.isLoggedIn()).toBe(true);
+      expect(service.currentUser()?.name).toBe('Eko Prasetyo');
+      expect(service.currentUser()?.slug).toBe('eko-teknisi-ac');
+    });
+
+    it('harus menolak registrasi jika pakta kedaulatan tidak disetujui', () => {
+      const registerResult = service.register({
+        fullName: 'Eko Prasetyo',
+        specialtyId: 'ac-electric',
+        specialtyLabel: 'Teknisi AC & Kelistrikan',
+        waNumber: '081987654321',
+        basecamp: 'Cilandak, Jakarta Selatan',
+        customSlug: 'eko-teknisi-ac',
+        pin: '654321',
+        pinConfirm: '654321',
+        doctrineAccepted: false,
+      });
+
+      expect(registerResult.success).toBe(false);
+      expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('harus membersihkan sesi dan mereset status saat logout dipanggil', () => {
+      service.setSession({
+        id: 'usr-1',
+        name: 'Sarah Melinda',
+        slug: 'sarah-cleaning',
+        waNumber: '081234567890',
+        role: 'worker',
+      });
+      expect(service.isLoggedIn()).toBe(true);
+
+      service.logout();
+      expect(service.isLoggedIn()).toBe(false);
+      expect(service.currentUser()).toBeNull();
+      expect(service.currentWorker()).toBeNull();
+      expect(service.otpStatus()).toBe('idle');
+      expect(service.magicLinkStatus()).toBe('idle');
+    });
+  });
 });

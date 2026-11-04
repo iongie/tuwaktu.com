@@ -4,11 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-link/dashboard-quick-link.component';
+import { AuthService } from '../../../../auth/services/auth.service';
+import { LogoutConfirmModalComponent } from '../../../../auth/components/molecules/logout-confirm-modal/logout-confirm-modal.component';
 
 @Component({
   selector: 'app-worker-dashboard-header',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DashboardQuickLinkComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    DashboardQuickLinkComponent,
+    LogoutConfirmModalComponent,
+  ],
   template: `
     <header
       class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-hairline-subtle z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-2xs"
@@ -209,16 +217,38 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
             </div>
           }
         </div>
+
+        <!-- Tombol Keluar dari Konsol Kerja -->
+        <button
+          type="button"
+          (click)="openLogoutModal()"
+          class="h-9 px-3 rounded-lg bg-surface-container hover:bg-red-50 text-on-surface hover:text-red-600 font-semibold text-xs flex items-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px] cursor-pointer"
+          title="Keluar dari Konsol Kerja"
+          aria-label="Keluar dari Konsol Kerja"
+          id="headerLogoutBtn"
+        >
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          <span class="hidden sm:inline">Keluar</span>
+        </button>
       </div>
+
+      <!-- Modal Konfirmasi Logout -->
+      <app-logout-confirm-modal
+        [isOpen]="isLogoutModalOpen()"
+        (confirmed)="executeLogout()"
+        (cancelled)="closeLogoutModal()"
+      />
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkerDashboardHeaderComponent {
   readonly store = inject(WorkerDashboardStore);
+  readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
 
+  readonly isLogoutModalOpen = signal<boolean>(false);
   readonly isSwitcherOpen = signal(false);
   readonly switcherSlugValue = signal('');
   readonly quickPresets = ['sarah-cleaning', 'budi-santoso', 'eko-teknisi'];
@@ -255,5 +285,19 @@ export class WorkerDashboardHeaderComponent {
       });
       this.closeSwitcher();
     });
+  }
+
+  openLogoutModal(): void {
+    this.isLogoutModalOpen.set(true);
+  }
+
+  closeLogoutModal(): void {
+    this.isLogoutModalOpen.set(false);
+  }
+
+  executeLogout(): void {
+    this.isLogoutModalOpen.set(false);
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

@@ -22,6 +22,7 @@ import {
   CreateServiceBookingPayload,
 } from '../../models/service-booking.model';
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
+import { BookingNavAccountMenuComponent } from '../molecules/booking-nav-account-menu/booking-nav-account-menu.component';
 import { TechnicianSearchBarComponent } from '../molecules/technician-search-bar/technician-search-bar.component';
 import { TechnicianProfileHeaderComponent } from '../organisms/technician-profile-header/technician-profile-header.component';
 import {
@@ -40,6 +41,7 @@ import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
     TechnicianSearchBarComponent,
     TechnicianProfileHeaderComponent,
     ServiceBookingFormComponent,
+    BookingNavAccountMenuComponent,
   ],
   templateUrl: './worker-booking-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

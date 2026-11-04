@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
+import { AuthService } from '../../../../auth/services/auth.service';
+import { LogoutConfirmModalComponent } from '../../../../auth/components/molecules/logout-confirm-modal/logout-confirm-modal.component';
 
 export interface DashboardSidebarMenuItem {
   readonly routePath: string;
@@ -12,7 +14,12 @@ export interface DashboardSidebarMenuItem {
 @Component({
   selector: 'app-worker-dashboard-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterLinkActive,
+    LogoutConfirmModalComponent,
+  ],
   template: `
     @if (store.isMobileSidebarOpen()) {
       <button
@@ -24,10 +31,9 @@ export interface DashboardSidebarMenuItem {
     }
 
     <aside
-      class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex-col justify-between py-6 border-r border-hairline-subtle shadow-xs"
-      [class.flex]="store.isMobileSidebarOpen()"
-      [class.hidden]="!store.isMobileSidebarOpen()"
-      [class.lg:flex]="true"
+      class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between py-6 border-r border-hairline-subtle shadow-xs transition-transform duration-200 lg:translate-x-0"
+      [class.translate-x-0]="store.isMobileSidebarOpen()"
+      [class.-translate-x-full]="!store.isMobileSidebarOpen()"
     >
       <div class="flex flex-col gap-6">
         <!-- Logo Tuwaktu Workspace PRO -->
@@ -80,6 +86,19 @@ export interface DashboardSidebarMenuItem {
             </a>
           }
         </nav>
+
+        <!-- Tombol Keluar Konsol -->
+        <div class="px-3 pt-2">
+          <button
+            type="button"
+            (click)="openLogoutModal()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors rounded text-button-label font-button-label cursor-pointer min-h-[44px]"
+            id="sidebarLogoutBtn"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span>Keluar Konsol</span>
+          </button>
+        </div>
       </div>
 
       <!-- Sidebar Footer -->
@@ -96,11 +115,22 @@ export interface DashboardSidebarMenuItem {
         </div>
       </div>
     </aside>
+
+    <!-- Modal Konfirmasi Logout -->
+    <app-logout-confirm-modal
+      [isOpen]="isLogoutModalOpen()"
+      (confirmed)="executeLogout()"
+      (cancelled)="closeLogoutModal()"
+    />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkerDashboardSidebarComponent {
   readonly store = inject(WorkerDashboardStore);
+  readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly isLogoutModalOpen = signal<boolean>(false);
 
   readonly menuItems: readonly DashboardSidebarMenuItem[] = [
     { routePath: '/dashboard/ringkasan', label: 'Ringkasan', icon: 'grid_view' },
@@ -111,5 +141,20 @@ export class WorkerDashboardSidebarComponent {
     { routePath: '/dashboard/plan', label: 'Paket & Langganan', icon: 'workspace_premium' },
     { routePath: '/dashboard/boost', label: 'Boost Visibilitas', icon: 'bolt' },
   ];
+
+  openLogoutModal(): void {
+    this.isLogoutModalOpen.set(true);
+  }
+
+  closeLogoutModal(): void {
+    this.isLogoutModalOpen.set(false);
+  }
+
+  executeLogout(): void {
+    this.isLogoutModalOpen.set(false);
+    this.store.closeMobileSidebar();
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }
 

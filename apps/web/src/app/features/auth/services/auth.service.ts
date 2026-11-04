@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import {
+  AuthUserSession,
   INITIAL_SPECIALTY_OPTIONS,
   LoginFormData,
   MagicLinkStatus,
@@ -8,6 +9,8 @@ import {
   SlugValidationState,
   SpecialtyOption,
 } from '../models/auth.models';
+
+export const AUTH_STORAGE_KEY = 'tuwaktu_auth_session';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +23,101 @@ export class AuthService {
   readonly otpFeedbackMessage = signal<string>('');
   readonly magicLinkStatus = signal<MagicLinkStatus>('idle');
   readonly magicLinkFeedbackMessage = signal<string>('');
+
+  readonly currentUser = signal<AuthUserSession | null>(this.readInitialSession());
+  readonly currentWorker = computed<AuthUserSession | null>(() => this.currentUser());
+  readonly isLoggedIn = computed<boolean>(() => this.currentUser() !== null);
+
+  private readInitialSession(): AuthUserSession | null {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return null;
+    }
+    try {
+      const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as AuthUserSession;
+    } catch {
+      return null;
+    }
+  }
+
+  setSession(session: AuthUserSession | null): void {
+    this.currentUser.set(session);
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        if (session) {
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+        } else {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+        }
+      } catch {
+        // Storage browser tidak dapat diakses atau kuota penuh
+      }
+    }
+  }
+
+  login(
+    data: LoginFormData | AuthUserSession,
+    extra?: Partial<AuthUserSession>
+  ): { success: boolean; error?: string } {
+    if ('method' in data) {
+      const validation = this.validateLogin(data);
+      if (!validation.isValid) {
+        return { success: false, error: validation.error };
+      }
+
+      const cleanWa = data.waNumber ? data.waNumber.replace(/\D/g, '') : '';
+      const fallbackSlug = cleanWa
+        ? `pekerja-${cleanWa.slice(-4)}`
+        : 'mitra-mandiri';
+      const generatedSlug = data.workerId
+        ? this.sanitizeSlug(data.workerId.replace(/@.*/, ''))
+        : fallbackSlug;
+
+      const session: AuthUserSession = {
+        id: extra?.id || `usr_${Date.now()}`,
+        name:
+          extra?.name ||
+          (data.method === 'wa' ? `Mitra ${data.waNumber}` : data.workerId),
+        slug: extra?.slug || generatedSlug || 'budi-santoso',
+        waNumber: data.waNumber,
+        avatarUrl: extra?.avatarUrl,
+        role: 'worker',
+      };
+
+      this.setSession(session);
+      return { success: true };
+    }
+
+    this.setSession(data);
+    return { success: true };
+  }
+
+  register(formData: RegisterFormData): { success: boolean; error?: string } {
+    const validation = this.validateRegistration(formData);
+    if (!validation.isValid) {
+      return { success: false, error: validation.error };
+    }
+
+    const session: AuthUserSession = {
+      id: `usr_${Date.now()}`,
+      name: formData.fullName.trim(),
+      slug: formData.customSlug.trim(),
+      waNumber: formData.waNumber.trim(),
+      role: 'worker',
+    };
+
+    this.setSession(session);
+    return { success: true };
+  }
+
+  logout(): void {
+    this.setSession(null);
+    this.otpStatus.set('idle');
+    this.otpFeedbackMessage.set('');
+    this.magicLinkStatus.set('idle');
+    this.magicLinkFeedbackMessage.set('');
+  }
 
   selectSpecialty(specialty: SpecialtyOption): void {
     this.selectedSpecialty.set(specialty);

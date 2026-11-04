@@ -35,6 +35,15 @@ export interface SlugValidationState {
   message: string;
 }
 
+export interface AuthUserSession {
+  readonly id: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly waNumber?: string;
+  readonly avatarUrl?: string;
+  readonly role?: 'worker' | 'client';
+}
+
 export const INITIAL_SPECIALTY_OPTIONS: readonly SpecialtyOption[] = [
   { id: 'cleaning', label: 'Spesialis Kebersihan Hunian' },
   { id: 'ac-electric', label: 'Teknisi AC & Kelistrikan' },

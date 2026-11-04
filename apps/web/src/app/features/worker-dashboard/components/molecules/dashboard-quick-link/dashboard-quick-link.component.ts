@@ -7,16 +7,16 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div
-      class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 text-xs"
+      class="h-9 px-3 rounded-lg bg-surface-highlight border border-hairline-subtle flex items-center gap-2 text-xs text-on-surface shrink-0"
     >
-      <span class="material-symbols-outlined text-white/50 text-[16px]">link</span>
-      <span class="font-mono text-white/90 select-all truncate max-w-[200px] sm:max-w-[260px]">
+      <span class="material-symbols-outlined text-ink-secondary text-[16px]">link</span>
+      <span class="font-mono text-ink-secondary select-all truncate max-w-[200px] sm:max-w-[260px]">
         {{ urlText() }}
       </span>
       <button
         type="button"
         (click)="copyLink.emit()"
-        class="h-8 px-2.5 rounded bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+        class="h-6 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
         title="Salin tautan publik"
       >
         <span class="material-symbols-outlined text-[14px]">

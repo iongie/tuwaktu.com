@@ -22,19 +22,19 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
       class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-hairline-subtle z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-2xs"
     >
       <!-- Left: Mobile Menu Toggle & Status Penerimaan & Quick Link Pill -->
-      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+      <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
         <button
           type="button"
           (click)="store.toggleMobileSidebar()"
-          class="lg:hidden p-2 text-on-surface hover:bg-surface-highlight rounded cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+          class="lg:hidden h-9 w-9 rounded-lg text-on-surface hover:bg-surface-highlight cursor-pointer flex items-center justify-center shrink-0"
           aria-label="Buka Menu Modul"
         >
           <span class="material-symbols-outlined text-2xl">menu</span>
         </button>
 
-        <!-- Status Operasional Pill -->
+        <!-- Status Operasional Pill (Height h-9 Seragam) -->
         <div
-          class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold shrink-0"
+          class="h-9 px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-2 select-none"
           [class.bg-emerald-50]="store.isStoreOnline()"
           [class.text-emerald-800]="store.isStoreOnline()"
           [class.border]="true"
@@ -44,7 +44,7 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           [class.border-gray-200]="!store.isStoreOnline()"
         >
           <span
-            class="w-2 h-2 rounded-full"
+            class="w-2 h-2 rounded-full shrink-0"
             [class.bg-emerald-500]="store.isStoreOnline()"
             [class.bg-gray-400]="!store.isStoreOnline()"
             [class.animate-pulse]="store.isStoreOnline()"
@@ -55,12 +55,12 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           <span class="sm:hidden">{{ store.isStoreOnline() ? 'Aktif' : 'Off' }}</span>
         </div>
 
-        <!-- Integrated Header Slug Switcher Pill (Replaces Giant Input Box) -->
-        <div class="relative">
+        <!-- Integrated Header Slug Switcher Pill (Height h-9 Seragam) -->
+        <div class="relative shrink-0">
           <button
             type="button"
             (click)="toggleSwitcher()"
-            class="h-9 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs flex items-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px] cursor-pointer"
+            class="h-9 px-3 rounded-lg bg-surface-highlight hover:bg-surface-container text-on-surface font-semibold text-xs inline-flex items-center gap-1.5 transition-colors border border-hairline-subtle cursor-pointer shrink-0"
             aria-label="Ganti Profil Mitra Aktif"
             aria-haspopup="dialog"
             [attr.aria-expanded]="isSwitcherOpen()"
@@ -168,7 +168,7 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
         </div>
 
         @if (store.workerSlugIdentifier()) {
-          <div class="hidden xl:block">
+          <div class="hidden xl:block shrink-0">
             <app-dashboard-quick-link
               [urlText]="store.publicProfileRelativeUrl()"
               [feedbackMessage]="store.clipboardFeedbackMessage()"
@@ -178,27 +178,28 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
         }
       </div>
 
-      <!-- Right: Preview Link Button, Separator & Identity -->
-      <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+      <!-- Right: Preview Link Button, Separator & Identity (All Height h-9 Seragam) -->
+      <div class="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
         @if (store.workerSlugIdentifier()) {
           <a
             [routerLink]="store.publicProfileRelativeUrl()"
             target="_blank"
-            class="h-9 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs flex items-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px]"
+            class="h-9 px-3.5 rounded-lg bg-surface-highlight hover:bg-surface-container text-on-surface font-semibold text-xs inline-flex items-center gap-1.5 transition-colors border border-hairline-subtle cursor-pointer shrink-0"
           >
             <span class="material-symbols-outlined text-[16px]">visibility</span>
             <span class="hidden sm:inline">Pratinjau Publik</span>
           </a>
+
+          <div class="hidden sm:block h-5 w-px bg-hairline-subtle shrink-0 self-center"></div>
         }
 
-        <div class="hidden sm:block h-6 w-px bg-hairline-subtle"></div>
-
-        <div class="flex items-center gap-2.5">
-          <div class="flex flex-col text-right hidden sm:flex">
-            <span class="font-body-strong text-body-strong text-primary truncate max-w-[140px]">
+        <!-- User Identity Block (Height h-9 Seragam dengan Avatar w-9 h-9) -->
+        <div class="flex items-center gap-2.5 h-9 shrink-0">
+          <div class="flex flex-col text-right hidden sm:flex justify-center">
+            <span class="font-body-strong text-body-strong text-primary truncate max-w-[140px] leading-tight">
               {{ store.workerFullName() || 'Sarah Melinda' }}
             </span>
-            <span class="font-caption text-caption text-ink-secondary truncate max-w-[140px]">
+            <span class="font-caption text-caption text-ink-secondary truncate max-w-[140px] leading-tight mt-0.5">
               {{ store.workerProfessionZone() || 'Spesialis Mandiri' }}
             </span>
           </div>
@@ -207,22 +208,22 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
             <img
               [src]="store.workerAvatarUrl()"
               [alt]="store.workerFullName() || 'Avatar Mitra'"
-              class="w-8 h-8 rounded-full object-cover ring-1 ring-hairline-light"
+              class="w-9 h-9 rounded-full object-cover ring-1 ring-hairline-subtle shrink-0"
             />
           } @else {
             <div
-              class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs"
+              class="w-9 h-9 rounded-full bg-hero-canvas text-ink-on-dark flex items-center justify-center font-bold text-xs ring-1 ring-hairline-subtle shrink-0"
             >
               <span class="material-symbols-outlined text-[18px]">person</span>
             </div>
           }
         </div>
 
-        <!-- Tombol Keluar dari Konsol Kerja -->
+        <!-- Tombol Keluar dari Konsol Kerja (Height h-9 Seragam) -->
         <button
           type="button"
           (click)="openLogoutModal()"
-          class="h-9 px-3 min-w-[44px] rounded-lg bg-surface-container hover:bg-red-50 text-on-surface hover:text-red-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px] cursor-pointer"
+          class="h-9 px-3 rounded-lg bg-surface-highlight hover:bg-red-50 text-on-surface hover:text-red-600 font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition-colors border border-hairline-subtle cursor-pointer shrink-0"
           title="Keluar dari Konsol Kerja"
           aria-label="Keluar dari Konsol Kerja"
           id="headerLogoutBtn"

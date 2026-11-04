@@ -4,6 +4,8 @@ import { of } from 'rxjs';
 import { WorkerDashboardSummaryComponent } from './worker-dashboard-summary.component';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { WorkerDashboardApiService } from '../../../services/worker-dashboard-api.service';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('WorkerDashboardSummaryComponent', () => {
   let component: WorkerDashboardSummaryComponent;
@@ -15,6 +17,9 @@ describe('WorkerDashboardSummaryComponent', () => {
       imports: [WorkerDashboardSummaryComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        WorkerDashboardStore,
         {
           provide: WorkerDashboardApiService,
           useValue: {
@@ -39,13 +44,13 @@ describe('WorkerDashboardSummaryComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('harus merender status terkonfigurasi saat tarif telah diisi', () => {
-    store.workerBasePrice.set(75000);
-    store.workerRateType.set('HOURLY');
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('75.000');
+  it('harus merender seluruh organisme utama dasbor persis Stitch', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-worker-dashboard-hero-banner')).toBeTruthy();
+    expect(el.querySelector('app-summary-schedule-hub')).toBeTruthy();
+    expect(el.querySelector('app-summary-logistics-services-hub')).toBeTruthy();
+    expect(el.querySelector('app-summary-recent-transactions-table')).toBeTruthy();
+    expect(el.textContent).toContain('Prinsip Kedaulatan Mitra Tuwaktu');
   });
 
   it('harus memanggil fetchWorkerProfile saat loadProfileByLookupInput dipanggil', () => {
@@ -56,4 +61,3 @@ describe('WorkerDashboardSummaryComponent', () => {
     expect(apiService.fetchWorkerProfile).toHaveBeenCalledWith('budi-santoso');
   });
 });
-

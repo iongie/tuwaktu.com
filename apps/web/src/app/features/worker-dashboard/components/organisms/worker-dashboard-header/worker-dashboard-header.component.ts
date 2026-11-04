@@ -1,19 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-link/dashboard-quick-link.component';
 
 @Component({
   selector: 'app-worker-dashboard-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, DashboardQuickLinkComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DashboardQuickLinkComponent],
   template: `
     <header
       class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-hairline-subtle z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-2xs"
     >
       <!-- Left: Mobile Menu Toggle & Status Penerimaan & Quick Link Pill -->
-      <div class="flex items-center gap-3 sm:gap-4 overflow-hidden">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
         <button
           type="button"
           (click)="store.toggleMobileSidebar()"
@@ -23,6 +24,7 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
           <span class="material-symbols-outlined text-2xl">menu</span>
         </button>
 
+        <!-- Status Operasional Pill -->
         <div
           class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold shrink-0"
           [class.bg-emerald-50]="store.isStoreOnline()"
@@ -45,8 +47,120 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
           <span class="sm:hidden">{{ store.isStoreOnline() ? 'Aktif' : 'Off' }}</span>
         </div>
 
+        <!-- Integrated Header Slug Switcher Pill (Replaces Giant Input Box) -->
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleSwitcher()"
+            class="h-9 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs flex items-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px] cursor-pointer"
+            aria-label="Ganti Profil Mitra Aktif"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="isSwitcherOpen()"
+          >
+            <span class="text-on-surface-variant font-mono">&#64;</span>
+            <span class="font-mono font-bold truncate max-w-[110px] sm:max-w-[150px]">
+              {{ store.workerSlugIdentifier() || 'sarah-cleaning' }}
+            </span>
+            <span class="material-symbols-outlined text-[16px] text-on-surface-variant">swap_horiz</span>
+          </button>
+
+          <!-- Popover Modal / Dropdown -->
+          @if (isSwitcherOpen()) {
+            <button
+              type="button"
+              class="fixed inset-0 z-40 bg-black/10 w-full h-full cursor-default border-none p-0"
+              (click)="closeSwitcher()"
+              aria-label="Tutup Dialog Pilihan Profil"
+            ></button>
+
+            <div
+              class="absolute left-0 mt-2 w-72 sm:w-84 max-w-[calc(100vw-2rem)] bg-surface-container-lowest border border-hairline-subtle rounded-xl shadow-xl z-50 p-4 space-y-3"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Dialog Ganti Profil Mitra"
+              (keydown.escape)="closeSwitcher()"
+            >
+              <div class="flex items-center justify-between pb-2 border-b border-hairline-subtle">
+                <div>
+                  <h3 class="text-xs font-bold text-on-surface">Ganti Profil Mitra</h3>
+                  <p class="text-[11px] text-on-surface-variant">Ketik slug untuk memuat konfigurasi API</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="closeSwitcher()"
+                  class="p-1 rounded text-on-surface-variant hover:text-on-surface min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                  aria-label="Tutup Dialog Ganti Profil"
+                >
+                  <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+
+              @if (store.profileFeedbackError()) {
+                <div class="p-2.5 rounded-lg bg-red-50 border border-red-200 text-[11px] text-red-700 font-medium">
+                  {{ store.profileFeedbackError() }}
+                </div>
+              }
+
+              <form (ngSubmit)="applySlugSwitch()" class="space-y-3">
+                <div class="relative">
+                  <span
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-mono text-xs select-none"
+                  >&#64;</span>
+                  <input
+                    type="text"
+                    name="slugSwitcherInput"
+                    [ngModel]="switcherSlugValue()"
+                    (ngModelChange)="switcherSlugValue.set($event)"
+                    placeholder="contoh: sarah-cleaning"
+                    class="w-full pl-7 pr-3 min-h-[44px] bg-surface-container-low border border-hairline-subtle rounded-lg text-xs font-mono text-on-surface focus:bg-white focus:outline-none focus:ring-2 focus:ring-(--voltage-orange) transition-all"
+                  />
+                </div>
+
+                <!-- Pilihan Cepat -->
+                <div>
+                  <span class="text-[10px] font-mono uppercase text-on-surface-variant block mb-1.5 font-bold">
+                    Pilihan Cepat:
+                  </span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (preset of quickPresets; track preset) {
+                      <button
+                        type="button"
+                        (click)="selectPreset(preset)"
+                        class="px-3 py-2 rounded text-[11px] font-mono border border-hairline-subtle hover:border-on-surface transition-colors cursor-pointer min-h-[44px] inline-flex items-center justify-center"
+                        [class.bg-on-surface]="switcherSlugValue() === preset"
+                        [class.text-white]="switcherSlugValue() === preset"
+                        [class.bg-surface-container-low]="switcherSlugValue() !== preset"
+                        [class.text-on-surface]="switcherSlugValue() !== preset"
+                      >
+                        &#64;{{ preset }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-hairline-subtle">
+                  <button
+                    type="button"
+                    (click)="closeSwitcher()"
+                    class="min-h-[44px] px-3.5 rounded-lg border border-hairline-subtle text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    [disabled]="store.isProfileLoading()"
+                    class="min-h-[44px] px-4 rounded-lg bg-on-surface hover:bg-black text-white text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {{ store.isProfileLoading() ? 'Memuat...' : 'Terapkan' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
+        </div>
+
         @if (store.workerSlugIdentifier()) {
-          <div class="hidden md:block">
+          <div class="hidden xl:block">
             <app-dashboard-quick-link
               [urlText]="store.publicProfileRelativeUrl()"
               [feedbackMessage]="store.clipboardFeedbackMessage()"
@@ -74,7 +188,7 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
         <div class="flex items-center gap-2.5">
           <div class="flex flex-col text-right hidden sm:flex">
             <span class="font-body-strong text-body-strong text-primary truncate max-w-[140px]">
-              {{ store.workerFullName() || 'Mitra Tuwaktu' }}
+              {{ store.workerFullName() || 'Sarah Melinda' }}
             </span>
             <span class="font-caption text-caption text-ink-secondary truncate max-w-[140px]">
               {{ store.workerProfessionZone() || 'Spesialis Mandiri' }}
@@ -102,5 +216,44 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
 })
 export class WorkerDashboardHeaderComponent {
   readonly store = inject(WorkerDashboardStore);
-}
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
 
+  readonly isSwitcherOpen = signal(false);
+  readonly switcherSlugValue = signal('');
+  readonly quickPresets = ['sarah-cleaning', 'budi-santoso', 'eko-teknisi'];
+
+  toggleSwitcher(): void {
+    if (!this.isSwitcherOpen()) {
+      this.store.profileFeedbackError.set('');
+      this.switcherSlugValue.set(
+        this.store.workerSlugIdentifier() || 'sarah-cleaning'
+      );
+      this.isSwitcherOpen.set(true);
+    } else {
+      this.isSwitcherOpen.set(false);
+    }
+  }
+
+  closeSwitcher(): void {
+    this.isSwitcherOpen.set(false);
+  }
+
+  selectPreset(preset: string): void {
+    this.switcherSlugValue.set(preset);
+  }
+
+  applySlugSwitch(): void {
+    const slug = this.switcherSlugValue().trim().toLowerCase();
+    if (!slug) return;
+
+    this.store.loadExistingWorkerProfile(slug, () => {
+      this.router.navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams: { slug: slug },
+        queryParamsHandling: 'merge',
+      });
+      this.closeSwitcher();
+    });
+  }
+}

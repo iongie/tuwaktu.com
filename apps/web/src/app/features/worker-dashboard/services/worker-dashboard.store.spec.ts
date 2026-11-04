@@ -434,6 +434,22 @@ describe('WorkerDashboardStore', () => {
     expect(store.ratesFeedbackSuccess()).toBe('Pengaturan katalog tarif pekerja berhasil diperbarui!');
     expect(store.lastRatesSyncTimestamp()).toContain('WIB');
   });
+
+  it('harus mengatur ulang parameter logistik dan alamat basecamp melalui resetLocationToDefault', () => {
+    store.workerMaxRadiusKm.set(25);
+    store.workerFreeRadiusKm.set(10);
+    store.workerExtraFeePerKm.set(6000);
+    store.setWorkerBasecampAddress('Jl. Jenderal Sudirman No. 1, Jakarta');
+
+    store.resetLocationToDefault();
+
+    expect(store.workerMaxRadiusKm()).toBe(5.0);
+    expect(store.workerFreeRadiusKm()).toBe(3.0);
+    expect(store.workerExtraFeePerKm()).toBe(3000);
+    expect(store.workerLat()).toBe(-6.234129);
+    expect(store.workerLng()).toBe(106.852901);
+    expect(store.workerBasecampAddress()).toContain('Tebet Timur Dalam Raya');
+  });
 });
 
 

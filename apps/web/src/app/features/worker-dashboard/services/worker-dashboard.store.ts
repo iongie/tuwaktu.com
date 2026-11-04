@@ -221,11 +221,14 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerServices().filter((s) => s.status === this.servicesActiveTab())
   );
 
-  readonly workerLat = signal<number | null>(null);
-  readonly workerLng = signal<number | null>(null);
-  readonly workerMaxRadiusKm = signal<number>(10);
-  readonly workerFreeRadiusKm = signal<number>(3);
-  readonly workerExtraFeePerKm = signal<number>(0);
+  readonly workerLat = signal<number | null>(-6.234129);
+  readonly workerLng = signal<number | null>(106.852901);
+  readonly workerMaxRadiusKm = signal<number>(5.0);
+  readonly workerFreeRadiusKm = signal<number>(3.0);
+  readonly workerExtraFeePerKm = signal<number>(3000);
+  readonly workerBasecampAddress = signal<string>(
+    'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
+  );
 
   readonly workerSchedules = signal<WorkerScheduleItem[]>([]);
 
@@ -601,6 +604,28 @@ export class WorkerDashboardStore implements OnDestroy {
     }
   }
 
+  setWorkerBasecampAddress(address: string): void {
+    const trimmed = address.trim();
+    if (trimmed) {
+      this.workerBasecampAddress.set(trimmed);
+    }
+  }
+
+  resetLocationToDefault(): void {
+    this.workerLat.set(-6.234129);
+    this.workerLng.set(106.852901);
+    this.workerMaxRadiusKm.set(5.0);
+    this.workerFreeRadiusKm.set(3.0);
+    this.workerExtraFeePerKm.set(3000);
+    this.workerBasecampAddress.set(
+      'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
+    );
+    this.clearLocationValidationError('coordinates');
+    this.clearLocationValidationError('max_radius_km');
+    this.clearLocationValidationError('free_radius_km');
+    this.clearLocationValidationError('extra_fee_per_km');
+  }
+
   clearInputValidationError(fieldName: string): void {
     const current = { ...this.inputValidationErrors() };
     if (current[fieldName]) {
@@ -781,6 +806,9 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerSlugIdentifier.set(profile.slug);
     this.workerFullName.set(profile.name);
     this.workerProfessionZone.set(profile.zone);
+    if (profile.zone && profile.zone.trim()) {
+      this.workerBasecampAddress.set(`Basecamp Area ${profile.zone.trim()}`);
+    }
     this.workerBioDescription.set(profile.bio || '');
     this.workerAvatarUrl.set(profile.avatar_url || '');
     this.workerWhatsAppNumber.set(profile.whatsapp_number || '');
@@ -907,6 +935,9 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerMaxRadiusKm.set(10);
     this.workerFreeRadiusKm.set(3);
     this.workerExtraFeePerKm.set(0);
+    this.workerBasecampAddress.set(
+      'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
+    );
     this.workerLookupSlugInput.set('');
     this.workerSchedules.set([]);
     this.workerServices.set([...DEFAULT_WORKER_SERVICES]);

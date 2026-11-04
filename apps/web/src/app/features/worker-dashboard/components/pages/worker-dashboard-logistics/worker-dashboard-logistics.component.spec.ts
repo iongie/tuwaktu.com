@@ -69,5 +69,42 @@ describe('WorkerDashboardLogisticsComponent', () => {
       }
     );
   });
-});
 
+  it('harus merender judul halaman dan badge mode transportasi', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Logistik, Basecamp & Radius Jangkauan');
+    expect(compiled.textContent).toContain('Mode Transportasi');
+    expect(compiled.textContent).toContain('Roda Dua (Motoris Mandiri)');
+  });
+
+  it('harus memperbarui sinyal store saat onCoordinatesChanged dipanggil', () => {
+    component.onCoordinatesChanged({ lat: -6.1754, lng: 106.8272 });
+    expect(store.workerLat()).toBe(-6.1754);
+    expect(store.workerLng()).toBe(106.8272);
+  });
+
+  it('harus memperbarui sinyal store saat onMaxRadiusChange, onFreeRadiusChange, dan onExtraFeeChange dipanggil', () => {
+    component.onMaxRadiusChange(12);
+    expect(store.workerMaxRadiusKm()).toBe(12);
+
+    component.onFreeRadiusChange(4.5);
+    expect(store.workerFreeRadiusKm()).toBe(4.5);
+
+    component.onExtraFeeChange(4500);
+    expect(store.workerExtraFeePerKm()).toBe(4500);
+  });
+
+  it('harus mengatur ulang parameter logistik saat resetToDefault dipanggil', () => {
+    store.workerMaxRadiusKm.set(20);
+    store.workerFreeRadiusKm.set(8);
+    store.workerExtraFeePerKm.set(7000);
+
+    component.resetToDefault();
+
+    expect(store.workerMaxRadiusKm()).toBe(5.0);
+    expect(store.workerFreeRadiusKm()).toBe(3.0);
+    expect(store.workerExtraFeePerKm()).toBe(3000);
+    expect(store.workerLat()).toBe(-6.234129);
+    expect(store.workerLng()).toBe(106.852901);
+  });
+});

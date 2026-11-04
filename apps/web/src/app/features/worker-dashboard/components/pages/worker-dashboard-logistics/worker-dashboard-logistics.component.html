@@ -1,154 +1,140 @@
-<section class="bg-white rounded-xl p-6 sm:p-8 border border-(--hairline-light) shadow-xs space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-(--hairline-light)">
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-(--voltage-orange) text-xl">near_me</span>
-        <h1 class="text-xl font-bold text-(--brand-ink)">Logistik, Basecamp &amp; Radius</h1>
+<div class="flex flex-col w-full gap-8">
+  <!-- Header Section with Telemetry & Active Policy Quick Badge -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+    <div class="flex flex-col gap-2 max-w-3xl">
+      <div class="flex items-center gap-2 text-micro-uppercase font-micro-uppercase text-ink-secondary tracking-widest uppercase">
+        <span class="inline-block w-2 h-2 rounded-full bg-voltage-orange animate-pulse"></span>
+        <span>Modul Logistik • Operasional Lapangan Presisi</span>
       </div>
-      <p class="text-xs text-(--brand-ink)/60 mt-1">
-        Kalkulasi ongkos bensin otomatis tanpa tawar-menawar yang membuang waktu.
+      <h1 class="font-heading-1 text-heading-1 text-primary font-bold tracking-tight">
+        Logistik, Basecamp &amp; Radius Jangkauan
+      </h1>
+      <p class="font-body-default text-body-default text-on-surface-variant leading-relaxed">
+        Kalkulasi ongkos bensin dan pembatasan jarak fisik agar stamina kerja terjaga tanpa tawar-menawar manual di depan pintu klien.
       </p>
     </div>
-    <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-xs font-mono font-bold flex items-center gap-1">
-      <span class="material-symbols-outlined text-xs">verified</span>
-      <span>GPS Terkunci</span>
-    </span>
+
+    <!-- Active Policy Quick Badge -->
+    <div class="flex items-center gap-3.5 self-start md:self-auto bg-surface-container-lowest p-3 px-4 rounded-xl border border-hairline-subtle shadow-xs shrink-0">
+      <div class="w-10 h-10 rounded-lg bg-surface-highlight flex items-center justify-center text-primary shrink-0">
+        <span class="material-symbols-outlined text-[20px]">two_wheeler</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-caption text-caption text-ink-secondary">Mode Transportasi</span>
+        <span class="font-body-strong text-body-strong text-primary">Roda Dua (Motoris Mandiri)</span>
+      </div>
+    </div>
   </div>
 
-  <form (ngSubmit)="submitLocation()" class="space-y-6">
-    <!-- Location Map Picker -->
-    <app-location-map-picker
-      [latitude]="store.workerLat()"
-      [longitude]="store.workerLng()"
-      [radiusKm]="store.workerMaxRadiusKm()"
-      label="Titik Koordinat Basecamp / Rumah Tinggal"
-      helperText="Tentukan lokasi awal Anda pada peta agar sistem menghitung jarak antar secara akurat."
-      (coordinatesChange)="onCoordinatesChanged($event)"
-    />
+  <!-- Main Bento Grid Layout (7 Cols Left / 5 Cols Right) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- LEFT COLUMN: Logistics Infrastructure & Controls (7 Cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+      <!-- Basecamp Master Panel Organism -->
+      <app-worker-basecamp-map-panel
+        [latitude]="store.workerLat()"
+        [longitude]="store.workerLng()"
+        [freeRadiusKm]="store.workerFreeRadiusKm()"
+        [maxRadiusKm]="store.workerMaxRadiusKm()"
+        [address]="store.workerBasecampAddress()"
+        [zone]="store.workerProfessionZone() || 'Tebet'"
+        (coordinatesChange)="onCoordinatesChanged($event)"
+        (addressChange)="onAddressChanged($event)"
+      />
 
-    <!-- 3 Policy Sliders from Stitch -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-      <!-- Parameter 1: Radius Gratis -->
-      <div class="p-3.5 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-2">
-        <div class="flex items-center justify-between">
-          <label for="workerFreeRadiusInput" class="text-xs font-bold text-(--brand-ink)">
-            Radius Gratis
-          </label>
-          <span class="font-mono text-xs font-bold text-emerald-700">
-            {{ store.workerFreeRadiusKm() }} Km
-          </span>
-        </div>
-        <input
-          id="workerFreeRadiusInput"
-          type="number"
-          min="0"
-          max="50"
-          step="0.5"
-          [ngModel]="store.workerFreeRadiusKm()"
-          (ngModelChange)="onFreeRadiusChange($event)"
-          name="workerFreeRadiusKm"
-          class="m3-field-outlined text-xs font-mono h-9"
-        />
-        <span class="text-[10px] font-mono text-(--brand-ink)/60 block">Zona tanpa tambahan ongkir</span>
-      </div>
-
-      <!-- Parameter 2: Ongkos Tambahan / Km -->
-      <div class="p-3.5 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-2">
-        <div class="flex items-center justify-between">
-          <label for="workerExtraFeeInput" class="text-xs font-bold text-(--brand-ink)">
-            Biaya Tambahan / Km
-          </label>
-          <span class="font-mono text-xs font-bold text-amber-700">
-            {{ store.formattedExtraFeePreview() }}
-          </span>
-        </div>
-        <input
-          id="workerExtraFeeInput"
-          type="number"
-          min="0"
-          step="500"
-          [ngModel]="store.workerExtraFeePerKm()"
-          (ngModelChange)="onExtraFeeChange($event)"
-          name="workerExtraFeePerKm"
-          class="m3-field-outlined text-xs font-mono h-9"
-        />
-        <span class="text-[10px] font-mono text-(--brand-ink)/60 block">Per km kelebihan batas gratis</span>
-      </div>
-
-      <!-- Parameter 3: Batas Maksimal Layanan -->
-      <div class="p-3.5 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-2">
-        <div class="flex items-center justify-between">
-          <label for="workerMaxRadiusSlider" class="text-xs font-bold text-(--brand-ink)">
-            Batas Maksimal
-          </label>
-          <span class="font-mono text-xs font-bold text-red-600">
-            {{ store.workerMaxRadiusKm() }} Km
-          </span>
-        </div>
-        <input
-          id="workerMaxRadiusSlider"
-          type="range"
-          min="1"
-          max="50"
-          step="1"
-          [ngModel]="store.workerMaxRadiusKm()"
-          (ngModelChange)="onMaxRadiusChange($event)"
-          name="workerMaxRadiusSlider"
-          class="w-full accent-(--voltage-orange) cursor-pointer h-2 bg-gray-200 rounded-lg mt-2"
-        />
-        <span class="text-[10px] font-mono text-(--brand-ink)/60 block">Blokir otomatis jika di luar jangkauan</span>
-      </div>
+      <!-- Parameter Rules & Sliders Organism -->
+      <app-worker-logistics-config-panel
+        [freeRadiusKm]="store.workerFreeRadiusKm()"
+        [extraFeePerKm]="store.workerExtraFeePerKm()"
+        [maxRadiusKm]="store.workerMaxRadiusKm()"
+        [basecampZone]="store.workerProfessionZone() || 'Tebet'"
+        (freeRadiusKmChange)="onFreeRadiusChange($event)"
+        (extraFeePerKmChange)="onExtraFeeChange($event)"
+        (maxRadiusKmChange)="onMaxRadiusChange($event)"
+      />
     </div>
 
-    <!-- Radius Geographic Visualizer Diagram 3-Zone -->
-    <div class="p-4 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-bold font-mono text-(--brand-ink) uppercase tracking-wider">
-          Diagram Kebijakan Zona Tempuh:
+    <!-- RIGHT COLUMN: Interactive Visualizer & Transit Simulator (5 Cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+      <!-- Spectrum Bar Card Molecule -->
+      <app-logistics-zone-spectrum-meter
+        [freeRadiusKm]="store.workerFreeRadiusKm()"
+        [maxRadiusKm]="store.workerMaxRadiusKm()"
+        [extraFeePerKm]="store.workerExtraFeePerKm()"
+        [basecampZone]="store.workerProfessionZone() || 'Tebet'"
+      />
+
+      <!-- Live Simulator Terminal Sandbox Molecule -->
+      <app-logistics-simulator-terminal
+        [freeRadiusKm]="store.workerFreeRadiusKm()"
+        [maxRadiusKm]="store.workerMaxRadiusKm()"
+        [extraFeePerKm]="store.workerExtraFeePerKm()"
+        [basecampZone]="store.workerProfessionZone() || 'Tebet'"
+      />
+
+      <!-- Physical Protection Manifesto Card Molecule -->
+      <app-logistics-manifesto-card
+        [maxRadiusKm]="store.workerMaxRadiusKm()"
+      />
+    </div>
+  </div>
+
+  <!-- Bottom Global Sticky Action Bar for Instant Persist -->
+  <div class="sticky bottom-4 z-30 w-full bg-surface-container-lowest rounded-xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-hairline-subtle">
+    <div class="flex items-center gap-3.5">
+      <div class="w-10 h-10 rounded-lg bg-surface-highlight flex items-center justify-center text-primary shrink-0">
+        <span class="material-symbols-outlined text-[20px]">
+          {{ isSavedSuccess() ? 'cloud_done' : 'save_as' }}
         </span>
-        <span class="text-[11px] font-mono text-emerald-700 font-semibold">Proteksi Kelelahan Fisik</span>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs font-mono">
-        <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-          <div class="flex items-center justify-between font-bold text-emerald-900">
-            <span>Zona 1: 0 - {{ store.workerFreeRadiusKm() }} Km</span>
-            <span>Rp 0 (FREE)</span>
-          </div>
-          <p class="text-[11px] text-emerald-800 mt-1">Bebas biaya transportasi pelanggan.</p>
-        </div>
-
-        <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
-          <div class="flex items-center justify-between font-bold text-amber-900">
-            <span>Zona 2: {{ store.workerFreeRadiusKm() }} - {{ store.workerMaxRadiusKm() }} Km</span>
-            <span>+{{ store.formattedExtraFeePreview() }} / Km</span>
-          </div>
-          <p class="text-[11px] text-amber-800 mt-1">Kompensasi bensin dan waktu tempuh.</p>
-        </div>
-
-        <div class="p-3 rounded-lg bg-red-50 border border-red-200">
-          <div class="flex items-center justify-between font-bold text-red-900">
-            <span>Zona 3: &gt; {{ store.workerMaxRadiusKm() }} Km</span>
-            <span class="text-red-600 font-bold">DITOLAK OTOMATIS</span>
-          </div>
-          <p class="text-[11px] text-red-800 mt-1">Sistem menolak alamat di luar radius demi stamina kerja.</p>
-        </div>
+      <div class="flex flex-col">
+        <span class="font-body-strong text-body-strong text-primary">
+          @if (store.isLocationSubmitting()) {
+            Menyinkronkan ke Server...
+          } @else if (isSavedSuccess()) {
+            Perubahan Tersimpan &amp; Aktif
+          } @else {
+            Perubahan Belum Disinkronkan
+          }
+        </span>
+        <span class="font-caption text-caption text-ink-secondary">
+          Seluruh kalkulasi radius akan langsung aktif di tuwaktu.com/{{ store.workerSlugIdentifier() || 'sarah-cleaning' }}
+        </span>
       </div>
     </div>
 
-    <div class="pt-4 border-t border-(--hairline-light) flex items-center justify-end">
+    <div class="flex items-center gap-3 w-full sm:w-auto">
       <button
-        type="submit"
-        [disabled]="store.isLocationSubmitting() || !store.hasActiveWorker()"
-        class="m3-btn-filled text-xs px-6 min-h-[44px]"
+        type="button"
+        (click)="resetToDefault()"
+        class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg bg-surface-highlight hover:bg-surface-container-high transition-colors font-button-label text-button-label text-primary min-h-[44px] cursor-pointer"
+      >
+        Atur Ulang Default
+      </button>
+
+      <button
+        id="btn-save-logistics"
+        type="button"
+        (click)="submitLocation()"
+        [disabled]="store.isLocationSubmitting()"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-button-label text-button-label shadow-sm min-h-[44px] cursor-pointer transition-all"
+        [class.bg-primary]="!isSavedSuccess()"
+        [class.hover:bg-surface-elevated-dark]="!isSavedSuccess()"
+        [class.bg-whatsapp-green]="isSavedSuccess()"
+        [class.hover:bg-whatsapp-green-hover]="isSavedSuccess()"
+        [class.text-on-primary]="true"
       >
         @if (store.isLocationSubmitting()) {
-          <span>Menyimpan Pengaturan...</span>
+          <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span>Menyimpan...</span>
+        } @else if (isSavedSuccess()) {
+          <span class="material-symbols-outlined text-[18px] text-whatsapp-surface">check</span>
+          <span>Tersimpan &amp; Aktif</span>
         } @else {
-          <span>Simpan Pengaturan Lokasi &amp; Radius</span>
+          <span class="material-symbols-outlined text-[18px]">cloud_sync</span>
+          <span>Simpan Konfigurasi Logistik</span>
         }
       </button>
     </div>
-  </form>
-</section>
-
+  </div>
+</div>

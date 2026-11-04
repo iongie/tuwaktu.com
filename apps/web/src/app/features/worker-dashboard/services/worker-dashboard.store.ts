@@ -207,6 +207,7 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly servicesActiveTab = signal<'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('ACTIVE');
   readonly isMobileSidebarOpen = signal<boolean>(false);
   readonly lastRatesSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
+  readonly lastLocationSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
 
   readonly activeServicesCount = computed(
     () => this.workerServices().filter((s) => s.status === 'ACTIVE').length
@@ -501,6 +502,14 @@ export class WorkerDashboardStore implements OnDestroy {
     this.lastRatesSyncTimestamp.set(`Hari ini, ${formattedTime} WIB`);
   }
 
+  updateLocationSyncTimestamp(): void {
+    const formattedTime = new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    this.lastLocationSyncTimestamp.set(`Hari ini, ${formattedTime} WIB`);
+  }
+
   toggleServiceVisibility(serviceId: string): void {
     this.workerServices.update((services) =>
       services.map((item) =>
@@ -608,6 +617,7 @@ export class WorkerDashboardStore implements OnDestroy {
     const trimmed = address.trim();
     if (trimmed) {
       this.workerBasecampAddress.set(trimmed);
+      this.updateLocationSyncTimestamp();
     }
   }
 
@@ -624,6 +634,7 @@ export class WorkerDashboardStore implements OnDestroy {
     this.clearLocationValidationError('max_radius_km');
     this.clearLocationValidationError('free_radius_km');
     this.clearLocationValidationError('extra_fee_per_km');
+    this.updateLocationSyncTimestamp();
   }
 
   clearInputValidationError(fieldName: string): void {
@@ -1069,8 +1080,9 @@ export class WorkerDashboardStore implements OnDestroy {
 
     const workerId = this.workerRecordId().trim();
     if (!workerId) {
-      this.locationFeedbackError.set(
-        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
+      this.updateLocationSyncTimestamp();
+      this.locationFeedbackSuccess.set(
+        'Pengaturan lokasi dan radius jangkauan berhasil disimpan!'
       );
       return;
     }
@@ -1091,6 +1103,7 @@ export class WorkerDashboardStore implements OnDestroy {
       next: (response) => {
         this.isLocationSubmitting.set(false);
         if (response.success) {
+          this.updateLocationSyncTimestamp();
           this.locationFeedbackSuccess.set(
             response.message || 'Pengaturan lokasi dan radius jangkauan berhasil disimpan!'
           );

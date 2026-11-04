@@ -1,28 +1,49 @@
 <div class="flex flex-col w-full gap-8">
-  <!-- Header Section with Telemetry & Active Policy Quick Badge -->
+  <!-- Header Section with Telemetry & Active Policy Quick Badge & Sync Action Button -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
-    <div class="flex flex-col gap-2 max-w-3xl">
+    <div class="flex flex-col gap-2 max-w-2xl">
       <div class="flex items-center gap-2 text-micro-uppercase font-micro-uppercase text-ink-secondary tracking-widest uppercase">
         <span class="inline-block w-2 h-2 rounded-full bg-voltage-orange animate-pulse"></span>
-        <span>Modul Logistik • Operasional Lapangan Presisi</span>
+        <span>Perlindungan Mobilitas • Presisi Geografis</span>
       </div>
       <h1 class="font-heading-1 text-heading-1 text-primary font-bold tracking-tight">
-        Logistik, Basecamp &amp; Radius Jangkauan
+        Logistik, Basecamp &amp; Radius Layanan
       </h1>
       <p class="font-body-default text-body-default text-on-surface-variant leading-relaxed">
         Kalkulasi ongkos bensin dan pembatasan jarak fisik agar stamina kerja terjaga tanpa tawar-menawar manual di depan pintu klien.
       </p>
     </div>
 
-    <!-- Active Policy Quick Badge -->
-    <div class="flex items-center gap-3.5 self-start md:self-auto bg-surface-container-lowest p-3 px-4 rounded-xl border border-hairline-subtle shadow-xs shrink-0">
-      <div class="w-10 h-10 rounded-lg bg-surface-highlight flex items-center justify-center text-primary shrink-0">
-        <span class="material-symbols-outlined text-[20px]">two_wheeler</span>
+    <!-- Right Controls: Mode Transportasi & Header Sync Action Button -->
+    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+      <div class="flex items-center gap-3 bg-surface-container-lowest p-2.5 px-3.5 rounded-xl border border-hairline-subtle shadow-xs shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-surface-highlight flex items-center justify-center text-primary shrink-0">
+          <span class="material-symbols-outlined text-[20px]">two_wheeler</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-caption text-caption text-ink-secondary">Mode Transportasi</span>
+          <span class="font-body-strong text-body-strong text-primary">Roda Dua (Motoris Mandiri)</span>
+        </div>
       </div>
-      <div class="flex flex-col">
-        <span class="font-caption text-caption text-ink-secondary">Mode Transportasi</span>
-        <span class="font-body-strong text-body-strong text-primary">Roda Dua (Motoris Mandiri)</span>
-      </div>
+
+      <button
+        id="btn-header-sync-logistics"
+        type="button"
+        (click)="submitLocation()"
+        [disabled]="store.isLocationSubmitting()"
+        class="h-11 px-5 rounded-lg bg-primary hover:bg-neutral-800 text-on-primary font-button-label text-button-label transition-colors flex items-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
+      >
+        @if (store.isLocationSubmitting()) {
+          <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span>Menyinkronkan...</span>
+        } @else if (isSavedSuccess()) {
+          <span class="material-symbols-outlined text-[18px] text-whatsapp-surface">check</span>
+          <span>Tersimpan &amp; Aktif</span>
+        } @else {
+          <span class="material-symbols-outlined text-[18px]">cloud_sync</span>
+          <span>Sinkronkan Parameter</span>
+        }
+      </button>
     </div>
   </div>
 
@@ -76,65 +97,6 @@
       <app-logistics-manifesto-card
         [maxRadiusKm]="store.workerMaxRadiusKm()"
       />
-    </div>
-  </div>
-
-  <!-- Bottom Global Sticky Action Bar for Instant Persist -->
-  <div class="sticky bottom-4 z-30 w-full bg-surface-container-lowest rounded-xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-hairline-subtle">
-    <div class="flex items-center gap-3.5">
-      <div class="w-10 h-10 rounded-lg bg-surface-highlight flex items-center justify-center text-primary shrink-0">
-        <span class="material-symbols-outlined text-[20px]">
-          {{ isSavedSuccess() ? 'cloud_done' : 'save_as' }}
-        </span>
-      </div>
-      <div class="flex flex-col">
-        <span class="font-body-strong text-body-strong text-primary">
-          @if (store.isLocationSubmitting()) {
-            Menyinkronkan ke Server...
-          } @else if (isSavedSuccess()) {
-            Perubahan Tersimpan &amp; Aktif
-          } @else {
-            Perubahan Belum Disinkronkan
-          }
-        </span>
-        <span class="font-caption text-caption text-ink-secondary">
-          Seluruh kalkulasi radius akan langsung aktif di tuwaktu.com/{{ store.workerSlugIdentifier() || 'sarah-cleaning' }}
-        </span>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3 w-full sm:w-auto">
-      <button
-        type="button"
-        (click)="resetToDefault()"
-        class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg bg-surface-highlight hover:bg-surface-container-high transition-colors font-button-label text-button-label text-primary min-h-[44px] cursor-pointer"
-      >
-        Atur Ulang Default
-      </button>
-
-      <button
-        id="btn-save-logistics"
-        type="button"
-        (click)="submitLocation()"
-        [disabled]="store.isLocationSubmitting()"
-        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-button-label text-button-label shadow-sm min-h-[44px] cursor-pointer transition-all"
-        [class.bg-primary]="!isSavedSuccess()"
-        [class.hover:bg-surface-elevated-dark]="!isSavedSuccess()"
-        [class.bg-whatsapp-green]="isSavedSuccess()"
-        [class.hover:bg-whatsapp-green-hover]="isSavedSuccess()"
-        [class.text-on-primary]="true"
-      >
-        @if (store.isLocationSubmitting()) {
-          <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          <span>Menyimpan...</span>
-        } @else if (isSavedSuccess()) {
-          <span class="material-symbols-outlined text-[18px] text-whatsapp-surface">check</span>
-          <span>Tersimpan &amp; Aktif</span>
-        } @else {
-          <span class="material-symbols-outlined text-[18px]">cloud_sync</span>
-          <span>Simpan Konfigurasi Logistik</span>
-        }
-      </button>
     </div>
   </div>
 </div>

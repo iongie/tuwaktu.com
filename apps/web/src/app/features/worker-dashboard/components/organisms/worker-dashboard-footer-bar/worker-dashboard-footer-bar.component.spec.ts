@@ -1,25 +1,32 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { WorkerDashboardFooterBarComponent } from './worker-dashboard-footer-bar.component';
-import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
+import { Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { WorkerDashboardFooterBarComponent } from './worker-dashboard-footer-bar.component';
+import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 
 describe('WorkerDashboardFooterBarComponent', () => {
   let fixture: ComponentFixture<WorkerDashboardFooterBarComponent>;
   let component: WorkerDashboardFooterBarComponent;
+  let store: WorkerDashboardStore;
+  let mockRouter: { url: string };
 
   beforeEach(async () => {
+    mockRouter = { url: '/dashboard/tarif-layanan' };
+
     await TestBed.configureTestingModule({
       imports: [WorkerDashboardFooterBarComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         WorkerDashboardStore,
+        { provide: Router, useValue: mockRouter },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WorkerDashboardFooterBarComponent);
     component = fixture.componentInstance;
+    store = TestBed.inject(WorkerDashboardStore);
     fixture.detectChanges();
   });
 
@@ -30,7 +37,7 @@ describe('WorkerDashboardFooterBarComponent', () => {
     expect(el.textContent).toContain('Perubahan tersimpan otomatis ke profil publik');
   });
 
-  it('harus memancarkan resetSelection saat tombol Batal diklik', () => {
+  it('harus memancarkan resetSelection saat tombol Batal diklik di luar rute logistik', () => {
     let resetEmitted = false;
     component.resetSelection.subscribe(() => {
       resetEmitted = true;
@@ -40,5 +47,28 @@ describe('WorkerDashboardFooterBarComponent', () => {
     batalBtn.click();
     expect(resetEmitted).toBe(true);
   });
-});
 
+  it('harus memanggil submitRatesUpdate saat simpan diklik pada rute tarif', () => {
+    jest.spyOn(store, 'submitRatesUpdate');
+    component.saveChanges();
+    expect(store.submitRatesUpdate).toHaveBeenCalled();
+  });
+
+  it('harus memanggil submitLocationSettingsUpdate saat simpan diklik pada rute logistik', () => {
+    mockRouter.url = '/dashboard/logistik-radius';
+    fixture.detectChanges();
+
+    jest.spyOn(store, 'submitLocationSettingsUpdate');
+    component.saveChanges();
+    expect(store.submitLocationSettingsUpdate).toHaveBeenCalled();
+  });
+
+  it('harus memanggil resetLocationToDefault saat Batal diklik pada rute logistik', () => {
+    mockRouter.url = '/dashboard/logistik-radius';
+    fixture.detectChanges();
+
+    jest.spyOn(store, 'resetLocationToDefault');
+    component.cancelChanges();
+    expect(store.resetLocationToDefault).toHaveBeenCalled();
+  });
+});

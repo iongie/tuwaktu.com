@@ -40,15 +40,28 @@ export interface BasecampPresetLocation {
         </span>
       </div>
 
-      <!-- Address Card with High Contrast Telemetry -->
+      <!-- Address Card with High Contrast Telemetry & Editable Address -->
       <div class="bg-surface-highlight rounded-lg p-5 flex flex-col gap-4 border border-hairline-subtle">
-        <div class="flex flex-col gap-1">
-          <span class="text-caption font-caption text-ink-secondary uppercase tracking-wider font-semibold">
-            Alamat Fisik Tersimpan
-          </span>
-          <span class="font-lead-body text-lead-body text-primary font-semibold">
-            {{ address() }}
-          </span>
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-caption font-caption text-ink-secondary uppercase tracking-wider font-semibold">
+              Alamat Fisik Tersimpan
+            </span>
+            <span class="text-[11px] font-mono text-ink-secondary">
+              Dapat diedit langsung
+            </span>
+          </div>
+
+          <input
+            id="basecamp-address-input"
+            type="text"
+            [ngModel]="address()"
+            (ngModelChange)="onAddressInput($event)"
+            class="font-lead-body text-lead-body text-primary font-semibold bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-hairline-subtle focus:border-primary focus:outline-hidden w-full transition-colors"
+            placeholder="Masukkan alamat fisik pangkalan..."
+            aria-label="Alamat fisik pangkalan basecamp"
+          />
+
           <span class="font-caption text-caption text-on-surface-variant">
             {{ zoneDetails() }}
           </span>
@@ -69,7 +82,7 @@ export interface BasecampPresetLocation {
               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container-highest hover:bg-surface-container-high transition-colors text-primary font-button-label text-button-label min-h-[44px] cursor-pointer"
             >
               <span class="material-symbols-outlined text-[16px]">edit_location_alt</span>
-              <span>{{ isEditLocationOpen() ? 'Tutup Peta' : 'Ubah Basecamp' }}</span>
+              <span>{{ isEditLocationOpen() ? 'Tutup Koordinat' : 'Ubah Basecamp' }}</span>
             </button>
 
             <a
@@ -85,69 +98,70 @@ export interface BasecampPresetLocation {
         </div>
       </div>
 
-      <!-- Expandable Interactive Location Editor -->
-      @if (isEditLocationOpen()) {
-        <div class="p-5 rounded-xl bg-surface-highlight border border-hairline-subtle space-y-4 animate-fadeIn">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <span class="font-body-strong text-body-strong text-primary font-semibold">
-                Penyesuaian Titik GPS Basecamp
-              </span>
-              <p class="font-caption text-caption text-ink-secondary mt-0.5">
-                Kunci koordinat awal untuk memastikan kalkulasi ongkir ke pelanggan tepat.
-              </p>
-            </div>
+      <!-- Quick Preset & GPS Bar -->
+      <div class="space-y-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span class="font-caption text-caption text-ink-secondary font-semibold">
+            Pilihan Cepat Area Pangkalan:
+          </span>
+          <button
+            type="button"
+            (click)="requestDeviceGeolocation()"
+            [disabled]="isLocatingDevice()"
+            class="m3-btn-outlined text-xs py-1.5 px-3 min-h-[44px] flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+            aria-label="Gunakan lokasi GPS perangkat saat ini"
+          >
+            @if (isLocatingDevice()) {
+              <span class="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+              <span>Mendeteksi GPS...</span>
+            } @else {
+              <span class="material-symbols-outlined text-[16px] text-voltage-orange">my_location</span>
+              <span>Gunakan Lokasi Saya</span>
+            }
+          </button>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5">
+          @for (preset of presets; track preset.label) {
             <button
               type="button"
-              (click)="requestDeviceGeolocation()"
-              [disabled]="isLocatingDevice()"
-              class="m3-btn-outlined text-xs py-2 px-3.5 min-h-[44px] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+              (click)="applyPresetCoordinate(preset)"
+              class="m3-chip text-[11px] py-1 px-3 min-h-[38px] cursor-pointer"
+              [class.m3-chip-active]="isPresetActive(preset)"
             >
-              @if (isLocatingDevice()) {
-                <span class="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-                <span>Mendeteksi GPS...</span>
-              } @else {
-                <span class="material-symbols-outlined text-[16px] text-voltage-orange">my_location</span>
-                <span>Gunakan Lokasi Saya</span>
-              }
+              {{ preset.label }}
             </button>
-          </div>
-
-          @if (geolocationFeedback()) {
-            <div
-              role="status"
-              class="p-2.5 rounded-lg text-xs font-mono"
-              [class.bg-error-surface]="geolocationFeedback()!.isError"
-              [class.text-error-dark]="geolocationFeedback()!.isError"
-              [class.border]="geolocationFeedback()!.isError"
-              [class.border-error/30]="geolocationFeedback()!.isError"
-              [class.bg-success-surface]="!geolocationFeedback()!.isError"
-              [class.text-success]="!geolocationFeedback()!.isError"
-            >
-              {{ geolocationFeedback()!.message }}
-            </div>
           }
+        </div>
+      </div>
 
-          <!-- Quick Jabodetabek Presets -->
-          <div class="space-y-1.5">
-            <span class="font-caption text-caption text-ink-secondary font-semibold">
-              Pilihan Cepat Area Pangkalan:
+      @if (geolocationFeedback()) {
+        <div
+          role="status"
+          class="p-2.5 rounded-lg text-xs font-mono"
+          [class.bg-error-surface]="geolocationFeedback()!.isError"
+          [class.text-error-dark]="geolocationFeedback()!.isError"
+          [class.border]="geolocationFeedback()!.isError"
+          [class.border-error/30]="geolocationFeedback()!.isError"
+          [class.bg-success-surface]="!geolocationFeedback()!.isError"
+          [class.text-success]="!geolocationFeedback()!.isError"
+        >
+          {{ geolocationFeedback()!.message }}
+        </div>
+      }
+
+      <!-- Expandable Manual Coordinate Inputs -->
+      @if (isEditLocationOpen()) {
+        <div class="p-5 rounded-xl bg-surface-highlight border border-hairline-subtle space-y-4 animate-fadeIn">
+          <div>
+            <span class="font-body-strong text-body-strong text-primary font-semibold">
+              Penyesuaian Manual Koordinat GPS Basecamp
             </span>
-            <div class="flex flex-wrap gap-1.5">
-              @for (preset of presets; track preset.label) {
-                <button
-                  type="button"
-                  (click)="applyPresetCoordinate(preset)"
-                  class="m3-chip text-[11px] py-1 px-3 min-h-[36px] cursor-pointer"
-                  [class.m3-chip-active]="isPresetActive(preset)"
-                >
-                  {{ preset.label }}
-                </button>
-              }
-            </div>
+            <p class="font-caption text-caption text-ink-secondary mt-0.5">
+              Kunci koordinat lintang dan bujur untuk presisi navigasi ke lokasi pembersihan.
+            </p>
           </div>
 
-          <!-- Manual Inputs -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label for="basecamp-lat-input" class="block text-[11px] font-mono text-ink-secondary mb-1">
@@ -178,69 +192,124 @@ export interface BasecampPresetLocation {
               />
             </div>
           </div>
+        </div>
+      }
 
-          <!-- OpenStreetMap Embed Viewer -->
-          @if (sanitizedMapEmbedUrl(); as mapUrl) {
-            <div class="rounded-xl overflow-hidden border border-hairline-subtle bg-surface-container h-44 relative">
+      <!-- Visual Map & Radar Canvas with View Switcher -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-caption font-caption text-ink-secondary font-semibold">
+            Visualisasi Lokasi &amp; Radar
+          </span>
+          <div class="flex items-center gap-1 bg-surface-highlight p-1 rounded-lg border border-hairline-subtle text-caption">
+            <button
+              type="button"
+              (click)="setMapTab('RADAR')"
+              class="px-2.5 py-1 rounded font-button-label text-xs transition-colors cursor-pointer"
+              [class.bg-surface-container-lowest]="activeMapTab() === 'RADAR'"
+              [class.text-primary]="activeMapTab() === 'RADAR'"
+              [class.font-bold]="activeMapTab() === 'RADAR'"
+              [class.shadow-2xs]="activeMapTab() === 'RADAR'"
+              [class.text-ink-secondary]="activeMapTab() !== 'RADAR'"
+            >
+              Radar Jangkauan
+            </button>
+            <button
+              type="button"
+              (click)="setMapTab('INTERACTIVE')"
+              class="px-2.5 py-1 rounded font-button-label text-xs transition-colors cursor-pointer"
+              [class.bg-surface-container-lowest]="activeMapTab() === 'INTERACTIVE'"
+              [class.text-primary]="activeMapTab() === 'INTERACTIVE'"
+              [class.font-bold]="activeMapTab() === 'INTERACTIVE'"
+              [class.shadow-2xs]="activeMapTab() === 'INTERACTIVE'"
+              [class.text-ink-secondary]="activeMapTab() !== 'INTERACTIVE'"
+            >
+              Peta Interaktif
+            </button>
+          </div>
+        </div>
+
+        @if (activeMapTab() === 'RADAR') {
+          <!-- Monochromatic Radar Canvas (Stitch Aesthetic with Reactive SVG Rings) -->
+          <div
+            class="relative w-full h-56 rounded-xl overflow-hidden shadow-inner bg-hero-canvas flex flex-col justify-between p-4 border border-white/10"
+          >
+            <!-- Grid pattern background & radar gradient -->
+            <div class="absolute inset-0 bg-[radial-gradient(#303030_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-hero-canvas/95 via-hero-canvas/40 to-transparent pointer-events-none"></div>
+
+            <!-- Dynamic Reactive Radar Rings Overlay -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <!-- Max Radius Circle (Orange dashed) -->
+              <div
+                class="rounded-full border-2 border-dashed border-voltage-orange/60 animate-pulse flex items-center justify-center transition-all duration-300"
+                [style.width.px]="radarMaxDiameterPx()"
+                [style.height.px]="radarMaxDiameterPx()"
+              >
+                <!-- Free Radius Circle (Green solid) -->
+                <div
+                  class="rounded-full border-2 border-emerald-500/70 bg-emerald-500/10 flex items-center justify-center transition-all duration-300 shadow-inner"
+                  [style.width.px]="radarFreeDiameterPx()"
+                  [style.height.px]="radarFreeDiameterPx()"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Canvas Top Telemetry -->
+            <div class="relative z-10 flex justify-between items-start">
+              <span class="px-2.5 py-1 rounded bg-hero-canvas/85 backdrop-blur-md text-ink-on-dark font-mono-rate text-caption border border-white/10">
+                ZOOM: 1:12000 • SEKTOR {{ zone().toUpperCase() }}
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 font-mono-rate text-[11px] border border-emerald-500/30">
+                  Gratis: {{ freeRadiusKm() | number:'1.1-1' }} Km
+                </span>
+                <span class="px-2 py-0.5 rounded bg-orange-950/80 text-voltage-orange font-mono-rate text-[11px] border border-orange-500/30">
+                  Maks: {{ maxRadiusKm() | number:'1.1-1' }} Km
+                </span>
+              </div>
+            </div>
+
+            <!-- Canvas Center Basecamp Marker -->
+            <div class="relative z-10 flex flex-col items-center justify-center pointer-events-none my-auto">
+              <div class="relative flex items-center justify-center">
+                <span class="absolute inline-flex h-9 w-9 rounded-full bg-voltage-orange opacity-40 animate-ping"></span>
+                <span class="relative inline-flex items-center justify-center w-8 h-8 rounded-full bg-voltage-orange text-white shadow-lg">
+                  <span class="material-symbols-outlined text-[18px]">location_on</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Canvas Bottom Status -->
+            <div class="relative z-10 flex items-center justify-between text-ink-on-dark text-caption font-mono-rate">
+              <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-voltage-orange animate-pulse"></span>
+                <span class="font-body-strong text-body-strong text-white font-semibold">
+                  Titik Nol Pangkalan Aktif
+                </span>
+              </div>
+              <span class="text-neutral-400">
+                Akurasi GPS ± 3 meter
+              </span>
+            </div>
+          </div>
+        } @else {
+          <!-- Interactive OpenStreetMap Tile Viewer -->
+          <div class="relative w-full h-56 rounded-xl overflow-hidden border border-hairline-subtle bg-surface-container">
+            @if (sanitizedMapEmbedUrl(); as mapUrl) {
               <iframe
                 [src]="mapUrl"
                 title="Peta Interaktif Basecamp"
                 class="w-full h-full border-0"
                 loading="lazy"
               ></iframe>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Visual Location Canvas (Dark Aerial Vector Aesthetic from Stitch) -->
-      <div
-        class="relative w-full h-52 rounded-xl overflow-hidden shadow-inner bg-hero-canvas flex flex-col justify-between p-4 border border-white/10"
-      >
-        <!-- Dark grid pattern background & radar gradient -->
-        <div class="absolute inset-0 bg-[radial-gradient(#303030_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-hero-canvas/95 via-hero-canvas/40 to-transparent pointer-events-none"></div>
-
-        <!-- Radar Ring Circles Overlay -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <!-- Max Radius Circle (Red/Orange dashed) -->
-          <div class="w-40 h-40 rounded-full border border-dashed border-voltage-orange/30 animate-pulse"></div>
-          <!-- Free Radius Circle (Green solid) -->
-          <div class="w-24 h-24 rounded-full border border-emerald-500/40 bg-emerald-500/5"></div>
-        </div>
-
-        <!-- Canvas Top Telemetry -->
-        <div class="relative z-10 flex justify-between items-start">
-          <span class="px-2.5 py-1 rounded bg-hero-canvas/85 backdrop-blur-md text-ink-on-dark font-mono-rate text-caption border border-white/10">
-            ZOOM: 1:12000 • SEKTOR {{ zone().toUpperCase() }}
-          </span>
-          <div class="w-8 h-8 rounded-full bg-hero-canvas/90 text-voltage-orange flex items-center justify-center shadow-md border border-white/10">
-            <span class="material-symbols-outlined text-[18px]">navigation</span>
+            } @else {
+              <div class="h-full flex items-center justify-center text-ink-secondary text-caption font-mono">
+                Koordinat belum valid
+              </div>
+            }
           </div>
-        </div>
-
-        <!-- Canvas Center Basecamp Marker -->
-        <div class="relative z-10 flex flex-col items-center justify-center pointer-events-none">
-          <div class="relative flex items-center justify-center">
-            <span class="absolute inline-flex h-8 w-8 rounded-full bg-voltage-orange opacity-40 animate-ping"></span>
-            <span class="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-voltage-orange text-white shadow-lg">
-              <span class="material-symbols-outlined text-[16px]">location_on</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Canvas Bottom Status -->
-        <div class="relative z-10 flex items-center justify-between text-ink-on-dark text-caption font-mono-rate">
-          <div class="flex items-center gap-2">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-voltage-orange animate-pulse"></span>
-            <span class="font-body-strong text-body-strong text-white font-semibold">
-              Titik Nol Pangkalan Aktif
-            </span>
-          </div>
-          <span class="text-neutral-400">
-            Akurasi GPS ± 3 meter
-          </span>
-        </div>
+        }
       </div>
     </div>
   `,
@@ -261,6 +330,7 @@ export class WorkerBasecampMapPanelComponent {
   readonly coordinatesChange = output<{ lat: number; lng: number }>();
   readonly addressChange = output<string>();
 
+  readonly activeMapTab = signal<'RADAR' | 'INTERACTIVE'>('RADAR');
   readonly isEditLocationOpen = signal<boolean>(false);
   readonly isLocatingDevice = signal<boolean>(false);
   readonly geolocationFeedback = signal<{ message: string; isError: boolean } | null>(null);
@@ -326,6 +396,22 @@ export class WorkerBasecampMapPanelComponent {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
+  readonly radarMaxDiameterPx = computed(() => {
+    const max = this.maxRadiusKm();
+    return Math.min(Math.max(Math.round((max / 15) * 160 + 60), 120), 190);
+  });
+
+  readonly radarFreeDiameterPx = computed(() => {
+    const max = Math.max(this.maxRadiusKm(), 1);
+    const free = Math.max(this.freeRadiusKm(), 0.5);
+    const ratio = Math.min(free / max, 0.95);
+    return Math.max(Math.round(this.radarMaxDiameterPx() * ratio), 36);
+  });
+
+  setMapTab(tab: 'RADAR' | 'INTERACTIVE'): void {
+    this.activeMapTab.set(tab);
+  }
+
   toggleEditLocation(): void {
     this.isEditLocationOpen.update((open) => !open);
   }
@@ -347,6 +433,10 @@ export class WorkerBasecampMapPanelComponent {
       message: `Titik basecamp dialihkan ke ${preset.label}.`,
       isError: false,
     });
+  }
+
+  onAddressInput(val: string): void {
+    this.addressChange.emit(val);
   }
 
   onManualLatChange(rawVal: unknown): void {

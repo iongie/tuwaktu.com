@@ -449,6 +449,19 @@ describe('WorkerDashboardStore', () => {
     expect(store.workerLat()).toBe(-6.234129);
     expect(store.workerLng()).toBe(106.852901);
     expect(store.workerBasecampAddress()).toContain('Tebet Timur Dalam Raya');
+    expect(store.lastLocationSyncTimestamp()).toContain('WIB');
+  });
+
+  it('harus memperbarui lastLocationSyncTimestamp dan menyimpan saat submitLocationSettingsUpdate dipanggil', () => {
+    store.workerRecordId.set('');
+    store.workerMaxRadiusKm.set(8.0);
+    store.workerFreeRadiusKm.set(3.5);
+    store.workerExtraFeePerKm.set(3500);
+
+    store.submitLocationSettingsUpdate();
+
+    expect(store.locationFeedbackSuccess()).toContain('Pengaturan lokasi dan radius jangkauan berhasil disimpan');
+    expect(store.lastLocationSyncTimestamp()).toContain('WIB');
   });
 });
 

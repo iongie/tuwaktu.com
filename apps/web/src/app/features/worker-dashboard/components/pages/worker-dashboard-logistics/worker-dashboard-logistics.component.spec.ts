@@ -70,17 +70,26 @@ describe('WorkerDashboardLogisticsComponent', () => {
     );
   });
 
-  it('harus merender judul halaman dan badge mode transportasi', () => {
+  it('harus merender judul halaman, badge presisi, dan tombol sinkronisasi header', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Logistik, Basecamp & Radius Jangkauan');
+    expect(compiled.textContent).toContain('Logistik, Basecamp & Radius Layanan');
+    expect(compiled.textContent).toContain('Perlindungan Mobilitas • Presisi Geografis');
     expect(compiled.textContent).toContain('Mode Transportasi');
     expect(compiled.textContent).toContain('Roda Dua (Motoris Mandiri)');
+
+    const syncBtn = compiled.querySelector('#btn-header-sync-logistics');
+    expect(syncBtn).toBeTruthy();
   });
 
   it('harus memperbarui sinyal store saat onCoordinatesChanged dipanggil', () => {
     component.onCoordinatesChanged({ lat: -6.1754, lng: 106.8272 });
     expect(store.workerLat()).toBe(-6.1754);
     expect(store.workerLng()).toBe(106.8272);
+  });
+
+  it('harus memperbarui alamat basecamp di store saat onAddressChanged dipanggil', () => {
+    component.onAddressChanged('Jl. Melawai Raya, Kebayoran Baru');
+    expect(store.workerBasecampAddress()).toBe('Jl. Melawai Raya, Kebayoran Baru');
   });
 
   it('harus memperbarui sinyal store saat onMaxRadiusChange, onFreeRadiusChange, dan onExtraFeeChange dipanggil', () => {

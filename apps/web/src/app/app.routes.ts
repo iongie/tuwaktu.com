@@ -104,6 +104,28 @@ export const appRoutes: Route[] = [
     redirectTo: 'dashboard/boost',
   },
   {
+    path: 'register',
+    loadComponent: () =>
+      import(
+        './features/auth/components/pages/worker-register-page/worker-register-page.component'
+      ).then((m) => m.WorkerRegisterPageComponent),
+  },
+  {
+    path: 'daftar',
+    redirectTo: 'register',
+  },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import(
+        './features/auth/components/pages/worker-login-page/worker-login-page.component'
+      ).then((m) => m.WorkerLoginPageComponent),
+  },
+  {
+    path: 'masuk',
+    redirectTo: 'login',
+  },
+  {
     path: ':slug',
     loadComponent: () =>
       import(

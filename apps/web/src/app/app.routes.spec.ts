@@ -37,6 +37,24 @@ describe('appRoutes', () => {
     expect(summaryPage?.loadComponent).toBeDefined();
   });
 
+  it('harus memiliki rute register dan login pekerja mandiri yang terdefinisi', () => {
+    const registerRoute = appRoutes.find((r) => r.path === 'register');
+    expect(registerRoute).toBeDefined();
+    expect(registerRoute?.loadComponent).toBeDefined();
+
+    const daftarRoute = appRoutes.find((r) => r.path === 'daftar');
+    expect(daftarRoute).toBeDefined();
+    expect(daftarRoute?.redirectTo).toBe('register');
+
+    const loginRoute = appRoutes.find((r) => r.path === 'login');
+    expect(loginRoute).toBeDefined();
+    expect(loginRoute?.loadComponent).toBeDefined();
+
+    const masukRoute = appRoutes.find((r) => r.path === 'masuk');
+    expect(masukRoute).toBeDefined();
+    expect(masukRoute?.redirectTo).toBe('login');
+  });
+
   describe('Router Navigation Redirections', () => {
     let router: Router;
 
@@ -70,6 +88,18 @@ describe('appRoutes', () => {
       const navigated = await router.navigateByUrl('/dashboard');
       expect(navigated).toBe(true);
       expect(router.url).toBe('/dashboard/ringkasan');
+    });
+
+    it('harus mengarahkan alias /daftar ke /register', async () => {
+      const navigated = await router.navigateByUrl('/daftar');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/register');
+    });
+
+    it('harus mengarahkan alias /masuk ke /login', async () => {
+      const navigated = await router.navigateByUrl('/masuk');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/login');
     });
   });
 });

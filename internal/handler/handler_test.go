@@ -28,8 +28,11 @@ func setupTestApp() (*fiber.App, *repository.MemoryRepository) {
 
 	workerHandler := handler.NewWorkerHandler(workerSvc)
 	bookingHandler := handler.NewBookingHandler(bookingSvc)
+	adminHandler := handler.NewAdminHandler(workerSvc)
+	authHandler := handler.NewAuthHandler(workerSvc)
+	authMiddleware := handler.NewAuthMiddleware()
 
-	handler.RegisterRoutes(app, workerHandler, bookingHandler)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware)
 
 	return app, repo
 }

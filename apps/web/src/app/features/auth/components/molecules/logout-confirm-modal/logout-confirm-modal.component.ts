@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   input,
   output,
 } from '@angular/core';
@@ -31,7 +32,6 @@ import { CommonModule } from '@angular/common';
           role="alertdialog"
           aria-labelledby="logoutModalTitle"
           aria-describedby="logoutModalDesc"
-          (keydown.escape)="cancelled.emit()"
           tabindex="-1"
         >
           <div class="flex items-start gap-3.5">
@@ -77,4 +77,12 @@ export class LogoutConfirmModalComponent {
   readonly isOpen = input<boolean>(false);
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();
+
+  @HostListener('window:keydown.escape')
+  handleEscape(): void {
+    if (this.isOpen()) {
+      this.cancelled.emit();
+    }
+  }
 }
+

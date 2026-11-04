@@ -281,5 +281,39 @@ describe('AuthService', () => {
       expect(service.otpStatus()).toBe('idle');
       expect(service.magicLinkStatus()).toBe('idle');
     });
+
+    it('harus menyelaraskan sesi saat menerima event storage dari tab lain', () => {
+      expect(service.isLoggedIn()).toBe(false);
+
+      const foreignSession = {
+        id: 'usr-foreign',
+        name: 'Mitra Lintas Tab',
+        slug: 'mitra-tab',
+      };
+      localStorage.setItem('tuwaktu_auth_session', JSON.stringify(foreignSession));
+
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'tuwaktu_auth_session',
+          newValue: JSON.stringify(foreignSession),
+        })
+      );
+
+      expect(service.isLoggedIn()).toBe(true);
+      expect(service.currentUser()?.slug).toBe('mitra-tab');
+
+      // Simulasi logout dari tab lain
+      localStorage.removeItem('tuwaktu_auth_session');
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'tuwaktu_auth_session',
+          newValue: null,
+        })
+      );
+
+      expect(service.isLoggedIn()).toBe(false);
+      expect(service.currentUser()).toBeNull();
+    });
   });
 });
+

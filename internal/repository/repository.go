@@ -16,6 +16,13 @@ type WorkerRepository interface {
 	UpdateLocationSettings(ctx context.Context, idOrSlug string, update *domain.WorkerLocationSettingsUpdate) (*domain.Worker, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error)
 	UpdateWorkerSchedules(ctx context.Context, idOrSlug string, schedules []domain.WorkerSchedule) ([]domain.WorkerSchedule, error)
+
+	// Manajemen Admin & Otentikasi
+	CreateWorkerWithAccountTx(ctx context.Context, worker *domain.Worker, schedules []domain.WorkerSchedule, account *domain.WorkerAccount) error
+	GetAdminWorkerList(ctx context.Context) ([]domain.AdminWorkerListItem, error)
+	UpdateWorkerAccountStatus(ctx context.Context, workerID string, newStatus string) error
+	GetAccountByEmailOrPhone(ctx context.Context, identifier string) (*domain.WorkerAccount, error)
+	GetAccountByID(ctx context.Context, accountID string) (*domain.WorkerAccount, error)
 }
 
 type BookingRepository interface {

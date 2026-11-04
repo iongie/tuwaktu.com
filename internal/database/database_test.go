@@ -72,6 +72,18 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 			created_at DATETIME,
 			updated_at DATETIME
 		);
+		CREATE TABLE worker_accounts (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			email TEXT UNIQUE,
+			phone_number TEXT UNIQUE,
+			password_hash TEXT,
+			role TEXT,
+			account_status TEXT,
+			must_change_password BOOLEAN,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
 		CREATE TABLE bookings (
 			id TEXT PRIMARY KEY,
 			booking_code TEXT UNIQUE,

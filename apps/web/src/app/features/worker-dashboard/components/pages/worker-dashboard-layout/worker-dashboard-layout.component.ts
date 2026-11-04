@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
+import { AuthService } from '../../../../auth/services/auth.service';
 import { WorkerDashboardSidebarComponent } from '../../organisms/worker-dashboard-sidebar/worker-dashboard-sidebar.component';
 import { WorkerDashboardHeaderComponent } from '../../organisms/worker-dashboard-header/worker-dashboard-header.component';
 import { WorkerDashboardFooterBarComponent } from '../../organisms/worker-dashboard-footer-bar/worker-dashboard-footer-bar.component';
@@ -31,6 +32,7 @@ export interface DashboardNavMenuItem {
 })
 export class WorkerDashboardLayoutComponent implements OnInit {
   readonly store = inject(WorkerDashboardStore);
+  readonly authService = inject(AuthService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -49,7 +51,8 @@ export class WorkerDashboardLayoutComponent implements OnInit {
     this.activatedRoute.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
-        const querySlug = params.get('slug');
+        const querySlug =
+          params.get('slug') || this.authService.currentUser()?.slug;
         if (querySlug && querySlug.trim()) {
           this.store.loadExistingWorkerProfile(querySlug.trim());
         }

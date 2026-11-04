@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -124,6 +125,19 @@ export const appRoutes: Route[] = [
   {
     path: 'masuk',
     redirectTo: 'login',
+  },
+  {
+    path: 'admin/workers',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import(
+        './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
+      ).then((m) => m.AdminWorkersPageComponent),
+  },
+  {
+    path: 'admin',
+    redirectTo: 'admin/workers',
+    pathMatch: 'full',
   },
   {
     path: ':slug',

@@ -81,4 +81,19 @@ describe('LogoutConfirmModalComponent', () => {
 
     expect(cancelledEmitted).toBe(true);
   });
+
+  it('harus memancarkan event cancelled saat tombol Escape ditekan', () => {
+    componentRef.setInput('isOpen', true);
+    fixture.detectChanges();
+
+    let cancelledEmitted = false;
+    component.cancelled.subscribe(() => {
+      cancelledEmitted = true;
+    });
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(cancelledEmitted).toBe(true);
+  });
 });
+

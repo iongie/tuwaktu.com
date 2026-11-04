@@ -173,3 +173,45 @@ ON CONFLICT (worker_id, day_of_week) DO UPDATE SET
     slot_afternoon = EXCLUDED.slot_afternoon,
     slot_evening = EXCLUDED.slot_evening;
 
+-- Worker Accounts (Super Admin & Worker Accounts)
+INSERT INTO worker_accounts (
+    id, worker_id, email, phone_number, password_hash, role, account_status, must_change_password
+) VALUES
+    (
+        '99999999-9999-4999-8999-999999999999',
+        NULL,
+        'admin@tuwaktu.com',
+        '6281200000000',
+        '$2a$10$OrUOmKDGkaK6VBKq/lQSKuxLh15F47pdbVdx92.B19AdUmSFc4ace',
+        'ADMIN',
+        'ACTIVE',
+        FALSE
+    ),
+    (
+        '88888888-8888-4888-8888-888888888881',
+        'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        'budi.santoso@internal.tuwaktu.com',
+        '6281234567890',
+        '$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy',
+        'WORKER',
+        'ACTIVE',
+        FALSE
+    ),
+    (
+        '88888888-8888-4888-8888-888888888882',
+        'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
+        'siti.aminah@internal.tuwaktu.com',
+        '6281987654321',
+        '$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy',
+        'WORKER',
+        'ACTIVE',
+        FALSE
+    )
+ON CONFLICT (email) DO UPDATE SET
+    phone_number = EXCLUDED.phone_number,
+    password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role,
+    account_status = EXCLUDED.account_status,
+    must_change_password = EXCLUDED.must_change_password;
+
+

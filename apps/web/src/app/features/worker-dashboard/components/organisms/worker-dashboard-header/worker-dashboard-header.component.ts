@@ -222,7 +222,7 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
         <button
           type="button"
           (click)="openLogoutModal()"
-          class="h-9 px-3 rounded-lg bg-surface-container hover:bg-red-50 text-on-surface hover:text-red-600 font-semibold text-xs flex items-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px] cursor-pointer"
+          class="h-9 px-3 min-w-[44px] rounded-lg bg-surface-container hover:bg-red-50 text-on-surface hover:text-red-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px] cursor-pointer"
           title="Keluar dari Konsol Kerja"
           aria-label="Keluar dari Konsol Kerja"
           id="headerLogoutBtn"
@@ -297,6 +297,7 @@ export class WorkerDashboardHeaderComponent {
 
   executeLogout(): void {
     this.isLogoutModalOpen.set(false);
+    this.store.resetWorkerSelection();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

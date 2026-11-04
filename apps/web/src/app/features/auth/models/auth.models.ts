@@ -39,9 +39,13 @@ export interface AuthUserSession {
   readonly id: string;
   readonly name: string;
   readonly slug: string;
+  readonly email?: string;
   readonly waNumber?: string;
   readonly avatarUrl?: string;
-  readonly role?: 'worker' | 'client';
+  readonly role?: 'worker' | 'client' | 'admin' | 'ADMIN' | 'WORKER';
+  readonly token?: string;
+  readonly accountStatus?: 'ACTIVE' | 'SUSPENDED' | string;
+  readonly mustChangePassword?: boolean;
 }
 
 export const INITIAL_SPECIALTY_OPTIONS: readonly SpecialtyOption[] = [

@@ -153,8 +153,10 @@ export class WorkerDashboardSidebarComponent {
   executeLogout(): void {
     this.isLogoutModalOpen.set(false);
     this.store.closeMobileSidebar();
+    this.store.resetWorkerSelection();
     this.authService.logout();
     this.router.navigate(['/login']);
   }
 }
+
 

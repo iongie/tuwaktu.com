@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { WorkerDashboardLayoutComponent } from './worker-dashboard-layout.component';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { WorkerDashboardApiService } from '../../../services/worker-dashboard-api.service';
+import { AuthService } from '../../../../auth/services/auth.service';
 
 describe('WorkerDashboardLayoutComponent', () => {
   let component: WorkerDashboardLayoutComponent;
@@ -96,4 +97,19 @@ describe('WorkerDashboardLayoutComponent', () => {
 
     expect(store.workerFullName()).toBe('');
   });
+
+  it('harus memuat profil dari authService saat query param slug tidak disediakan', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.setSession({
+      id: 'usr-sarah',
+      name: 'Sarah Melinda',
+      slug: 'sarah-cleaning',
+      role: 'worker',
+    });
+
+    component.ngOnInit();
+
+    expect(mockApiService.fetchWorkerProfile).toHaveBeenCalledWith('sarah-cleaning');
+  });
 });
+

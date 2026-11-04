@@ -4,7 +4,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler *BookingHandler) {
+func RegisterRoutes(
+	app *fiber.App,
+	workerHandler *WorkerHandler,
+	bookingHandler *BookingHandler,
+	adminHandler *AdminHandler,
+	authHandler *AuthHandler,
+	authMiddleware *AuthMiddleware,
+) {
 	// Root & health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -65,6 +72,24 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	v1 := api.Group("/v1")
 	v1Pub := v1.Group("/public")
 
+	// Auth routes
+	if authHandler != nil {
+		api.Post("/auth/login", authHandler.Login)
+		v1.Post("/auth/login", authHandler.Login)
+		if authMiddleware != nil {
+			api.Get("/auth/me", authMiddleware.RequireAuth, authHandler.Me)
+			v1.Get("/auth/me", authMiddleware.RequireAuth, authHandler.Me)
+		}
+	}
+
+	// Admin routes
+	if adminHandler != nil && authMiddleware != nil {
+		adminGroup := v1.Group("/admin", authMiddleware.RequireAuth, authMiddleware.RequireAdmin)
+		adminGroup.Post("/workers", adminHandler.CreateWorker)
+		adminGroup.Get("/workers", adminHandler.GetWorkers)
+		adminGroup.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
+	}
+
 	v1Pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	v1Pub.Get("/worker/:slug", workerHandler.GetWorkerBySlug)
 	v1Pub.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
@@ -93,4 +118,5 @@ func RegisterRoutes(app *fiber.App, workerHandler *WorkerHandler, bookingHandler
 	v1.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	v1.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
 }
+
 

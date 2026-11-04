@@ -77,6 +77,9 @@ func main() {
 	// Initialize Handlers
 	workerHandler := handler.NewWorkerHandler(workerSvc)
 	bookingHandler := handler.NewBookingHandler(bookingSvc)
+	adminHandler := handler.NewAdminHandler(workerSvc)
+	authHandler := handler.NewAuthHandler(workerSvc)
+	authMiddleware := handler.NewAuthMiddleware()
 
 	// Initialize Fiber App with environment-aware settings
 	app := fiber.New(fiber.Config{
@@ -115,7 +118,7 @@ func main() {
 	}))
 
 	// Register Routes
-	handler.RegisterRoutes(app, workerHandler, bookingHandler)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware)
 
 	// Channel to listen for shutdown signals
 	quit := make(chan os.Signal, 1)
@@ -200,4 +203,26 @@ func seedMemoryRepository(repo *repository.MemoryRepository) {
 			SlotEvening:   d == 5 || d == 6, // Jumat & Sabtu malam buka
 		})
 	}
+
+	repo.SeedAccount(&domain.WorkerAccount{
+		ID:                 "99999999-9999-4999-8999-999999999999",
+		WorkerID:           nil,
+		Email:              "admin@tuwaktu.com",
+		PhoneNumber:        "6281200000000",
+		PasswordHash:       "$2a$10$OrUOmKDGkaK6VBKq/lQSKuxLh15F47pdbVdx92.B19AdUmSFc4ace",
+		Role:               domain.RoleAdmin,
+		AccountStatus:      domain.AccountStatusActive,
+		MustChangePassword: false,
+	})
+
+	repo.SeedAccount(&domain.WorkerAccount{
+		ID:                 "88888888-8888-4888-8888-888888888881",
+		WorkerID:           &worker1.ID,
+		Email:              "budi.santoso@internal.tuwaktu.com",
+		PhoneNumber:        "6281234567890",
+		PasswordHash:       "$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy",
+		Role:               domain.RoleWorker,
+		AccountStatus:      domain.AccountStatusActive,
+		MustChangePassword: false,
+	})
 }

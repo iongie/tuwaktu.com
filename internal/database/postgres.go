@@ -274,5 +274,47 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		}
 	}
 
+	worker1ID := "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"
+	worker2ID := "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b"
+
+	seedAccounts := []domain.WorkerAccount{
+		{
+			ID:                 "99999999-9999-4999-8999-999999999999",
+			WorkerID:           nil,
+			Email:              "admin@tuwaktu.com",
+			PhoneNumber:        "6281200000000",
+			PasswordHash:       "$2a$10$OrUOmKDGkaK6VBKq/lQSKuxLh15F47pdbVdx92.B19AdUmSFc4ace",
+			Role:               domain.RoleAdmin,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		},
+		{
+			ID:                 "88888888-8888-4888-8888-888888888881",
+			WorkerID:           &worker1ID,
+			Email:              "budi.santoso@internal.tuwaktu.com",
+			PhoneNumber:        "6281234567890",
+			PasswordHash:       "$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy",
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		},
+		{
+			ID:                 "88888888-8888-4888-8888-888888888882",
+			WorkerID:           &worker2ID,
+			Email:              "siti.aminah@internal.tuwaktu.com",
+			PhoneNumber:        "6281987654321",
+			PasswordHash:       "$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy",
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		},
+	}
+
+	for _, acc := range seedAccounts {
+		if err := dbWithCtx.Clauses(clause.OnConflict{DoNothing: true}).Create(&acc).Error; err != nil {
+			return fmt.Errorf("seeding worker_account: %w", err)
+		}
+	}
+
 	return nil
 }

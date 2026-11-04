@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   inject,
   input,
   signal,
@@ -22,7 +23,7 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
         <!-- Belum Masuk: Tampilkan Tombol Masuk & Daftar Mitra -->
         <a
           routerLink="/login"
-          class="px-3 py-1.5 min-h-[44px] inline-flex items-center justify-center text-caption font-semibold text-on-surface hover:text-primary hover:bg-surface-container transition-colors rounded-lg cursor-pointer"
+          class="px-3 py-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-caption font-semibold text-on-surface hover:text-primary hover:bg-surface-container transition-colors rounded-lg cursor-pointer"
           id="navLoginBtn"
         >
           <span class="material-symbols-outlined text-[18px] mr-1">login</span>
@@ -31,11 +32,12 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
 
         <a
           routerLink="/register"
-          class="px-3 py-1.5 min-h-[44px] inline-flex items-center justify-center text-caption font-bold text-on-primary bg-primary hover:bg-surface-elevated-dark shadow-xs transition-colors rounded-lg cursor-pointer"
+          class="px-3 py-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-caption font-bold text-on-primary bg-primary hover:bg-surface-elevated-dark shadow-xs transition-colors rounded-lg cursor-pointer"
           id="navRegisterBtn"
         >
           <span class="material-symbols-outlined text-[18px] mr-1">person_add</span>
-          <span>Daftar Mitra</span>
+          <span class="hidden sm:inline">Daftar Mitra</span>
+          <span class="sm:hidden">Daftar</span>
         </a>
 
         @if (activeWorker(); as worker) {
@@ -46,29 +48,33 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           <a
             routerLink="/dashboard/integrasi-whatsapp"
             [queryParams]="{ slug: worker.slug }"
-            class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle cursor-pointer hover:ring-voltage-orange transition-all overflow-hidden"
+            class="hidden sm:inline-flex min-w-[44px] min-h-[44px] items-center justify-center cursor-pointer transition-all"
             title="Masuk Profil Mitra"
           >
-            @if (worker.avatar_url) {
-              <img [src]="worker.avatar_url" [alt]="worker.name" class="w-full h-full object-cover" />
-            } @else {
-              <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
-            }
+            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle hover:ring-voltage-orange overflow-hidden">
+              @if (worker.avatar_url) {
+                <img [src]="worker.avatar_url" [alt]="worker.name" class="w-full h-full object-cover" />
+              } @else {
+                <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+              }
+            </div>
           </a>
         } @else {
           <a
             routerLink="/dashboard/integrasi-whatsapp"
-            class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle cursor-pointer hover:ring-voltage-orange transition-all"
+            class="hidden sm:inline-flex min-w-[44px] min-h-[44px] items-center justify-center cursor-pointer transition-all"
             title="Masuk Dasbor"
           >
-            <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-hairline-subtle hover:ring-voltage-orange">
+              <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+            </div>
           </a>
         }
       } @else {
         <!-- Sudah Masuk: Tombol Dasbor Cepat & Menu Dropdown Akun Mitra -->
         <a
           routerLink="/dashboard"
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-lg text-caption font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors cursor-pointer"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-caption font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors cursor-pointer"
           id="navQuickDashboardBtn"
         >
           <span class="material-symbols-outlined text-[18px] text-primary">dashboard</span>
@@ -80,7 +86,7 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           <button
             type="button"
             (click)="toggleMenu()"
-            class="flex items-center gap-1.5 p-1 rounded-lg hover:bg-surface-container transition-colors cursor-pointer min-h-[44px]"
+            class="flex items-center gap-1.5 p-1 rounded-lg hover:bg-surface-container transition-colors cursor-pointer min-h-[44px] min-w-[44px]"
             aria-label="Buka Menu Akun Mitra"
             aria-haspopup="menu"
             [attr.aria-expanded]="isMenuOpen()"
@@ -150,6 +156,20 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
                 <span>Dasbor Kerja</span>
               </a>
 
+              @if (isAdmin()) {
+                <!-- Panel Admin (Khusus Super Admin) -->
+                <a
+                  routerLink="/admin/workers"
+                  (click)="closeMenu()"
+                  class="flex items-center gap-2.5 px-3 py-2 text-sm text-primary font-semibold hover:bg-surface-container rounded-lg transition-colors cursor-pointer min-h-[44px]"
+                  role="menuitem"
+                  id="menuItemAdminPanel"
+                >
+                  <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
+                  <span>Panel Kelola Mitra</span>
+                </a>
+              }
+
               <!-- Profil Publik -->
               <a
                 [routerLink]="'/' + sessionSlug()"
@@ -218,6 +238,11 @@ export class BookingNavAccountMenuComponent {
     return 'Mitra Tuwaktu';
   }
 
+  isAdmin(): boolean {
+    const session = this.authService.currentUser();
+    return (session?.role || '').toUpperCase() === 'ADMIN';
+  }
+
   sessionSlug(): string {
     const session = this.authService.currentUser();
     if (session?.slug) return session.slug;
@@ -231,6 +256,13 @@ export class BookingNavAccountMenuComponent {
     if (session?.avatarUrl) return session.avatarUrl;
     const worker = this.activeWorker();
     return worker?.avatar_url;
+  }
+
+  @HostListener('window:keydown.escape')
+  handleEscape(): void {
+    if (this.isMenuOpen()) {
+      this.closeMenu();
+    }
   }
 
   toggleMenu(): void {

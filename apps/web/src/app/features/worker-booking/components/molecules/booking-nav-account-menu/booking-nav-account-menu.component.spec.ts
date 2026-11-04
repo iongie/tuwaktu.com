@@ -141,5 +141,34 @@ describe('BookingNavAccountMenuComponent', () => {
       expect(navigateSpy).toHaveBeenCalledWith(['/login']);
       expect(component.isLogoutModalOpen()).toBe(false);
     });
+
+    it('harus menutup menu dropdown saat tombol Escape ditekan', () => {
+      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
+      accountTrigger.click();
+      fixture.detectChanges();
+
+      expect(component.isMenuOpen()).toBe(true);
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      fixture.detectChanges();
+
+      expect(component.isMenuOpen()).toBe(false);
+    });
+
+    it('harus menutup menu dropdown saat backdrop luar diklik', () => {
+      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
+      accountTrigger.click();
+      fixture.detectChanges();
+
+      expect(component.isMenuOpen()).toBe(true);
+
+      const backdrop = fixture.nativeElement.querySelector('button[aria-label="Tutup Menu Akun"]');
+      expect(backdrop).toBeTruthy();
+      backdrop.click();
+      fixture.detectChanges();
+
+      expect(component.isMenuOpen()).toBe(false);
+    });
   });
 });
+

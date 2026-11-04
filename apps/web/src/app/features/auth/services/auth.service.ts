@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, OnDestroy, signal } from '@angular/core';
 import {
   AuthUserSession,
   INITIAL_SPECIALTY_OPTIONS,
@@ -15,7 +15,7 @@ export const AUTH_STORAGE_KEY = 'tuwaktu_auth_session';
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
   readonly specialtyOptions: readonly SpecialtyOption[] = INITIAL_SPECIALTY_OPTIONS;
 
   readonly selectedSpecialty = signal<SpecialtyOption>(INITIAL_SPECIALTY_OPTIONS[0]);
@@ -27,6 +27,24 @@ export class AuthService {
   readonly currentUser = signal<AuthUserSession | null>(this.readInitialSession());
   readonly currentWorker = computed<AuthUserSession | null>(() => this.currentUser());
   readonly isLoggedIn = computed<boolean>(() => this.currentUser() !== null);
+
+  private readonly storageEventListener = (event: StorageEvent): void => {
+    if (event.key === AUTH_STORAGE_KEY) {
+      this.currentUser.set(this.readInitialSession());
+    }
+  };
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', this.storageEventListener);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', this.storageEventListener);
+    }
+  }
 
   private readInitialSession(): AuthUserSession | null {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
@@ -74,15 +92,34 @@ export class AuthService {
         ? this.sanitizeSlug(data.workerId.replace(/@.*/, ''))
         : fallbackSlug;
 
+      const isEmailAdmin =
+        Boolean(data.workerId) &&
+        data.workerId.toLowerCase().includes('admin');
+      const assignedRole = extra?.role || (isEmailAdmin ? 'ADMIN' : 'worker');
+
       const session: AuthUserSession = {
         id: extra?.id || `usr_${Date.now()}`,
         name:
           extra?.name ||
-          (data.method === 'wa' ? `Mitra ${data.waNumber}` : data.workerId),
-        slug: extra?.slug || generatedSlug || 'budi-santoso',
+          (data.method === 'wa'
+            ? `Mitra ${data.waNumber}`
+            : isEmailAdmin
+            ? 'Super Administrator'
+            : data.workerId),
+        slug:
+          extra?.slug ||
+          (isEmailAdmin ? 'admin' : generatedSlug || 'budi-santoso'),
+        email:
+          extra?.email ||
+          (data.method === 'id' && data.workerId.includes('@')
+            ? data.workerId
+            : undefined),
         waNumber: data.waNumber,
         avatarUrl: extra?.avatarUrl,
-        role: 'worker',
+        role: assignedRole,
+        token: extra?.token,
+        accountStatus: extra?.accountStatus || 'ACTIVE',
+        mustChangePassword: extra?.mustChangePassword ?? false,
       };
 
       this.setSession(session);

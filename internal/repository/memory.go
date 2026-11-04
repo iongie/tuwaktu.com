@@ -16,6 +16,7 @@ type MemoryRepository struct {
 	services  map[string]*domain.Service
 	bookings  map[string]*domain.Booking
 	schedules map[string]map[int]*domain.WorkerSchedule
+	accounts  map[string]*domain.WorkerAccount
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -24,6 +25,7 @@ func NewMemoryRepository() *MemoryRepository {
 		services:  make(map[string]*domain.Service),
 		bookings:  make(map[string]*domain.Booking),
 		schedules: make(map[string]map[int]*domain.WorkerSchedule),
+		accounts:  make(map[string]*domain.WorkerAccount),
 	}
 }
 
@@ -413,5 +415,166 @@ func (m *MemoryRepository) GetBookingsByWorkerAndDateRange(ctx context.Context, 
 
 	return results, nil
 }
+
+func (m *MemoryRepository) SeedAccount(a *domain.WorkerAccount) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.accounts[a.ID] = a
+}
+
+func (m *MemoryRepository) CreateWorkerWithAccountTx(ctx context.Context, worker *domain.Worker, schedules []domain.WorkerSchedule, account *domain.WorkerAccount) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if worker == nil || account == nil {
+		return domain.ErrInvalidInput
+	}
+
+	if worker.ID == "" {
+		id, _ := uuid.NewV7()
+		worker.ID = id.String()
+	}
+
+	m.workers[worker.ID] = worker
+
+	if m.schedules[worker.ID] == nil {
+		m.schedules[worker.ID] = make(map[int]*domain.WorkerSchedule)
+	}
+
+	now := time.Now().UTC()
+	for _, sc := range schedules {
+		scCopy := sc
+		scCopy.WorkerID = worker.ID
+		scCopy.CreatedAt = now
+		scCopy.UpdatedAt = now
+		m.schedules[worker.ID][sc.DayOfWeek] = &scCopy
+	}
+
+	if account.ID == "" {
+		id, _ := uuid.NewV7()
+		account.ID = id.String()
+	}
+	account.WorkerID = &worker.ID
+	account.CreatedAt = now
+	account.UpdatedAt = now
+	m.accounts[account.ID] = account
+
+	return nil
+}
+
+func (m *MemoryRepository) GetAdminWorkerList(ctx context.Context) ([]domain.AdminWorkerListItem, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var items []domain.AdminWorkerListItem
+	for _, acc := range m.accounts {
+		if acc.Role != domain.RoleWorker {
+			continue
+		}
+
+		item := domain.AdminWorkerListItem{
+			AccountID:          acc.ID,
+			Role:               acc.Role,
+			AccountStatus:      acc.AccountStatus,
+			MustChangePassword: acc.MustChangePassword,
+			Email:              acc.Email,
+			PhoneNumber:        acc.PhoneNumber,
+			CreatedAt:          acc.CreatedAt,
+		}
+
+		if acc.WorkerID != nil {
+			if w, ok := m.workers[*acc.WorkerID]; ok {
+				item.WorkerID = w.ID
+				item.Slug = w.Slug
+				item.Name = w.Name
+				item.Bio = w.Bio
+				item.Zone = w.Zone
+				item.BasePrice = w.BasePrice
+				item.RateType = w.RateType
+				item.AvatarURL = w.AvatarURL
+				item.Rating = w.Rating
+				item.ReviewCount = w.ReviewCount
+				item.WhatsAppNumber = w.WhatsAppNumber
+				if item.PhoneNumber == "" {
+					item.PhoneNumber = w.PhoneNumber
+				}
+			}
+		}
+
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
+func (m *MemoryRepository) UpdateWorkerAccountStatus(ctx context.Context, workerID string, newStatus string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	workerID = strings.TrimSpace(workerID)
+	newStatus = strings.ToUpper(strings.TrimSpace(newStatus))
+
+	found := false
+	for _, acc := range m.accounts {
+		if (acc.WorkerID != nil && *acc.WorkerID == workerID) || acc.ID == workerID {
+			acc.AccountStatus = newStatus
+			acc.UpdatedAt = time.Now().UTC()
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return domain.ErrWorkerNotFound
+	}
+
+	if w, ok := m.workers[workerID]; ok {
+		w.IsActive = (newStatus == domain.AccountStatusActive)
+		w.UpdatedAt = time.Now().UTC()
+	}
+
+	return nil
+}
+
+func (m *MemoryRepository) GetAccountByEmailOrPhone(ctx context.Context, identifier string) (*domain.WorkerAccount, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	identifier = strings.TrimSpace(identifier)
+	for _, acc := range m.accounts {
+		if strings.EqualFold(acc.Email, identifier) || acc.PhoneNumber == identifier {
+			accCopy := *acc
+			if acc.WorkerID != nil {
+				if w, ok := m.workers[*acc.WorkerID]; ok {
+					wCopy := *w
+					accCopy.Worker = &wCopy
+				}
+			}
+			return &accCopy, nil
+		}
+	}
+
+	return nil, domain.ErrWorkerNotFound
+}
+
+func (m *MemoryRepository) GetAccountByID(ctx context.Context, accountID string) (*domain.WorkerAccount, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	accountID = strings.TrimSpace(accountID)
+	if acc, ok := m.accounts[accountID]; ok {
+		accCopy := *acc
+		if acc.WorkerID != nil {
+			if w, ok := m.workers[*acc.WorkerID]; ok {
+				wCopy := *w
+				accCopy.Worker = &wCopy
+			}
+		}
+		return &accCopy, nil
+	}
+
+	return nil, domain.ErrWorkerNotFound
+}
+
 
 

@@ -372,6 +372,68 @@ describe('WorkerDashboardStore', () => {
     expect(store.whatsappMessageTemplate()).toContain('Halo Kak Budi Santoso!');
     expect(store.whatsappMessageTemplate()).toContain('Kak Budi');
   });
+
+  it('harus mengelola tab filter katalog dan visibilitas layanan', () => {
+    expect(store.servicesActiveTab()).toBe('ACTIVE');
+    expect(store.activeServicesCount()).toBeGreaterThan(0);
+
+    store.setRatesActiveTab('DRAFT');
+    expect(store.servicesActiveTab()).toBe('DRAFT');
+    expect(store.filteredServices().length).toBe(store.draftServicesCount());
+
+    store.setRatesActiveTab('ACTIVE');
+    const firstService = store.filteredServices()[0];
+    const initialVisibility = firstService.is_public;
+
+    store.toggleServiceVisibility(firstService.id);
+    const updated = store.workerServices().find((s) => s.id === firstService.id);
+    expect(updated?.is_public).toBe(!initialVisibility);
+  });
+
+  it('harus memperbarui dan menambah layanan katalog baru', () => {
+    const firstService = store.workerServices()[0];
+    store.updateServiceCatalogItem(firstService.id, {
+      price: 85000,
+      name: 'Deep Clean Premium',
+    });
+
+    const updated = store.workerServices().find((s) => s.id === firstService.id);
+    expect(updated?.price).toBe(85000);
+    expect(updated?.name).toBe('Deep Clean Premium');
+
+    const initialLength = store.workerServices().length;
+    store.addNewCatalogService({
+      code: 'TEST-99',
+      name: 'Layanan Tambahan',
+      description: 'Deskripsi tes',
+      price: 99000,
+      rate_type: 'UNIT',
+      duration_minutes: 60,
+      status: 'ACTIVE',
+      is_public: true,
+    });
+
+    expect(store.workerServices().length).toBe(initialLength + 1);
+    expect(store.workerServices()[0].name).toBe('Layanan Tambahan');
+  });
+
+  it('harus mengontrol status toggle sidebar mobile', () => {
+    expect(store.isMobileSidebarOpen()).toBe(false);
+    store.toggleMobileSidebar();
+    expect(store.isMobileSidebarOpen()).toBe(true);
+    store.closeMobileSidebar();
+    expect(store.isMobileSidebarOpen()).toBe(false);
+  });
+
+  it('harus memperbarui lastRatesSyncTimestamp saat ada mutasi layanan atau submit lokal', () => {
+    store.workerRecordId.set('');
+    store.workerBasePrice.set(75000);
+    store.setRateType('HOURLY');
+    store.submitRatesUpdate();
+
+    expect(store.ratesFeedbackSuccess()).toBe('Pengaturan katalog tarif pekerja berhasil diperbarui!');
+    expect(store.lastRatesSyncTimestamp()).toContain('WIB');
+  });
 });
 
 

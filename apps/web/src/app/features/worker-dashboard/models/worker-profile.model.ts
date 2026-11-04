@@ -69,3 +69,24 @@ export interface UpdateWorkerSchedulesPayload {
   schedules: WorkerScheduleItem[];
 }
 
+export interface WorkerServiceCatalogItem {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  price: number;
+  base_price?: number;
+  rate_type: 'HOURLY' | 'UNIT';
+  duration_minutes: number;
+  min_hours?: number;
+  max_hours?: number;
+  equipment_label?: string;
+  equipment_badge?: string;
+  equipment_icon?: string;
+  image_url?: string;
+  tags?: string[];
+  status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+  is_public: boolean;
+}
+
+

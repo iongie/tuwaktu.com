@@ -1,130 +1,81 @@
-<section class="bg-white rounded-xl p-6 sm:p-8 border border-(--hairline-light) shadow-xs space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-(--hairline-light)">
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-(--voltage-orange) text-xl">payments</span>
-        <h1 class="text-xl font-bold text-(--brand-ink)">Katalog &amp; Model Tarif</h1>
+<div class="space-y-6">
+  <!-- Sovereign Catalog Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+    <div class="space-y-2 max-w-2xl">
+      <div class="flex items-center gap-2 text-micro-uppercase font-micro-uppercase text-secondary tracking-widest uppercase">
+        <span class="inline-block w-2 h-2 rounded-full bg-secondary"></span>
+        <span>Arsitektur Pendapatan • 0% Potongan Platform</span>
       </div>
-      <p class="text-xs text-(--brand-ink)/60 mt-1">
-        Tentukan bagaimana klien menghitung biaya layanan Anda secara transparan.
+      <h1 class="font-heading-1 text-heading-1 text-on-surface tracking-tight font-bold">
+        Katalog &amp; Model Tarif Mandiri
+      </h1>
+      <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
+        Tentukan bagaimana klien menghitung biaya layanan Anda secara transparan. Mendukung model per jam (hourly) maupun per paket/sesi (unit-based) tanpa intervensi perantara.
       </p>
     </div>
-    @if (store.formattedBasePricePreview(); as preview) {
-      <span class="inline-flex items-center px-3 py-1 rounded-lg bg-(--surface-light) border border-(--hairline-light) text-xs font-mono font-bold text-(--voltage-orange)">
-        Tarif Aktif: {{ preview }}
-      </span>
-    }
-  </div>
 
-  <form (ngSubmit)="submitRates()" class="space-y-6">
-    <!-- Nominal Tarif Dasar -->
-    <div class="space-y-2">
-      <label for="workerBasePriceInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
-        Nominal Tarif Dasar (Rupiah) <span class="text-(--voltage-orange)">*</span>
-      </label>
-      <div class="flex items-center gap-2">
-        <span class="px-3.5 py-2.5 bg-(--surface-light) border border-(--hairline-light) rounded-lg font-mono text-sm font-bold text-(--brand-ink)/70">
-          Rp
-        </span>
-        <div class="flex-1">
-          <input
-            id="workerBasePriceInput"
-            type="number"
-            min="1"
-            step="1000"
-            [ngModel]="store.workerBasePrice()"
-            (ngModelChange)="onBasePriceChange($event)"
-            name="workerBasePrice"
-            placeholder="Contoh: 75000"
-            class="m3-field-outlined font-mono"
-            [class.m3-field-error]="store.ratesValidationErrors()['base_price']"
-          />
-        </div>
-      </div>
-      @if (store.ratesValidationErrors()['base_price']) {
-        <p class="text-xs font-semibold text-red-600 font-mono">
-          {{ store.ratesValidationErrors()['base_price'] }}
-        </p>
-      } @else if (store.formattedBasePricePreview(); as preview) {
-        <p class="text-xs text-(--brand-ink)/60 font-mono">
-          Pratinjau tampilan harga: <strong class="text-(--voltage-orange) font-bold">{{ preview }}</strong>
-        </p>
-      }
-    </div>
-
-    <!-- Skema Penagihan Tarif (Radio Cards) -->
-    <div class="space-y-3">
-      <span class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
-        Skema Penagihan Tarif <span class="text-(--voltage-orange)">*</span>
-      </span>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Hourly Mode -->
-        <label
-          class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-all"
-          [class.border-(--voltage-orange)]="store.workerRateType() === 'HOURLY'"
-          [class.bg-orange-50/40]="store.workerRateType() === 'HOURLY'"
-          [class.border-(--hairline-light)]="store.workerRateType() !== 'HOURLY'"
-        >
-          <div class="flex items-center gap-3">
-            <input
-              type="radio"
-              name="workerRateTypeSelection"
-              value="HOURLY"
-              [checked]="store.workerRateType() === 'HOURLY'"
-              (change)="setRateType('HOURLY')"
-              class="w-4 h-4 text-(--voltage-orange) focus:ring-(--voltage-orange)"
-            />
-            <div>
-              <span class="block text-sm font-bold text-(--brand-ink)">Tarif Per Jam</span>
-              <span class="text-[11px] font-mono text-(--voltage-orange) font-semibold">HOURLY</span>
-            </div>
-          </div>
-          <p class="text-xs text-(--brand-ink)/60 mt-2 pl-7 leading-relaxed">
-            Biaya dihitung proporsional terhadap durasi pengerjaan. Cocok untuk servis fleksibel dan perbaikan berkala.
-          </p>
-        </label>
-
-        <!-- Unit / Session Mode -->
-        <label
-          class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-all"
-          [class.border-(--voltage-orange)]="store.workerRateType() === 'UNIT'"
-          [class.bg-orange-50/40]="store.workerRateType() === 'UNIT'"
-          [class.border-(--hairline-light)]="store.workerRateType() !== 'UNIT'"
-        >
-          <div class="flex items-center gap-3">
-            <input
-              type="radio"
-              name="workerRateTypeSelection"
-              value="UNIT"
-              [checked]="store.workerRateType() === 'UNIT'"
-              (change)="setRateType('UNIT')"
-              class="w-4 h-4 text-(--voltage-orange) focus:ring-(--voltage-orange)"
-            />
-            <div>
-              <span class="block text-sm font-bold text-(--brand-ink)">Tarif Per Sesi</span>
-              <span class="text-[11px] font-mono text-(--voltage-orange) font-semibold">UNIT</span>
-            </div>
-          </div>
-          <p class="text-xs text-(--brand-ink)/60 mt-2 pl-7 leading-relaxed">
-            Biaya flat per kedatangan tuntas. Cocok untuk pembersihan mendalam, instalasi unit baru, atau paket borongan.
-          </p>
-        </label>
-      </div>
-    </div>
-
-    <div class="pt-4 border-t border-(--hairline-light) flex items-center justify-end">
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-3 shrink-0 flex-wrap">
       <button
-        type="submit"
-        [disabled]="store.isRatesSubmitting() || !store.hasActiveWorker()"
-        class="m3-btn-filled text-xs px-6 min-h-[44px]"
+        type="button"
+        (click)="openSimulationModal()"
+        class="h-11 px-5 rounded-lg bg-surface-container-high text-on-surface font-button-label text-button-label hover:bg-surface-variant transition-colors flex items-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
       >
-        @if (store.isRatesSubmitting()) {
-          <span>Menyimpan Tarif...</span>
-        } @else {
-          <span>Simpan Pengaturan Tarif</span>
-        }
+        <span class="material-symbols-outlined text-[18px]">calculate</span>
+        <span>Simulasi Pendapatan</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="openAddNewServiceModal()"
+        class="h-11 px-5 rounded-lg bg-primary text-on-primary font-button-label text-button-label hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
+      >
+        <span class="material-symbols-outlined text-[20px]">add</span>
+        <span>+ Tambah Layanan Baru</span>
       </button>
     </div>
-  </form>
-</section>
+  </div>
 
+  <!-- Filter Tabs & Legend Molecule (Full Width as in Stitch) -->
+  <app-rates-filter-tabs
+    [activeTab]="store.servicesActiveTab()"
+    [activeCount]="store.activeServicesCount()"
+    [draftCount]="store.draftServicesCount()"
+    [archivedCount]="store.archivedServicesCount()"
+    (tabChange)="store.setRatesActiveTab($event)"
+  />
+
+  <!-- Dual-Column Bento Architecture -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column: Service Catalog Panel Organism (8 cols) -->
+    <div class="lg:col-span-8">
+      <app-worker-service-catalog-panel
+        [services]="store.filteredServices()"
+        [activeTab]="store.servicesActiveTab()"
+        (toggleVisibility)="store.toggleServiceVisibility($event)"
+        (editService)="openEditServiceModal($event)"
+        (editDuration)="openEditServiceModal($event)"
+        (addNewService)="openAddNewServiceModal()"
+      />
+    </div>
+
+    <!-- Right Column: Rates Guidelines & Manifesto Sidebar Organism (4 cols) -->
+    <div class="lg:col-span-4">
+      <app-worker-rates-guidelines-sidebar />
+    </div>
+  </div>
+
+  <!-- Revenue Simulation Modal Molecule -->
+  @if (isSimulationModalOpen()) {
+    <app-rates-simulation-modal (dismissModal)="closeSimulationModal()" />
+  }
+
+  <!-- Service Edit & Create Modal Molecule -->
+  @if (isEditModalOpen()) {
+    <app-rates-edit-service-modal
+      [serviceItem]="selectedServiceToEdit()"
+      (dismissModal)="closeEditModal()"
+      (save)="handleServiceSaved($event)"
+    />
+  }
+</div>

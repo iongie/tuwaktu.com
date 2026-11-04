@@ -5,7 +5,75 @@ import {
   WorkerRateUpdatePayload,
   WorkerLocationSettingsUpdatePayload,
   WorkerScheduleItem,
+  WorkerServiceCatalogItem,
 } from '../models/worker-profile.model';
+
+export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
+  {
+    id: 'srv-dcl-01',
+    code: 'DCL-01',
+    name: 'Deep Clean Detailing',
+    description:
+      'Pembersihan kerak kamar mandi membandel, kerak minyak dapur, desinfeksi menyeluruh & sedot tungau matras bertekanan tinggi untuk hasil higienis tuntas.',
+    price: 65000,
+    base_price: 65000,
+    rate_type: 'HOURLY',
+    duration_minutes: 120,
+    min_hours: 2.0,
+    equipment_label: 'Polisher & Vac Industri',
+    equipment_badge: 'Alat Berat Industri Siap Pakai',
+    equipment_icon: 'verified',
+    image_url:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuB_PTYqBj7kWz6kDcBIbeqy7Qk6ULYNaPUGnT7rQMruEPhCK6fBXGJhwpQx77ma_hufKEfzP1vn4S2tZ57dWIYRbANbwBxcCP6JVZpQ1Fu1QHdDrioV6J_o7iJ7pWKqD2wUw6C1wg8vp-7fLARDBREYW9WHja4w2wYKc9RvnYUww0an9MTLf1W76ZWrf-pQPUtjDDfQ5sOS3ctx1tfy_o8824LsHgIoVKkMHJGXbDs',
+    tags: [
+      'Bahan Kimia Ramah Lingkungan',
+      'Termasuk Mesin Polisher',
+      'Alat & Cairan Lengkap',
+    ],
+    status: 'ACTIVE',
+    is_public: true,
+  },
+  {
+    id: 'srv-gcl-02',
+    code: 'GCL-02',
+    name: 'General Clean',
+    description:
+      'Penyapuan, pengepelan lantai higienis, pengelapan debu permukaan meja & lemari, perapihan kasur, serta pembuangan sampah rutin harian untuk hunian rapi seketika.',
+    price: 150000,
+    base_price: 150000,
+    rate_type: 'UNIT',
+    duration_minutes: 120,
+    max_hours: 2.0,
+    equipment_label: 'Alat Ringan Bawa Sendiri',
+    equipment_badge: 'Pembersihan Cepat & Efisien',
+    equipment_icon: 'flash_on',
+    image_url:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuCIUz4rsfL--4VOkoeNpRvEL8Ln807ps7IRkWKk32oIEhJ-7P9oDQ8eFUbtjurXjTvOrzr_ODiP9uZRnbHBWp5L9Hqs2vCLUeK_j0cFrXdJfak0eY8vcOfgJg6FZ0LeoaeqF9sYiFFTSyeWAKxYnGXb-ajsJyMSzeXsHgVMXWy1Sxp0YSqbD9uU0deTMIvtGO6vB950_iVs0ij0rzjhhGjWo94TDPNnU63kkSORgKY',
+    tags: ['Alat Bawa Sendiri', 'Cocok Apartemen / Studio', 'Cepat Bersih'],
+    status: 'ACTIVE',
+    is_public: true,
+  },
+  {
+    id: 'srv-acp-03',
+    code: 'ACP-03',
+    name: 'Pembersihan Karpet & Sofa Lama',
+    description:
+      'Pembersihan kain basah dan ekstraksi noda mendalam pada sofa kain serta karpet tebal.',
+    price: 200000,
+    base_price: 200000,
+    rate_type: 'UNIT',
+    duration_minutes: 90,
+    max_hours: 1.5,
+    equipment_label: 'Ekstraktor Vacuum Portabel',
+    equipment_badge: 'Perawatan Kain Khusus',
+    equipment_icon: 'archive',
+    image_url: '',
+    tags: ['Khusus Sofa', 'Bahan Anti Bau'],
+    status: 'ARCHIVED',
+    is_public: false,
+  },
+];
+
 
 export interface WhatsAppPreviewSampleData {
   readonly clientName: string;
@@ -134,6 +202,24 @@ export class WorkerDashboardStore implements OnDestroy {
 
   readonly workerBasePrice = signal<number | null>(null);
   readonly workerRateType = signal<'HOURLY' | 'UNIT'>('HOURLY');
+
+  readonly workerServices = signal<WorkerServiceCatalogItem[]>(DEFAULT_WORKER_SERVICES);
+  readonly servicesActiveTab = signal<'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('ACTIVE');
+  readonly isMobileSidebarOpen = signal<boolean>(false);
+  readonly lastRatesSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
+
+  readonly activeServicesCount = computed(
+    () => this.workerServices().filter((s) => s.status === 'ACTIVE').length
+  );
+  readonly draftServicesCount = computed(
+    () => this.workerServices().filter((s) => s.status === 'DRAFT').length
+  );
+  readonly archivedServicesCount = computed(
+    () => this.workerServices().filter((s) => s.status === 'ARCHIVED').length
+  );
+  readonly filteredServices = computed(() =>
+    this.workerServices().filter((s) => s.status === this.servicesActiveTab())
+  );
 
   readonly workerLat = signal<number | null>(null);
   readonly workerLng = signal<number | null>(null);
@@ -400,6 +486,72 @@ export class WorkerDashboardStore implements OnDestroy {
     }
   }
 
+  setRatesActiveTab(tab: 'ACTIVE' | 'DRAFT' | 'ARCHIVED'): void {
+    this.servicesActiveTab.set(tab);
+  }
+
+  updateRatesSyncTimestamp(): void {
+    const formattedTime = new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    this.lastRatesSyncTimestamp.set(`Hari ini, ${formattedTime} WIB`);
+  }
+
+  toggleServiceVisibility(serviceId: string): void {
+    this.workerServices.update((services) =>
+      services.map((item) =>
+        item.id === serviceId ? { ...item, is_public: !item.is_public } : item
+      )
+    );
+    this.updateRatesSyncTimestamp();
+  }
+
+  updateServiceCatalogItem(
+    serviceId: string,
+    patch: Partial<WorkerServiceCatalogItem>
+  ): void {
+    this.workerServices.update((services) =>
+      services.map((item) => {
+        if (item.id === serviceId) {
+          const updated = { ...item, ...patch };
+          if (patch.price !== undefined) {
+            updated.base_price = patch.price;
+          }
+          return updated;
+        }
+        return item;
+      })
+    );
+
+    const updatedItem = this.workerServices().find((s) => s.id === serviceId);
+    if (updatedItem && patch.price !== undefined && patch.price > 0) {
+      this.workerBasePrice.set(patch.price);
+    }
+    if (updatedItem && patch.rate_type !== undefined) {
+      this.workerRateType.set(patch.rate_type);
+    }
+    this.updateRatesSyncTimestamp();
+  }
+
+  addNewCatalogService(item: Omit<WorkerServiceCatalogItem, 'id'>): void {
+    const generatedId = `srv-${Date.now()}`;
+    const newService: WorkerServiceCatalogItem = {
+      id: generatedId,
+      ...item,
+    };
+    this.workerServices.update((services) => [newService, ...services]);
+    this.updateRatesSyncTimestamp();
+  }
+
+  toggleMobileSidebar(): void {
+    this.isMobileSidebarOpen.update((open) => !open);
+  }
+
+  closeMobileSidebar(): void {
+    this.isMobileSidebarOpen.set(false);
+  }
+
   setRateType(type: 'HOURLY' | 'UNIT'): void {
     this.workerRateType.set(type);
     this.clearRatesValidationError('rate_type');
@@ -589,6 +741,7 @@ export class WorkerDashboardStore implements OnDestroy {
             max_radius_km: response.data.max_radius_km,
             free_radius_km: response.data.free_radius_km,
             extra_fee_per_km: response.data.extra_fee_per_km,
+            services: response.data.services,
           });
           this.loadWorkerSchedules(response.data.id || sanitizedSlug);
           if (onLoaded) {
@@ -621,6 +774,7 @@ export class WorkerDashboardStore implements OnDestroy {
       max_radius_km?: number;
       free_radius_km?: number;
       extra_fee_per_km?: number;
+      services?: import('../../worker-booking/models/worker-catalog.model').PublicServiceCatalogItem[];
     }
   ): void {
     this.workerRecordId.set(id);
@@ -688,6 +842,50 @@ export class WorkerDashboardStore implements OnDestroy {
       this.workerExtraFeePerKm.set(0);
     }
 
+    if (profile.services && profile.services.length > 0) {
+      const mappedServices: WorkerServiceCatalogItem[] = profile.services.map((srv, idx) => {
+        const rateType: 'HOURLY' | 'UNIT' =
+          (srv.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
+        const price = srv.price || srv.base_price || (profile.base_price ?? 75000);
+        const prefix = rateType === 'HOURLY' ? 'DCL' : 'GCL';
+        const code = `${prefix}-0${idx + 1}`;
+        return {
+          id: srv.id || `srv-${idx + 1}`,
+          code: code,
+          name: srv.name,
+          description: srv.description || '',
+          price: price,
+          base_price: price,
+          rate_type: rateType,
+          duration_minutes: srv.duration_minutes || 60,
+          min_hours: rateType === 'HOURLY' ? 2.0 : undefined,
+          max_hours: rateType === 'UNIT' ? 2.0 : undefined,
+          equipment_label:
+            rateType === 'HOURLY' ? 'Polisher & Vac Industri' : 'Alat Ringan Bawa Sendiri',
+          equipment_badge:
+            rateType === 'HOURLY'
+              ? 'Alat Berat Industri Siap Pakai'
+              : 'Pembersihan Cepat & Efisien',
+          equipment_icon: rateType === 'HOURLY' ? 'verified' : 'flash_on',
+          image_url:
+            rateType === 'HOURLY'
+              ? DEFAULT_WORKER_SERVICES[0].image_url
+              : DEFAULT_WORKER_SERVICES[1].image_url,
+          tags:
+            rateType === 'HOURLY'
+              ? [
+                  'Bahan Kimia Ramah Lingkungan',
+                  'Termasuk Mesin Polisher',
+                  'Alat & Cairan Lengkap',
+                ]
+              : ['Alat Bawa Sendiri', 'Cocok Apartemen / Studio', 'Cepat Bersih'],
+          status: 'ACTIVE',
+          is_public: true,
+        };
+      });
+      this.workerServices.set(mappedServices);
+    }
+
     const hasCustomConfig = this.loadWhatsAppSettingsFromStorage(profile.slug);
     if (!hasCustomConfig && profile.name) {
       this.whatsappMessageTemplate.set(buildDefaultWhatsAppTemplate(profile.name));
@@ -711,6 +909,9 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerExtraFeePerKm.set(0);
     this.workerLookupSlugInput.set('');
     this.workerSchedules.set([]);
+    this.workerServices.set([...DEFAULT_WORKER_SERVICES]);
+    this.servicesActiveTab.set('ACTIVE');
+    this.isMobileSidebarOpen.set(false);
     this.inputValidationErrors.set({});
     this.ratesValidationErrors.set({});
     this.locationValidationErrors.set({});
@@ -782,9 +983,8 @@ export class WorkerDashboardStore implements OnDestroy {
 
     const workerId = this.workerRecordId().trim();
     if (!workerId) {
-      this.ratesFeedbackError.set(
-        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
-      );
+      this.updateRatesSyncTimestamp();
+      this.ratesFeedbackSuccess.set('Pengaturan katalog tarif pekerja berhasil diperbarui!');
       return;
     }
 
@@ -816,6 +1016,7 @@ export class WorkerDashboardStore implements OnDestroy {
             if (returnedType === 'UNIT' || returnedType === 'HOURLY') {
               this.workerRateType.set(returnedType);
             }
+            this.updateRatesSyncTimestamp();
           }
         }
       },

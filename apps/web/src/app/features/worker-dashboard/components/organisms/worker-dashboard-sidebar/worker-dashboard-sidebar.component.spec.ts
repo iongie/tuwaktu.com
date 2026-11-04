@@ -38,5 +38,20 @@ describe('WorkerDashboardSidebarComponent', () => {
     expect(el.textContent).toContain('Boost Visibilitas');
     expect(component.menuItems.length).toBe(7);
   });
+
+  it('harus merespons pembukaan dan penutupan drawer navigasi mobile', () => {
+    const store = TestBed.inject(WorkerDashboardStore);
+    expect(store.isMobileSidebarOpen()).toBe(false);
+
+    store.toggleMobileSidebar();
+    expect(store.isMobileSidebarOpen()).toBe(true);
+    fixture.detectChanges();
+
+    const backdropBtn = fixture.nativeElement.querySelector('button[aria-label="Tutup Bilah Navigasi"]');
+    expect(backdropBtn).toBeTruthy();
+
+    backdropBtn.click();
+    expect(store.isMobileSidebarOpen()).toBe(false);
+  });
 });
 

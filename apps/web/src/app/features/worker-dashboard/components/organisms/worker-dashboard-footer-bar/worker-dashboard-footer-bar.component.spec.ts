@@ -23,21 +23,21 @@ describe('WorkerDashboardFooterBarComponent', () => {
     fixture.detectChanges();
   });
 
-  it('harus merender tombol Simpan Konfigurasi dan Reset', () => {
+  it('harus merender tombol Simpan Perubahan dan Batal sesuai rancangan Stitch', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Simpan Konfigurasi');
-    expect(el.textContent).toContain('Reset');
-    expect(el.textContent).toContain('Semua Perubahan Disinkronkan Otomatis');
+    expect(el.textContent).toContain('Simpan Perubahan');
+    expect(el.textContent).toContain('Batal');
+    expect(el.textContent).toContain('Perubahan tersimpan otomatis ke profil publik');
   });
 
-  it('harus memancarkan resetSelection saat tombol Reset diklik', () => {
+  it('harus memancarkan resetSelection saat tombol Batal diklik', () => {
     let resetEmitted = false;
     component.resetSelection.subscribe(() => {
       resetEmitted = true;
     });
 
-    const resetBtn: HTMLButtonElement = fixture.nativeElement.querySelectorAll('button')[0];
-    resetBtn.click();
+    const batalBtn: HTMLButtonElement = fixture.nativeElement.querySelectorAll('button')[0];
+    batalBtn.click();
     expect(resetEmitted).toBe(true);
   });
 });

@@ -10,10 +10,19 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
   imports: [CommonModule, RouterLink, DashboardQuickLinkComponent],
   template: `
     <header
-      class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-(--hairline-light) z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-2xs"
+      class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-hairline-subtle z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-2xs"
     >
-      <!-- Left: Status Penerimaan & Quick Link Pill -->
+      <!-- Left: Mobile Menu Toggle & Status Penerimaan & Quick Link Pill -->
       <div class="flex items-center gap-3 sm:gap-4 overflow-hidden">
+        <button
+          type="button"
+          (click)="store.toggleMobileSidebar()"
+          class="lg:hidden p-2 text-on-surface hover:bg-surface-highlight rounded cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="Buka Menu Modul"
+        >
+          <span class="material-symbols-outlined text-2xl">menu</span>
+        </button>
+
         <div
           class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold shrink-0"
           [class.bg-emerald-50]="store.isStoreOnline()"
@@ -53,21 +62,21 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
           <a
             [routerLink]="store.publicProfileRelativeUrl()"
             target="_blank"
-            class="h-9 px-3 rounded-lg bg-(--surface-container) hover:bg-(--surface-container-high) text-(--brand-ink) font-semibold text-xs flex items-center gap-1.5 transition-colors border border-(--hairline-light)"
+            class="h-9 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs flex items-center gap-1.5 transition-colors border border-hairline-subtle min-h-[44px]"
           >
             <span class="material-symbols-outlined text-[16px]">visibility</span>
             <span class="hidden sm:inline">Pratinjau Publik</span>
           </a>
         }
 
-        <div class="hidden sm:block h-6 w-px bg-(--hairline-light)"></div>
+        <div class="hidden sm:block h-6 w-px bg-hairline-subtle"></div>
 
         <div class="flex items-center gap-2.5">
           <div class="flex flex-col text-right hidden sm:flex">
-            <span class="text-xs font-bold text-(--brand-ink) truncate max-w-[140px]">
+            <span class="font-body-strong text-body-strong text-primary truncate max-w-[140px]">
               {{ store.workerFullName() || 'Mitra Tuwaktu' }}
             </span>
-            <span class="text-[10px] text-(--brand-ink)/60 truncate max-w-[140px]">
+            <span class="font-caption text-caption text-ink-secondary truncate max-w-[140px]">
               {{ store.workerProfessionZone() || 'Spesialis Mandiri' }}
             </span>
           </div>
@@ -76,13 +85,13 @@ import { DashboardQuickLinkComponent } from '../../molecules/dashboard-quick-lin
             <img
               [src]="store.workerAvatarUrl()"
               [alt]="store.workerFullName() || 'Avatar Mitra'"
-              class="w-8 h-8 rounded-full object-cover ring-1 ring-(--hairline-light)"
+              class="w-8 h-8 rounded-full object-cover ring-1 ring-hairline-light"
             />
           } @else {
             <div
-              class="w-8 h-8 rounded-full bg-(--brand-ink) text-white flex items-center justify-center font-bold text-xs"
+              class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs"
             >
-              {{ (store.workerFullName() || 'M').substring(0, 2).toUpperCase() }}
+              <span class="material-symbols-outlined text-[18px]">person</span>
             </div>
           }
         </div>

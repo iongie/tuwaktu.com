@@ -36,9 +36,10 @@
         </nav>
       </div>
 
-      <!-- Quick Search & Actions -->
-      <div class="flex items-center gap-space-md">
-        <div class="relative hidden sm:flex items-center">
+      <!-- Quick Search & Actions from Stitch Screen 807105efcba440adba559c3039aa034a -->
+      <div class="flex items-center gap-space-md relative">
+        <!-- Search Input with Sleek Contrast -->
+        <div class="relative hidden lg:flex items-center">
           <span class="material-symbols-outlined absolute left-3 text-ink-disabled text-[18px]">search</span>
           <input
             type="text"
@@ -46,21 +47,23 @@
             (ngModelChange)="searchTechnicianSlug.set($event)"
             (keydown.enter)="executeTechnicianLookup()"
             placeholder="Cari keahlian atau area..."
-            class="w-56 lg:w-64 h-9 pl-9 pr-3 bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas text-on-surface placeholder:text-ink-disabled font-body-default text-caption rounded transition-all outline-none focus:ring-1 focus:ring-accent-focus"
+            class="w-52 h-9 pl-9 pr-3 bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas text-on-surface placeholder:text-ink-disabled font-body-default text-caption rounded transition-all outline-none focus:ring-1 focus:ring-accent-focus"
           />
         </div>
 
+        <!-- Help Center Link -->
         <a
           routerLink="/"
-          class="p-2 text-ink-secondary hover:text-on-surface transition-colors rounded flex items-center justify-center cursor-pointer"
+          class="p-2 text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors rounded flex items-center justify-center cursor-pointer"
           title="Pusat Bantuan"
         >
           <span class="material-symbols-outlined text-[20px]">help_outline</span>
         </a>
 
-        <div class="h-5 w-px bg-hairline-subtle mx-space-xs hidden sm:block"></div>
+        <!-- Subtle Vertical Divider -->
+        <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
 
-        <!-- Account Authentication & Navigation Menu Molecule -->
+        <!-- Authenticated User Profile Dropdown Component -->
         <app-booking-nav-account-menu [activeWorker]="store.activeTechnicianProfile()" />
       </div>
     </div>

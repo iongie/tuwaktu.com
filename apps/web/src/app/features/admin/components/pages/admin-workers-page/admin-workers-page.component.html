@@ -1,40 +1,63 @@
 <main class="min-h-screen bg-surface-container-lowest text-on-surface">
-  <!-- Top Navigation Bar Admin -->
-  <header class="sticky top-0 z-40 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-hairline-subtle px-4 md:px-8 flex items-center justify-between shadow-2xs">
-    <div class="flex items-center gap-3">
-      <a routerLink="/" class="text-lg md:text-xl font-bold tracking-tight text-on-surface hover:text-primary transition flex items-center gap-2">
-        <span class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center text-sm font-black shadow-xs">
-          T
-        </span>
-        <span>TUWAKTU</span>
-      </a>
-      <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-        Panel Admin
-      </span>
-    </div>
+  <!-- Top Navigation Bar Admin (Sejajar dengan Konten & Dilengkapi Dropdown Profil) -->
+  <header class="sticky top-0 w-full z-50 bg-body-canvas/95 backdrop-blur-md border-b border-hairline-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between gap-gutter">
+      <div class="flex items-center gap-space-xl">
+        <a routerLink="/" class="flex items-center gap-space-sm cursor-pointer">
+          <span class="font-heading-h3 text-heading-h3 font-bold tracking-tight text-ink-on-light uppercase">TUWAKTU</span>
+          <span class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded">MANDIRI</span>
+        </a>
 
-    <div class="flex items-center gap-3">
-      <a
-        routerLink="/"
-        class="hidden sm:inline-flex items-center gap-1.5 h-9 text-xs font-semibold text-on-surface-variant hover:text-on-surface px-3 rounded-lg border border-hairline-subtle hover:bg-surface-container-high transition cursor-pointer"
-      >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
-        <span>Lihat Web Publik</span>
-      </a>
+        <div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 bg-surface-warm-promo text-promo-ink rounded">
+          <span class="material-symbols-outlined text-[14px] text-promo-ink">admin_panel_settings</span>
+          <span class="font-caption text-caption font-semibold uppercase tracking-wider">Panel Admin</span>
+        </div>
 
-      <button
-        type="button"
-        class="h-9 px-4 rounded-lg border border-hairline-subtle hover:bg-surface-container-high text-xs font-semibold text-on-surface transition cursor-pointer flex items-center gap-2"
-        (click)="isLogoutModalOpen.set(true)"
-        data-testid="admin-logout-btn"
-      >
-        <svg class="w-4 h-4 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-        <span>Keluar</span>
-      </button>
+        <nav aria-label="Navigasi Panel Admin" class="hidden md:flex items-center gap-space-xs">
+          <a
+            routerLink="/admin/workers"
+            class="px-space-md py-1.5 bg-surface-highlight text-on-surface font-semibold font-button-label text-button-label rounded cursor-pointer"
+          >
+            Kelola Mitra
+          </a>
+          <a
+            routerLink="/dashboard"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Dashboard Teknisi
+          </a>
+          <a
+            routerLink="/"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Jelajah Pekerja
+          </a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-space-md relative">
+        <a
+          routerLink="/"
+          class="hidden sm:inline-flex items-center gap-space-xs px-space-md h-9 rounded bg-surface-highlight text-ink-on-light border border-hairline-light hover:bg-surface-container-high transition-colors font-button-label text-button-label cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px]">visibility</span>
+          <span>Lihat Web Publik</span>
+        </a>
+
+        <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
+
+        <!-- Dropdown Menu Akun Profil -->
+        <app-booking-nav-account-menu />
+
+        <button
+          type="button"
+          class="sr-only"
+          (click)="isLogoutModalOpen.set(true)"
+          data-testid="admin-logout-btn"
+        >
+          Keluar
+        </button>
+      </div>
     </div>
   </header>
 

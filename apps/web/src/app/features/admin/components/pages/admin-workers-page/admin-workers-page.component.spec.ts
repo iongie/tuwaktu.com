@@ -77,5 +77,14 @@ describe('AdminWorkersPageComponent', () => {
     expect(navSpy).toHaveBeenCalledWith(['/login']);
     expect(component.isLogoutModalOpen()).toBe(false);
   });
+
+  it('harus merender navbar admin dengan lebar max-w-7xl sejajar konten dan komponen dropdown profil', () => {
+    fixture.detectChanges();
+    const headerContainer = fixture.nativeElement.querySelector('header > div.max-w-7xl');
+    expect(headerContainer).toBeTruthy();
+
+    const accountMenu = fixture.nativeElement.querySelector('app-booking-nav-account-menu');
+    expect(accountMenu).toBeTruthy();
+  });
 });
 

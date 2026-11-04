@@ -12,6 +12,7 @@ import { AdminWorkerFilterBarComponent } from '../../molecules/admin-worker-filt
 import { AdminWorkersTableComponent } from '../../organisms/admin-workers-table/admin-workers-table.component';
 import { AdminWorkerOnboardingModalComponent } from '../../organisms/admin-worker-onboarding-modal/admin-worker-onboarding-modal.component';
 import { LogoutConfirmModalComponent } from '../../../../auth/components/molecules/logout-confirm-modal/logout-confirm-modal.component';
+import { BookingNavAccountMenuComponent } from '../../../../worker-booking/components/molecules/booking-nav-account-menu/booking-nav-account-menu.component';
 
 @Component({
   selector: 'app-admin-workers-page',
@@ -23,6 +24,7 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
     AdminWorkersTableComponent,
     AdminWorkerOnboardingModalComponent,
     LogoutConfirmModalComponent,
+    BookingNavAccountMenuComponent,
   ],
   templateUrl: './admin-workers-page.component.html',
 })

@@ -118,4 +118,23 @@ describe('WorkerDashboardHeaderComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
     expect(component.isLogoutModalOpen()).toBe(false);
   });
+
+  it('harus membuka dan menutup dropdown menu profil serta memastikan lebar navbar sejajar max-w-7xl', () => {
+    expect(component.isProfileMenuOpen()).toBe(false);
+
+    const profileBtn = fixture.nativeElement.querySelector('#dashboardProfileMenuBtn');
+    expect(profileBtn).toBeTruthy();
+
+    profileBtn.click();
+    fixture.detectChanges();
+    expect(component.isProfileMenuOpen()).toBe(true);
+
+    component.handleEscape();
+    fixture.detectChanges();
+    expect(component.isProfileMenuOpen()).toBe(false);
+
+    const headerContainer = fixture.nativeElement.querySelector('header > div.max-w-7xl');
+    expect(headerContainer).toBeTruthy();
+    expect(headerContainer.children.length).toBe(2);
+  });
 });

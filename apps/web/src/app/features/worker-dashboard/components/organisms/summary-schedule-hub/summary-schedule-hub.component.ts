@@ -22,7 +22,7 @@ import {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-hairline-subtle">
         <div class="flex items-center gap-3">
           <div
-            class="w-10 h-10 rounded-xl bg-orange-50 text-(--voltage-orange) flex items-center justify-center shrink-0 border border-orange-100"
+            class="w-10 h-10 rounded-xl bg-orange-50 text-voltage-orange flex items-center justify-center shrink-0 border border-orange-100"
           >
             <span class="material-symbols-outlined text-[22px]">calendar_today</span>
           </div>

@@ -4,7 +4,6 @@ import { provideRouter, Router } from '@angular/router';
 import { BookingNavAccountMenuComponent } from './booking-nav-account-menu.component';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
-
 import { Component } from '@angular/core';
 
 @Component({ standalone: true, template: '' })
@@ -21,11 +20,11 @@ describe('BookingNavAccountMenuComponent', () => {
     id: 'worker-1',
     slug: 'budi-santoso',
     name: 'Budi Santoso',
-    bio: 'Teknisi AC',
+    bio: 'Teknisi HVAC',
     avatar_url: 'https://example.com/avatar.jpg',
     rating: 4.9,
     review_count: 10,
-    zone: 'Jakarta Selatan',
+    zone: 'Jagakarsa, Jakarta Selatan',
     services: [],
   };
 
@@ -88,37 +87,61 @@ describe('BookingNavAccountMenuComponent', () => {
       fixture.detectChanges();
     });
 
-    it('harus menampilkan tombol Dasbor Kerja dan trigger akun', () => {
-      const quickDashboardBtn = fixture.nativeElement.querySelector('#navQuickDashboardBtn');
-      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
-
-      expect(quickDashboardBtn).toBeTruthy();
-      expect(quickDashboardBtn.textContent).toContain('Dasbor Kerja');
-      expect(accountTrigger).toBeTruthy();
+    it('harus menampilkan trigger menu akun profil mitra sesuai desain Stitch', () => {
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      expect(userProfileBtn).toBeTruthy();
+      expect(userProfileBtn.textContent).toContain('Sarah Melinda');
+      expect(userProfileBtn.textContent).toContain('Mitra');
     });
 
-    it('harus membuka dropdown menu saat trigger avatar diklik', () => {
-      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
-      accountTrigger.click();
+    it('harus membuka elevated dropdown menu saat trigger avatar diklik', () => {
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      userProfileBtn.click();
       fixture.detectChanges();
 
       const dashboardItem = fixture.nativeElement.querySelector('#menuItemDashboard');
-      const profileItem = fixture.nativeElement.querySelector('#menuItemPublicProfile');
+      const ratesItem = fixture.nativeElement.querySelector('#menuItemRates');
+      const scheduleItem = fixture.nativeElement.querySelector('#menuItemSchedule');
+      const switchAccountItem = fixture.nativeElement.querySelector('#menuItemSwitchAccount');
       const logoutItem = fixture.nativeElement.querySelector('#menuItemLogout');
 
       expect(dashboardItem).toBeTruthy();
-      expect(dashboardItem.textContent).toContain('Dasbor Kerja');
+      expect(dashboardItem.textContent).toContain('Ke Dashboard Teknisi');
 
-      expect(profileItem).toBeTruthy();
-      expect(profileItem.textContent).toContain('Profil Publik');
+      expect(ratesItem).toBeTruthy();
+      expect(ratesItem.textContent).toContain('Pengaturan Profil & Tarif Mandiri');
+
+      expect(scheduleItem).toBeTruthy();
+      expect(scheduleItem.textContent).toContain('Kelola Jadwal & Buffer Transit');
+
+      expect(switchAccountItem).toBeTruthy();
+      expect(switchAccountItem.textContent).toContain('Masuk Akun Lain');
 
       expect(logoutItem).toBeTruthy();
-      expect(logoutItem.textContent).toContain('Keluar');
+      expect(logoutItem.textContent).toContain('Keluar / Logout');
+    });
+
+    it('harus menampilkan opsi Panel Kelola Mitra saat pengguna adalah ADMIN', () => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      fixture.detectChanges();
+
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      userProfileBtn.click();
+      fixture.detectChanges();
+
+      const adminItem = fixture.nativeElement.querySelector('#menuItemAdminPanel');
+      expect(adminItem).toBeTruthy();
+      expect(adminItem.textContent).toContain('Panel Kelola Mitra');
     });
 
     it('harus membuka modal konfirmasi saat opsi Keluar diklik', () => {
-      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
-      accountTrigger.click();
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      userProfileBtn.click();
       fixture.detectChanges();
 
       const logoutItem = fixture.nativeElement.querySelector('#menuItemLogout');
@@ -143,8 +166,8 @@ describe('BookingNavAccountMenuComponent', () => {
     });
 
     it('harus menutup menu dropdown saat tombol Escape ditekan', () => {
-      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
-      accountTrigger.click();
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      userProfileBtn.click();
       fixture.detectChanges();
 
       expect(component.isMenuOpen()).toBe(true);
@@ -156,8 +179,8 @@ describe('BookingNavAccountMenuComponent', () => {
     });
 
     it('harus menutup menu dropdown saat backdrop luar diklik', () => {
-      const accountTrigger = fixture.nativeElement.querySelector('#accountMenuTrigger');
-      accountTrigger.click();
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      userProfileBtn.click();
       fixture.detectChanges();
 
       expect(component.isMenuOpen()).toBe(true);
@@ -171,4 +194,3 @@ describe('BookingNavAccountMenuComponent', () => {
     });
   });
 });
-

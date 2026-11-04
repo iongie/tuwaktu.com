@@ -33,7 +33,7 @@ import { CommonModule } from '@angular/common';
         [attr.aria-label]="isOnline() ? 'Nonaktifkan status operasional' : 'Aktifkan status operasional'"
         (click)="toggleStatus.emit()"
         class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--voltage-orange) before:absolute before:-inset-2.5 before:content-['']"
-        [class.bg-(--voltage-orange)]="isOnline()"
+        [class.bg-voltage-orange]="isOnline()"
         [class.bg-gray-600]="!isOnline()"
       >
         <span

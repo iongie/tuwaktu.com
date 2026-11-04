@@ -14,7 +14,7 @@ import { RouterLink } from '@angular/router';
       <div class="flex items-center justify-between pb-2 border-b border-hairline-subtle">
         <div class="flex items-center gap-2.5">
           <div
-            class="w-9 h-9 rounded-lg bg-orange-50 text-(--voltage-orange) flex items-center justify-center shrink-0 border border-orange-100"
+            class="w-9 h-9 rounded-lg bg-orange-50 text-voltage-orange flex items-center justify-center shrink-0 border border-orange-100"
           >
             <span class="material-symbols-outlined text-[20px]">tune</span>
           </div>
@@ -27,7 +27,7 @@ import { RouterLink } from '@angular/router';
         <a
           routerLink="/dashboard/tarif-layanan"
           queryParamsHandling="preserve"
-          class="text-xs font-semibold text-(--voltage-orange) hover:underline flex items-center gap-1 min-h-[44px] px-2"
+          class="text-xs font-semibold text-voltage-orange hover:underline flex items-center gap-1 min-h-[44px] px-2"
           aria-label="Ubah Pengaturan Tarif dan Layanan"
         >
           <span>Ubah</span>

@@ -27,7 +27,7 @@ import { RouterLink } from '@angular/router';
         <a
           routerLink="/dashboard/logistik-radius"
           queryParamsHandling="preserve"
-          class="text-xs font-semibold text-(--voltage-orange) hover:underline flex items-center gap-1 min-h-[44px] px-2"
+          class="text-xs font-semibold text-voltage-orange hover:underline flex items-center gap-1 min-h-[44px] px-2"
           aria-label="Kelola Pengaturan Logistik Basecamp"
         >
           <span>Kelola</span>
@@ -62,13 +62,13 @@ import { RouterLink } from '@angular/router';
 
         <!-- Concentric Radar Rings -->
         <div class="w-36 h-36 rounded-full border border-emerald-500/20 absolute pointer-events-none"></div>
-        <div class="w-28 h-28 rounded-full border border-(--voltage-orange)/40 absolute animate-ping motion-reduce:animate-none opacity-25 pointer-events-none"></div>
+        <div class="w-28 h-28 rounded-full border border-voltage-orange/40 absolute animate-ping motion-reduce:animate-none opacity-25 pointer-events-none"></div>
         <div class="w-20 h-20 rounded-full border-2 border-emerald-400/50 bg-emerald-500/10 absolute pointer-events-none flex items-center justify-center"></div>
 
         <!-- Center Basecamp Marker -->
         <div class="relative z-10 flex flex-col items-center">
           <div
-            class="w-5 h-5 rounded-full bg-(--voltage-orange) ring-4 ring-white/20 flex items-center justify-center shadow-lg"
+            class="w-5 h-5 rounded-full bg-voltage-orange ring-4 ring-white/20 flex items-center justify-center shadow-lg"
           >
             <div class="w-2 h-2 rounded-full bg-white"></div>
           </div>

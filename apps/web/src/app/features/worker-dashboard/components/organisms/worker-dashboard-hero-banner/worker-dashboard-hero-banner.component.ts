@@ -16,11 +16,11 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
     <section class="space-y-6">
       <!-- Nocturne Theater Canvas Sovereign Hero Panel (#121212) -->
       <div
-        class="relative overflow-hidden rounded-2xl bg-(--hero-canvas) text-white p-6 sm:p-8 border border-white/10 shadow-lg"
+        class="relative overflow-hidden rounded-2xl bg-hero-canvas text-white p-6 sm:p-8 border border-white/10 shadow-lg"
       >
         <!-- Background Ambient Accent Glow -->
         <div
-          class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-(--voltage-orange)/15 blur-3xl pointer-events-none"
+          class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-voltage-orange/15 blur-3xl pointer-events-none"
         ></div>
 
         <div
@@ -35,7 +35,7 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
                 class="w-20 h-20 sm:w-22 sm:h-22 rounded-full object-cover ring-2 ring-white/20 shadow-md"
               />
               <span
-                class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-(--hero-canvas)"
+                class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-hero-canvas"
                 [class.bg-emerald-400]="store.isStoreOnline()"
                 [class.bg-gray-400]="!store.isStoreOnline()"
               ></span>

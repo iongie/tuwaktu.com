@@ -58,7 +58,7 @@ export interface SummaryTimelineSlotItem {
         [class.border-hairline-subtle]="item.statusVariant !== 'active'"
         [class.shadow-2xs]="item.statusVariant !== 'available'"
         [class.border-2]="item.statusVariant === 'active'"
-        [class.border-(--voltage-orange)/40]="item.statusVariant === 'active'"
+        [class.border-voltage-orange/40]="item.statusVariant === 'active'"
         [class.bg-surface-container-low/50]="item.statusVariant === 'available'"
         [class.border-dashed]="item.statusVariant === 'available'"
         [class.border-hairline-light]="item.statusVariant === 'available'"

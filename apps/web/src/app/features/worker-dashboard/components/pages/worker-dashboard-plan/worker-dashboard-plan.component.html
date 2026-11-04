@@ -3,23 +3,23 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
     <div>
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-(--voltage-orange) text-xl">workspace_premium</span>
-        <h1 class="text-xl font-bold text-(--brand-ink)">Paket Kemitraan &amp; Langganan Mandiri</h1>
+        <span class="material-symbols-outlined text-voltage-orange text-xl">workspace_premium</span>
+        <h1 class="text-xl font-bold text-ink-on-light">Paket Kemitraan &amp; Langganan Mandiri</h1>
       </div>
-      <p class="text-xs text-(--brand-ink)/60 mt-1">
+      <p class="text-xs text-ink-secondary mt-1">
         Kelola kedaulatan operasional Anda dengan biaya langganan transparan. Tuwaktu tidak memotong komisi sepeser pun dari hasil keringat Anda.
       </p>
     </div>
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-(--surface-light) border border-(--hairline-light) text-xs font-mono font-bold">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-surface-container-low border border-hairline-subtle text-xs font-mono font-bold">
       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span class="text-(--brand-ink)">Paket Aktif: {{ store.currentPlanTier() === 'PRO' ? 'Mandiri Pro' : store.currentPlanTier() === 'STARTER' ? 'Starter' : 'Bengkel Tim' }}</span>
+      <span class="text-ink-on-light">Paket Aktif: {{ store.currentPlanTier() === 'PRO' ? 'Mandiri Pro' : store.currentPlanTier() === 'STARTER' ? 'Starter' : 'Bengkel Tim' }}</span>
     </div>
   </div>
 
   <!-- Zero Commission vs Traditional Aggregator Comparison Pill -->
-  <div class="p-4 rounded-xl bg-(--hero-canvas) text-white shadow-md border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div class="p-4 rounded-xl bg-hero-canvas text-white shadow-md border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-lg bg-(--voltage-orange)/20 border border-(--voltage-orange)/40 flex items-center justify-center text-(--voltage-orange) shrink-0">
+      <div class="w-9 h-9 rounded-lg bg-voltage-orange/20 border border-voltage-orange/40 flex items-center justify-center text-voltage-orange shrink-0">
         <span class="material-symbols-outlined text-lg">shield</span>
       </div>
       <div class="space-y-0.5">
@@ -48,20 +48,20 @@
     @for (tier of planTiers; track tier.id) {
       <div
         class="rounded-xl p-6 bg-white border flex flex-col justify-between transition-all relative"
-        [class.border-(--voltage-orange)]="tier.id === store.currentPlanTier()"
+        [class.border-voltage-orange]="tier.id === store.currentPlanTier()"
         [class.shadow-md]="tier.id === store.currentPlanTier()"
         [class.ring-2]="tier.id === store.currentPlanTier()"
-        [class.ring-(--voltage-orange)]="tier.id === store.currentPlanTier()"
-        [class.border-(--hairline-light)]="tier.id !== store.currentPlanTier()"
+        [class.ring-voltage-orange]="tier.id === store.currentPlanTier()"
+        [class.border-hairline-subtle]="tier.id !== store.currentPlanTier()"
       >
         <!-- Popular or Active Badge -->
         <div class="flex items-center justify-between mb-4">
           <span
             class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-            [class.bg-(--voltage-orange)]="tier.isPopular"
+            [class.bg-voltage-orange]="tier.isPopular"
             [class.text-white]="tier.isPopular"
-            [class.bg-(--surface-light)]="!tier.isPopular"
-            [class.text-(--brand-ink)/70]="!tier.isPopular"
+            [class.bg-surface-container-low]="!tier.isPopular"
+            [class.text-ink-secondary]="!tier.isPopular"
           >
             {{ tier.badge }}
           </span>
@@ -77,35 +77,35 @@
         <!-- Plan Info & Pricing -->
         <div class="space-y-4">
           <div>
-            <h3 class="text-lg font-bold text-(--brand-ink)">{{ tier.name }}</h3>
-            <p class="text-xs text-(--brand-ink)/60 mt-1 leading-relaxed">
+            <h3 class="text-lg font-bold text-ink-on-light">{{ tier.name }}</h3>
+            <p class="text-xs text-ink-secondary mt-1 leading-relaxed">
               {{ tier.description }}
             </p>
           </div>
 
-          <div class="p-3 rounded-lg bg-(--surface-light) border border-(--hairline-light) space-y-0.5">
+          <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle space-y-0.5">
             <div class="flex items-baseline gap-1.5">
-              <span class="text-2xl font-bold font-mono text-(--brand-ink)">{{ tier.priceDisplay }}</span>
+              <span class="text-2xl font-bold font-mono text-ink-on-light">{{ tier.priceDisplay }}</span>
             </div>
-            <span class="text-[11px] text-(--brand-ink)/60 block font-mono">{{ tier.priceSubtext }}</span>
+            <span class="text-[11px] text-ink-secondary block font-mono">{{ tier.priceSubtext }}</span>
           </div>
 
           <!-- Feature List -->
           <div class="space-y-2.5 pt-2">
-            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-(--brand-ink)/70 block">
+            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary block">
               Fasilitas &amp; Fitur:
             </span>
-            <ul class="space-y-2 text-xs text-(--brand-ink)/80">
+            <ul class="space-y-2 text-xs text-on-surface-variant">
               @for (feature of tier.features; track feature.text) {
                 <li class="flex items-start gap-2">
                   <span
                     class="material-symbols-outlined text-sm mt-0.5 shrink-0"
-                    [class.text-(--voltage-orange)]="feature.isHighlighted"
+                    [class.text-voltage-orange]="feature.isHighlighted"
                     [class.text-emerald-600]="!feature.isHighlighted"
                   >
                     check_circle
                   </span>
-                  <span [class.font-bold]="feature.isHighlighted" [class.text-(--brand-ink)]="feature.isHighlighted">
+                  <span [class.font-bold]="feature.isHighlighted" [class.text-ink-on-light]="feature.isHighlighted">
                     {{ feature.text }}
                   </span>
                 </li>
@@ -115,7 +115,7 @@
         </div>
 
         <!-- Action CTA Button -->
-        <div class="pt-6 mt-6 border-t border-(--hairline-light)">
+        <div class="pt-6 mt-6 border-t border-hairline-subtle">
           @if (tier.id === store.currentPlanTier()) {
             <button
               type="button"
@@ -141,25 +141,24 @@
   </div>
 
   <!-- FAQ / Clarity Section -->
-  <div class="p-6 rounded-xl bg-(--surface-light) border border-(--hairline-light) space-y-4">
+  <div class="p-6 rounded-xl bg-surface-container-low border border-hairline-subtle space-y-4">
     <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-(--voltage-orange) text-base">help</span>
-      <h3 class="text-sm font-bold text-(--brand-ink)">Pertanyaan Seputar Paket Kemitraan</h3>
+      <span class="material-symbols-outlined text-voltage-orange text-base">help</span>
+      <h3 class="text-sm font-bold text-ink-on-light">Pertanyaan Seputar Paket Kemitraan</h3>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-      <div class="p-4 rounded-lg bg-white border border-(--hairline-light) space-y-1">
-        <span class="font-bold text-(--brand-ink) block">Apakah ada biaya tersembunyi selain langganan?</span>
-        <p class="text-(--brand-ink)/70 leading-relaxed">
+      <div class="p-4 rounded-lg bg-white border border-hairline-subtle space-y-1">
+        <span class="font-bold text-ink-on-light block">Apakah ada biaya tersembunyi selain langganan?</span>
+        <p class="text-ink-secondary leading-relaxed">
           Sama sekali tidak ada. Seluruh uang jasa dari klien dibayarkan langsung kepada Anda tanpa potongan atau biaya admin transaksi per pesanan.
         </p>
       </div>
-      <div class="p-4 rounded-lg bg-white border border-(--hairline-light) space-y-1">
-        <span class="font-bold text-(--brand-ink) block">Bagaimana jika saya ingin beralih antar paket?</span>
-        <p class="text-(--brand-ink)/70 leading-relaxed">
+      <div class="p-4 rounded-lg bg-white border border-hairline-subtle space-y-1">
+        <span class="font-bold text-ink-on-light block">Bagaimana jika saya ingin beralih antar paket?</span>
+        <p class="text-ink-secondary leading-relaxed">
           Anda dapat mengubah paket kapan saja melalui terminal dasbor ini. Perubahan status hak akses fitur akan langsung aktif seketika.
         </p>
       </div>
     </div>
   </div>
 </section>
-

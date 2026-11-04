@@ -71,44 +71,50 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           </a>
         }
       } @else {
-        <!-- Sudah Masuk: Tombol Dasbor Cepat & Menu Dropdown Akun Mitra -->
-        <a
-          routerLink="/dashboard"
-          class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-caption font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors cursor-pointer"
-          id="navQuickDashboardBtn"
-        >
-          <span class="material-symbols-outlined text-[18px] text-primary">dashboard</span>
-          <span>Dasbor Kerja</span>
-        </a>
-
-        <!-- Trigger Menu Dropdown Avatar -->
-        <div class="relative">
+        <!-- Sudah Masuk: Sesuai Persis dengan Stitch Screen 807105efcba440adba559c3039aa034a -->
+        <div class="relative group">
+          <!-- Profile Button Trigger -->
           <button
             type="button"
             (click)="toggleMenu()"
-            class="flex items-center gap-1.5 p-1 rounded-lg hover:bg-surface-container transition-colors cursor-pointer min-h-[44px] min-w-[44px]"
+            class="flex items-center gap-space-sm p-1 sm:px-2 py-1 rounded hover:bg-surface-highlight transition-colors text-left focus:outline-none min-h-[44px] cursor-pointer"
+            id="userProfileMenuBtn"
             aria-label="Buka Menu Akun Mitra"
             aria-haspopup="menu"
             [attr.aria-expanded]="isMenuOpen()"
-            id="accountMenuTrigger"
           >
-            <div
-              class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs ring-2 ring-hairline-subtle overflow-hidden"
-            >
-              @if (sessionAvatarUrl()) {
-                <img [src]="sessionAvatarUrl()" [alt]="sessionName()" class="w-full h-full object-cover" />
-              } @else {
-                <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
-              }
+            <div class="relative shrink-0">
+              <div
+                class="w-8 h-8 rounded-full bg-hero-canvas text-ink-on-dark flex items-center justify-center font-bold text-caption ring-2 ring-hairline-subtle overflow-hidden"
+              >
+                @if (sessionAvatarUrl()) {
+                  <img [src]="sessionAvatarUrl()" [alt]="sessionName()" class="w-full h-full object-cover" />
+                } @else {
+                  <span>{{ sessionInitials() }}</span>
+                }
+              </div>
+              <span
+                class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-success ring-2 ring-body-canvas"
+                title="Status: Aktif Menerima Pesanan"
+              ></span>
             </div>
-            <div class="hidden lg:flex flex-col text-left">
-              <span class="font-body-strong text-caption text-on-surface leading-tight max-w-[120px] truncate">
-                {{ sessionName() }}
-              </span>
-              <span class="font-micro-uppercase text-[10px] text-success uppercase font-semibold">
-                Sesi Aktif
+
+            <div class="hidden sm:flex flex-col min-w-0 text-left">
+              <div class="flex items-center gap-1">
+                <span class="font-body-strong text-body-strong text-on-surface leading-tight truncate max-w-[130px]">
+                  {{ sessionName() }}
+                </span>
+                <span
+                  class="inline-block px-1 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-[10px] uppercase font-semibold"
+                >
+                  {{ isAdmin() ? 'Admin' : 'Mitra' }}
+                </span>
+              </div>
+              <span class="font-micro-uppercase text-caption text-ink-secondary leading-none mt-0.5 truncate max-w-[140px]">
+                {{ sessionProfession() }}
               </span>
             </div>
+
             <span
               class="material-symbols-outlined text-[18px] text-ink-secondary transition-transform"
               [class.rotate-180]="isMenuOpen()"
@@ -117,84 +123,137 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
             </span>
           </button>
 
-          <!-- Dropdown Card -->
+          <!-- Elevated Popover / Dropdown Menu -->
           @if (isMenuOpen()) {
+            <!-- Backdrop Clickable to close -->
             <button
               type="button"
               class="fixed inset-0 z-40 bg-transparent w-full h-full cursor-default border-none p-0"
               (click)="closeMenu()"
               aria-label="Tutup Menu Akun"
+              tabindex="-1"
             ></button>
 
             <div
-              class="absolute right-0 mt-2 w-64 bg-surface-container-lowest border border-hairline-subtle rounded-xl shadow-xl z-50 p-2 space-y-1"
+              class="absolute right-0 top-full pt-1.5 w-72 z-50 transition-all"
               role="menu"
               aria-orientation="vertical"
-              (keydown.escape)="closeMenu()"
               tabindex="-1"
             >
-              <!-- Info Sesi -->
-              <div class="px-3 py-2 border-b border-hairline-subtle mb-1">
-                <p class="text-[11px] text-ink-secondary">Masuk sebagai</p>
-                <p class="text-sm font-bold text-on-surface truncate">
-                  {{ sessionName() }}
-                </p>
-                <p class="text-[11px] font-mono text-voltage-orange truncate">
-                  tuwaktu.com/{{ sessionSlug() }}
-                </p>
+              <div
+                class="bg-body-canvas rounded-xl shadow-xl ring-1 ring-hairline-subtle overflow-hidden p-space-sm border border-hairline-subtle"
+              >
+                <!-- User Identity Capsule -->
+                <div class="p-space-sm bg-surface-container-low rounded-lg mb-space-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="font-body-strong text-body-strong text-on-surface truncate">
+                      {{ sessionName() }}
+                    </span>
+                    <span
+                      class="px-space-xs py-0.5 rounded bg-success-surface text-success font-micro-uppercase text-micro-uppercase font-bold uppercase shrink-0"
+                    >
+                      {{ isAdmin() ? 'Super Admin' : 'Mitra Terverifikasi' }}
+                    </span>
+                  </div>
+                  <p class="font-caption text-caption text-ink-secondary mt-0.5 truncate">
+                    {{ sessionZone() }}
+                  </p>
+                  <div class="flex items-center justify-between mt-2 pt-2 border-t border-hairline-subtle text-caption font-caption">
+                    <span class="flex items-center gap-1 text-ink-secondary">
+                      <span class="w-2 h-2 rounded-full bg-success"></span> Terima Order Baru
+                    </span>
+                    <span class="font-mono-rate text-mono-rate font-bold text-success">AKTIF</span>
+                  </div>
+                </div>
+
+                <!-- Quick Portal Links -->
+                <div class="space-y-0.5 py-1">
+                  @if (isAdmin()) {
+                    <a
+                      routerLink="/admin/workers"
+                      (click)="closeMenu()"
+                      class="flex items-center gap-space-sm px-space-sm py-2 rounded text-primary hover:bg-surface-highlight transition-colors font-button-label text-caption font-semibold cursor-pointer min-h-[44px]"
+                      role="menuitem"
+                      id="menuItemAdminPanel"
+                    >
+                      <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
+                      <span>Panel Kelola Mitra</span>
+                    </a>
+                  }
+
+                  <a
+                    routerLink="/dashboard"
+                    (click)="closeMenu()"
+                    class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
+                    role="menuitem"
+                    id="menuItemDashboard"
+                  >
+                    <span class="material-symbols-outlined text-[18px] text-ink-secondary">space_dashboard</span>
+                    <span>Ke Dashboard Teknisi</span>
+                  </a>
+
+                  <a
+                    routerLink="/dashboard/tarif-layanan"
+                    (click)="closeMenu()"
+                    class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
+                    role="menuitem"
+                    id="menuItemRates"
+                  >
+                    <span class="material-symbols-outlined text-[18px] text-ink-secondary">manage_accounts</span>
+                    <span>Pengaturan Profil & Tarif Mandiri</span>
+                  </a>
+
+                  <a
+                    routerLink="/dashboard/kalender-slot"
+                    (click)="closeMenu()"
+                    class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
+                    role="menuitem"
+                    id="menuItemSchedule"
+                  >
+                    <span class="material-symbols-outlined text-[18px] text-ink-secondary">calendar_month</span>
+                    <span>Kelola Jadwal & Buffer Transit</span>
+                  </a>
+
+                  <a
+                    [routerLink]="'/' + sessionSlug()"
+                    (click)="closeMenu()"
+                    class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
+                    role="menuitem"
+                    id="menuItemPublicProfile"
+                  >
+                    <span class="material-symbols-outlined text-[18px] text-ink-secondary">storefront</span>
+                    <span>Profil Publik</span>
+                  </a>
+                </div>
+
+                <!-- Separator -->
+                <div class="h-px bg-hairline-subtle my-space-xs"></div>
+
+                <!-- Account Switch & Logout -->
+                <div class="space-y-0.5 pt-0.5">
+                  <a
+                    routerLink="/login"
+                    (click)="closeMenu()"
+                    class="flex items-center gap-space-sm px-space-sm py-2 rounded text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption cursor-pointer min-h-[44px]"
+                    role="menuitem"
+                    id="menuItemSwitchAccount"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">switch_account</span>
+                    <span>Masuk Akun Lain</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    (click)="openLogoutConfirm()"
+                    class="w-full flex items-center gap-space-sm px-space-sm py-2 rounded text-error hover:bg-error-surface transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px] text-left"
+                    role="menuitem"
+                    id="menuItemLogout"
+                  >
+                    <span class="material-symbols-outlined text-[18px] text-error">logout</span>
+                    <span>Keluar / Logout</span>
+                  </button>
+                </div>
               </div>
-
-              <!-- Dasbor Kerja -->
-              <a
-                routerLink="/dashboard"
-                (click)="closeMenu()"
-                class="flex items-center gap-2.5 px-3 py-2 text-sm text-on-surface hover:bg-surface-container rounded-lg transition-colors cursor-pointer min-h-[44px]"
-                role="menuitem"
-                id="menuItemDashboard"
-              >
-                <span class="material-symbols-outlined text-[18px] text-primary">dashboard</span>
-                <span>Dasbor Kerja</span>
-              </a>
-
-              @if (isAdmin()) {
-                <!-- Panel Admin (Khusus Super Admin) -->
-                <a
-                  routerLink="/admin/workers"
-                  (click)="closeMenu()"
-                  class="flex items-center gap-2.5 px-3 py-2 text-sm text-primary font-semibold hover:bg-surface-container rounded-lg transition-colors cursor-pointer min-h-[44px]"
-                  role="menuitem"
-                  id="menuItemAdminPanel"
-                >
-                  <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
-                  <span>Panel Kelola Mitra</span>
-                </a>
-              }
-
-              <!-- Profil Publik -->
-              <a
-                [routerLink]="'/' + sessionSlug()"
-                (click)="closeMenu()"
-                class="flex items-center gap-2.5 px-3 py-2 text-sm text-on-surface hover:bg-surface-container rounded-lg transition-colors cursor-pointer min-h-[44px]"
-                role="menuitem"
-                id="menuItemPublicProfile"
-              >
-                <span class="material-symbols-outlined text-[18px] text-secondary">storefront</span>
-                <span>Profil Publik</span>
-              </a>
-
-              <div class="h-px bg-hairline-subtle my-1"></div>
-
-              <!-- Tombol Keluar -->
-              <button
-                type="button"
-                (click)="openLogoutConfirm()"
-                class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer min-h-[44px] text-left"
-                role="menuitem"
-                id="menuItemLogout"
-              >
-                <span class="material-symbols-outlined text-[18px] text-red-600">logout</span>
-                <span>Keluar</span>
-              </button>
             </div>
           }
         </div>
@@ -235,7 +294,34 @@ export class BookingNavAccountMenuComponent {
     if (session?.name) return session.name;
     const worker = this.activeWorker();
     if (worker?.name) return worker.name;
-    return 'Mitra Tuwaktu';
+    return 'Budi Santoso';
+  }
+
+  sessionInitials(): string {
+    const name = this.sessionName().trim();
+    if (!name) return 'BS';
+    const parts = name.split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  sessionProfession(): string {
+    if (this.isAdmin()) return 'Super Administrator';
+    const worker = this.activeWorker();
+    if (worker?.bio) {
+      return worker.bio.length > 25 ? worker.bio.slice(0, 22) + '...' : worker.bio;
+    }
+    return 'Teknisi HVAC';
+  }
+
+  sessionZone(): string {
+    const worker = this.activeWorker();
+    if (worker?.zone) {
+      return `Pangkalan: ${worker.zone}`;
+    }
+    return 'Pangkalan: Jagakarsa, Jakarta Selatan';
   }
 
   isAdmin(): boolean {
@@ -283,7 +369,7 @@ export class BookingNavAccountMenuComponent {
   }
 
   executeLogout(): void {
-    this.isLogoutModalOpen.set(false);
+    this.closeLogoutConfirm();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

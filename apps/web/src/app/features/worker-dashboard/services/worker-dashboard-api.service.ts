@@ -21,7 +21,7 @@ export class WorkerDashboardApiService {
   private readonly configuredBaseUrl = inject(API_BASE_URL);
 
   private get normalizedBaseUrl(): string {
-    return (this.configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
+    return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
   }
 
   fetchWorkerProfile(workerSlug: string): Observable<WorkerProfileApiResponse> {

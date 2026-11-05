@@ -20,7 +20,7 @@ describe('WorkerDashboardApiService', () => {
         WorkerDashboardApiService,
         {
           provide: API_BASE_URL,
-          useValue: 'http://localhost:8080///',
+          useValue: 'http://localhost:3000///',
         },
       ],
     });
@@ -36,7 +36,7 @@ describe('WorkerDashboardApiService', () => {
     service.fetchWorkerProfile('budi-santoso').subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/v1/public/workers/budi-santoso'
+      'http://localhost:3000/api/v1/public/workers/budi-santoso'
     );
     expect(req.request.method).toBe('GET');
     req.flush({ success: true, message: 'Sukses', data: {} });
@@ -53,7 +53,7 @@ describe('WorkerDashboardApiService', () => {
     service.updateWorkerProfile('worker-uuid-1', payload).subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/v1/workers/worker-uuid-1/profile'
+      'http://localhost:3000/api/v1/workers/worker-uuid-1/profile'
     );
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
@@ -69,7 +69,7 @@ describe('WorkerDashboardApiService', () => {
       .subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/v1/worker/rates'
+      'http://localhost:3000/api/v1/worker/rates'
     );
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({
@@ -88,7 +88,7 @@ describe('WorkerDashboardApiService', () => {
     service.fetchWorkerSchedules('worker-uuid-1').subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/v1/worker/schedules?worker_id=worker-uuid-1'
+      'http://localhost:3000/api/v1/worker/schedules?worker_id=worker-uuid-1'
     );
     expect(req.request.method).toBe('GET');
     req.flush({ success: true, message: 'Daftar jadwal kerja berhasil diambil', data: [] });
@@ -109,7 +109,7 @@ describe('WorkerDashboardApiService', () => {
     service.updateWorkerSchedules('worker-uuid-1', schedules).subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/v1/worker/schedules'
+      'http://localhost:3000/api/v1/worker/schedules'
     );
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({

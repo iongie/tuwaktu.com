@@ -18,7 +18,7 @@ describe('AdminWorkerApiService', () => {
         AuthService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: API_BASE_URL, useValue: 'http://localhost:8080' },
+        { provide: API_BASE_URL, useValue: 'http://localhost:3000' },
       ],
     });
 
@@ -70,7 +70,7 @@ describe('AdminWorkerApiService', () => {
       expect(res.data[0].slug).toBe('budi-santoso');
     });
 
-    const req = httpTestingController.expectOne('http://localhost:8080/api/v1/admin/workers');
+    const req = httpTestingController.expectOne('http://localhost:3000/api/v1/admin/workers');
     expect(req.request.method).toBe('GET');
     expect(req.request.headers.get('Authorization')).toBe('Bearer mock-jwt-token-xyz');
 
@@ -93,7 +93,7 @@ describe('AdminWorkerApiService', () => {
       expect(res.data.worker.name).toBe('Hendro Wijaya');
     });
 
-    const req = httpTestingController.expectOne('http://localhost:8080/api/v1/admin/workers');
+    const req = httpTestingController.expectOne('http://localhost:3000/api/v1/admin/workers');
     expect(req.request.method).toBe('POST');
     expect(req.request.headers.get('Authorization')).toBe('Bearer mock-jwt-token-xyz');
     expect(req.request.body).toEqual(payload);
@@ -128,7 +128,7 @@ describe('AdminWorkerApiService', () => {
       expect(res.data.status).toBe('SUSPENDED');
     });
 
-    const req = httpTestingController.expectOne('http://localhost:8080/api/v1/admin/workers/wrk-1/status');
+    const req = httpTestingController.expectOne('http://localhost:3000/api/v1/admin/workers/wrk-1/status');
     expect(req.request.method).toBe('PATCH');
     expect(req.request.headers.get('Authorization')).toBe('Bearer mock-jwt-token-xyz');
     expect(req.request.body).toEqual({ status: 'SUSPENDED' });

@@ -200,7 +200,7 @@ func determineEnvironment(baseDir string) Environment {
 }
 
 func buildConfig(env Environment) *Config {
-	port := getEnv("PORT", "8080")
+	port := getEnv("PORT", "3000")
 	appName := getEnv("APP_NAME", fmt.Sprintf("Tuwaktu API [%s]", env))
 	prefork := getEnvAsBool("SERVER_PREFORK", false)
 

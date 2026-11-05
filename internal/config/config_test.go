@@ -378,13 +378,13 @@ func TestLoadConfig_EmptyStringValues(t *testing.T) {
 		assert.Equal(t, "", cfg.ServerHeader)
 	})
 
-	t.Run("empty PORT falls back to 8080", func(t *testing.T) {
+	t.Run("empty PORT falls back to 3000", func(t *testing.T) {
 		cleanEnv(t)
 		t.Setenv("APP_ENV", "development")
 		t.Setenv("PORT", "")
 
 		cfg := config.LoadConfig(t.TempDir())
-		assert.Equal(t, "8080", cfg.AppPort)
+		assert.Equal(t, "3000", cfg.AppPort)
 	})
 }
 

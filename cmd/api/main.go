@@ -112,17 +112,26 @@ func main() {
 
 	// Environment-tailored CORS policy with credentials support for HTTP-Only cookies
 	corsConfig := cors.Config{
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, ng-skip-http-transfer-cache, X-Requested-With, Cache-Control, Pragma",
 		AllowMethods:     "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
 		AllowCredentials: true,
+		ExposeHeaders:    "Set-Cookie, Content-Length",
+		MaxAge:           86400,
 	}
 
 	if cfg.CORSAllowOrigins == "*" || cfg.IsDevelopment() {
 		corsConfig.AllowOriginsFunc = func(origin string) bool {
-			return true
+			if origin == "http://localhost:4200" || origin == "http://127.0.0.1:4200" ||
+				strings.HasPrefix(origin, "http://localhost:") ||
+				strings.HasPrefix(origin, "http://127.0.0.1:") {
+				return true
+			}
+			return false
 		}
-	} else {
+	} else if cfg.CORSAllowOrigins != "" {
 		corsConfig.AllowOrigins = cfg.CORSAllowOrigins
+	} else {
+		corsConfig.AllowOrigins = "http://localhost:4200, http://127.0.0.1:4200"
 	}
 
 	app.Use(cors.New(corsConfig))

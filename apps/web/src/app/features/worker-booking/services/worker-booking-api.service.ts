@@ -19,7 +19,7 @@ export class WorkerBookingApiService {
   private readonly configuredBaseUrl = inject(API_BASE_URL);
 
   private get normalizedBaseUrl(): string {
-    return (this.configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
+    return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
   }
 
   fetchPublicTechnicianProfile(technicianSlug: string): Observable<TechnicianProfileApiResponse> {

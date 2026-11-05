@@ -26,7 +26,7 @@ export class AdminWorkerApiService {
   private readonly authService = inject(AuthService);
 
   private get normalizedBaseUrl(): string {
-    return (this.configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
+    return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
   }
 
   private get authHeaders(): HttpHeaders {

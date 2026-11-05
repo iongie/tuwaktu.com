@@ -15,7 +15,7 @@ describe('AuthService', () => {
         AuthService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: API_BASE_URL, useValue: 'http://localhost:8080' },
+        { provide: API_BASE_URL, useValue: 'http://localhost:3000' },
       ],
     });
     service = TestBed.inject(AuthService);
@@ -235,7 +235,7 @@ describe('AuthService', () => {
           expect(res.success).toBe(true);
         });
 
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/login');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/login');
       expect(req.request.method).toBe('POST');
       expect(req.request.withCredentials).toBe(true);
       expect(req.request.body).toEqual({
@@ -280,7 +280,7 @@ describe('AuthService', () => {
           expect(res.error).toBeDefined();
         });
 
-      httpTestingController.expectNone('http://localhost:8080/api/v1/auth/login');
+      httpTestingController.expectNone('http://localhost:3000/api/v1/auth/login');
       expect(service.isLoggedIn()).toBe(false);
     });
 
@@ -298,7 +298,7 @@ describe('AuthService', () => {
           expect(res.error).toContain('kata sandi yang Anda masukkan tidak sesuai');
         });
 
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/login');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/login');
       expect(req.request.method).toBe('POST');
       req.flush(
         {
@@ -331,7 +331,7 @@ describe('AuthService', () => {
           resultSuccess = res.success;
         });
 
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/register');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/register');
       expect(req.request.method).toBe('POST');
       expect(req.request.withCredentials).toBe(true);
       expect(req.request.body.name).toBe('Eko Prasetyo');
@@ -383,7 +383,7 @@ describe('AuthService', () => {
           errorMsg = res.error;
         });
 
-      httpTestingController.expectNone('http://localhost:8080/api/v1/auth/register');
+      httpTestingController.expectNone('http://localhost:3000/api/v1/auth/register');
       expect(resultSuccess).toBe(false);
       expect(errorMsg).toContain('Pakta Kedaulatan Pekerja');
       expect(service.isLoggedIn()).toBe(false);
@@ -410,7 +410,7 @@ describe('AuthService', () => {
           errorMsg = res.error;
         });
 
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/register');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/register');
       expect(req.request.method).toBe('POST');
       req.flush(
         {
@@ -447,7 +447,7 @@ describe('AuthService', () => {
           errorMsg = res.error;
         });
 
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/register');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/register');
       req.flush(
         {
           success: false,
@@ -496,7 +496,7 @@ describe('AuthService', () => {
       expect(service.isLoggedIn()).toBe(true);
 
       service.logout();
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/logout');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/logout');
       expect(req.request.method).toBe('POST');
       expect(req.request.withCredentials).toBe(true);
       req.flush({ success: true, message: 'Sesi otentikasi berhasil ditutup', data: null });
@@ -515,7 +515,7 @@ describe('AuthService', () => {
         expect(session?.role).toBe('ADMIN');
       });
 
-      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/me');
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/me');
       expect(req.request.method).toBe('GET');
       expect(req.request.withCredentials).toBe(true);
 
@@ -543,7 +543,7 @@ describe('AuthService', () => {
       service.checkSession().subscribe(() => callCount++);
       service.checkSession().subscribe(() => callCount++);
 
-      const reqs = httpTestingController.match('http://localhost:8080/api/v1/auth/me');
+      const reqs = httpTestingController.match('http://localhost:3000/api/v1/auth/me');
       expect(reqs.length).toBe(1);
 
       reqs[0].flush({

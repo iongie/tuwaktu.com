@@ -176,7 +176,7 @@ Mengambil profil publik pekerja berdasarkan slug URL.
 
 ```http
 GET /api/public/workers/budi-santoso HTTP/1.1
-Host: localhost:8080
+Host: localhost:3000
 ```
 
 #### Response Sukses (200 OK)
@@ -229,7 +229,7 @@ Worker dan jadwal akan otomatis ditentukan dari layanan yang dipilih:
 
 ```http
 POST /api/public/bookings HTTP/1.1
-Host: localhost:8080
+Host: localhost:3000
 Content-Type: application/json
 
 {
@@ -245,7 +245,7 @@ _(Bisa juga menggunakan key bahasa Indonesia: `nama_klien`, `lokasi`, `pilihan_l
 
 ```http
 POST /api/public/bookings HTTP/1.1
-Host: localhost:8080
+Host: localhost:3000
 Content-Type: application/json
 
 {
@@ -329,7 +329,7 @@ tuwaktu.com/
 │       └── src/
 │           ├── environments/
 │           │   ├── environment.model.ts       # Interface AppEnvironment & InjectionToken
-│           │   ├── environment.development.ts # Konfigurasi development (http://localhost:8080)
+│           │   ├── environment.development.ts # Konfigurasi development (http://localhost:3000)
 │           │   ├── environment.staging.ts     # Konfigurasi staging (https://staging-api.tuwaktu.com)
 │           │   ├── environment.production.ts  # Konfigurasi production (https://api.tuwaktu.com)
 │           │   └── environment.ts             # Base fallback environment

@@ -20,7 +20,7 @@ describe('WorkerBookingApiService', () => {
         WorkerBookingApiService,
         {
           provide: API_BASE_URL,
-          useValue: 'http://localhost:8080///',
+          useValue: 'http://localhost:3000///',
         },
       ],
     });
@@ -36,7 +36,7 @@ describe('WorkerBookingApiService', () => {
     service.fetchPublicTechnicianProfile('budi-santoso').subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/public/workers/budi-santoso'
+      'http://localhost:3000/api/public/workers/budi-santoso'
     );
     expect(req.request.method).toBe('GET');
     req.flush({ success: true, message: 'Sukses', data: {} });
@@ -51,7 +51,7 @@ describe('WorkerBookingApiService', () => {
 
     service.submitServiceBookingReservation(payload).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/v1/booking/create');
+    const req = httpMock.expectOne('http://localhost:3000/api/v1/booking/create');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     req.flush({ success: true, message: 'Sukses dibuat', data: {} });
@@ -61,7 +61,7 @@ describe('WorkerBookingApiService', () => {
     service.fetchAvailableSlots('budi-santoso', '2026-11-03', 'srv-1').subscribe();
 
     const req = httpMock.expectOne(
-      'http://localhost:8080/api/v1/public/workers/budi-santoso/available-slots?date=2026-11-03&service_id=srv-1'
+      'http://localhost:3000/api/v1/public/workers/budi-santoso/available-slots?date=2026-11-03&service_id=srv-1'
     );
     expect(req.request.method).toBe('GET');
     req.flush({

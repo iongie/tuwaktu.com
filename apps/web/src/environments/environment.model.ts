@@ -10,7 +10,7 @@ export interface AppEnvironment {
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
   providedIn: 'root',
-  factory: () => 'http://localhost:8080',
+  factory: () => 'http://localhost:3000',
 });
 
 export const APP_ENVIRONMENT = new InjectionToken<AppEnvironment>('APP_ENVIRONMENT');

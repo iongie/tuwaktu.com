@@ -49,7 +49,7 @@ export class AuthService {
   readonly isLoggedIn = computed<boolean>(() => this.currentUser() !== null);
 
   private get normalizedBaseUrl(): string {
-    return (this.configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
+    return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
   }
 
   hasHttpClient(): boolean {

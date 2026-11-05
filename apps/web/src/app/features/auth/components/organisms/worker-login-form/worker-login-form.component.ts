@@ -1,15 +1,23 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   OnDestroy,
+  OnInit,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { AuthMethod, LoginFormData } from '../../../models/auth.models';
+import {
+  isAdminUrl,
+  normalizeAdminUrl,
+  sanitizeReturnUrl,
+} from '../../../../../core/guards/admin.guard';
 
 @Component({
   selector: 'app-worker-login-form',
@@ -70,6 +78,24 @@ import { AuthMethod, LoginFormData } from '../../../models/auth.models';
           <span>Email / ID Praktisi</span>
         </button>
       </div>
+
+      @if (requiresAdminLogin()) {
+        <div
+          id="adminAuthNoticeBanner"
+          class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm"
+          role="status"
+        >
+          <span class="material-symbols-outlined text-amber-700 text-[20px] shrink-0">admin_panel_settings</span>
+          <div class="flex flex-col gap-0.5">
+            <span class="font-body-strong text-body-strong font-semibold text-amber-950">
+              Akses Panel Admin Memerlukan Autentikasi
+            </span>
+            <span class="font-caption text-caption text-amber-800 leading-relaxed">
+              Halaman yang Anda tuju memerlukan wewenang administrator. Silakan masuk menggunakan akun pengelola yang terverifikasi.
+            </span>
+          </div>
+        </div>
+      }
 
       @if (loginError()) {
         <div
@@ -324,10 +350,12 @@ import { AuthMethod, LoginFormData } from '../../../models/auth.models';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WorkerLoginFormComponent implements OnDestroy {
+export class WorkerLoginFormComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private redirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private routeSubscription: Subscription | null = null;
 
   readonly activeMethod = signal<AuthMethod>('wa');
   readonly showPin = signal<boolean>(false);
@@ -335,15 +363,50 @@ export class WorkerLoginFormComponent implements OnDestroy {
   readonly loginError = signal<string>('');
   readonly loginSuccess = signal<string>('');
 
+  readonly returnUrl = signal<string | null>(null);
+  readonly requiresAdminLogin = computed<boolean>(() => {
+    return isAdminUrl(this.returnUrl());
+  });
+
   waNumber = '';
   workerId = '';
   securityPin = '';
   rememberDevice = false;
 
+  ngOnInit(): void {
+    const rawInitialUrl =
+      this.route.snapshot?.queryParamMap?.get('returnUrl') ||
+      this.route.snapshot?.queryParams?.['returnUrl'] ||
+      null;
+
+    const initialReturnUrl = sanitizeReturnUrl(rawInitialUrl);
+    if (initialReturnUrl) {
+      this.returnUrl.set(initialReturnUrl);
+      if (isAdminUrl(initialReturnUrl)) {
+        this.activeMethod.set('id');
+      }
+    }
+
+    if (this.route.queryParamMap) {
+      this.routeSubscription = this.route.queryParamMap.subscribe((params) => {
+        const rawUrl = params.get('returnUrl');
+        const sanitizedUrl = sanitizeReturnUrl(rawUrl);
+        this.returnUrl.set(sanitizedUrl);
+        if (sanitizedUrl && isAdminUrl(sanitizedUrl)) {
+          this.activeMethod.set('id');
+        }
+      });
+    }
+  }
+
   ngOnDestroy(): void {
     if (this.redirectTimeoutId !== null) {
       clearTimeout(this.redirectTimeoutId);
       this.redirectTimeoutId = null;
+    }
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
+      this.routeSubscription = null;
     }
   }
 
@@ -390,12 +453,32 @@ export class WorkerLoginFormComponent implements OnDestroy {
       next: (res) => {
         this.isLoading.set(false);
         if (res.success) {
-          this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...');
-          const currentRole = this.authService.currentUser()?.role?.toUpperCase();
-          const targetRoute = currentRole === 'ADMIN' ? '/admin/workers' : '/dashboard';
+          const currentRole = (this.authService.currentUser()?.role || '').toUpperCase();
+          const targetUrl = sanitizeReturnUrl(this.returnUrl());
+
+          let destination = '/dashboard';
+          if (currentRole === 'ADMIN') {
+            if (targetUrl && isAdminUrl(targetUrl)) {
+              destination = normalizeAdminUrl(targetUrl);
+            } else {
+              destination = '/admin/workers';
+            }
+            this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke panel administrator...');
+          } else {
+            if (targetUrl && !isAdminUrl(targetUrl)) {
+              destination = targetUrl;
+            } else {
+              destination = '/dashboard';
+            }
+            this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...');
+          }
 
           this.redirectTimeoutId = setTimeout(() => {
-            this.router.navigate([targetRoute]);
+            if (destination.includes('?') || destination.includes('#')) {
+              this.router.navigateByUrl(destination);
+            } else {
+              this.router.navigate([destination]);
+            }
           }, 1000);
         } else {
           this.loginError.set(res.error || 'Data kredensial tidak valid.');

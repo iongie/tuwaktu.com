@@ -127,17 +127,23 @@ export const appRoutes: Route[] = [
     redirectTo: 'login',
   },
   {
-    path: 'admin/workers',
-    canActivate: [adminGuard],
-    loadComponent: () =>
-      import(
-        './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
-      ).then((m) => m.AdminWorkersPageComponent),
-  },
-  {
     path: 'admin',
-    redirectTo: 'admin/workers',
-    pathMatch: 'full',
+    canActivate: [adminGuard],
+    canActivateChild: [adminGuard],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'workers',
+      },
+      {
+        path: 'workers',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
+          ).then((m) => m.AdminWorkersPageComponent),
+      },
+    ],
   },
   {
     path: ':slug',

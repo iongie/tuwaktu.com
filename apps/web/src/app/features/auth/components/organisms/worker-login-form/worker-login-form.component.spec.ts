@@ -141,4 +141,168 @@ describe('WorkerLoginFormComponent', () => {
     await component.triggerMagicLink();
     expect(magicSpy).toHaveBeenCalledWith('081288992211');
   });
+
+  it('harus menampilkan banner peringatan jika returnUrl mengarah ke panel admin', () => {
+    component.returnUrl.set('/admin/workers');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('#adminAuthNoticeBanner');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Akses Panel Admin Memerlukan Autentikasi');
+  });
+
+  it('tidak boleh menampilkan banner peringatan jika returnUrl tidak mengarah ke admin', () => {
+    component.returnUrl.set('/dashboard/tarif-layanan');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('#adminAuthNoticeBanner');
+    expect(banner).toBeFalsy();
+  });
+
+  it('tidak boleh menampilkan banner jika path bukan admin murni (misal query param ref=/admin)', () => {
+    component.returnUrl.set('/dashboard?ref=/admin');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('#adminAuthNoticeBanner');
+    expect(banner).toBeFalsy();
+    expect(component.requiresAdminLogin()).toBe(false);
+  });
+
+  it('harus menolak returnUrl eksternal jahat dan mengabaikannya', () => {
+    component.returnUrl.set('https://evil.com/admin');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('#adminAuthNoticeBanner');
+    expect(banner).toBeFalsy();
+    expect(component.requiresAdminLogin()).toBe(false);
+  });
+
+  it('harus mengarahkan admin ke returnUrl spesifik setelah login berhasil', () => {
+    jest.useFakeTimers();
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      return of({ success: true });
+    });
+
+    component.returnUrl.set('/admin/workers');
+    component.setMethod('id');
+    component.workerId = 'admin@tuwaktu.com';
+    component.securityPin = '123456';
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/workers']);
+    jest.useRealTimers();
+  });
+
+  it('harus menormalisasi returnUrl /admin menjadi /admin/workers saat admin login', () => {
+    jest.useFakeTimers();
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      return of({ success: true });
+    });
+
+    component.returnUrl.set('/admin');
+    component.setMethod('id');
+    component.workerId = 'admin@tuwaktu.com';
+    component.securityPin = '123456';
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/workers']);
+    jest.useRealTimers();
+  });
+
+  it('harus mengarahkan admin ke /admin/workers jika returnUrl yang ada bukan rute admin (misal /dashboard)', () => {
+    jest.useFakeTimers();
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      return of({ success: true });
+    });
+
+    component.returnUrl.set('/dashboard');
+    component.setMethod('id');
+    component.workerId = 'admin@tuwaktu.com';
+    component.securityPin = '123456';
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/workers']);
+    jest.useRealTimers();
+  });
+
+  it('harus menolak akses admin dan mengarahkan pekerja biasa ke /dashboard meskipun returnUrl menuju admin', () => {
+    jest.useFakeTimers();
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'worker-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
+      return of({ success: true });
+    });
+
+    component.returnUrl.set('/admin/workers');
+    component.waNumber = '081288992211';
+    component.securityPin = '123456';
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    jest.useRealTimers();
+  });
+
+  it('harus menggunakan navigateByUrl jika destination memiliki query parameter', () => {
+    jest.useFakeTimers();
+    const navigateByUrlSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      return of({ success: true });
+    });
+
+    component.returnUrl.set('/admin/workers?status=SUSPENDED');
+    component.setMethod('id');
+    component.workerId = 'admin@tuwaktu.com';
+    component.securityPin = '123456';
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/admin/workers?status=SUSPENDED');
+    jest.useRealTimers();
+  });
 });

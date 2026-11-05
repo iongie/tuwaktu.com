@@ -3,9 +3,11 @@ import { provideRouter, Router } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { of } from 'rxjs';
 import { APP_ENVIRONMENT } from '../environments/environment.model';
 import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
+import { AuthService } from './features/auth/services/auth.service';
 
 describe('appRoutes', () => {
   it('harus memuat HomePageComponent pada rute root', () => {
@@ -67,6 +69,21 @@ describe('appRoutes', () => {
     expect(masukRoute?.redirectTo).toBe('login');
   });
 
+  it('harus memiliki konfigurasi rute admin terproteksi canActivate dan canActivateChild', () => {
+    const adminRoute = appRoutes.find((r) => r.path === 'admin');
+    expect(adminRoute).toBeDefined();
+    expect(adminRoute?.canActivate).toBeDefined();
+    expect(adminRoute?.canActivateChild).toBeDefined();
+    expect(adminRoute?.children).toBeDefined();
+
+    const children = adminRoute?.children ?? [];
+    const defaultChild = children.find((c) => c.path === '' && c.pathMatch === 'full');
+    expect(defaultChild?.redirectTo).toBe('workers');
+
+    const workersChild = children.find((c) => c.path === 'workers');
+    expect(workersChild?.loadComponent).toBeDefined();
+  });
+
   describe('Router Navigation Redirections', () => {
     let router: Router;
 
@@ -112,6 +129,59 @@ describe('appRoutes', () => {
       const navigated = await router.navigateByUrl('/masuk');
       expect(navigated).toBe(true);
       expect(router.url).toBe('/login');
+    });
+
+    it('harus mengarahkan pengunjung tanpa sesi ke /login saat mengakses /admin/workers', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession(null);
+      jest.spyOn(authService, 'checkSession').mockReturnValue(of(null));
+      const navigated = await router.navigateByUrl('/admin/workers');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/login?returnUrl=%2Fadmin%2Fworkers');
+    });
+
+    it('harus mengarahkan pengunjung tanpa sesi ke /login saat mengakses /admin', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession(null);
+      jest.spyOn(authService, 'checkSession').mockReturnValue(of(null));
+      const navigated = await router.navigateByUrl('/admin');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/login?returnUrl=%2Fadmin%2Fworkers');
+    });
+
+    it('harus mempertahankan query parameter saat pengunjung tanpa sesi mengakses /admin?status=SUSPENDED', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession(null);
+      jest.spyOn(authService, 'checkSession').mockReturnValue(of(null));
+      const navigated = await router.navigateByUrl('/admin?status=SUSPENDED');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/login?returnUrl=%2Fadmin%2Fworkers%3Fstatus%3DSUSPENDED');
+    });
+
+    it('harus mengalihkan akun non-admin ke dasbor saat mengakses /admin/workers', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'worker-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
+      const navigated = await router.navigateByUrl('/admin/workers');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/dashboard/ringkasan');
+    });
+
+    it('harus mengizinkan akun ADMIN mengakses /admin/workers', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      const navigated = await router.navigateByUrl('/admin/workers');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/admin/workers');
     });
   });
 });

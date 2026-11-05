@@ -89,4 +89,48 @@ export interface WorkerServiceCatalogItem {
   is_public: boolean;
 }
 
+export interface CreateWorkerServicePayload {
+  name: string;
+  description: string;
+  price: number;
+  base_price?: number;
+  rate_type?: 'HOURLY' | 'UNIT';
+  duration_minutes: number;
+  is_active?: boolean;
+}
+
+export interface UpdateWorkerServicePayload {
+  name?: string;
+  description?: string;
+  price?: number;
+  base_price?: number;
+  rate_type?: 'HOURLY' | 'UNIT';
+  duration_minutes?: number;
+  is_active?: boolean;
+}
+
+export interface WorkerServiceItemApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    worker_id: string;
+    name: string;
+    description: string;
+    price: number;
+    base_price?: number;
+    rate_type?: 'HOURLY' | 'UNIT';
+    duration_minutes: number;
+    is_active: boolean;
+  };
+  error: unknown;
+}
+
+export interface WorkerServiceDeleteApiResponse {
+  success: boolean;
+  message: string;
+  data: null;
+  error: unknown;
+}
+
 

@@ -240,21 +240,35 @@ import { WorkerServiceCatalogItem } from '../../../models/worker-profile.model';
           </div>
 
           <!-- Modal Action Buttons -->
-          <div class="pt-4 border-t border-hairline-subtle flex items-center justify-end gap-3">
-            <button
-              type="button"
-              (click)="dismissModal.emit()"
-              class="px-5 py-2.5 rounded-lg bg-surface-container-high text-on-surface font-button-label text-button-label hover:bg-surface-variant transition-colors min-h-[44px] cursor-pointer"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              class="px-6 py-2.5 rounded-lg bg-voltage-orange text-on-primary font-button-label text-button-label hover:bg-orange-600 transition-colors flex items-center gap-1.5 shadow-sm min-h-[44px] cursor-pointer"
-            >
-              <span class="material-symbols-outlined text-[18px]">save</span>
-              <span>Simpan Perubahan</span>
-            </button>
+          <div class="pt-4 border-t border-hairline-subtle flex items-center justify-between gap-3">
+            @if (serviceItem()) {
+              <button
+                type="button"
+                (click)="handleDelete()"
+                class="px-4 py-2.5 rounded-lg border border-red-200 text-error hover:bg-red-50 font-button-label text-button-label transition-colors flex items-center gap-1.5 min-h-[44px] cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[18px]">delete</span>
+                <span>Hapus Layanan</span>
+              </button>
+            } @else {
+              <div></div>
+            }
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                (click)="dismissModal.emit()"
+                class="px-5 py-2.5 rounded-lg bg-surface-container-high text-on-surface font-button-label text-button-label hover:bg-surface-variant transition-colors min-h-[44px] cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                class="px-6 py-2.5 rounded-lg bg-voltage-orange text-on-primary font-button-label text-button-label hover:bg-orange-600 transition-colors flex items-center gap-1.5 shadow-sm min-h-[44px] cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                <span>Simpan Perubahan</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -267,6 +281,7 @@ export class RatesEditServiceModalComponent implements OnInit {
 
   readonly dismissModal = output<void>();
   readonly save = output<WorkerServiceCatalogItem>();
+  readonly delete = output<string>();
 
   readonly serviceName = signal<string>('');
   readonly servicePrice = signal<number>(65000);
@@ -336,5 +351,12 @@ export class RatesEditServiceModalComponent implements OnInit {
     };
 
     this.save.emit(updated);
+  }
+
+  handleDelete(): void {
+    const existing = this.serviceItem();
+    if (existing) {
+      this.delete.emit(existing.id);
+    }
   }
 }

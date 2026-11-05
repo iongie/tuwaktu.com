@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -89,6 +90,92 @@ func (m *MemoryRepository) GetServicesByWorkerID(ctx context.Context, workerID s
 		}
 	}
 	return result, nil
+}
+
+func (m *MemoryRepository) CreateService(ctx context.Context, service *domain.Service) (*domain.Service, error) {
+	if service == nil || strings.TrimSpace(service.WorkerID) == "" {
+		return nil, domain.ErrInvalidInput
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if strings.TrimSpace(service.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return nil, fmt.Errorf("generating service id: %w", err)
+		}
+		service.ID = id.String()
+	}
+	now := time.Now()
+	service.CreatedAt = now
+	service.UpdatedAt = now
+	cp := *service
+	m.services[service.ID] = &cp
+	return &cp, nil
+}
+
+func (m *MemoryRepository) UpdateService(ctx context.Context, workerID string, serviceID string, update *domain.UpdateServicePayload) (*domain.Service, error) {
+	if update == nil {
+		return nil, domain.ErrInvalidInput
+	}
+	workerID = strings.TrimSpace(workerID)
+	serviceID = strings.TrimSpace(serviceID)
+	if workerID == "" || serviceID == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	existing, exists := m.services[serviceID]
+	if !exists || existing.WorkerID != workerID {
+		return nil, domain.ErrServiceNotFound
+	}
+
+	if update.Name != nil {
+		existing.Name = strings.TrimSpace(*update.Name)
+	}
+	if update.Description != nil {
+		existing.Description = strings.TrimSpace(*update.Description)
+	}
+	if update.Price != nil {
+		existing.Price = *update.Price
+	}
+	if update.BasePrice != nil {
+		existing.BasePrice = *update.BasePrice
+	}
+	if update.RateType != nil {
+		existing.RateType = strings.ToUpper(strings.TrimSpace(*update.RateType))
+	}
+	if update.DurationMinutes != nil {
+		existing.DurationMinutes = *update.DurationMinutes
+	}
+	if update.IsActive != nil {
+		existing.IsActive = *update.IsActive
+	}
+	existing.UpdatedAt = time.Now()
+	cp := *existing
+	return &cp, nil
+}
+
+func (m *MemoryRepository) DeleteService(ctx context.Context, workerID string, serviceID string) error {
+	workerID = strings.TrimSpace(workerID)
+	serviceID = strings.TrimSpace(serviceID)
+	if workerID == "" || serviceID == "" {
+		return domain.ErrInvalidInput
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	existing, exists := m.services[serviceID]
+	if !exists || existing.WorkerID != workerID {
+		return domain.ErrServiceNotFound
+	}
+
+	existing.IsActive = false
+	existing.UpdatedAt = time.Now()
+	return nil
 }
 
 func (m *MemoryRepository) GetServiceByID(ctx context.Context, serviceID string) (*domain.Service, error) {

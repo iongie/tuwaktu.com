@@ -11,6 +11,10 @@ import {
   WorkerLocationSettingsApiResponse,
   WorkerScheduleItem,
   WorkerSchedulesApiResponse,
+  CreateWorkerServicePayload,
+  UpdateWorkerServicePayload,
+  WorkerServiceItemApiResponse,
+  WorkerServiceDeleteApiResponse,
 } from '../models/worker-profile.model';
 
 @Injectable({
@@ -27,7 +31,8 @@ export class WorkerDashboardApiService {
   fetchWorkerProfile(workerSlug: string): Observable<WorkerProfileApiResponse> {
     const sanitizedSlug = encodeURIComponent(workerSlug.trim().toLowerCase());
     return this.httpClient.get<WorkerProfileApiResponse>(
-      `${this.normalizedBaseUrl}/api/v1/public/workers/${sanitizedSlug}`
+      `${this.normalizedBaseUrl}/api/v1/public/workers/${sanitizedSlug}`,
+      { withCredentials: true }
     );
   }
 
@@ -38,7 +43,8 @@ export class WorkerDashboardApiService {
     const sanitizedId = encodeURIComponent(workerId.trim());
     return this.httpClient.put<WorkerProfileApiResponse>(
       `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedId}/profile`,
-      payload
+      payload,
+      { withCredentials: true }
     );
   }
 
@@ -51,7 +57,8 @@ export class WorkerDashboardApiService {
       {
         worker_id: workerId.trim(),
         ...payload,
-      }
+      },
+      { withCredentials: true }
     );
   }
 
@@ -64,14 +71,16 @@ export class WorkerDashboardApiService {
       {
         worker_id: workerId.trim(),
         ...payload,
-      }
+      },
+      { withCredentials: true }
     );
   }
 
   fetchWorkerSchedules(workerIdOrSlug: string): Observable<WorkerSchedulesApiResponse> {
     const sanitizedId = encodeURIComponent(workerIdOrSlug.trim());
     return this.httpClient.get<WorkerSchedulesApiResponse>(
-      `${this.normalizedBaseUrl}/api/v1/worker/schedules?worker_id=${sanitizedId}`
+      `${this.normalizedBaseUrl}/api/v1/worker/schedules?worker_id=${sanitizedId}`,
+      { withCredentials: true }
     );
   }
 
@@ -84,7 +93,55 @@ export class WorkerDashboardApiService {
       {
         worker_id: workerId.trim(),
         schedules,
-      }
+      },
+      { withCredentials: true }
+    );
+  }
+
+  createWorkerService(
+    workerId: string,
+    payload: CreateWorkerServicePayload
+  ): Observable<WorkerServiceItemApiResponse> {
+    const sanitizedId = encodeURIComponent(workerId.trim());
+    const endpoint = sanitizedId
+      ? `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedId}/services`
+      : `${this.normalizedBaseUrl}/api/v1/worker/services`;
+    return this.httpClient.post<WorkerServiceItemApiResponse>(
+      endpoint,
+      payload,
+      { withCredentials: true }
+    );
+  }
+
+  updateWorkerService(
+    workerId: string,
+    serviceId: string,
+    payload: UpdateWorkerServicePayload
+  ): Observable<WorkerServiceItemApiResponse> {
+    const sanitizedWorkerId = encodeURIComponent(workerId.trim());
+    const sanitizedServiceId = encodeURIComponent(serviceId.trim());
+    const endpoint = sanitizedWorkerId
+      ? `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedWorkerId}/services/${sanitizedServiceId}`
+      : `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}`;
+    return this.httpClient.put<WorkerServiceItemApiResponse>(
+      endpoint,
+      payload,
+      { withCredentials: true }
+    );
+  }
+
+  deleteWorkerService(
+    workerId: string,
+    serviceId: string
+  ): Observable<WorkerServiceDeleteApiResponse> {
+    const sanitizedWorkerId = encodeURIComponent(workerId.trim());
+    const sanitizedServiceId = encodeURIComponent(serviceId.trim());
+    const endpoint = sanitizedWorkerId
+      ? `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedWorkerId}/services/${sanitizedServiceId}`
+      : `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}`;
+    return this.httpClient.delete<WorkerServiceDeleteApiResponse>(
+      endpoint,
+      { withCredentials: true }
     );
   }
 }

@@ -54,6 +54,14 @@ func RegisterRoutes(
 	api.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	api.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
 
+	// Worker service catalog endpoints
+	api.Post("/worker/services", workerHandler.CreateService)
+	api.Post("/workers/:id/services", workerHandler.CreateService)
+	api.Put("/worker/services/:serviceId", workerHandler.UpdateService)
+	api.Put("/workers/:id/services/:serviceId", workerHandler.UpdateService)
+	api.Delete("/worker/services/:serviceId", workerHandler.DeleteService)
+	api.Delete("/workers/:id/services/:serviceId", workerHandler.DeleteService)
+
 	// Worker location settings endpoints
 	api.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
 	api.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
@@ -109,6 +117,12 @@ func RegisterRoutes(
 	v1.Get("/worker/:slug/available-slots", bookingHandler.GetAvailableSlots)
 	v1.Put("/worker/rates", workerHandler.UpdateWorkerRates)
 	v1.Put("/workers/:id/rates", workerHandler.UpdateWorkerRates)
+	v1.Post("/worker/services", workerHandler.CreateService)
+	v1.Post("/workers/:id/services", workerHandler.CreateService)
+	v1.Put("/worker/services/:serviceId", workerHandler.UpdateService)
+	v1.Put("/workers/:id/services/:serviceId", workerHandler.UpdateService)
+	v1.Delete("/worker/services/:serviceId", workerHandler.DeleteService)
+	v1.Delete("/workers/:id/services/:serviceId", workerHandler.DeleteService)
 	v1.Put("/worker/profile", workerHandler.UpdateWorkerProfile)
 	v1.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
 	v1.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)

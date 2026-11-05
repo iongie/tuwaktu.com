@@ -65,6 +65,11 @@ export class WorkerDashboardRatesComponent {
     }
   }
 
+  handleServiceDeleted(serviceId: string): void {
+    this.store.deleteServiceCatalogItem(serviceId);
+    this.closeEditModal();
+  }
+
   onBasePriceChange(rawValue: unknown): void {
     this.store.onBasePriceChange(rawValue);
   }

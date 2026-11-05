@@ -24,6 +24,12 @@ type WorkerService interface {
 	UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerScheduleItem, error)
 	UpdateWorkerSchedules(ctx context.Context, idOrSlug string, req []domain.WorkerScheduleItem) ([]domain.WorkerScheduleItem, error)
+	CreateService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error)
+	UpdateService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error)
+	DeleteService(ctx context.Context, idOrSlug string, serviceID string) error
+	AddWorkerService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error)
+	UpdateWorkerService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error)
+	DeleteWorkerService(ctx context.Context, idOrSlug string, serviceID string) error
 
 	// Admin & Autentikasi
 	OnboardWorker(ctx context.Context, payload *domain.AdminCreateWorkerPayload) (*domain.AdminWorkerCreatedResponse, error)
@@ -792,6 +798,156 @@ func (s *workerService) GetSessionProfile(ctx context.Context, accountID string)
 		AccountStatus:      account.AccountStatus,
 		MustChangePassword: account.MustChangePassword,
 	}, nil
+}
+
+// CreateService menambahkan paket layanan baru untuk pekerja ke katalog
+func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error) {
+	if payload == nil {
+		return nil, domain.ErrInvalidInput
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	name := strings.TrimSpace(payload.Name)
+	if name == "" {
+		return nil, fmt.Errorf("%w: nama layanan wajib diisi", domain.ErrInvalidInput)
+	}
+	if len(name) < 3 {
+		return nil, fmt.Errorf("%w: nama layanan minimal 3 karakter", domain.ErrInvalidInput)
+	}
+	if payload.Price < 0 {
+		return nil, fmt.Errorf("%w: tarif harga layanan tidak boleh negatif", domain.ErrInvalidInput)
+	}
+	duration := payload.DurationMinutes
+	if duration <= 0 {
+		duration = 60
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	rateType := strings.ToUpper(strings.TrimSpace(payload.RateType))
+	if rateType != "HOURLY" && rateType != "UNIT" {
+		rateType = "HOURLY"
+	}
+	basePrice := payload.BasePrice
+	if basePrice <= 0 {
+		basePrice = payload.Price
+	}
+
+	isActive := true
+	if payload.IsActive != nil {
+		isActive = *payload.IsActive
+	}
+
+	serviceEntity := &domain.Service{
+		WorkerID:        worker.ID,
+		Name:            name,
+		Description:     strings.TrimSpace(payload.Description),
+		Price:           payload.Price,
+		BasePrice:       basePrice,
+		RateType:        rateType,
+		DurationMinutes: duration,
+		IsActive:        isActive,
+	}
+
+	created, err := s.repo.CreateService(ctx, serviceEntity)
+	if err != nil {
+		return nil, fmt.Errorf("menyimpan layanan pekerja: %w", err)
+	}
+	return created, nil
+}
+
+// UpdateService memperbarui data paket layanan pekerja yang ada
+func (s *workerService) UpdateService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error) {
+	if payload == nil {
+		return nil, domain.ErrInvalidInput
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	serviceID = strings.TrimSpace(serviceID)
+	if idOrSlug == "" || serviceID == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	if payload.Name != nil {
+		name := strings.TrimSpace(*payload.Name)
+		if name == "" {
+			return nil, fmt.Errorf("%w: nama layanan tidak boleh kosong", domain.ErrInvalidInput)
+		}
+		if len(name) < 3 {
+			return nil, fmt.Errorf("%w: nama layanan minimal 3 karakter", domain.ErrInvalidInput)
+		}
+	}
+	if payload.Price != nil && *payload.Price < 0 {
+		return nil, fmt.Errorf("%w: tarif harga layanan tidak boleh negatif", domain.ErrInvalidInput)
+	}
+	if payload.DurationMinutes != nil && *payload.DurationMinutes <= 0 {
+		return nil, fmt.Errorf("%w: durasi layanan harus lebih besar dari 0 menit", domain.ErrInvalidInput)
+	}
+	if payload.RateType != nil {
+		rt := strings.ToUpper(strings.TrimSpace(*payload.RateType))
+		if rt != "HOURLY" && rt != "UNIT" {
+			return nil, domain.ErrInvalidRateType
+		}
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	updated, err := s.repo.UpdateService(ctx, worker.ID, serviceID, payload)
+	if err != nil {
+		return nil, err
+	}
+	return updated, nil
+}
+
+// DeleteService menonaktifkan paket layanan pekerja dari katalog
+func (s *workerService) DeleteService(ctx context.Context, idOrSlug string, serviceID string) error {
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	serviceID = strings.TrimSpace(serviceID)
+	if idOrSlug == "" || serviceID == "" {
+		return domain.ErrInvalidInput
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return s.repo.DeleteService(ctx, worker.ID, serviceID)
+}
+
+func (s *workerService) AddWorkerService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error) {
+	return s.CreateService(ctx, idOrSlug, payload)
+}
+
+func (s *workerService) UpdateWorkerService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error) {
+	return s.UpdateService(ctx, idOrSlug, serviceID, payload)
+}
+
+func (s *workerService) DeleteWorkerService(ctx context.Context, idOrSlug string, serviceID string) error {
+	return s.DeleteService(ctx, idOrSlug, serviceID)
 }
 
 

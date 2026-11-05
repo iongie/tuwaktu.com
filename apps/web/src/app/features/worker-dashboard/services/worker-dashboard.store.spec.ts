@@ -13,6 +13,9 @@ describe('WorkerDashboardStore', () => {
     updateWorkerLocationSettings: jest.Mock;
     fetchWorkerSchedules: jest.Mock;
     updateWorkerSchedules: jest.Mock;
+    createWorkerService: jest.Mock;
+    updateWorkerService: jest.Mock;
+    deleteWorkerService: jest.Mock;
   };
 
   const sampleWorkerData: PublicTechnicianProfile = {
@@ -103,6 +106,41 @@ describe('WorkerDashboardStore', () => {
               slot_evening: true,
             },
           ],
+        })
+      ),
+      createWorkerService: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Layanan baru berhasil ditambahkan ke katalog',
+          data: {
+            id: 'srv-from-backend-1',
+            worker_id: 'worker-uuid-123',
+            name: 'Layanan Baru Backend',
+            price: 90000,
+            duration_minutes: 60,
+            is_active: true,
+          },
+        })
+      ),
+      updateWorkerService: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Paket layanan berhasil diperbarui',
+          data: {
+            id: 'srv-dcl-01',
+            worker_id: 'worker-uuid-123',
+            name: 'Deep Clean Detailing Updated',
+            price: 70000,
+            duration_minutes: 120,
+            is_active: true,
+          },
+        })
+      ),
+      deleteWorkerService: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Paket layanan berhasil dinonaktifkan dari katalog',
+          data: null,
         })
       ),
     };
@@ -462,6 +500,72 @@ describe('WorkerDashboardStore', () => {
 
     expect(store.locationFeedbackSuccess()).toContain('Pengaturan lokasi dan radius jangkauan berhasil disimpan');
     expect(store.lastLocationSyncTimestamp()).toContain('WIB');
+  });
+
+  it('harus memanggil apiService.createWorkerService saat addNewCatalogService dipanggil dengan workerRecordId aktif', () => {
+    store.workerRecordId.set('worker-uuid-123');
+
+    store.addNewCatalogService({
+      code: 'TEST-NEW',
+      name: 'Layanan Baru Backend',
+      description: 'Deskripsi tes backend',
+      price: 90000,
+      rate_type: 'HOURLY',
+      duration_minutes: 60,
+      status: 'ACTIVE',
+      is_public: true,
+    });
+
+    expect(mockApiService.createWorkerService).toHaveBeenCalledWith('worker-uuid-123', {
+      name: 'Layanan Baru Backend',
+      description: 'Deskripsi tes backend',
+      price: 90000,
+      base_price: 90000,
+      rate_type: 'HOURLY',
+      duration_minutes: 60,
+      is_active: true,
+    });
+
+    expect(store.workerServices()[0].id).toBe('srv-from-backend-1');
+    expect(store.ratesFeedbackSuccess()).toBe('Layanan baru berhasil ditambahkan ke katalog');
+  });
+
+  it('harus memanggil apiService.updateWorkerService saat updateServiceCatalogItem dipanggil dengan workerRecordId aktif', () => {
+    store.workerRecordId.set('worker-uuid-123');
+
+    store.updateServiceCatalogItem('srv-dcl-01', {
+      name: 'Deep Clean Detailing Updated',
+      price: 70000,
+    });
+
+    expect(mockApiService.updateWorkerService).toHaveBeenCalledWith('worker-uuid-123', 'srv-dcl-01', {
+      name: 'Deep Clean Detailing Updated',
+      price: 70000,
+      base_price: 70000,
+    });
+    expect(store.ratesFeedbackSuccess()).toBe('Paket layanan berhasil diperbarui');
+  });
+
+  it('harus memanggil apiService.deleteWorkerService saat deleteServiceCatalogItem dipanggil dengan workerRecordId aktif', () => {
+    store.workerRecordId.set('worker-uuid-123');
+
+    const initialCount = store.workerServices().length;
+    store.deleteServiceCatalogItem('srv-dcl-01');
+
+    expect(mockApiService.deleteWorkerService).toHaveBeenCalledWith('worker-uuid-123', 'srv-dcl-01');
+    expect(store.workerServices().length).toBe(initialCount - 1);
+    expect(store.ratesFeedbackSuccess()).toBe('Paket layanan berhasil dinonaktifkan dari katalog');
+  });
+
+  it('harus memanggil apiService.updateWorkerService saat toggleServiceVisibility dipanggil dengan workerRecordId aktif', () => {
+    store.workerRecordId.set('worker-uuid-123');
+
+    store.toggleServiceVisibility('srv-dcl-01');
+
+    expect(mockApiService.updateWorkerService).toHaveBeenCalledWith('worker-uuid-123', 'srv-dcl-01', {
+      is_active: false,
+    });
+    expect(store.ratesFeedbackSuccess()).toBe('Paket layanan berhasil diperbarui');
   });
 });
 

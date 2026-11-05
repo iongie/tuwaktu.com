@@ -87,6 +87,116 @@ func (r *PostgresWorkerRepository) GetServicesByWorkerID(ctx context.Context, wo
 	return services, nil
 }
 
+func (r *PostgresWorkerRepository) CreateService(ctx context.Context, service *domain.Service) (*domain.Service, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("creating service: %w", err)
+	}
+	if service == nil || strings.TrimSpace(service.WorkerID) == "" {
+		return nil, domain.ErrInvalidInput
+	}
+	if strings.TrimSpace(service.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return nil, fmt.Errorf("generating service id: %w", err)
+		}
+		service.ID = id.String()
+	}
+	now := time.Now()
+	service.CreatedAt = now
+	service.UpdatedAt = now
+
+	if err := r.db.WithContext(ctx).Create(service).Error; err != nil {
+		return nil, fmt.Errorf("saving service to database: %w", err)
+	}
+	return service, nil
+}
+
+func (r *PostgresWorkerRepository) UpdateService(ctx context.Context, workerID string, serviceID string, update *domain.UpdateServicePayload) (*domain.Service, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("updating service: %w", err)
+	}
+	if update == nil {
+		return nil, domain.ErrInvalidInput
+	}
+	workerID = strings.TrimSpace(workerID)
+	serviceID = strings.TrimSpace(serviceID)
+	if workerID == "" || serviceID == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	var existing domain.Service
+	err := r.db.WithContext(ctx).
+		Where("id = ? AND worker_id = ?", serviceID, workerID).
+		First(&existing).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrServiceNotFound
+		}
+		return nil, fmt.Errorf("finding service to update: %w", err)
+	}
+
+	updates := map[string]interface{}{
+		"updated_at": time.Now(),
+	}
+	if update.Name != nil {
+		existing.Name = strings.TrimSpace(*update.Name)
+		updates["name"] = existing.Name
+	}
+	if update.Description != nil {
+		existing.Description = strings.TrimSpace(*update.Description)
+		updates["description"] = existing.Description
+	}
+	if update.Price != nil {
+		existing.Price = *update.Price
+		updates["price"] = existing.Price
+	}
+	if update.BasePrice != nil {
+		existing.BasePrice = *update.BasePrice
+		updates["base_price"] = existing.BasePrice
+	}
+	if update.RateType != nil {
+		existing.RateType = strings.ToUpper(strings.TrimSpace(*update.RateType))
+		updates["rate_type"] = existing.RateType
+	}
+	if update.DurationMinutes != nil {
+		existing.DurationMinutes = *update.DurationMinutes
+		updates["duration_minutes"] = existing.DurationMinutes
+	}
+	if update.IsActive != nil {
+		existing.IsActive = *update.IsActive
+		updates["is_active"] = existing.IsActive
+	}
+
+	if err := r.db.WithContext(ctx).Model(&domain.Service{}).Where("id = ?", serviceID).Updates(updates).Error; err != nil {
+		return nil, fmt.Errorf("updating service record: %w", err)
+	}
+
+	return &existing, nil
+}
+
+func (r *PostgresWorkerRepository) DeleteService(ctx context.Context, workerID string, serviceID string) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("deleting service: %w", err)
+	}
+	workerID = strings.TrimSpace(workerID)
+	serviceID = strings.TrimSpace(serviceID)
+	if workerID == "" || serviceID == "" {
+		return domain.ErrInvalidInput
+	}
+
+	res := r.db.WithContext(ctx).
+		Model(&domain.Service{}).
+		Where("id = ? AND worker_id = ?", serviceID, workerID).
+		Update("is_active", false)
+	if res.Error != nil {
+		return fmt.Errorf("deactivating service: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return domain.ErrServiceNotFound
+	}
+	return nil
+}
+
 func (r *PostgresWorkerRepository) UpdateProfile(ctx context.Context, id string, profile *domain.WorkerProfileUpdate) (*domain.Worker, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("updating worker profile: %w", err)

@@ -6,6 +6,8 @@ import {
   WorkerLocationSettingsUpdatePayload,
   WorkerScheduleItem,
   WorkerServiceCatalogItem,
+  CreateWorkerServicePayload,
+  UpdateWorkerServicePayload,
 } from '../models/worker-profile.model';
 
 export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
@@ -579,12 +581,39 @@ export class WorkerDashboardStore implements OnDestroy {
   }
 
   toggleServiceVisibility(serviceId: string): void {
+    let nextVisibility = true;
     this.workerServices.update((services) =>
-      services.map((item) =>
-        item.id === serviceId ? { ...item, is_public: !item.is_public } : item
-      )
+      services.map((item) => {
+        if (item.id === serviceId) {
+          nextVisibility = !item.is_public;
+          return { ...item, is_public: nextVisibility };
+        }
+        return item;
+      })
     );
     this.updateRatesSyncTimestamp();
+
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      return;
+    }
+
+    this.apiService
+      .updateWorkerService(workerId, serviceId, { is_active: nextVisibility })
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.ratesFeedbackSuccess.set(
+              response.message || 'Visibilitas layanan berhasil diperbarui'
+            );
+          }
+        },
+        error: (err) => {
+          this.ratesFeedbackError.set(
+            err?.error?.message || 'Gagal menyinkronkan visibilitas layanan ke backend.'
+          );
+        },
+      });
   }
 
   updateServiceCatalogItem(
@@ -612,6 +641,41 @@ export class WorkerDashboardStore implements OnDestroy {
       this.workerRateType.set(patch.rate_type);
     }
     this.updateRatesSyncTimestamp();
+
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      return;
+    }
+
+    const payload: UpdateWorkerServicePayload = {};
+    if (patch.name !== undefined) payload.name = patch.name;
+    if (patch.description !== undefined) payload.description = patch.description;
+    if (patch.price !== undefined) {
+      payload.price = patch.price;
+      payload.base_price = patch.base_price ?? patch.price;
+    }
+    if (patch.rate_type !== undefined) payload.rate_type = patch.rate_type;
+    if (patch.duration_minutes !== undefined) payload.duration_minutes = patch.duration_minutes;
+    if (patch.is_public !== undefined) payload.is_active = patch.is_public;
+    if (patch.status !== undefined) {
+      payload.is_active = patch.status !== 'ARCHIVED';
+    }
+
+    this.apiService.updateWorkerService(workerId, serviceId, payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.ratesFeedbackSuccess.set(
+            response.message || 'Paket layanan berhasil diperbarui'
+          );
+        }
+      },
+      error: (err) => {
+        const errorMsg =
+          err?.error?.message ||
+          'Gagal memperbarui data layanan di backend. Perubahan hanya tersimpan lokal.';
+        this.ratesFeedbackError.set(errorMsg);
+      },
+    });
   }
 
   addNewCatalogService(item: Omit<WorkerServiceCatalogItem, 'id'>): void {
@@ -622,6 +686,70 @@ export class WorkerDashboardStore implements OnDestroy {
     };
     this.workerServices.update((services) => [newService, ...services]);
     this.updateRatesSyncTimestamp();
+
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      return;
+    }
+
+    const payload: CreateWorkerServicePayload = {
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      base_price: item.base_price ?? item.price,
+      rate_type: item.rate_type,
+      duration_minutes: item.duration_minutes || 60,
+      is_active: item.status !== 'ARCHIVED' && item.is_public !== false,
+    };
+
+    this.apiService.createWorkerService(workerId, payload).subscribe({
+      next: (response) => {
+        if (response.success && response.data?.id) {
+          this.workerServices.update((services) =>
+            services.map((s) =>
+              s.id === generatedId ? { ...s, id: response.data.id } : s
+            )
+          );
+          this.ratesFeedbackSuccess.set(
+            response.message || 'Layanan baru berhasil ditambahkan ke katalog'
+          );
+        }
+      },
+      error: (err) => {
+        const errorMsg =
+          err?.error?.message ||
+          'Gagal menambahkan layanan ke katalog backend. Perubahan hanya tersimpan lokal.';
+        this.ratesFeedbackError.set(errorMsg);
+      },
+    });
+  }
+
+  deleteServiceCatalogItem(serviceId: string): void {
+    this.workerServices.update((services) =>
+      services.filter((item) => item.id !== serviceId)
+    );
+    this.updateRatesSyncTimestamp();
+
+    const workerId = this.workerRecordId().trim();
+    if (!workerId) {
+      return;
+    }
+
+    this.apiService.deleteWorkerService(workerId, serviceId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.ratesFeedbackSuccess.set(
+            response.message || 'Paket layanan berhasil dinonaktifkan dari katalog'
+          );
+        }
+      },
+      error: (err) => {
+        const errorMsg =
+          err?.error?.message ||
+          'Gagal menonaktifkan layanan di backend.';
+        this.ratesFeedbackError.set(errorMsg);
+      },
+    });
   }
 
   toggleMobileSidebar(): void {

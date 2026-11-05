@@ -827,4 +827,88 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 	})
 }
 
+func TestWorkerService_CatalogServicesCRUD(t *testing.T) {
+	ctx := context.Background()
+	repo := repository.NewMemoryRepository()
+	worker := &domain.Worker{
+		ID:       "w-srv-test",
+		Slug:     "worker-srv-test",
+		Name:     "Budi Servis",
+		IsActive: true,
+	}
+	repo.SeedWorker(worker)
+	svc := service.NewWorkerService(repo)
+
+	t.Run("berhasil menambahkan layanan baru ke katalog", func(t *testing.T) {
+		payload := &domain.CreateServicePayload{
+			Name:            "Cuci AC Inverter",
+			Description:     "Pembersihan unit indoor dan outdoor",
+			Price:           95000,
+			RateType:        "HOURLY",
+			DurationMinutes: 60,
+		}
+		res, err := svc.AddWorkerService(ctx, worker.ID, payload)
+		require.NoError(t, err)
+		assert.NotEmpty(t, res.ID)
+		assert.Equal(t, "Cuci AC Inverter", res.Name)
+		assert.Equal(t, 95000.0, res.Price)
+		assert.Equal(t, worker.ID, res.WorkerID)
+	})
+
+	t.Run("gagal menambah layanan jika nama kosong atau terlalu pendek", func(t *testing.T) {
+		payload := &domain.CreateServicePayload{
+			Name:  "AC",
+			Price: 50000,
+		}
+		_, err := svc.AddWorkerService(ctx, worker.ID, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "nama layanan minimal 3 karakter")
+	})
+
+	t.Run("gagal menambah layanan jika tarif negatif", func(t *testing.T) {
+		payload := &domain.CreateServicePayload{
+			Name:  "Perbaikan AC",
+			Price: -1000,
+		}
+		_, err := svc.AddWorkerService(ctx, worker.ID, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "tarif harga layanan tidak boleh negatif")
+	})
+
+	t.Run("berhasil memperbarui layanan katalog", func(t *testing.T) {
+		created, err := svc.AddWorkerService(ctx, worker.ID, &domain.CreateServicePayload{
+			Name:  "Perbaikan Freon",
+			Price: 150000,
+		})
+		require.NoError(t, err)
+
+		newName := "Isi Ulang Freon R32"
+		newPrice := 175000.0
+		updated, err := svc.UpdateWorkerService(ctx, worker.ID, created.ID, &domain.UpdateServicePayload{
+			Name:  &newName,
+			Price: &newPrice,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "Isi Ulang Freon R32", updated.Name)
+		assert.Equal(t, 175000.0, updated.Price)
+	})
+
+	t.Run("berhasil menonaktifkan (delete) layanan katalog", func(t *testing.T) {
+		created, err := svc.AddWorkerService(ctx, worker.ID, &domain.CreateServicePayload{
+			Name:  "Layanan Sementara",
+			Price: 80000,
+		})
+		require.NoError(t, err)
+
+		err = svc.DeleteWorkerService(ctx, worker.ID, created.ID)
+		require.NoError(t, err)
+
+		services, err := repo.GetServicesByWorkerID(ctx, worker.ID)
+		require.NoError(t, err)
+		for _, s := range services {
+			assert.NotEqual(t, created.ID, s.ID)
+		}
+	})
+}
+
 

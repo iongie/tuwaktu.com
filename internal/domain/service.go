@@ -71,3 +71,27 @@ func (s *Service) ToPublic() PublicService {
 		DurationMinutes: s.DurationMinutes,
 	}
 }
+
+// CreateServicePayload merepresentasikan payload request untuk membuat paket layanan pekerja baru
+type CreateServicePayload struct {
+	WorkerID        string  `json:"worker_id,omitempty"`
+	Name            string  `json:"name"`
+	Description     string  `json:"description"`
+	Price           float64 `json:"price"`
+	BasePrice       float64 `json:"base_price,omitempty"`
+	RateType        string  `json:"rate_type,omitempty"`
+	DurationMinutes int     `json:"duration_minutes"`
+	IsActive        *bool   `json:"is_active,omitempty"`
+}
+
+// UpdateServicePayload merepresentasikan payload request untuk memperbarui paket layanan pekerja
+type UpdateServicePayload struct {
+	WorkerID        string   `json:"worker_id,omitempty"`
+	Name            *string  `json:"name,omitempty"`
+	Description     *string  `json:"description,omitempty"`
+	Price           *float64 `json:"price,omitempty"`
+	BasePrice       *float64 `json:"base_price,omitempty"`
+	RateType        *string  `json:"rate_type,omitempty"`
+	DurationMinutes *int     `json:"duration_minutes,omitempty"`
+	IsActive        *bool    `json:"is_active,omitempty"`
+}

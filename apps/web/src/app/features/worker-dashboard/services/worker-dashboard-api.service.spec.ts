@@ -122,5 +122,68 @@ describe('WorkerDashboardApiService', () => {
       data: schedules,
     });
   });
+
+  it('harus memanggil endpoint POST create worker service v1 dengan payload yang sesuai', () => {
+    const payload = {
+      name: 'Cuci AC Inverter',
+      description: 'Pembersihan unit',
+      price: 90000,
+      duration_minutes: 60,
+    };
+
+    service.createWorkerService('worker-uuid-1', payload).subscribe((res) => {
+      expect(res.success).toBe(true);
+      expect(res.data.name).toBe('Cuci AC Inverter');
+    });
+
+    const req = httpMock.expectOne(
+      'http://localhost:3000/api/v1/workers/worker-uuid-1/services'
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush({
+      success: true,
+      message: 'Layanan baru berhasil ditambahkan ke katalog',
+      data: { id: 'srv-inv-1', worker_id: 'worker-uuid-1', ...payload, is_active: true },
+    });
+  });
+
+  it('harus memanggil endpoint PUT update worker service v1 dengan service id', () => {
+    const updatePayload = {
+      price: 95000,
+    };
+
+    service.updateWorkerService('worker-uuid-1', 'srv-inv-1', updatePayload).subscribe((res) => {
+      expect(res.success).toBe(true);
+      expect(res.data.price).toBe(95000);
+    });
+
+    const req = httpMock.expectOne(
+      'http://localhost:3000/api/v1/workers/worker-uuid-1/services/srv-inv-1'
+    );
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(updatePayload);
+    req.flush({
+      success: true,
+      message: 'Paket layanan berhasil diperbarui',
+      data: { id: 'srv-inv-1', worker_id: 'worker-uuid-1', name: 'Cuci AC', price: 95000, duration_minutes: 60, is_active: true },
+    });
+  });
+
+  it('harus memanggil endpoint DELETE delete worker service v1 dengan service id', () => {
+    service.deleteWorkerService('worker-uuid-1', 'srv-inv-1').subscribe((res) => {
+      expect(res.success).toBe(true);
+    });
+
+    const req = httpMock.expectOne(
+      'http://localhost:3000/api/v1/workers/worker-uuid-1/services/srv-inv-1'
+    );
+    expect(req.request.method).toBe('DELETE');
+    req.flush({
+      success: true,
+      message: 'Paket layanan berhasil dinonaktifkan dari katalog',
+      data: null,
+    });
+  });
 });
 

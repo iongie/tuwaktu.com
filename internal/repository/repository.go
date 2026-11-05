@@ -11,6 +11,9 @@ type WorkerRepository interface {
 	GetBySlug(ctx context.Context, slug string) (*domain.Worker, error)
 	GetByID(ctx context.Context, id string) (*domain.Worker, error)
 	GetServicesByWorkerID(ctx context.Context, workerID string) ([]domain.Service, error)
+	CreateService(ctx context.Context, service *domain.Service) (*domain.Service, error)
+	UpdateService(ctx context.Context, workerID string, serviceID string, update *domain.UpdateServicePayload) (*domain.Service, error)
+	DeleteService(ctx context.Context, workerID string, serviceID string) error
 	UpdateProfile(ctx context.Context, id string, profile *domain.WorkerProfileUpdate) (*domain.Worker, error)
 	UpdateRates(ctx context.Context, idOrSlug string, basePrice float64, rateType string) (*domain.Worker, error)
 	UpdateLocationSettings(ctx context.Context, idOrSlug string, update *domain.WorkerLocationSettingsUpdate) (*domain.Worker, error)

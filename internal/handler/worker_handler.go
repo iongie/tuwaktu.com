@@ -295,4 +295,153 @@ func (h *WorkerHandler) UpdateWorkerSchedules(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusOK, "Konfigurasi jadwal kerja berhasil disimpan", schedules)
 }
 
+// CreateService handles POST /api/v1/workers/:id/services and POST /api/v1/worker/services
+func (h *WorkerHandler) CreateService(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+
+	var payload domain.CreateServicePayload
+	if err := c.BodyParser(&payload); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload layanan tidak valid", err.Error())
+	}
+
+	if workerID == "" {
+		workerID = strings.TrimSpace(payload.WorkerID)
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("slug"))
+	}
+	if workerID == "" {
+		if authWorkerID, ok := c.Locals("workerID").(string); ok && authWorkerID != "" {
+			workerID = authWorkerID
+		}
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID atau slug pekerja wajib diisi", nil)
+	}
+
+	created, err := h.service.CreateService(c.UserContext(), workerID, &payload)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menambahkan layanan ke katalog", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusCreated, "Layanan baru berhasil ditambahkan ke katalog", created)
+}
+
+// UpdateService handles PUT /api/v1/workers/:id/services/:serviceId and PUT /api/v1/worker/services/:serviceId
+func (h *WorkerHandler) UpdateService(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+
+	serviceID := strings.TrimSpace(c.Params("serviceId"))
+	if serviceID == "" {
+		serviceID = strings.TrimSpace(c.Params("service_id"))
+	}
+
+	var payload domain.UpdateServicePayload
+	if err := c.BodyParser(&payload); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format data payload layanan tidak valid", err.Error())
+	}
+
+	if workerID == "" {
+		workerID = strings.TrimSpace(payload.WorkerID)
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("slug"))
+	}
+	if workerID == "" {
+		if authWorkerID, ok := c.Locals("workerID").(string); ok && authWorkerID != "" {
+			workerID = authWorkerID
+		}
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID atau slug pekerja wajib diisi", nil)
+	}
+	if serviceID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID layanan wajib diisi", nil)
+	}
+
+	updated, err := h.service.UpdateService(c.UserContext(), workerID, serviceID, &payload)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrServiceNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Layanan tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidInput) || errors.Is(err, domain.ErrInvalidRateType) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memperbarui data layanan", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Paket layanan berhasil diperbarui", updated)
+}
+
+// DeleteService handles DELETE /api/v1/workers/:id/services/:serviceId and DELETE /api/v1/worker/services/:serviceId
+func (h *WorkerHandler) DeleteService(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+
+	serviceID := strings.TrimSpace(c.Params("serviceId"))
+	if serviceID == "" {
+		serviceID = strings.TrimSpace(c.Params("service_id"))
+	}
+
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("slug"))
+	}
+	if workerID == "" {
+		if authWorkerID, ok := c.Locals("workerID").(string); ok && authWorkerID != "" {
+			workerID = authWorkerID
+		}
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID atau slug pekerja wajib diisi", nil)
+	}
+	if serviceID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID layanan wajib diisi", nil)
+	}
+
+	err := h.service.DeleteService(c.UserContext(), workerID, serviceID)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrServiceNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Layanan tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menonaktifkan layanan", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Paket layanan berhasil dinonaktifkan dari katalog", nil)
+}
+
 

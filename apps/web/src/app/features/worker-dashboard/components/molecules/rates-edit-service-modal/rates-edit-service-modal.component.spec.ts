@@ -92,4 +92,14 @@ describe('RatesEditServiceModalComponent', () => {
     expect(component.validationErrors()['name']).toBe('Nama layanan wajib diisi.');
     expect(component.validationErrors()['hours']).toBe('Durasi alokasi jam harus lebih besar dari 0.');
   });
+
+  it('harus memancarkan event delete dengan id layanan saat handleDelete dipanggil', () => {
+    let deletedId: string | null = null;
+    component.delete.subscribe((id) => {
+      deletedId = id;
+    });
+
+    component.handleDelete();
+    expect(deletedId).toBe('test-1');
+  });
 });

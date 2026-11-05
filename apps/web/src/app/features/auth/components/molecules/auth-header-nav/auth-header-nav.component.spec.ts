@@ -1,46 +1,66 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { AuthHeaderNavComponent } from './auth-header-nav.component';
+import { AuthService } from '../../../services/auth.service';
 
 describe('AuthHeaderNavComponent', () => {
+  let component: AuthHeaderNavComponent;
   let fixture: ComponentFixture<AuthHeaderNavComponent>;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AuthHeaderNavComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), AuthService],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuthHeaderNavComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    fixture.detectChanges();
   });
 
-  it('harus merender navigasi dengan tab register aktif saat activeTab bernilai register', () => {
-    fixture.componentRef.setInput('activeTab', 'register');
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    const registerLink = compiled.querySelector('a[href="/register"]');
-    const loginLink = compiled.querySelector('a[href="/login"]');
-
-    expect(registerLink).not.toBeNull();
-    expect(registerLink?.getAttribute('aria-current')).toBe('page');
-    expect(registerLink?.classList.contains('bg-primary')).toBe(true);
-
-    expect(loginLink).not.toBeNull();
-    expect(loginLink?.getAttribute('aria-current')).toBeNull();
-    expect(loginLink?.classList.contains('bg-primary')).toBe(false);
+  it('harus merender logo merek TUWAKTU MANDIRI yang mengarah ke beranda', () => {
+    const brandLink = fixture.nativeElement.querySelector('a[aria-label="Kembali ke Beranda Tuwaktu"]');
+    expect(brandLink).toBeTruthy();
+    expect(brandLink.textContent).toContain('TUWAKTU');
+    expect(brandLink.textContent).toContain('MANDIRI');
   });
 
-  it('harus merender navigasi dengan tab login aktif saat activeTab bernilai login', () => {
-    fixture.componentRef.setInput('activeTab', 'login');
-    fixture.detectChanges();
+  it('harus merender badge Verifikasi Pekerja', () => {
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Verifikasi Pekerja');
+  });
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const registerLink = compiled.querySelector('a[href="/register"]');
-    const loginLink = compiled.querySelector('a[href="/login"]');
+  it('harus merender link navigasi utama yang selaras dengan beranda', () => {
+    const navLinks = fixture.nativeElement.querySelectorAll('nav a');
+    const navTexts = Array.from(navLinks).map((el: Element) => el.textContent?.trim());
 
-    expect(loginLink?.getAttribute('aria-current')).toBe('page');
-    expect(loginLink?.classList.contains('bg-primary')).toBe(true);
-    expect(registerLink?.getAttribute('aria-current')).toBeNull();
+    expect(navTexts).toContain('Jelajah Pekerja');
+    expect(navTexts).toContain('Katalog Layanan');
+    expect(navTexts).toContain('Tentang Mandiri');
+  });
+
+  it('harus merender komponen dropdown profil akun pengguna (BookingNavAccountMenuComponent)', () => {
+    const accountMenu = fixture.nativeElement.querySelector('app-booking-nav-account-menu');
+    expect(accountMenu).toBeTruthy();
+  });
+
+  it('harus melakukan navigasi ke profil pekerja saat executeTechnicianLookup dipanggil', () => {
+    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.searchTechnicianSlug.set('sarah-cleaning');
+    component.executeTechnicianLookup();
+
+    expect(navSpy).toHaveBeenCalledWith(['/', 'sarah-cleaning']);
+  });
+
+  it('tidak boleh melakukan navigasi jika query pencarian kosong', () => {
+    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.searchTechnicianSlug.set('   ');
+    component.executeTechnicianLookup();
+
+    expect(navSpy).not.toHaveBeenCalled();
   });
 });

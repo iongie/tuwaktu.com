@@ -1,70 +1,137 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { BookingNavAccountMenuComponent } from '../../../../worker-booking/components/molecules/booking-nav-account-menu/booking-nav-account-menu.component';
 
 @Component({
   selector: 'app-auth-header-nav',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    BookingNavAccountMenuComponent,
+  ],
   template: `
-    <header class="w-full bg-body-canvas shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-      <div class="max-w-7xl mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+    <!-- Top Navigation Bar: Diselaraskan dengan Navbar Beranda dari Stitch Screen 807105efcba440adba559c3039aa034a -->
+    <header
+      class="sticky top-0 w-full z-50 bg-body-canvas/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-hairline-subtle/40"
+    >
+      <div
+        class="h-16 max-w-7xl mx-auto px-margin-desktop flex items-center justify-between gap-gutter"
+      >
+        <!-- Sisi Kiri: Brand Identity, Verifikasi Badge & Navigasi -->
+        <div class="flex items-center gap-space-xl">
           <a
             routerLink="/"
-            class="flex items-center gap-2 transition-opacity hover:opacity-90 min-h-[44px]"
+            class="flex items-center gap-space-sm cursor-pointer min-h-[44px]"
             aria-label="Kembali ke Beranda Tuwaktu"
           >
-            <div class="w-7 h-7 bg-primary rounded flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-on-primary text-[18px]">schedule</span>
-            </div>
-            <span class="font-heading-h3 text-heading-h3 tracking-tight text-ink-on-light font-bold">
+            <span
+              class="font-heading-h3 text-heading-h3 font-bold tracking-tight text-ink-on-light uppercase"
+            >
               TUWAKTU
             </span>
+            <span
+              class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded"
+            >
+              MANDIRI
+            </span>
           </a>
+
           <div
-            class="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-surface-container rounded"
-            role="status"
+            class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 bg-surface-warm-promo text-promo-ink rounded"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-voltage-orange animate-pulse"></span>
-            <span class="font-micro-uppercase text-micro-uppercase text-on-surface-variant uppercase font-semibold">
-              PORTAL KEDAULATAN KERJA
+            <span class="material-symbols-outlined text-[14px] text-promo-ink">
+              verified_user
+            </span>
+            <span
+              class="font-caption text-caption font-semibold uppercase tracking-wider"
+            >
+              Verifikasi Pekerja
             </span>
           </div>
+
+          <nav aria-label="Navigasi Utama" class="hidden md:flex items-center gap-space-xs">
+            <a
+              routerLink="/"
+              class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer min-h-[44px] flex items-center"
+            >
+              Jelajah Pekerja
+            </a>
+            <a
+              routerLink="/"
+              fragment="formulir-reservasi"
+              class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer min-h-[44px] flex items-center"
+            >
+              Katalog Layanan
+            </a>
+            <a
+              routerLink="/dashboard/integrasi-whatsapp"
+              class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer min-h-[44px] flex items-center"
+            >
+              Tentang Mandiri
+            </a>
+          </nav>
         </div>
 
-        <nav
-          class="flex items-center bg-surface-container-low p-1 rounded"
-          aria-label="Navigasi Autentikasi"
-        >
+        <!-- Sisi Kanan: Pencarian, Bantuan & Dropdown Akun Profil -->
+        <div class="flex items-center gap-space-md relative">
+          <!-- Input Pencarian Cepat -->
+          <div class="relative hidden lg:flex items-center">
+            <span
+              class="material-symbols-outlined absolute left-3 text-ink-disabled text-[18px]"
+            >
+              search
+            </span>
+            <input
+              type="text"
+              [ngModel]="searchTechnicianSlug()"
+              (ngModelChange)="searchTechnicianSlug.set($event)"
+              (keydown.enter)="executeTechnicianLookup()"
+              placeholder="Cari keahlian atau area..."
+              class="w-52 h-9 pl-9 pr-3 bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas text-on-surface placeholder:text-ink-disabled font-body-default text-caption rounded transition-all outline-none focus:ring-1 focus:ring-accent-focus"
+              aria-label="Cari keahlian atau area teknisi"
+            />
+          </div>
+
+          <!-- Pusat Bantuan -->
           <a
-            routerLink="/login"
-            [attr.aria-current]="activeTab() === 'login' ? 'page' : null"
-            class="px-3.5 py-1.5 font-button-label text-button-label rounded transition-colors min-h-[44px] flex items-center justify-center"
-            [class.bg-primary]="activeTab() === 'login'"
-            [class.text-on-primary]="activeTab() === 'login'"
-            [class.text-on-surface-variant]="activeTab() !== 'login'"
-            [class.hover:text-on-surface]="activeTab() !== 'login'"
+            routerLink="/"
+            class="p-2 text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors rounded flex items-center justify-center cursor-pointer min-h-[44px] min-w-[44px]"
+            title="Pusat Bantuan"
+            aria-label="Pusat Bantuan"
           >
-            Masuk
+            <span class="material-symbols-outlined text-[20px]">help_outline</span>
           </a>
-          <a
-            routerLink="/register"
-            [attr.aria-current]="activeTab() === 'register' ? 'page' : null"
-            class="px-3.5 py-1.5 font-button-label text-button-label rounded transition-colors min-h-[44px] flex items-center justify-center"
-            [class.bg-primary]="activeTab() === 'register'"
-            [class.text-on-primary]="activeTab() === 'register'"
-            [class.text-on-surface-variant]="activeTab() !== 'register'"
-            [class.hover:text-on-surface]="activeTab() !== 'register'"
-          >
-            Daftar Akun Baru
-          </a>
-        </nav>
+
+          <!-- Garis Pemisah Vertikal Halus -->
+          <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
+
+          <!-- Komponen Dropdown Menu Profil Akun -->
+          <app-booking-nav-account-menu />
+        </div>
       </div>
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthHeaderNavComponent {
-  readonly activeTab = input.required<'login' | 'register'>();
+  private readonly router = inject(Router);
+
+  readonly activeTab = input<'login' | 'register' | null>(null);
+  readonly searchTechnicianSlug = signal<string>('');
+
+  executeTechnicianLookup(): void {
+    const slug = this.searchTechnicianSlug().trim().toLowerCase();
+    if (!slug) return;
+    this.router.navigate(['/', slug]);
+  }
 }

@@ -75,9 +75,18 @@ export class AdminWorkerStore {
       },
       error: (err) => {
         this.isLoading.set(false);
-        const msg =
-          err?.error?.message ||
-          'Gagal memuat daftar mitra dari server backend. Silakan coba lagi.';
+        let msg = err?.error?.message;
+        if (!msg) {
+          if (err?.status === 401) {
+            msg = 'Sesi login telah berakhir atau otentikasi tidak valid. Silakan login kembali.';
+          } else if (err?.status === 403) {
+            msg = 'Akses ditolak. Akun Anda tidak memiliki hak akses administrator.';
+          } else if (err?.status === 0) {
+            msg = 'Tidak dapat terhubung ke server backend. Periksa koneksi jaringan Anda.';
+          } else {
+            msg = 'Gagal memuat daftar mitra dari server backend. Silakan coba lagi.';
+          }
+        }
         this.errorMessage.set(msg);
       },
     });
@@ -112,9 +121,16 @@ export class AdminWorkerStore {
       },
       error: (err) => {
         this.isOnboardingSubmitting.set(false);
-        const msg =
-          err?.error?.message ||
-          'Terjadi kesalahan saat menyimpan akun mitra baru.';
+        let msg = err?.error?.message;
+        if (!msg) {
+          if (err?.status === 401) {
+            msg = 'Sesi login telah berakhir. Silakan login kembali.';
+          } else if (err?.status === 403) {
+            msg = 'Akses ditolak. Anda tidak memiliki izin mendaftarkan mitra baru.';
+          } else {
+            msg = 'Terjadi kesalahan saat menyimpan akun mitra baru.';
+          }
+        }
         this.errorMessage.set(msg);
       },
     });
@@ -146,9 +162,16 @@ export class AdminWorkerStore {
         }
       },
       error: (err) => {
-        const msg =
-          err?.error?.message ||
-          `Gagal mengubah status mitra "${worker.name}".`;
+        let msg = err?.error?.message;
+        if (!msg) {
+          if (err?.status === 401) {
+            msg = 'Sesi login telah berakhir. Silakan login kembali.';
+          } else if (err?.status === 403) {
+            msg = 'Akses ditolak. Anda tidak memiliki izin mengubah status mitra.';
+          } else {
+            msg = `Gagal mengubah status mitra "${worker.name}".`;
+          }
+        }
         this.errorMessage.set(msg);
       },
     });
@@ -160,6 +183,10 @@ export class AdminWorkerStore {
 
   setStatusFilter(status: AdminWorkerFilterStatus): void {
     this.statusFilter.set(status);
+  }
+
+  clearError(): void {
+    this.errorMessage.set(null);
   }
 
   clearFeedback(): void {

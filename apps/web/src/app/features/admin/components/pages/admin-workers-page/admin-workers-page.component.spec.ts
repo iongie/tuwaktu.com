@@ -37,6 +37,7 @@ describe('AdminWorkersPageComponent', () => {
       toggleWorkerStatus: jest.fn(),
       setSearchQuery: jest.fn(),
       setStatusFilter: jest.fn(),
+      clearError: jest.fn(),
       clearFeedback: jest.fn(),
     } as unknown as AdminWorkerStore;
 
@@ -85,6 +86,37 @@ describe('AdminWorkersPageComponent', () => {
 
     const accountMenu = fixture.nativeElement.querySelector('app-booking-nav-account-menu');
     expect(accountMenu).toBeTruthy();
+  });
+
+  it('harus merender banner error merah saat store.errorMessage memiliki nilai', () => {
+    const errorMsg = 'Sesi login telah berakhir atau otentikasi tidak valid. Silakan login kembali.';
+    (mockStore.errorMessage as jest.Mock).mockReturnValue(errorMsg);
+    fixture.detectChanges();
+
+    const errorBanner = fixture.nativeElement.querySelector('[data-testid="admin-error-banner"]');
+    expect(errorBanner).toBeTruthy();
+    expect(errorBanner.textContent).toContain('Kendala Koneksi atau Otentikasi API');
+    expect(errorBanner.textContent).toContain(errorMsg);
+
+    // Klik tombol Coba Lagi
+    const retryBtn = fixture.nativeElement.querySelector('[data-testid="admin-error-retry-btn"]');
+    expect(retryBtn).toBeTruthy();
+    retryBtn.click();
+    expect(mockStore.loadWorkers).toHaveBeenCalled();
+
+    // Klik tombol Tutup
+    const dismissBtn = fixture.nativeElement.querySelector('[data-testid="admin-error-dismiss-btn"]');
+    expect(dismissBtn).toBeTruthy();
+    dismissBtn.click();
+    expect(mockStore.clearError).toHaveBeenCalled();
+  });
+
+  it('tidak boleh merender banner error merah saat store.errorMessage bernilai null', () => {
+    (mockStore.errorMessage as jest.Mock).mockReturnValue(null);
+    fixture.detectChanges();
+
+    const errorBanner = fixture.nativeElement.querySelector('[data-testid="admin-error-banner"]');
+    expect(errorBanner).toBeNull();
   });
 });
 

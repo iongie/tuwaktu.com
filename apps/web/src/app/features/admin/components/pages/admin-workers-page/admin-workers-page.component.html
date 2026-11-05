@@ -63,6 +63,52 @@
 
   <!-- Container Konten Utama -->
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <!-- Banner Notifikasi Error Merah (Kendala Koneksi atau Otentikasi API) -->
+    @if (store.errorMessage()) {
+      <div
+        role="alert"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 text-sm flex items-center justify-between gap-4 transition-all shadow-xs"
+        data-testid="admin-error-banner"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-rose-950 dark:text-rose-100">Kendala Koneksi atau Otentikasi API</div>
+            <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5">{{ store.errorMessage() }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            class="min-h-[44px] px-3.5 py-1.5 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+            (click)="store.loadWorkers()"
+            aria-label="Coba lagi memuat data"
+            data-testid="admin-error-retry-btn"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Coba Lagi</span>
+          </button>
+          <button
+            type="button"
+            class="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-700 hover:text-rose-900 cursor-pointer rounded-xl hover:bg-rose-500/10 transition-colors"
+            (click)="store.clearError()"
+            aria-label="Tutup pesan error"
+            data-testid="admin-error-dismiss-btn"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- Feedback Alert Banner -->
     @if (store.feedbackMessage()) {
       <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-sm flex items-center justify-between gap-4">

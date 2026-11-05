@@ -166,5 +166,32 @@ describe('AdminWorkerStore', () => {
     expect(updatedBudi?.account_status).toBe('SUSPENDED');
     expect(store.feedbackMessage()).toContain('ditangguhkan');
   });
+
+  it('harus memetakan error status 401, 403, dan 0 dengan pesan Bahasa Indonesia yang deskriptif', () => {
+    // Status 401 (Unauthorized / Session expired)
+    mockApiService.fetchWorkers.mockReturnValue(
+      throwError(() => ({ status: 401 }))
+    );
+    store.loadWorkers();
+    expect(store.errorMessage()).toBe('Sesi login telah berakhir atau otentikasi tidak valid. Silakan login kembali.');
+
+    // clearError() membersihkan pesan error
+    store.clearError();
+    expect(store.errorMessage()).toBeNull();
+
+    // Status 403 (Forbidden / Access denied)
+    mockApiService.fetchWorkers.mockReturnValue(
+      throwError(() => ({ status: 403 }))
+    );
+    store.loadWorkers();
+    expect(store.errorMessage()).toBe('Akses ditolak. Akun Anda tidak memiliki hak akses administrator.');
+
+    // Status 0 (Network / Backend connection failure)
+    mockApiService.fetchWorkers.mockReturnValue(
+      throwError(() => ({ status: 0 }))
+    );
+    store.loadWorkers();
+    expect(store.errorMessage()).toBe('Tidak dapat terhubung ke server backend. Periksa koneksi jaringan Anda.');
+  });
 });
 

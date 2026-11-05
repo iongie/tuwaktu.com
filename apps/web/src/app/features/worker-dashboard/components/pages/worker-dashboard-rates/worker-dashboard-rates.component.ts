@@ -60,9 +60,6 @@ export class WorkerDashboardRatesComponent {
       this.store.addNewCatalogService(service);
     }
     this.closeEditModal();
-    if (this.store.hasActiveWorker()) {
-      this.store.submitRatesUpdate();
-    }
   }
 
   handleServiceDeleted(serviceId: string): void {

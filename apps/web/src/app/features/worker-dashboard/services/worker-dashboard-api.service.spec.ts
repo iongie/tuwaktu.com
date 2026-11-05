@@ -137,10 +137,14 @@ describe('WorkerDashboardApiService', () => {
     });
 
     const req = httpMock.expectOne(
-      'http://localhost:3000/api/v1/workers/worker-uuid-1/services'
+      'http://localhost:3000/api/v1/worker/services'
     );
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual(payload);
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.body).toEqual({
+      worker_id: 'worker-uuid-1',
+      ...payload,
+    });
     req.flush({
       success: true,
       message: 'Layanan baru berhasil ditambahkan ke katalog',
@@ -159,10 +163,14 @@ describe('WorkerDashboardApiService', () => {
     });
 
     const req = httpMock.expectOne(
-      'http://localhost:3000/api/v1/workers/worker-uuid-1/services/srv-inv-1'
+      'http://localhost:3000/api/v1/worker/services/srv-inv-1'
     );
     expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual(updatePayload);
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.body).toEqual({
+      worker_id: 'worker-uuid-1',
+      ...updatePayload,
+    });
     req.flush({
       success: true,
       message: 'Paket layanan berhasil diperbarui',
@@ -176,9 +184,10 @@ describe('WorkerDashboardApiService', () => {
     });
 
     const req = httpMock.expectOne(
-      'http://localhost:3000/api/v1/workers/worker-uuid-1/services/srv-inv-1'
+      'http://localhost:3000/api/v1/worker/services/srv-inv-1?worker_id=worker-uuid-1'
     );
     expect(req.request.method).toBe('DELETE');
+    expect(req.request.withCredentials).toBe(true);
     req.flush({
       success: true,
       message: 'Paket layanan berhasil dinonaktifkan dari katalog',

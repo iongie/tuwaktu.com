@@ -802,6 +802,9 @@ func (s *workerService) GetSessionProfile(ctx context.Context, accountID string)
 
 // CreateService menambahkan paket layanan baru untuk pekerja ke katalog
 func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if payload == nil {
 		return nil, domain.ErrInvalidInput
 	}
@@ -820,9 +823,20 @@ func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payl
 	if payload.Price < 0 {
 		return nil, fmt.Errorf("%w: tarif harga layanan tidak boleh negatif", domain.ErrInvalidInput)
 	}
+	if payload.BasePrice < 0 {
+		return nil, fmt.Errorf("%w: tarif dasar layanan tidak boleh negatif", domain.ErrInvalidInput)
+	}
 	duration := payload.DurationMinutes
 	if duration <= 0 {
 		duration = 60
+	}
+
+	rateType := strings.ToUpper(strings.TrimSpace(payload.RateType))
+	if rateType != "" && rateType != "HOURLY" && rateType != "UNIT" {
+		return nil, domain.ErrInvalidRateType
+	}
+	if rateType == "" {
+		rateType = "HOURLY"
 	}
 
 	worker, err := s.repo.GetByID(ctx, idOrSlug)
@@ -835,10 +849,6 @@ func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payl
 		}
 	}
 
-	rateType := strings.ToUpper(strings.TrimSpace(payload.RateType))
-	if rateType != "HOURLY" && rateType != "UNIT" {
-		rateType = "HOURLY"
-	}
 	basePrice := payload.BasePrice
 	if basePrice <= 0 {
 		basePrice = payload.Price
@@ -869,6 +879,9 @@ func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payl
 
 // UpdateService memperbarui data paket layanan pekerja yang ada
 func (s *workerService) UpdateService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if payload == nil {
 		return nil, domain.ErrInvalidInput
 	}
@@ -889,6 +902,9 @@ func (s *workerService) UpdateService(ctx context.Context, idOrSlug string, serv
 	}
 	if payload.Price != nil && *payload.Price < 0 {
 		return nil, fmt.Errorf("%w: tarif harga layanan tidak boleh negatif", domain.ErrInvalidInput)
+	}
+	if payload.BasePrice != nil && *payload.BasePrice < 0 {
+		return nil, fmt.Errorf("%w: tarif dasar layanan tidak boleh negatif", domain.ErrInvalidInput)
 	}
 	if payload.DurationMinutes != nil && *payload.DurationMinutes <= 0 {
 		return nil, fmt.Errorf("%w: durasi layanan harus lebih besar dari 0 menit", domain.ErrInvalidInput)
@@ -919,6 +935,9 @@ func (s *workerService) UpdateService(ctx context.Context, idOrSlug string, serv
 
 // DeleteService menonaktifkan paket layanan pekerja dari katalog
 func (s *workerService) DeleteService(ctx context.Context, idOrSlug string, serviceID string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	idOrSlug = strings.TrimSpace(idOrSlug)
 	serviceID = strings.TrimSpace(serviceID)
 	if idOrSlug == "" || serviceID == "" {

@@ -893,6 +893,28 @@ func TestWorkerService_CatalogServicesCRUD(t *testing.T) {
 		assert.Equal(t, 175000.0, updated.Price)
 	})
 
+	t.Run("gagal menambah layanan jika tipe tarif tidak valid", func(t *testing.T) {
+		payload := &domain.CreateServicePayload{
+			Name:     "Layanan Khusus",
+			Price:    50000,
+			RateType: "YEARLY",
+		}
+		_, err := svc.AddWorkerService(ctx, worker.ID, payload)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domain.ErrInvalidRateType)
+	})
+
+	t.Run("gagal menambah layanan jika tarif dasar negatif", func(t *testing.T) {
+		payload := &domain.CreateServicePayload{
+			Name:      "Layanan Khusus",
+			Price:     50000,
+			BasePrice: -1000,
+		}
+		_, err := svc.AddWorkerService(ctx, worker.ID, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "tarif dasar layanan tidak boleh negatif")
+	})
+
 	t.Run("berhasil menonaktifkan (delete) layanan katalog", func(t *testing.T) {
 		created, err := svc.AddWorkerService(ctx, worker.ID, &domain.CreateServicePayload{
 			Name:  "Layanan Sementara",
@@ -908,6 +930,33 @@ func TestWorkerService_CatalogServicesCRUD(t *testing.T) {
 		for _, s := range services {
 			assert.NotEqual(t, created.ID, s.ID)
 		}
+	})
+
+	t.Run("gagal memperbarui layanan jika tarif dasar negatif", func(t *testing.T) {
+		created, err := svc.AddWorkerService(ctx, worker.ID, &domain.CreateServicePayload{
+			Name:  "Layanan Tarif Dasar",
+			Price: 80000,
+		})
+		require.NoError(t, err)
+
+		negBase := -500.0
+		_, err = svc.UpdateWorkerService(ctx, worker.ID, created.ID, &domain.UpdateServicePayload{
+			BasePrice: &negBase,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "tarif dasar layanan tidak boleh negatif")
+	})
+
+	t.Run("gagal jika context telah dibatalkan", func(t *testing.T) {
+		cancCtx, cancel := context.WithCancel(ctx)
+		cancel()
+
+		_, err := svc.AddWorkerService(cancCtx, worker.ID, &domain.CreateServicePayload{
+			Name:  "Layanan Cancel",
+			Price: 80000,
+		})
+		require.Error(t, err)
+		assert.ErrorIs(t, err, context.Canceled)
 	})
 }
 

@@ -102,13 +102,13 @@ export class WorkerDashboardApiService {
     workerId: string,
     payload: CreateWorkerServicePayload
   ): Observable<WorkerServiceItemApiResponse> {
-    const sanitizedId = encodeURIComponent(workerId.trim());
-    const endpoint = sanitizedId
-      ? `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedId}/services`
-      : `${this.normalizedBaseUrl}/api/v1/worker/services`;
+    const trimmedWorkerId = workerId?.trim();
     return this.httpClient.post<WorkerServiceItemApiResponse>(
-      endpoint,
-      payload,
+      `${this.normalizedBaseUrl}/api/v1/worker/services`,
+      {
+        worker_id: trimmedWorkerId || undefined,
+        ...payload,
+      },
       { withCredentials: true }
     );
   }
@@ -118,14 +118,14 @@ export class WorkerDashboardApiService {
     serviceId: string,
     payload: UpdateWorkerServicePayload
   ): Observable<WorkerServiceItemApiResponse> {
-    const sanitizedWorkerId = encodeURIComponent(workerId.trim());
     const sanitizedServiceId = encodeURIComponent(serviceId.trim());
-    const endpoint = sanitizedWorkerId
-      ? `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedWorkerId}/services/${sanitizedServiceId}`
-      : `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}`;
+    const trimmedWorkerId = workerId?.trim();
     return this.httpClient.put<WorkerServiceItemApiResponse>(
-      endpoint,
-      payload,
+      `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}`,
+      {
+        worker_id: trimmedWorkerId || undefined,
+        ...payload,
+      },
       { withCredentials: true }
     );
   }
@@ -134,13 +134,13 @@ export class WorkerDashboardApiService {
     workerId: string,
     serviceId: string
   ): Observable<WorkerServiceDeleteApiResponse> {
-    const sanitizedWorkerId = encodeURIComponent(workerId.trim());
     const sanitizedServiceId = encodeURIComponent(serviceId.trim());
-    const endpoint = sanitizedWorkerId
-      ? `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedWorkerId}/services/${sanitizedServiceId}`
-      : `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}`;
+    const trimmedWorkerId = workerId?.trim();
+    const queryString = trimmedWorkerId
+      ? `?worker_id=${encodeURIComponent(trimmedWorkerId)}`
+      : '';
     return this.httpClient.delete<WorkerServiceDeleteApiResponse>(
-      endpoint,
+      `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}${queryString}`,
       { withCredentials: true }
     );
   }

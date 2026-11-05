@@ -90,6 +90,7 @@ export interface WorkerServiceCatalogItem {
 }
 
 export interface CreateWorkerServicePayload {
+  worker_id?: string;
   name: string;
   description: string;
   price: number;
@@ -100,6 +101,7 @@ export interface CreateWorkerServicePayload {
 }
 
 export interface UpdateWorkerServicePayload {
+  worker_id?: string;
   name?: string;
   description?: string;
   price?: number;

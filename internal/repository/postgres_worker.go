@@ -167,7 +167,7 @@ func (r *PostgresWorkerRepository) UpdateService(ctx context.Context, workerID s
 		updates["is_active"] = existing.IsActive
 	}
 
-	if err := r.db.WithContext(ctx).Model(&domain.Service{}).Where("id = ?", serviceID).Updates(updates).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&domain.Service{}).Where("id = ? AND worker_id = ?", serviceID, workerID).Updates(updates).Error; err != nil {
 		return nil, fmt.Errorf("updating service record: %w", err)
 	}
 

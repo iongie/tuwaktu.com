@@ -331,7 +331,7 @@ func (h *WorkerHandler) CreateService(c *fiber.Ctx) error {
 		if errors.Is(err, domain.ErrWorkerNotFound) {
 			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
 		}
-		if errors.Is(err, domain.ErrInvalidInput) {
+		if errors.Is(err, domain.ErrInvalidInput) || errors.Is(err, domain.ErrInvalidRateType) {
 			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
 		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menambahkan layanan ke katalog", err.Error())
@@ -418,6 +418,14 @@ func (h *WorkerHandler) DeleteService(c *fiber.Ctx) error {
 	if workerID == "" {
 		if authWorkerID, ok := c.Locals("workerID").(string); ok && authWorkerID != "" {
 			workerID = authWorkerID
+		}
+	}
+	if workerID == "" {
+		var body struct {
+			WorkerID string `json:"worker_id"`
+		}
+		if err := c.BodyParser(&body); err == nil && body.WorkerID != "" {
+			workerID = strings.TrimSpace(body.WorkerID)
 		}
 	}
 	if workerID == "" {

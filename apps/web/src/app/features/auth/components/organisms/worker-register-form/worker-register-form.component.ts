@@ -290,14 +290,20 @@ import { AuthSpecialtyPickerComponent } from '../../molecules/auth-specialty-pic
         <div class="flex flex-col gap-3 pt-2">
           <button
             type="submit"
-            class="w-full h-12 bg-primary hover:bg-surface-elevated-dark text-on-primary font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 shadow-md transition-all group cursor-pointer min-h-[48px]"
+            [disabled]="isLoading()"
+            class="w-full h-12 bg-primary hover:bg-surface-elevated-dark text-on-primary font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 shadow-md transition-all group cursor-pointer min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <span>Buat Profil Mandiri & Ambil Tautan Web</span>
-            <span
-              class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform"
-            >
-              arrow_forward
-            </span>
+            @if (isLoading()) {
+              <span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+              <span>Mendaftarkan Profil Mitra...</span>
+            } @else {
+              <span>Buat Profil Mandiri & Ambil Tautan Web</span>
+              <span
+                class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform"
+              >
+                arrow_forward
+              </span>
+            }
           </button>
 
           <div class="flex items-center justify-center gap-1 text-sm">
@@ -335,6 +341,7 @@ export class WorkerRegisterFormComponent implements OnDestroy {
 
   readonly formError = signal<string>('');
   readonly formSuccess = signal<string>('');
+  readonly isLoading = signal<boolean>(false);
 
   readonly slugValidation = computed(() => {
     return this.authService.validateSlug(this.customSlug);
@@ -371,6 +378,10 @@ export class WorkerRegisterFormComponent implements OnDestroy {
   }
 
   handleFormSubmit(): void {
+    if (this.isLoading()) {
+      return;
+    }
+
     this.formError.set('');
     this.formSuccess.set('');
 
@@ -392,14 +403,32 @@ export class WorkerRegisterFormComponent implements OnDestroy {
       return;
     }
 
-    this.authService.register(payload);
-    this.formSuccess.set(
-      `Selamat! Profil kedaulatan Anda berhasil diaktifkan. Tautan resmi: tuwaktu.com/${this.customSlug}`
-    );
+    this.isLoading.set(true);
 
-    // Navigasi ke dashboard setelah konfirmasi
-    this.redirectTimeoutId = setTimeout(() => {
-      this.router.navigate(['/dashboard']);
-    }, 1200);
+    this.authService.register(payload).subscribe({
+      next: (result) => {
+        this.isLoading.set(false);
+        if (result.success) {
+          this.formSuccess.set(
+            `Selamat! Profil kedaulatan Anda berhasil diaktifkan. Tautan resmi: tuwaktu.com/${this.customSlug}`
+          );
+          // Navigasi ke dashboard setelah konfirmasi
+          this.redirectTimeoutId = setTimeout(() => {
+            this.router.navigate(['/dashboard/ringkasan']);
+          }, 1200);
+        } else {
+          this.formError.set(result.error || 'Pendaftaran mitra gagal. Silakan coba lagi.');
+        }
+      },
+      error: (err: unknown) => {
+        this.isLoading.set(false);
+        const httpErr = err as { message?: string; error?: { message?: string } | string };
+        const errorMessage =
+          (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+          (typeof httpErr?.error === 'string' && httpErr.error) ||
+          'Terjadi kesalahan koneksi saat pendaftaran mitra.';
+        this.formError.set(errorMessage);
+      },
+    });
   }
 }

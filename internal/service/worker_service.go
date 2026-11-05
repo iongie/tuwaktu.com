@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/pkg/auth"
@@ -26,6 +27,7 @@ type WorkerService interface {
 
 	// Admin & Autentikasi
 	OnboardWorker(ctx context.Context, payload *domain.AdminCreateWorkerPayload) (*domain.AdminWorkerCreatedResponse, error)
+	RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthLoginResponse, error)
 	ListWorkersForAdmin(ctx context.Context) ([]domain.AdminWorkerListItem, error)
 	SetWorkerStatus(ctx context.Context, workerID string, status string) error
 	Authenticate(ctx context.Context, identifier string, password string) (*domain.AuthLoginResponse, error)
@@ -467,6 +469,186 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 		Worker:            newWorker,
 		TemporaryPassword: tempPassword,
 		InvitationText:    invitationText,
+	}, nil
+}
+
+func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthLoginResponse, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if payload == nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	name := strings.TrimSpace(payload.Name)
+	if name == "" {
+		name = strings.TrimSpace(payload.FullName)
+	}
+	if name == "" {
+		return nil, fmt.Errorf("%w: nama lengkap mitra wajib diisi", domain.ErrInvalidInput)
+	}
+
+	rawWA := strings.TrimSpace(payload.WhatsAppNumber)
+	if rawWA == "" {
+		rawWA = strings.TrimSpace(payload.PhoneNumber)
+	}
+	if rawWA == "" {
+		return nil, fmt.Errorf("%w: nomor WhatsApp mitra wajib diisi", domain.ErrInvalidInput)
+	}
+
+	sanitizedWA, err := domain.SanitizeAndValidateWhatsAppNumber(rawWA)
+	if err != nil {
+		return nil, err
+	}
+
+	zone := strings.TrimSpace(payload.Zone)
+	if zone == "" {
+		zone = strings.TrimSpace(payload.Basecamp)
+	}
+	if zone == "" {
+		return nil, fmt.Errorf("%w: zona atau basecamp operasional wajib diisi", domain.ErrInvalidInput)
+	}
+
+	rawSlug := strings.ToLower(strings.TrimSpace(payload.Slug))
+	if rawSlug == "" {
+		return nil, fmt.Errorf("%w: slug profil mitra wajib diisi", domain.ErrInvalidInput)
+	}
+	workerSlug := slug.GenerateSlug(rawSlug)
+	if len(workerSlug) < 3 {
+		return nil, fmt.Errorf("%w: slug profil minimal 3 karakter alfanumerik", domain.ErrInvalidInput)
+	}
+
+	pin := strings.TrimSpace(payload.PIN)
+	if pin == "" {
+		pin = strings.TrimSpace(payload.Password)
+	}
+	if len(pin) < 6 {
+		return nil, fmt.Errorf("%w: PIN kedaulatan minimal 6 digit", domain.ErrInvalidInput)
+	}
+
+	// 1. Cek apakah nomor WhatsApp sudah terdaftar di worker_accounts
+	existingAccPhone, errPhone := s.repo.GetAccountByEmailOrPhone(ctx, sanitizedWA)
+	if errPhone == nil && existingAccPhone != nil {
+		return nil, fmt.Errorf("%w: Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.", domain.ErrInvalidInput)
+	}
+	if errPhone != nil && !errors.Is(errPhone, domain.ErrWorkerNotFound) {
+		return nil, fmt.Errorf("memeriksa akun nomor WhatsApp: %w", errPhone)
+	}
+
+	// 2. Cek apakah email terdaftar di worker_accounts
+	email := fmt.Sprintf("%s@tuwaktu.com", workerSlug)
+	existingAccEmail, errEmail := s.repo.GetAccountByEmailOrPhone(ctx, email)
+	if errEmail == nil && existingAccEmail != nil {
+		return nil, fmt.Errorf("%w: Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.", domain.ErrInvalidInput)
+	}
+	if errEmail != nil && !errors.Is(errEmail, domain.ErrWorkerNotFound) {
+		return nil, fmt.Errorf("memeriksa akun email: %w", errEmail)
+	}
+
+	// 3. Cek keunikan slug di workers
+	existingWorker, errWorker := s.repo.GetBySlug(ctx, workerSlug)
+	if errWorker == nil && existingWorker != nil {
+		return nil, fmt.Errorf("%w: Slug profil sudah digunakan. Silakan pilih slug lain.", domain.ErrInvalidInput)
+	}
+	if errWorker != nil && !errors.Is(errWorker, domain.ErrWorkerNotFound) {
+		return nil, fmt.Errorf("memeriksa ketersediaan slug: %w", errWorker)
+	}
+
+	// 4. Hash PIN
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pin), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("melakukan hashing PIN: %w", err)
+	}
+
+	workerID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("membuat UUID worker: %w", err)
+	}
+	workerIDStr := workerID.String()
+
+	accountID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("membuat UUID akun: %w", err)
+	}
+	accountIDStr := accountID.String()
+
+	// 5. Buat entitas Worker baru
+	bio := strings.TrimSpace(payload.SpecialtyLabel)
+	if bio != "" {
+		bio = fmt.Sprintf("Mitra mandiri spesialis %s di wilayah %s.", bio, zone)
+	} else {
+		bio = fmt.Sprintf("Mitra teknisi profesional terverifikasi di area %s.", zone)
+	}
+
+	newWorker := domain.Worker{
+		ID:             workerIDStr,
+		Slug:           workerSlug,
+		Name:           name,
+		Bio:            bio,
+		AvatarURL:      "https://images.unsplash.com/photo-1540569014015-19a7be504e3a",
+		Rating:         5.0,
+		ReviewCount:    0,
+		Zone:           zone,
+		BasePrice:      75000.00,
+		RateType:       "HOURLY",
+		MaxRadiusKM:    15.00,
+		FreeRadiusKM:   3.00,
+		ExtraFeePerKM:  0,
+		PhoneNumber:    sanitizedWA,
+		WhatsAppNumber: sanitizedWA,
+		Email:          email,
+		Address:        zone,
+		IsActive:       true,
+	}
+
+	// 6. Buat 7 default jadwal kerja (Senin s/d Minggu)
+	defaultSchedules := []domain.WorkerSchedule{
+		{DayOfWeek: 0, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
+		{DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{DayOfWeek: 2, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{DayOfWeek: 3, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{DayOfWeek: 4, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{DayOfWeek: 5, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
+		{DayOfWeek: 6, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: false},
+	}
+
+	// 7. Buat WorkerAccount baru
+	newAccount := domain.WorkerAccount{
+		ID:                 accountIDStr,
+		WorkerID:           &workerIDStr,
+		Email:              email,
+		PhoneNumber:        sanitizedWA,
+		PasswordHash:       string(hashedPassword),
+		Role:               domain.RoleWorker,
+		AccountStatus:      domain.AccountStatusActive,
+		MustChangePassword: false,
+	}
+
+	// 8. Simpan secara transaksional
+	if err := s.repo.CreateWorkerWithAccountTx(ctx, &newWorker, defaultSchedules, &newAccount); err != nil {
+		return nil, fmt.Errorf("eksekusi transaksi pendaftaran mitra gagal: %w", err)
+	}
+
+	// 9. Buat token JWT
+	token, err := auth.GenerateToken(newAccount.ID, newWorker.ID, newAccount.Email, newAccount.Role, newAccount.AccountStatus, 7*24*time.Hour)
+	if err != nil {
+		return nil, fmt.Errorf("pembuatan token sesi gagal: %w", err)
+	}
+
+	return &domain.AuthLoginResponse{
+		Token: token,
+		Session: domain.AuthUserSession{
+			ID:                 newAccount.ID,
+			WorkerID:           &newWorker.ID,
+			WorkerSlug:         newWorker.Slug,
+			Slug:               newWorker.Slug,
+			Name:               newWorker.Name,
+			Email:              newAccount.Email,
+			PhoneNumber:        newAccount.PhoneNumber,
+			Role:               newAccount.Role,
+			AccountStatus:      newAccount.AccountStatus,
+			MustChangePassword: newAccount.MustChangePassword,
+		},
 	}, nil
 }
 

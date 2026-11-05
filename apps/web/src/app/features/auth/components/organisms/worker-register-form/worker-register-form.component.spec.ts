@@ -13,7 +13,10 @@ describe('WorkerRegisterFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [WorkerRegisterFormComponent],
       providers: [
-        provideRouter([{ path: 'dashboard', component: class DummyDashboardComponent {} }]),
+        provideRouter([
+          { path: 'dashboard/ringkasan', component: class DummyDashboardComponent {} },
+          { path: 'dashboard', component: class DummyDashboardComponent {} },
+        ]),
         AuthService,
       ],
     }).compileComponents();
@@ -80,6 +83,8 @@ describe('WorkerRegisterFormComponent', () => {
   it('harus berhasil submit dan navigasi ke dashboard saat seluruh data valid', () => {
     jest.useFakeTimers();
     const navigateSpy = jest.spyOn(router, 'navigate');
+    const { of } = require('rxjs');
+    const registerSpy = jest.spyOn(authService, 'register').mockReturnValue(of({ success: true }));
 
     component.fullName = 'Budi Santoso';
     component.waNumber = '081234567890';
@@ -92,12 +97,38 @@ describe('WorkerRegisterFormComponent', () => {
     component.handleFormSubmit();
     fixture.detectChanges();
 
+    expect(registerSpy).toHaveBeenCalled();
     expect(component.formError()).toBe('');
     expect(component.formSuccess()).toContain('Selamat! Profil kedaulatan Anda berhasil diaktifkan');
+    expect(component.isLoading()).toBe(false);
 
     jest.runAllTimers();
-    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard/ringkasan']);
     jest.useRealTimers();
+  });
+
+  it('harus menampilkan formError saat authService.register mengembalikan error', () => {
+    const { of } = require('rxjs');
+    jest.spyOn(authService, 'register').mockReturnValue(
+      of({ success: false, error: 'Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.' })
+    );
+
+    component.fullName = 'Budi Santoso';
+    component.waNumber = '081234567890';
+    component.basecamp = 'Jakarta Selatan';
+    component.customSlug = 'budi-santoso';
+    component.workerPin = '123456';
+    component.workerPinConfirm = '123456';
+    component.doctrineAgreement = true;
+
+    component.handleFormSubmit();
+    fixture.detectChanges();
+
+    expect(component.isLoading()).toBe(false);
+    expect(component.formError()).toBe(
+      'Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.'
+    );
+    expect(component.formSuccess()).toBe('');
   });
 
   it('harus memicu pengiriman OTP saat tombol Kirim OTP ditekan', async () => {
@@ -120,5 +151,22 @@ describe('WorkerRegisterFormComponent', () => {
 
     expect(component.basecamp).toBe('Bandung Barat');
     expect(emitted).toBe('Bandung Barat');
+  });
+
+  it('harus mengabaikan handleFormSubmit jika sedang isLoading untuk mencegah dobel submit', () => {
+    const registerSpy = jest.spyOn(authService, 'register');
+    component.isLoading.set(true);
+
+    component.fullName = 'Budi Santoso';
+    component.waNumber = '081234567890';
+    component.basecamp = 'Jakarta Selatan';
+    component.customSlug = 'budi-santoso';
+    component.workerPin = '123456';
+    component.workerPinConfirm = '123456';
+    component.doctrineAgreement = true;
+
+    component.handleFormSubmit();
+
+    expect(registerSpy).not.toHaveBeenCalled();
   });
 });

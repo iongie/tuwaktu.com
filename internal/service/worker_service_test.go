@@ -651,4 +651,180 @@ func TestWorkerService_UpdateWorkerSchedules(t *testing.T) {
 	})
 }
 
+func TestWorkerService_RegisterWorker(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("berhasil mendaftarkan mitra baru dengan token dan sesi aktif", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi Santoso",
+			SpecialtyID:    "ac-electric",
+			SpecialtyLabel: "Teknisi AC & Kelistrikan",
+			WhatsAppNumber: "6281234567890",
+			Zone:           "Jakarta Selatan",
+			Slug:           "budi-ac-jakarta",
+			PIN:            "123456",
+		}
+
+		resp, err := svc.RegisterWorker(ctx, payload)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.NotEmpty(t, resp.Token)
+		assert.Equal(t, "Budi Santoso", resp.Session.Name)
+		assert.Equal(t, "budi-ac-jakarta", resp.Session.Slug)
+		assert.Equal(t, "6281234567890", resp.Session.PhoneNumber)
+		assert.Equal(t, "budi-ac-jakarta@tuwaktu.com", resp.Session.Email)
+		assert.Equal(t, domain.RoleWorker, resp.Session.Role)
+		assert.Equal(t, domain.AccountStatusActive, resp.Session.AccountStatus)
+		assert.False(t, resp.Session.MustChangePassword)
+
+		// Verifikasi worker tersimpan di repo
+		w, err := repo.GetBySlug(ctx, "budi-ac-jakarta")
+		require.NoError(t, err)
+		assert.Equal(t, "Budi Santoso", w.Name)
+		assert.Equal(t, 75000.0, w.BasePrice)
+		assert.True(t, w.IsActive)
+
+		// Verifikasi jadwal kerja terbuat untuk 7 hari
+		schedules, err := repo.GetWorkerSchedules(ctx, w.ID)
+		require.NoError(t, err)
+		assert.Len(t, schedules, 7)
+	})
+
+	t.Run("gagal jika nama lengkap kosong", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "",
+			WhatsAppNumber: "6281234567890",
+			Zone:           "Jakarta Selatan",
+			Slug:           "budi-ac",
+			PIN:            "123456",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "nama lengkap mitra wajib diisi")
+	})
+
+	t.Run("gagal jika nomor WhatsApp tidak valid", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi",
+			WhatsAppNumber: "081234", // diawali 0
+			Zone:           "Jakarta Selatan",
+			Slug:           "budi-ac",
+			PIN:            "123456",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "nomor WhatsApp")
+	})
+
+	t.Run("gagal jika zona atau basecamp kosong", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi",
+			WhatsAppNumber: "6281234567890",
+			Zone:           "",
+			Slug:           "budi-ac",
+			PIN:            "123456",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "zona atau basecamp")
+	})
+
+	t.Run("gagal jika slug kosong atau terlalu pendek", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi",
+			WhatsAppNumber: "6281234567890",
+			Zone:           "Jakarta Selatan",
+			Slug:           "ab",
+			PIN:            "123456",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "slug profil minimal 3 karakter")
+	})
+
+	t.Run("gagal jika PIN kurang dari 6 digit", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi",
+			WhatsAppNumber: "6281234567890",
+			Zone:           "Jakarta Selatan",
+			Slug:           "budi-ac",
+			PIN:            "1234",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "PIN kedaulatan minimal 6 digit")
+	})
+
+	t.Run("gagal jika nomor WhatsApp sudah terdaftar", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedAccount(&domain.WorkerAccount{
+			ID:          "acc-existing",
+			Email:       "existing@tuwaktu.com",
+			PhoneNumber: "6281234567890",
+			Role:        domain.RoleWorker,
+		})
+
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi Baru",
+			WhatsAppNumber: "6281234567890",
+			Zone:           "Jakarta Selatan",
+			Slug:           "budi-baru",
+			PIN:            "123456",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.")
+	})
+
+	t.Run("gagal jika slug worker bentrok", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedWorker(&domain.Worker{
+			ID:       "w-existing",
+			Slug:     "budi-ac",
+			Name:     "Budi Lama",
+			IsActive: true,
+		})
+
+		svc := service.NewWorkerService(repo)
+
+		payload := &domain.AuthRegisterPayload{
+			Name:           "Budi Baru",
+			WhatsAppNumber: "6289999999999",
+			Zone:           "Jakarta Selatan",
+			Slug:           "budi-ac",
+			PIN:            "123456",
+		}
+
+		_, err := svc.RegisterWorker(ctx, payload)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Slug profil sudah digunakan. Silakan pilih slug lain.")
+	})
+}
+
 

@@ -20,8 +20,20 @@ import {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly httpClient = inject(HttpClient, { optional: true });
-  private readonly configuredBaseUrl = inject(API_BASE_URL, { optional: true });
+  private readonly httpClient: HttpClient | null = (() => {
+    try {
+      return inject(HttpClient, { optional: true });
+    } catch {
+      return null;
+    }
+  })();
+  private readonly configuredBaseUrl: string | null = (() => {
+    try {
+      return inject(API_BASE_URL, { optional: true });
+    } catch {
+      return null;
+    }
+  })();
 
   readonly specialtyOptions: readonly SpecialtyOption[] = INITIAL_SPECIALTY_OPTIONS;
 
@@ -202,22 +214,88 @@ export class AuthService {
     return of({ success: true });
   }
 
-  register(formData: RegisterFormData): { success: boolean; error?: string } {
+  register(formData: RegisterFormData): Observable<AuthLoginResult> {
     const validation = this.validateRegistration(formData);
     if (!validation.isValid) {
-      return { success: false, error: validation.error };
+      return of({ success: false, error: validation.error });
     }
 
-    const session: AuthUserSession = {
-      id: `usr_${Date.now()}`,
+    const cleanWa = formData.waNumber ? formData.waNumber.replace(/\D/g, '') : '';
+    let sanitizedWa = cleanWa;
+    if (cleanWa.startsWith('0')) {
+      sanitizedWa = '62' + cleanWa.slice(1);
+    } else if (!cleanWa.startsWith('62')) {
+      sanitizedWa = '62' + cleanWa;
+    }
+
+    const cleanSlug = this.sanitizeSlug(formData.customSlug || formData.fullName);
+
+    if (!this.httpClient) {
+      const fallbackSession: AuthUserSession = {
+        id: `usr_${Date.now()}`,
+        name: formData.fullName.trim(),
+        slug: cleanSlug,
+        waNumber: sanitizedWa,
+        role: 'worker',
+        accountStatus: 'ACTIVE',
+        mustChangePassword: false,
+      };
+
+      this.currentUser.set(fallbackSession);
+      return of({ success: true });
+    }
+
+    const payload = {
       name: formData.fullName.trim(),
-      slug: formData.customSlug.trim(),
-      waNumber: formData.waNumber.trim(),
-      role: 'worker',
+      full_name: formData.fullName.trim(),
+      specialty_id: formData.specialtyId,
+      specialty_label: formData.specialtyLabel,
+      phone_number: sanitizedWa,
+      whatsapp_number: sanitizedWa,
+      zone: formData.basecamp.trim(),
+      basecamp: formData.basecamp.trim(),
+      slug: cleanSlug,
+      pin: formData.pin.trim(),
+      password: formData.pin.trim(),
     };
 
-    this.setSession(session);
-    return { success: true };
+    return this.httpClient
+      .post<{ success: boolean; message: string; data: BackendLoginData }>(
+        `${this.normalizedBaseUrl}/api/v1/auth/register`,
+        payload,
+        { withCredentials: true }
+      )
+      .pipe(
+        map((resp) => {
+          if (resp && resp.success && resp.data) {
+            const s = resp.data.session;
+            const session: AuthUserSession = {
+              id: s.id,
+              name: s.name || formData.fullName.trim(),
+              slug: s.slug || s.worker_slug || cleanSlug,
+              email: s.email,
+              waNumber: s.phone_number || sanitizedWa,
+              role: s.role as AuthUserSession['role'],
+              accountStatus: s.account_status,
+              mustChangePassword: s.must_change_password,
+            };
+            this.currentUser.set(session);
+            return { success: true };
+          }
+          return { success: false, error: resp?.message || 'Pendaftaran mitra gagal' };
+        }),
+        catchError((err: unknown) => {
+          const httpErr = err as { message?: string; error?: { message?: string } | string };
+          let errorMessage =
+            (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+            (typeof httpErr?.error === 'string' && httpErr.error) ||
+            'Pendaftaran mitra tidak berhasil. Silakan periksa kembali data Anda.';
+          if (typeof errorMessage === 'string') {
+            errorMessage = errorMessage.replace(/^data masukan tidak valid:\s*/i, '');
+          }
+          return of({ success: false, error: errorMessage });
+        })
+      );
   }
 
   logout(): Observable<boolean> {

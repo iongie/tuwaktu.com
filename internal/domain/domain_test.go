@@ -376,4 +376,79 @@ func TestWorkerProfileUpdate_UnmarshalJSON_WhatsApp(t *testing.T) {
 	})
 }
 
+func TestAuthRegisterPayload_UnmarshalJSON(t *testing.T) {
+	t.Run("berhasil unmarshal JSON standar snake_case dengan zone saja", func(t *testing.T) {
+		jsonStr := `{
+			"name": "Budi Santoso",
+			"specialty_id": "ac-electric",
+			"specialty_label": "Teknisi AC & Kelistrikan",
+			"whatsapp_number": "6281234567890",
+			"zone": "Jakarta Selatan",
+			"slug": "budi-santoso",
+			"pin": "123456"
+		}`
+		var payload domain.AuthRegisterPayload
+		err := json.Unmarshal([]byte(jsonStr), &payload)
+		require.NoError(t, err)
+		assert.Equal(t, "Budi Santoso", payload.Name)
+		assert.Equal(t, "Budi Santoso", payload.FullName)
+		assert.Equal(t, "ac-electric", payload.SpecialtyID)
+		assert.Equal(t, "Teknisi AC & Kelistrikan", payload.SpecialtyLabel)
+		assert.Equal(t, "6281234567890", payload.WhatsAppNumber)
+		assert.Equal(t, "6281234567890", payload.PhoneNumber)
+		assert.Equal(t, "Jakarta Selatan", payload.Zone)
+		assert.Equal(t, "Jakarta Selatan", payload.Basecamp)
+		assert.Equal(t, "budi-santoso", payload.Slug)
+		assert.Equal(t, "123456", payload.PIN)
+		assert.Equal(t, "123456", payload.Password)
+	})
+
+	t.Run("berhasil unmarshal JSON camelCase dan alias frontend dengan basecamp saja", func(t *testing.T) {
+		jsonStr := `{
+			"fullName": "Sarah Melinda",
+			"specialtyId": "cleaning",
+			"specialtyLabel": "Spesialis Kebersihan Hunian",
+			"waNumber": "6289876543210",
+			"basecamp": "Bandung Kota",
+			"customSlug": "sarah-cleaning",
+			"workerPin": "654321"
+		}`
+		var payload domain.AuthRegisterPayload
+		err := json.Unmarshal([]byte(jsonStr), &payload)
+		require.NoError(t, err)
+		assert.Equal(t, "Sarah Melinda", payload.Name)
+		assert.Equal(t, "Sarah Melinda", payload.FullName)
+		assert.Equal(t, "cleaning", payload.SpecialtyID)
+		assert.Equal(t, "Spesialis Kebersihan Hunian", payload.SpecialtyLabel)
+		assert.Equal(t, "6289876543210", payload.WhatsAppNumber)
+		assert.Equal(t, "6289876543210", payload.PhoneNumber)
+		assert.Equal(t, "Bandung Kota", payload.Zone)
+		assert.Equal(t, "Bandung Kota", payload.Basecamp)
+		assert.Equal(t, "sarah-cleaning", payload.Slug)
+		assert.Equal(t, "654321", payload.PIN)
+		assert.Equal(t, "654321", payload.Password)
+	})
+
+	t.Run("berhasil unmarshal kombinasi phone_number dan password", func(t *testing.T) {
+		jsonStr := `{
+			"name": "Doni",
+			"phone_number": "628111222333",
+			"zone": "Surabaya",
+			"slug": "doni-servis",
+			"password": "secretpassword"
+		}`
+		var payload domain.AuthRegisterPayload
+		err := json.Unmarshal([]byte(jsonStr), &payload)
+		require.NoError(t, err)
+		assert.Equal(t, "Doni", payload.Name)
+		assert.Equal(t, "628111222333", payload.WhatsAppNumber)
+		assert.Equal(t, "Surabaya", payload.Zone)
+		assert.Equal(t, "Surabaya", payload.Basecamp)
+		assert.Equal(t, "doni-servis", payload.Slug)
+		assert.Equal(t, "secretpassword", payload.PIN)
+		assert.Equal(t, "secretpassword", payload.Password)
+	})
+}
+
+
 

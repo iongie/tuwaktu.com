@@ -1,0 +1,191 @@
+package handler_test
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"tuwaktu.com/internal/domain"
+	"tuwaktu.com/internal/handler"
+	"tuwaktu.com/internal/repository"
+	"tuwaktu.com/internal/service"
+)
+
+func setupAuthTestApp(repo repository.WorkerRepository) *fiber.App {
+	app := fiber.New()
+	workerSvc := service.NewWorkerService(repo)
+	authHandler := handler.NewAuthHandler(workerSvc)
+	authMiddleware := handler.NewAuthMiddleware()
+
+	handler.RegisterRoutes(app, nil, nil, nil, authHandler, authMiddleware)
+	return app
+}
+
+func TestAuthHandler_Register(t *testing.T) {
+	t.Run("berhasil mendaftar via POST /api/v1/auth/register dan mengatur cookie", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"fullName":       "Rian Hendrawan",
+			"specialtyId":    "ac-electric",
+			"specialtyLabel": "Teknisi AC & Kelistrikan",
+			"waNumber":       "6281299887766",
+			"basecamp":       "Jakarta Selatan",
+			"customSlug":     "rian-ac-jakarta",
+			"pin":            "654321",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusCreated, resp.StatusCode)
+
+		var resBody struct {
+			Success bool                     `json:"success"`
+			Message string                   `json:"message"`
+			Data    domain.AuthLoginResponse `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+
+		assert.True(t, resBody.Success)
+		assert.Equal(t, "Pendaftaran mitra berhasil", resBody.Message)
+		assert.NotEmpty(t, resBody.Data.Token)
+		assert.Equal(t, "Rian Hendrawan", resBody.Data.Session.Name)
+		assert.Equal(t, "rian-ac-jakarta", resBody.Data.Session.Slug)
+
+		// Verifikasi cookie
+		cookies := resp.Cookies()
+		var tokenCookie *http.Cookie
+		for _, c := range cookies {
+			if c.Name == handler.AuthCookieName {
+				tokenCookie = c
+				break
+			}
+		}
+		require.NotNil(t, tokenCookie)
+		assert.True(t, tokenCookie.HttpOnly)
+		assert.Equal(t, resBody.Data.Token, tokenCookie.Value)
+	})
+
+	t.Run("gagal dengan 400 jika format payload tidak valid", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader([]byte("{invalid-json")))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("gagal dengan 400 jika validasi service gagal", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"fullName": "",
+			"waNumber": "6281299887766",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var resBody struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+			Error   string `json:"error"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.False(t, resBody.Success)
+		assert.Contains(t, resBody.Message, "nama lengkap mitra wajib diisi")
+	})
+
+	t.Run("gagal dengan 400 jika nomor WhatsApp sudah terdaftar", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedAccount(&domain.WorkerAccount{
+			ID:          "acc-existing",
+			Email:       "existing@tuwaktu.com",
+			PhoneNumber: "6281299887766",
+			Role:        domain.RoleWorker,
+		})
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"fullName":   "Rian Hendrawan",
+			"waNumber":   "6281299887766",
+			"basecamp":   "Jakarta Selatan",
+			"customSlug": "rian-baru",
+			"pin":        "654321",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var resBody struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.False(t, resBody.Success)
+		assert.Equal(t, "Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.", resBody.Message)
+	})
+
+	t.Run("gagal dengan 400 jika slug profil bentrok", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedWorker(&domain.Worker{
+			ID:       "w-existing",
+			Slug:     "rian-ac",
+			Name:     "Rian Lama",
+			IsActive: true,
+		})
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"fullName":   "Rian Baru",
+			"waNumber":   "6289999888877",
+			"basecamp":   "Jakarta Selatan",
+			"customSlug": "rian-ac",
+			"pin":        "654321",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var resBody struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.False(t, resBody.Success)
+		assert.Equal(t, "Slug profil sudah digunakan. Silakan pilih slug lain.", resBody.Message)
+	})
+}

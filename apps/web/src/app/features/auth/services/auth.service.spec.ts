@@ -313,40 +313,176 @@ describe('AuthService', () => {
       expect(service.isLoggedIn()).toBe(false);
     });
 
-    it('harus berhasil registrasi pekerja baru dan mengaktifkan sesi di memori', () => {
-      const registerResult = service.register({
-        fullName: 'Eko Prasetyo',
-        specialtyId: 'ac-electric',
-        specialtyLabel: 'Teknisi AC & Kelistrikan',
-        waNumber: '081987654321',
-        basecamp: 'Cilandak, Jakarta Selatan',
-        customSlug: 'eko-teknisi-ac',
-        pin: '654321',
-        pinConfirm: '654321',
-        doctrineAccepted: true,
+    it('harus memanggil POST /api/v1/auth/register dengan withCredentials: true saat registrasi berhasil', () => {
+      let resultSuccess = false;
+      service
+        .register({
+          fullName: 'Eko Prasetyo',
+          specialtyId: 'ac-electric',
+          specialtyLabel: 'Teknisi AC & Kelistrikan',
+          waNumber: '081987654321',
+          basecamp: 'Cilandak, Jakarta Selatan',
+          customSlug: 'eko-teknisi-ac',
+          pin: '654321',
+          pinConfirm: '654321',
+          doctrineAccepted: true,
+        })
+        .subscribe((res) => {
+          resultSuccess = res.success;
+        });
+
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/register');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.withCredentials).toBe(true);
+      expect(req.request.body.name).toBe('Eko Prasetyo');
+      expect(req.request.body.slug).toBe('eko-teknisi-ac');
+      expect(req.request.body.phone_number).toBe('6281987654321');
+
+      req.flush({
+        success: true,
+        message: 'Pendaftaran mitra berhasil',
+        data: {
+          token: 'jwt-register-token',
+          session: {
+            id: 'worker-id-eko',
+            name: 'Eko Prasetyo',
+            slug: 'eko-teknisi-ac',
+            email: 'eko-teknisi-ac@tuwaktu.com',
+            phone_number: '6281987654321',
+            role: 'WORKER',
+            account_status: 'ACTIVE',
+            must_change_password: false,
+          },
+        },
       });
 
-      expect(registerResult.success).toBe(true);
+      expect(resultSuccess).toBe(true);
       expect(service.isLoggedIn()).toBe(true);
       expect(service.currentUser()?.name).toBe('Eko Prasetyo');
       expect(service.currentUser()?.slug).toBe('eko-teknisi-ac');
     });
 
-    it('harus menolak registrasi jika pakta kedaulatan tidak disetujui', () => {
-      const registerResult = service.register({
-        fullName: 'Eko Prasetyo',
-        specialtyId: 'ac-electric',
-        specialtyLabel: 'Teknisi AC & Kelistrikan',
-        waNumber: '081987654321',
-        basecamp: 'Cilandak, Jakarta Selatan',
-        customSlug: 'eko-teknisi-ac',
-        pin: '654321',
-        pinConfirm: '654321',
-        doctrineAccepted: false,
-      });
+    it('harus menolak registrasi jika pakta kedaulatan tidak disetujui tanpa mengirim request HTTP', () => {
+      let resultSuccess: boolean | undefined;
+      let errorMsg: string | undefined;
 
-      expect(registerResult.success).toBe(false);
+      service
+        .register({
+          fullName: 'Eko Prasetyo',
+          specialtyId: 'ac-electric',
+          specialtyLabel: 'Teknisi AC & Kelistrikan',
+          waNumber: '081987654321',
+          basecamp: 'Cilandak, Jakarta Selatan',
+          customSlug: 'eko-teknisi-ac',
+          pin: '654321',
+          pinConfirm: '654321',
+          doctrineAccepted: false,
+        })
+        .subscribe((res) => {
+          resultSuccess = res.success;
+          errorMsg = res.error;
+        });
+
+      httpTestingController.expectNone('http://localhost:8080/api/v1/auth/register');
+      expect(resultSuccess).toBe(false);
+      expect(errorMsg).toContain('Pakta Kedaulatan Pekerja');
       expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('harus menangani error respons dari backend saat registrasi gagal', () => {
+      let resultSuccess: boolean | undefined;
+      let errorMsg: string | undefined;
+
+      service
+        .register({
+          fullName: 'Eko Prasetyo',
+          specialtyId: 'ac-electric',
+          specialtyLabel: 'Teknisi AC & Kelistrikan',
+          waNumber: '081987654321',
+          basecamp: 'Cilandak, Jakarta Selatan',
+          customSlug: 'eko-teknisi-ac',
+          pin: '654321',
+          pinConfirm: '654321',
+          doctrineAccepted: true,
+        })
+        .subscribe((res) => {
+          resultSuccess = res.success;
+          errorMsg = res.error;
+        });
+
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/register');
+      expect(req.request.method).toBe('POST');
+      req.flush(
+        {
+          success: false,
+          message: 'Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.',
+          error: 'INVALID_INPUT',
+        },
+        { status: 400, statusText: 'Bad Request' }
+      );
+
+      expect(resultSuccess).toBe(false);
+      expect(errorMsg).toBe(
+        'Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.'
+      );
+      expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('harus membersihkan prefix teknis data masukan tidak valid jika respons backend menyertakannya', () => {
+      let errorMsg: string | undefined;
+
+      service
+        .register({
+          fullName: 'Eko Prasetyo',
+          specialtyId: 'ac-electric',
+          specialtyLabel: 'Teknisi AC & Kelistrikan',
+          waNumber: '081987654321',
+          basecamp: 'Cilandak, Jakarta Selatan',
+          customSlug: 'eko-teknisi-ac',
+          pin: '654321',
+          pinConfirm: '654321',
+          doctrineAccepted: true,
+        })
+        .subscribe((res) => {
+          errorMsg = res.error;
+        });
+
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/register');
+      req.flush(
+        {
+          success: false,
+          message: 'data masukan tidak valid: Slug profil sudah digunakan. Silakan pilih slug lain.',
+          error: 'INVALID_INPUT',
+        },
+        { status: 400, statusText: 'Bad Request' }
+      );
+
+      expect(errorMsg).toBe('Slug profil sudah digunakan. Silakan pilih slug lain.');
+      expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('harus menyimpan sesi lokal saat httpClient tidak tersedia', () => {
+      const serviceNoHttp = new AuthService();
+      let resultSuccess = false;
+      serviceNoHttp
+        .register({
+          fullName: 'Budi Santoso',
+          specialtyId: 'ac-electric',
+          specialtyLabel: 'Teknisi AC & Kelistrikan',
+          waNumber: '081234567890',
+          basecamp: 'Jakarta',
+          customSlug: 'budi-santoso',
+          pin: '123456',
+          pinConfirm: '123456',
+          doctrineAccepted: true,
+        })
+        .subscribe((res) => {
+          resultSuccess = res.success;
+        });
+
+      expect(resultSuccess).toBe(true);
+      expect(serviceNoHttp.isLoggedIn()).toBe(true);
+      expect(serviceNoHttp.currentUser()?.name).toBe('Budi Santoso');
     });
 
     it('harus memanggil POST /api/v1/auth/logout dengan withCredentials: true dan mereset sinyal sesi saat logout dipanggil', () => {

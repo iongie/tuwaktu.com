@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -127,5 +128,105 @@ type AuthUserSession struct {
 type AuthLoginResponse struct {
 	Token   string          `json:"token"`
 	Session AuthUserSession `json:"session"`
+}
+
+// AuthRegisterPayload payload untuk pendaftaran mandiri mitra baru
+type AuthRegisterPayload struct {
+	Name           string `json:"name"`
+	FullName       string `json:"full_name,omitempty"`
+	SpecialtyID    string `json:"specialty_id"`
+	SpecialtyLabel string `json:"specialty_label"`
+	PhoneNumber    string `json:"phone_number"`
+	WhatsAppNumber string `json:"whatsapp_number,omitempty"`
+	Zone           string `json:"zone"`
+	Basecamp       string `json:"basecamp,omitempty"`
+	Slug           string `json:"slug"`
+	PIN            string `json:"pin"`
+	Password       string `json:"password,omitempty"`
+}
+
+// UnmarshalJSON menangani deserialisasi fleksibel dengan berbagai variasi nama field (snake_case, camelCase, alias)
+func (p *AuthRegisterPayload) UnmarshalJSON(data []byte) error {
+	type Alias AuthRegisterPayload
+	aux := &struct {
+		FullNameAlt       string `json:"fullName"`
+		SpecialtyIDAlt    string `json:"specialtyId"`
+		SpecialtyLabelAlt string `json:"specialtyLabel"`
+		PhoneNumberAlt    string `json:"phoneNumber"`
+		WaNumberAlt       string `json:"waNumber"`
+		WhatsAppNumberAlt string `json:"whatsAppNumber"`
+		CustomSlugAlt     string `json:"customSlug"`
+		WorkerPinAlt      string `json:"workerPin"`
+		*Alias
+	}{
+		Alias: (*Alias)(p),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if p.Name == "" {
+		if p.FullName != "" {
+			p.Name = p.FullName
+		} else if aux.FullNameAlt != "" {
+			p.Name = aux.FullNameAlt
+		}
+	}
+	if p.FullName == "" {
+		p.FullName = p.Name
+	}
+
+	if p.SpecialtyID == "" && aux.SpecialtyIDAlt != "" {
+		p.SpecialtyID = aux.SpecialtyIDAlt
+	}
+	if p.SpecialtyLabel == "" && aux.SpecialtyLabelAlt != "" {
+		p.SpecialtyLabel = aux.SpecialtyLabelAlt
+	}
+
+	if p.WhatsAppNumber == "" {
+		if aux.WaNumberAlt != "" {
+			p.WhatsAppNumber = aux.WaNumberAlt
+		} else if aux.WhatsAppNumberAlt != "" {
+			p.WhatsAppNumber = aux.WhatsAppNumberAlt
+		} else if p.PhoneNumber != "" {
+			p.WhatsAppNumber = p.PhoneNumber
+		} else if aux.PhoneNumberAlt != "" {
+			p.WhatsAppNumber = aux.PhoneNumberAlt
+		}
+	}
+	if p.PhoneNumber == "" {
+		if aux.PhoneNumberAlt != "" {
+			p.PhoneNumber = aux.PhoneNumberAlt
+		} else if p.WhatsAppNumber != "" {
+			p.PhoneNumber = p.WhatsAppNumber
+		}
+	}
+
+	if p.Zone == "" {
+		if p.Basecamp != "" {
+			p.Zone = p.Basecamp
+		}
+	}
+	if p.Basecamp == "" {
+		p.Basecamp = p.Zone
+	}
+
+	if p.Slug == "" && aux.CustomSlugAlt != "" {
+		p.Slug = aux.CustomSlugAlt
+	}
+
+	if p.PIN == "" {
+		if p.Password != "" {
+			p.PIN = p.Password
+		} else if aux.WorkerPinAlt != "" {
+			p.PIN = aux.WorkerPinAlt
+		}
+	}
+	if p.Password == "" && p.PIN != "" {
+		p.Password = p.PIN
+	}
+
+	return nil
 }
 

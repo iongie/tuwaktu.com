@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -66,6 +67,38 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	})
 
 	return SuccessResponse(c, fiber.StatusOK, "Proses masuk berhasil", result)
+}
+
+// Register menangani pendaftaran mandiri mitra baru dan menetapkan cookie HTTP-Only
+func (h *AuthHandler) Register(c *fiber.Ctx) error {
+	var payload domain.AuthRegisterPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format payload pendaftaran tidak valid", err.Error())
+	}
+
+	result, err := h.workerSvc.RegisterWorker(c.Context(), &payload)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidInput) {
+			errMsg := err.Error()
+			errMsg = strings.TrimPrefix(errMsg, domain.ErrInvalidInput.Error()+": ")
+			return ErrorResponse(c, fiber.StatusBadRequest, errMsg, "INVALID_INPUT")
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal melakukan proses pendaftaran: "+err.Error(), "INTERNAL_ERROR")
+	}
+
+	// Menetapkan HTTP-Only Cookie untuk sesi aman berbasis server
+	c.Cookie(&fiber.Cookie{
+		Name:     AuthCookieName,
+		Value:    result.Token,
+		Path:     "/",
+		HTTPOnly: true,
+		Secure:   h.isSecure(c),
+		SameSite: fiber.CookieSameSiteLaxMode,
+		MaxAge:   7 * 24 * 3600,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+	})
+
+	return SuccessResponse(c, fiber.StatusCreated, "Pendaftaran mitra berhasil", result)
 }
 
 // Logout menghapus cookie sesi otentikasi

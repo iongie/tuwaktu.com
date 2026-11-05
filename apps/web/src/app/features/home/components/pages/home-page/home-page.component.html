@@ -1,0 +1,34 @@
+<div class="min-h-screen bg-background text-on-surface antialiased font-body-default text-body-default flex flex-col">
+  <!-- Top Navigation Bar dengan Profil Akun Interaktif & Ukuran max-w-7xl Presisi -->
+  <app-auth-header-nav />
+
+  <!-- Main Content Body -->
+  <main class="w-full flex-1">
+    <!-- Hero Nocturne Theater Canvas dengan Status Telemetri & Booking Search Console -->
+    <app-home-hero-section (searchTrigger)="onHeroSearch()" />
+
+    <!-- 4 Bento Cards Katalog Keahlian Populer -->
+    <app-home-disciplines-section />
+
+    <!-- Grid Mitra Pilihan Terverifikasi (Sarah, Budi, Hendra, Rian) -->
+    <app-home-featured-workers-section />
+
+    <!-- Manifesto Kedaulatan Ekonomi & Komparasi 0% vs Aplikasi Gig Konvensional -->
+    <app-home-comparison-section />
+
+    <!-- Alur Pemesanan 3 Langkah Cerdas -->
+    <app-home-workflow-section />
+
+    <!-- Kalkulator Penghematan Finansial Mandiri Berbasis Signals -->
+    <app-home-simulator-section />
+
+    <!-- Suara Komunitas & Testimoni Mitra/Klien Nyata -->
+    <app-home-testimonials-section />
+
+    <!-- Pusat Pertanyaan yang Sering Diajukan (FAQ Accordion) -->
+    <app-home-faq-section />
+  </main>
+
+  <!-- Footer Lengkap Infrastruktur Mandiri -->
+  <app-home-footer-section />
+</div>

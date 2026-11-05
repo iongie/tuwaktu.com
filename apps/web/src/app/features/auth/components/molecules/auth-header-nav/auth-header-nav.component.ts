@@ -62,19 +62,21 @@ import { BookingNavAccountMenuComponent } from '../../../../worker-booking/compo
           <nav aria-label="Navigasi Utama" class="hidden md:flex items-center gap-space-xs">
             <a
               routerLink="/"
+              fragment="spesialis-unggulan"
               class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer min-h-[44px] flex items-center"
             >
               Jelajah Pekerja
             </a>
             <a
               routerLink="/"
-              fragment="formulir-reservasi"
+              fragment="katalog-disiplin"
               class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer min-h-[44px] flex items-center"
             >
               Katalog Layanan
             </a>
             <a
-              routerLink="/dashboard/integrasi-whatsapp"
+              routerLink="/"
+              fragment="manifesto-kedaulatan"
               class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer min-h-[44px] flex items-center"
             >
               Tentang Mandiri
@@ -97,7 +99,7 @@ import { BookingNavAccountMenuComponent } from '../../../../worker-booking/compo
               (ngModelChange)="searchTechnicianSlug.set($event)"
               (keydown.enter)="executeTechnicianLookup()"
               placeholder="Cari keahlian atau area..."
-              class="w-52 h-9 pl-9 pr-3 bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas text-on-surface placeholder:text-ink-disabled font-body-default text-caption rounded transition-all outline-none focus:ring-1 focus:ring-accent-focus"
+              class="w-52 h-10 pl-9 pr-3 bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas text-on-surface placeholder:text-ink-disabled font-body-default text-caption rounded transition-all outline-none focus:ring-1 focus:ring-accent-focus"
               aria-label="Cari keahlian atau area teknisi"
             />
           </div>
@@ -130,8 +132,27 @@ export class AuthHeaderNavComponent {
   readonly searchTechnicianSlug = signal<string>('');
 
   executeTechnicianLookup(): void {
-    const slug = this.searchTechnicianSlug().trim().toLowerCase();
-    if (!slug) return;
-    this.router.navigate(['/', slug]);
+    const raw = this.searchTechnicianSlug().trim().toLowerCase();
+    if (!raw) return;
+
+    if (raw.includes('sarah')) {
+      this.router.navigate(['/', 'sarah-cleaning']);
+    } else if (raw.includes('budi')) {
+      this.router.navigate(['/', 'budi-santoso']);
+    } else if (raw.includes('hendra')) {
+      this.router.navigate(['/', 'hendra-listrik']);
+    } else if (raw.includes('rian')) {
+      this.router.navigate(['/', 'rian-audio']);
+    } else if (
+      raw.includes('ac') ||
+      raw.includes('clean') ||
+      raw.includes('listrik') ||
+      raw.includes('elektronik') ||
+      raw.includes('reparasi')
+    ) {
+      this.router.navigate(['/'], { fragment: 'katalog-disiplin' });
+    } else {
+      this.router.navigate(['/', raw]);
+    }
   }
 }

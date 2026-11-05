@@ -9,7 +9,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import {
   provideClientHydration,
@@ -39,7 +39,13 @@ export const appConfig: ApplicationConfig = {
       provide: ErrorHandler,
       useClass: TuwaktuGlobalErrorHandler,
     },
-    provideRouter(appRoutes),
+    provideRouter(
+      appRoutes,
+      withInMemoryScrolling({
+        anchorScrolling: 'enabled',
+        scrollPositionRestoration: 'enabled',
+      })
+    ),
     provideHttpClient(withFetch(), withInterceptors([credentialsInterceptor])),
     provideAppInitializer(() => {
       const authService = inject(AuthService);

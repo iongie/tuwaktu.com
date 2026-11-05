@@ -222,6 +222,10 @@
   --md-sys-shape-corner-xl: 28px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--md-sys-color-on-surface);

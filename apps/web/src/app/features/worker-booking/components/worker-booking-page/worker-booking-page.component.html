@@ -72,6 +72,20 @@
   <!-- Main Container with pt-16 for fixed header -->
   <main class="w-full pt-16 bg-background min-h-screen">
     <div class="flex flex-col w-full">
+      <!-- Navigasi Breadcrumb Kembali ke Beranda & Direktori Spesialis -->
+      <nav aria-label="Breadcrumb" class="bg-hero-canvas border-b border-white/10 py-1.5">
+        <div class="max-w-7xl mx-auto px-margin-desktop flex items-center justify-between text-caption font-mono-rate">
+          <a
+            routerLink="/"
+            class="text-white/70 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer min-h-[44px] px-2 -ml-2 rounded hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage-orange"
+          >
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+            <span>Kembali ke Beranda &amp; Direktori Spesialis</span>
+          </a>
+          <span class="text-white/40 hidden sm:inline uppercase text-[11px] tracking-wider">PROFIL MITRA MANDIRI</span>
+        </div>
+      </nav>
+
       <!-- Nocturne Theater Canvas Hero Framing (#121212) -->
       @if (store.isProfileLoading()) {
         <div

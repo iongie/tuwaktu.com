@@ -8,6 +8,18 @@ import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
 
 describe('appRoutes', () => {
+  it('harus memuat HomePageComponent pada rute root', () => {
+    const rootRoute = appRoutes.find((r) => r.path === '');
+    expect(rootRoute).toBeDefined();
+    expect(rootRoute?.loadComponent).toBeDefined();
+  });
+
+  it('harus memuat WorkerBookingPageComponent pada rute dinamis :slug', () => {
+    const slugRoute = appRoutes.find((r) => r.path === ':slug');
+    expect(slugRoute).toBeDefined();
+    expect(slugRoute?.loadComponent).toBeDefined();
+  });
+
   it('harus mengarahkan rute dashboard/profile ke dashboard/integrasi-whatsapp secara deklaratif', () => {
     const profileRoute = appRoutes.find((r) => r.path === 'dashboard/profile');
     expect(profileRoute).toBeDefined();

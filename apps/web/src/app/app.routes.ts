@@ -6,8 +6,8 @@ export const appRoutes: Route[] = [
     path: '',
     loadComponent: () =>
       import(
-        './features/worker-booking/components/worker-booking-page/worker-booking-page.component'
-      ).then((m) => m.WorkerBookingPageComponent),
+        './features/home/components/pages/home-page/home-page.component'
+      ).then((m) => m.HomePageComponent),
   },
   {
     path: 'dashboard/profile',

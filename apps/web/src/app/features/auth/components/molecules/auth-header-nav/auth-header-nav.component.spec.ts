@@ -55,6 +55,18 @@ describe('AuthHeaderNavComponent', () => {
     expect(navSpy).toHaveBeenCalledWith(['/', 'sarah-cleaning']);
   });
 
+  it('harus melakukan navigasi cerdas ke profil pekerja spesifik atau katalog disiplin', () => {
+    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.searchTechnicianSlug.set('budi');
+    component.executeTechnicianLookup();
+    expect(navSpy).toHaveBeenCalledWith(['/', 'budi-santoso']);
+
+    component.searchTechnicianSlug.set('ac');
+    component.executeTechnicianLookup();
+    expect(navSpy).toHaveBeenCalledWith(['/'], { fragment: 'katalog-disiplin' });
+  });
+
   it('tidak boleh melakukan navigasi jika query pencarian kosong', () => {
     const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 

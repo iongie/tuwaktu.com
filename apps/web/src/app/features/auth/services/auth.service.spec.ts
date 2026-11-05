@@ -1,15 +1,29 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
 import { LoginFormData, RegisterFormData } from '../models/auth.models';
+import { API_BASE_URL } from '../../../../environments/environment.model';
 
 describe('AuthService', () => {
   let service: AuthService;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [AuthService],
+      providers: [
+        AuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_BASE_URL, useValue: 'http://localhost:8080' },
+      ],
     });
     service = TestBed.inject(AuthService);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('harus terinisialisasi dengan daftar spesialisasi bawaan', () => {
@@ -186,49 +200,120 @@ describe('AuthService', () => {
 
   describe('Session and Authentication Lifecycle', () => {
     beforeEach(() => {
-      service.logout();
-      if (typeof localStorage !== 'undefined') {
-        localStorage.clear();
-      }
+      service.setSession(null);
     });
 
-    it('harus memiliki status awal tidak login jika belum ada sesi', () => {
+    it('harus memiliki status awal tidak login jika belum ada sesi di memori', () => {
       expect(service.isLoggedIn()).toBe(false);
       expect(service.currentUser()).toBeNull();
       expect(service.currentWorker()).toBeNull();
     });
 
-    it('harus berhasil login dengan payload WhatsApp dan memperbarui sinyal sesi', () => {
-      const loginResult = service.login({
-        method: 'wa',
-        waNumber: '081288992211',
-        workerId: '',
-        pin: '123456',
-        rememberDevice: true,
+    it('DILARANG menggunakan browser storage (localStorage) untuk menyimpan token maupun sesi profil', () => {
+      const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+      service.setSession({
+        id: 'usr-1',
+        name: 'Sarah Melinda',
+        slug: 'sarah-cleaning',
+        role: 'worker',
+      });
+      expect(service.isLoggedIn()).toBe(true);
+      expect(setItemSpy).not.toHaveBeenCalled();
+      setItemSpy.mockRestore();
+    });
+
+    it('harus berhasil login dengan payload WhatsApp memanggil POST /api/v1/auth/login dengan withCredentials: true', () => {
+      service
+        .login({
+          method: 'wa',
+          waNumber: '081288992211',
+          workerId: '',
+          pin: '123456',
+          rememberDevice: true,
+        })
+        .subscribe((res) => {
+          expect(res.success).toBe(true);
+        });
+
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/login');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.withCredentials).toBe(true);
+      expect(req.request.body).toEqual({
+        identifier: '6281288992211',
+        password: '123456',
       });
 
-      expect(loginResult.success).toBe(true);
+      req.flush({
+        success: true,
+        message: 'Proses masuk berhasil',
+        data: {
+          token: 'mock-jwt-token-from-backend',
+          session: {
+            id: 'usr-budi',
+            name: 'Budi Santoso',
+            slug: 'budi-santoso',
+            phone_number: '6281288992211',
+            role: 'WORKER',
+            account_status: 'ACTIVE',
+            must_change_password: false,
+          },
+        },
+      });
+
       expect(service.isLoggedIn()).toBe(true);
-      expect(service.currentUser()?.name).toContain('081288992211');
-      expect(service.currentUser()?.slug).toContain('2211');
+      expect(service.currentUser()?.name).toBe('Budi Santoso');
+      expect(service.currentUser()?.slug).toBe('budi-santoso');
       expect(service.currentWorker()).toEqual(service.currentUser());
     });
 
-    it('harus menolak login jika data kredensial tidak valid', () => {
-      const loginResult = service.login({
-        method: 'wa',
-        waNumber: '123',
-        workerId: '',
-        pin: '12',
-        rememberDevice: false,
-      });
+    it('harus menolak login secara lokal jika format kredensial tidak valid tanpa memanggil API', () => {
+      service
+        .login({
+          method: 'wa',
+          waNumber: '123',
+          workerId: '',
+          pin: '12',
+          rememberDevice: false,
+        })
+        .subscribe((res) => {
+          expect(res.success).toBe(false);
+          expect(res.error).toBeDefined();
+        });
 
-      expect(loginResult.success).toBe(false);
-      expect(loginResult.error).toBeDefined();
+      httpTestingController.expectNone('http://localhost:8080/api/v1/auth/login');
       expect(service.isLoggedIn()).toBe(false);
     });
 
-    it('harus berhasil registrasi pekerja baru dan langsung mengaktifkan sesi', () => {
+    it('harus menangani kegagalan kredensial dari respons server (401)', () => {
+      service
+        .login({
+          method: 'id',
+          waNumber: '',
+          workerId: 'admin@tuwaktu.com',
+          pin: '123456',
+          rememberDevice: false,
+        })
+        .subscribe((res) => {
+          expect(res.success).toBe(false);
+          expect(res.error).toContain('kata sandi yang Anda masukkan tidak sesuai');
+        });
+
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/login');
+      expect(req.request.method).toBe('POST');
+      req.flush(
+        {
+          success: false,
+          message: 'kata sandi yang Anda masukkan tidak sesuai',
+          data: null,
+          error: 'INVALID_CREDENTIALS',
+        },
+        { status: 401, statusText: 'Unauthorized' }
+      );
+
+      expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('harus berhasil registrasi pekerja baru dan mengaktifkan sesi di memori', () => {
       const registerResult = service.register({
         fullName: 'Eko Prasetyo',
         specialtyId: 'ac-electric',
@@ -264,7 +349,7 @@ describe('AuthService', () => {
       expect(service.isLoggedIn()).toBe(false);
     });
 
-    it('harus membersihkan sesi dan mereset status saat logout dipanggil', () => {
+    it('harus memanggil POST /api/v1/auth/logout dengan withCredentials: true dan mereset sinyal sesi saat logout dipanggil', () => {
       service.setSession({
         id: 'usr-1',
         name: 'Sarah Melinda',
@@ -275,6 +360,11 @@ describe('AuthService', () => {
       expect(service.isLoggedIn()).toBe(true);
 
       service.logout();
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/logout');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush({ success: true, message: 'Sesi otentikasi berhasil ditutup', data: null });
+
       expect(service.isLoggedIn()).toBe(false);
       expect(service.currentUser()).toBeNull();
       expect(service.currentWorker()).toBeNull();
@@ -282,38 +372,61 @@ describe('AuthService', () => {
       expect(service.magicLinkStatus()).toBe('idle');
     });
 
-    it('harus menyelaraskan sesi saat menerima event storage dari tab lain', () => {
-      expect(service.isLoggedIn()).toBe(false);
+    it('harus memanggil GET /api/v1/auth/me dengan withCredentials: true untuk checkSession dan meng-hydrate profil pengguna', () => {
+      service.checkSession().subscribe((session) => {
+        expect(session).not.toBeNull();
+        expect(session?.name).toBe('Super Administrator');
+        expect(session?.role).toBe('ADMIN');
+      });
 
-      const foreignSession = {
-        id: 'usr-foreign',
-        name: 'Mitra Lintas Tab',
-        slug: 'mitra-tab',
-      };
-      localStorage.setItem('tuwaktu_auth_session', JSON.stringify(foreignSession));
+      const req = httpTestingController.expectOne('http://localhost:8080/api/v1/auth/me');
+      expect(req.request.method).toBe('GET');
+      expect(req.request.withCredentials).toBe(true);
 
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: 'tuwaktu_auth_session',
-          newValue: JSON.stringify(foreignSession),
-        })
-      );
+      req.flush({
+        success: true,
+        message: 'Sesi otentikasi aktif berhasil diambil',
+        data: {
+          id: 'admin-id-1',
+          name: 'Super Administrator',
+          slug: 'admin',
+          email: 'admin@tuwaktu.com',
+          phone_number: '628120000000',
+          role: 'ADMIN',
+          account_status: 'ACTIVE',
+          must_change_password: false,
+        },
+      });
 
       expect(service.isLoggedIn()).toBe(true);
-      expect(service.currentUser()?.slug).toBe('mitra-tab');
+      expect(service.currentUser()?.role).toBe('ADMIN');
+    });
 
-      // Simulasi logout dari tab lain
-      localStorage.removeItem('tuwaktu_auth_session');
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: 'tuwaktu_auth_session',
-          newValue: null,
-        })
-      );
+    it('harus menduplikasi pemanggilan simultan checkSession menggunakan satu in-flight HTTP request', () => {
+      let callCount = 0;
+      service.checkSession().subscribe(() => callCount++);
+      service.checkSession().subscribe(() => callCount++);
 
-      expect(service.isLoggedIn()).toBe(false);
-      expect(service.currentUser()).toBeNull();
+      const reqs = httpTestingController.match('http://localhost:8080/api/v1/auth/me');
+      expect(reqs.length).toBe(1);
+
+      reqs[0].flush({
+        success: true,
+        message: 'Sesi otentikasi aktif berhasil diambil',
+        data: {
+          id: 'worker-id-1',
+          name: 'Budi Santoso',
+          slug: 'budi-santoso',
+          email: 'budi@tuwaktu.com',
+          phone_number: '6281288992211',
+          role: 'WORKER',
+          account_status: 'ACTIVE',
+          must_change_password: false,
+        },
+      });
+
+      expect(callCount).toBe(2);
+      expect(service.currentUser()?.name).toBe('Budi Santoso');
     });
   });
 });
-

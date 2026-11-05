@@ -114,6 +114,7 @@ type AuthUserSession struct {
 	ID                 string  `json:"id"`
 	WorkerID           *string `json:"worker_id,omitempty"`
 	WorkerSlug         string  `json:"worker_slug,omitempty"`
+	Slug               string  `json:"slug,omitempty"`
 	Name               string  `json:"name"`
 	Email              string  `json:"email"`
 	PhoneNumber        string  `json:"phone_number"`

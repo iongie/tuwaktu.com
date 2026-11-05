@@ -29,6 +29,7 @@ type WorkerService interface {
 	ListWorkersForAdmin(ctx context.Context) ([]domain.AdminWorkerListItem, error)
 	SetWorkerStatus(ctx context.Context, workerID string, status string) error
 	Authenticate(ctx context.Context, identifier string, password string) (*domain.AuthLoginResponse, error)
+	GetSessionProfile(ctx context.Context, accountID string) (*domain.AuthUserSession, error)
 }
 
 type workerService struct {
@@ -512,7 +513,12 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 
 	workerIDStr := ""
 	workerSlug := ""
-	userName := "Super Administrator"
+	userName := "Pengguna"
+
+	if account.Role == domain.RoleAdmin {
+		userName = "Super Administrator"
+		workerSlug = "admin"
+	}
 
 	if account.WorkerID != nil {
 		workerIDStr = *account.WorkerID
@@ -538,6 +544,7 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 			ID:                 account.ID,
 			WorkerID:           account.WorkerID,
 			WorkerSlug:         workerSlug,
+			Slug:               workerSlug,
 			Name:               userName,
 			Email:              account.Email,
 			PhoneNumber:        account.PhoneNumber,
@@ -545,6 +552,63 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 			AccountStatus:      account.AccountStatus,
 			MustChangePassword: account.MustChangePassword,
 		},
+	}, nil
+}
+
+func (s *workerService) GetSessionProfile(ctx context.Context, accountID string) (*domain.AuthUserSession, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	accountID = strings.TrimSpace(accountID)
+	if accountID == "" {
+		return nil, fmt.Errorf("%w: ID akun wajib diisi", domain.ErrInvalidInput)
+	}
+
+	account, err := s.repo.GetAccountByID(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return nil, fmt.Errorf("%w: akun pengguna tidak ditemukan", domain.ErrWorkerNotFound)
+		}
+		return nil, err
+	}
+
+	if account.AccountStatus == domain.AccountStatusSuspended {
+		return nil, fmt.Errorf("%w: akun Anda telah dinonaktifkan oleh administrator", domain.ErrWorkerInactive)
+	}
+
+	workerIDStr := ""
+	workerSlug := ""
+	userName := "Pengguna"
+
+	if account.WorkerID != nil {
+		workerIDStr = *account.WorkerID
+	}
+	if account.Role == domain.RoleAdmin {
+		userName = "Super Administrator"
+		workerSlug = "admin"
+	}
+
+	if account.Worker != nil {
+		userName = account.Worker.Name
+		workerSlug = account.Worker.Slug
+	} else if workerIDStr != "" {
+		if w, err := s.repo.GetByID(ctx, workerIDStr); err == nil && w != nil {
+			userName = w.Name
+			workerSlug = w.Slug
+		}
+	}
+
+	return &domain.AuthUserSession{
+		ID:                 account.ID,
+		WorkerID:           account.WorkerID,
+		WorkerSlug:         workerSlug,
+		Slug:               workerSlug,
+		Name:               userName,
+		Email:              account.Email,
+		PhoneNumber:        account.PhoneNumber,
+		Role:               account.Role,
+		AccountStatus:      account.AccountStatus,
+		MustChangePassword: account.MustChangePassword,
 	}, nil
 }
 

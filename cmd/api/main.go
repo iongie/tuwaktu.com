@@ -78,7 +78,7 @@ func main() {
 	workerHandler := handler.NewWorkerHandler(workerSvc)
 	bookingHandler := handler.NewBookingHandler(bookingSvc)
 	adminHandler := handler.NewAdminHandler(workerSvc)
-	authHandler := handler.NewAuthHandler(workerSvc)
+	authHandler := handler.NewAuthHandler(workerSvc, cfg)
 	authMiddleware := handler.NewAuthMiddleware()
 
 	// Initialize Fiber App with environment-aware settings
@@ -110,12 +110,22 @@ func main() {
 		}
 	}
 
-	// Environment-tailored CORS policy
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: cfg.CORSAllowOrigins,
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
-	}))
+	// Environment-tailored CORS policy with credentials support for HTTP-Only cookies
+	corsConfig := cors.Config{
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+		AllowCredentials: true,
+	}
+
+	if cfg.CORSAllowOrigins == "*" || cfg.IsDevelopment() {
+		corsConfig.AllowOriginsFunc = func(origin string) bool {
+			return true
+		}
+	} else {
+		corsConfig.AllowOrigins = cfg.CORSAllowOrigins
+	}
+
+	app.Use(cors.New(corsConfig))
 
 	// Register Routes
 	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware)

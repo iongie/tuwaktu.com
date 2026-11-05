@@ -42,7 +42,7 @@ export class AdminWorkerApiService {
   fetchWorkers(): Observable<AdminApiResponse<AdminWorkerListItem[]>> {
     return this.httpClient.get<AdminApiResponse<AdminWorkerListItem[]>>(
       `${this.normalizedBaseUrl}/api/v1/admin/workers`,
-      { headers: this.authHeaders }
+      { headers: this.authHeaders, withCredentials: true }
     );
   }
 
@@ -52,7 +52,7 @@ export class AdminWorkerApiService {
     return this.httpClient.post<AdminApiResponse<AdminWorkerCreatedResponse>>(
       `${this.normalizedBaseUrl}/api/v1/admin/workers`,
       payload,
-      { headers: this.authHeaders }
+      { headers: this.authHeaders, withCredentials: true }
     );
   }
 
@@ -65,7 +65,7 @@ export class AdminWorkerApiService {
     return this.httpClient.patch<AdminApiResponse<{ worker_id: string; status: string }>>(
       `${this.normalizedBaseUrl}/api/v1/admin/workers/${sanitizedId}/status`,
       payload,
-      { headers: this.authHeaders }
+      { headers: this.authHeaders, withCredentials: true }
     );
   }
 }

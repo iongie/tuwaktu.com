@@ -1,6 +1,12 @@
-import { computed, Injectable, OnDestroy, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
+  AuthLoginResult,
   AuthUserSession,
+  BackendLoginData,
+  BackendUserSession,
   INITIAL_SPECIALTY_OPTIONS,
   LoginFormData,
   MagicLinkStatus,
@@ -10,12 +16,13 @@ import {
   SpecialtyOption,
 } from '../models/auth.models';
 
-export const AUTH_STORAGE_KEY = 'tuwaktu_auth_session';
-
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService implements OnDestroy {
+export class AuthService {
+  private readonly httpClient = inject(HttpClient, { optional: true });
+  private readonly configuredBaseUrl = inject(API_BASE_URL, { optional: true });
+
   readonly specialtyOptions: readonly SpecialtyOption[] = INITIAL_SPECIALTY_OPTIONS;
 
   readonly selectedSpecialty = signal<SpecialtyOption>(INITIAL_SPECIALTY_OPTIONS[0]);
@@ -24,110 +31,175 @@ export class AuthService implements OnDestroy {
   readonly magicLinkStatus = signal<MagicLinkStatus>('idle');
   readonly magicLinkFeedbackMessage = signal<string>('');
 
-  readonly currentUser = signal<AuthUserSession | null>(this.readInitialSession());
+  // State profil pengguna aktif disimpan murni di sinyal runtime memori (Dilarang menggunakan browser storage)
+  readonly currentUser = signal<AuthUserSession | null>(null);
   readonly currentWorker = computed<AuthUserSession | null>(() => this.currentUser());
   readonly isLoggedIn = computed<boolean>(() => this.currentUser() !== null);
 
-  private readonly storageEventListener = (event: StorageEvent): void => {
-    if (event.key === AUTH_STORAGE_KEY) {
-      this.currentUser.set(this.readInitialSession());
-    }
-  };
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', this.storageEventListener);
-    }
+  private get normalizedBaseUrl(): string {
+    return (this.configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
   }
 
-  ngOnDestroy(): void {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('storage', this.storageEventListener);
-    }
+  hasHttpClient(): boolean {
+    return Boolean(this.httpClient);
   }
 
-  private readInitialSession(): AuthUserSession | null {
-    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-      return null;
-    }
-    try {
-      const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw) as AuthUserSession;
-    } catch {
-      return null;
-    }
-  }
+  private inFlightSession$: Observable<AuthUserSession | null> | null = null;
 
   setSession(session: AuthUserSession | null): void {
+    this.inFlightSession$ = null;
     this.currentUser.set(session);
-    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-      try {
-        if (session) {
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
-        } else {
-          localStorage.removeItem(AUTH_STORAGE_KEY);
-        }
-      } catch {
-        // Storage browser tidak dapat diakses atau kuota penuh
-      }
+  }
+
+  checkSession(force = false): Observable<AuthUserSession | null> {
+    if (!this.httpClient) {
+      return of(this.currentUser());
     }
+
+    if (!force && this.inFlightSession$) {
+      return this.inFlightSession$;
+    }
+
+    this.inFlightSession$ = this.httpClient
+      .get<{ success: boolean; message: string; data: BackendUserSession }>(
+        `${this.normalizedBaseUrl}/api/v1/auth/me`,
+        { withCredentials: true }
+      )
+      .pipe(
+        map((resp) => {
+          this.inFlightSession$ = null;
+          if (resp && resp.success && resp.data) {
+            const d = resp.data;
+            const session: AuthUserSession = {
+              id: d.id,
+              name: d.name || 'Pengguna',
+              slug: d.slug || d.worker_slug || 'mitra-mandiri',
+              email: d.email,
+              waNumber: d.phone_number,
+              role: d.role as AuthUserSession['role'],
+              accountStatus: d.account_status,
+              mustChangePassword: d.must_change_password,
+            };
+            this.currentUser.set(session);
+            return session;
+          }
+          this.currentUser.set(null);
+          return null;
+        }),
+        catchError(() => {
+          this.inFlightSession$ = null;
+          this.currentUser.set(null);
+          return of(null);
+        }),
+        shareReplay(1)
+      );
+
+    return this.inFlightSession$;
   }
 
   login(
     data: LoginFormData | AuthUserSession,
     extra?: Partial<AuthUserSession>
-  ): { success: boolean; error?: string } {
+  ): Observable<AuthLoginResult> {
     if ('method' in data) {
       const validation = this.validateLogin(data);
       if (!validation.isValid) {
-        return { success: false, error: validation.error };
+        return of({ success: false, error: validation.error });
       }
 
-      const cleanWa = data.waNumber ? data.waNumber.replace(/\D/g, '') : '';
-      const fallbackSlug = cleanWa
-        ? `pekerja-${cleanWa.slice(-4)}`
-        : 'mitra-mandiri';
-      const generatedSlug = data.workerId
-        ? this.sanitizeSlug(data.workerId.replace(/@.*/, ''))
-        : fallbackSlug;
+      let identifier = '';
+      if (data.method === 'wa') {
+        const cleanWa = data.waNumber ? data.waNumber.replace(/\D/g, '') : '';
+        if (cleanWa.startsWith('0')) {
+          identifier = '62' + cleanWa.slice(1);
+        } else if (!cleanWa.startsWith('62')) {
+          identifier = '62' + cleanWa;
+        } else {
+          identifier = cleanWa;
+        }
+      } else {
+        identifier = data.workerId.trim();
+      }
+      const password = data.pin.trim();
 
-      const isEmailAdmin =
-        Boolean(data.workerId) &&
-        data.workerId.toLowerCase().includes('admin');
-      const assignedRole = extra?.role || (isEmailAdmin ? 'ADMIN' : 'worker');
+      if (!this.httpClient) {
+        const isEmailAdmin =
+          Boolean(data.workerId) &&
+          data.workerId.toLowerCase().includes('admin');
+        const assignedRole = extra?.role || (isEmailAdmin ? 'ADMIN' : 'worker');
+        const cleanWa = data.waNumber ? data.waNumber.replace(/\D/g, '') : '';
+        const fallbackSlug = cleanWa
+          ? `pekerja-${cleanWa.slice(-4)}`
+          : 'mitra-mandiri';
+        const generatedSlug = data.workerId
+          ? this.sanitizeSlug(data.workerId.replace(/@.*/, ''))
+          : fallbackSlug;
 
-      const session: AuthUserSession = {
-        id: extra?.id || `usr_${Date.now()}`,
-        name:
-          extra?.name ||
-          (data.method === 'wa'
-            ? `Mitra ${data.waNumber}`
-            : isEmailAdmin
-            ? 'Super Administrator'
-            : data.workerId),
-        slug:
-          extra?.slug ||
-          (isEmailAdmin ? 'admin' : generatedSlug || 'budi-santoso'),
-        email:
-          extra?.email ||
-          (data.method === 'id' && data.workerId.includes('@')
-            ? data.workerId
-            : undefined),
-        waNumber: data.waNumber,
-        avatarUrl: extra?.avatarUrl,
-        role: assignedRole,
-        token: extra?.token,
-        accountStatus: extra?.accountStatus || 'ACTIVE',
-        mustChangePassword: extra?.mustChangePassword ?? false,
-      };
+        const fallbackSession: AuthUserSession = {
+          id: extra?.id || `usr_${Date.now()}`,
+          name:
+            extra?.name ||
+            (data.method === 'wa'
+              ? `Mitra ${data.waNumber}`
+              : isEmailAdmin
+              ? 'Super Administrator'
+              : data.workerId),
+          slug:
+            extra?.slug ||
+            (isEmailAdmin ? 'admin' : generatedSlug || 'budi-santoso'),
+          email:
+            extra?.email ||
+            (data.method === 'id' && data.workerId.includes('@')
+              ? data.workerId
+              : undefined),
+          waNumber: data.waNumber,
+          avatarUrl: extra?.avatarUrl,
+          role: assignedRole,
+          token: extra?.token,
+          accountStatus: extra?.accountStatus || 'ACTIVE',
+          mustChangePassword: extra?.mustChangePassword ?? false,
+        };
+        this.currentUser.set(fallbackSession);
+        return of({ success: true });
+      }
 
-      this.setSession(session);
-      return { success: true };
+      return this.httpClient
+        .post<{ success: boolean; message: string; data: BackendLoginData }>(
+          `${this.normalizedBaseUrl}/api/v1/auth/login`,
+          { identifier, password },
+          { withCredentials: true }
+        )
+        .pipe(
+          map((resp) => {
+            if (resp && resp.success && resp.data) {
+              const s = resp.data.session;
+              const session: AuthUserSession = {
+                id: s.id,
+                name: s.name || 'Pengguna',
+                slug: s.slug || s.worker_slug || 'mitra-mandiri',
+                email: s.email,
+                waNumber: s.phone_number || data.waNumber,
+                role: s.role as AuthUserSession['role'],
+                accountStatus: s.account_status,
+                mustChangePassword: s.must_change_password,
+              };
+              this.currentUser.set(session);
+              return { success: true };
+            }
+            return { success: false, error: resp?.message || 'Proses masuk gagal' };
+          }),
+          catchError((err: unknown) => {
+            const httpErr = err as { message?: string; error?: { message?: string } | string };
+            const errorMessage =
+              (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+              'Identitas atau kata sandi yang Anda masukkan tidak sesuai.';
+            return of({ success: false, error: errorMessage });
+          })
+        );
     }
 
-    this.setSession(data);
-    return { success: true };
+    this.currentUser.set(data);
+    return of({ success: true });
   }
 
   register(formData: RegisterFormData): { success: boolean; error?: string } {
@@ -148,12 +220,31 @@ export class AuthService implements OnDestroy {
     return { success: true };
   }
 
-  logout(): void {
-    this.setSession(null);
+  logout(): Observable<boolean> {
+    this.inFlightSession$ = null;
+    this.currentUser.set(null);
     this.otpStatus.set('idle');
     this.otpFeedbackMessage.set('');
     this.magicLinkStatus.set('idle');
     this.magicLinkFeedbackMessage.set('');
+
+    if (!this.httpClient) {
+      return of(true);
+    }
+
+    const req$ = this.httpClient
+      .post<{ success: boolean; message: string }>(
+        `${this.normalizedBaseUrl}/api/v1/auth/logout`,
+        {},
+        { withCredentials: true }
+      )
+      .pipe(
+        map(() => true),
+        catchError(() => of(true))
+      );
+
+    req$.subscribe();
+    return req$;
   }
 
   selectSpecialty(specialty: SpecialtyOption): void {
@@ -215,7 +306,6 @@ export class AuthService implements OnDestroy {
       return true;
     }
 
-    // Simulasi respons instan direct handshake
     return new Promise<boolean>((resolve) => {
       setTimeout(() => {
         this.otpStatus.set('sent');

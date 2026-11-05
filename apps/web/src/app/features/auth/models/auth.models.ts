@@ -48,6 +48,30 @@ export interface AuthUserSession {
   readonly mustChangePassword?: boolean;
 }
 
+export interface AuthLoginResult {
+  readonly success: boolean;
+  readonly message?: string;
+  readonly error?: string;
+}
+
+export interface BackendUserSession {
+  readonly id: string;
+  readonly worker_id?: string;
+  readonly worker_slug?: string;
+  readonly slug?: string;
+  readonly name: string;
+  readonly email: string;
+  readonly phone_number: string;
+  readonly role: string;
+  readonly account_status: string;
+  readonly must_change_password: boolean;
+}
+
+export interface BackendLoginData {
+  readonly token: string;
+  readonly session: BackendUserSession;
+}
+
 export const INITIAL_SPECIALTY_OPTIONS: readonly SpecialtyOption[] = [
   { id: 'cleaning', label: 'Spesialis Kebersihan Hunian' },
   { id: 'ac-electric', label: 'Teknisi AC & Kelistrikan' },

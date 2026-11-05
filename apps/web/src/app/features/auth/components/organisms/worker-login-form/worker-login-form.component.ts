@@ -225,10 +225,16 @@ import { AuthMethod, LoginFormData } from '../../../models/auth.models';
         <div class="flex flex-col gap-3 pt-2">
           <button
             type="submit"
-            class="h-11 px-6 bg-ink-on-light hover:bg-surface-elevated-dark text-on-primary rounded font-button-label text-button-label flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer min-h-[44px]"
+            [disabled]="isLoading()"
+            class="h-11 px-6 bg-ink-on-light hover:bg-surface-elevated-dark text-on-primary rounded font-button-label text-button-label flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer min-h-[44px] disabled:opacity-60"
           >
-            <span>Masuk ke Dashboard Pekerja</span>
-            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            @if (isLoading()) {
+              <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+              <span>Memverifikasi Akses...</span>
+            } @else {
+              <span>Masuk ke Dashboard Pekerja</span>
+              <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            }
           </button>
 
           <button
@@ -325,6 +331,7 @@ export class WorkerLoginFormComponent implements OnDestroy {
 
   readonly activeMethod = signal<AuthMethod>('wa');
   readonly showPin = signal<boolean>(false);
+  readonly isLoading = signal<boolean>(false);
   readonly loginError = signal<string>('');
   readonly loginSuccess = signal<string>('');
 
@@ -378,11 +385,29 @@ export class WorkerLoginFormComponent implements OnDestroy {
       return;
     }
 
-    this.authService.login(payload);
-    this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...');
+    this.isLoading.set(true);
+    this.authService.login(payload).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        if (res.success) {
+          this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...');
+          const currentRole = this.authService.currentUser()?.role?.toUpperCase();
+          const targetRoute = currentRole === 'ADMIN' ? '/admin/workers' : '/dashboard';
 
-    this.redirectTimeoutId = setTimeout(() => {
-      this.router.navigate(['/dashboard']);
-    }, 1000);
+          this.redirectTimeoutId = setTimeout(() => {
+            this.router.navigate([targetRoute]);
+          }, 1000);
+        } else {
+          this.loginError.set(res.error || 'Data kredensial tidak valid.');
+        }
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        const errorMsg =
+          err?.error?.message ||
+          'Gagal terhubung ke server autentikasi. Silakan periksa koneksi Anda.';
+        this.loginError.set(errorMsg);
+      },
+    });
   }
 }

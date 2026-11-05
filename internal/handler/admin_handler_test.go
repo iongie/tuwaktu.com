@@ -12,7 +12,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 	"tuwaktu.com/internal/domain"
+	"tuwaktu.com/internal/handler"
 	"tuwaktu.com/internal/pkg/auth"
 )
 
@@ -214,4 +216,162 @@ func TestAdminRoutes_UpdateStatusAndSuspensionEffect(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respLoginSuccess.StatusCode)
 }
+
+func TestAuth_CookieBasedSessionAndEndpoints(t *testing.T) {
+	app, repo := setupTestApp()
+
+	pwHash, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.MinCost)
+	require.NoError(t, err)
+
+	// 1. Seed akun admin
+	adminAccount := &domain.WorkerAccount{
+		ID:                 "admin-cookie-acc-1",
+		Email:              "admin.cookie@tuwaktu.com",
+		PhoneNumber:        "6281200001111",
+		PasswordHash:       string(pwHash),
+		Role:               domain.RoleAdmin,
+		AccountStatus:      domain.AccountStatusActive,
+		MustChangePassword: false,
+	}
+	repo.SeedAccount(adminAccount)
+
+	// 2. Login via POST /api/v1/auth/login menetapkan HTTP-Only Cookie
+	t.Run("POST /api/v1/auth/login menetapkan HTTP-Only Cookie tuwaktu_token dengan atribut keamanan", func(t *testing.T) {
+		loginPayload := domain.AuthLoginPayload{
+			Identifier: "admin.cookie@tuwaktu.com",
+			Password:   "password123",
+		}
+		lBytes, _ := json.Marshal(loginPayload)
+		reqLogin := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(lBytes))
+		reqLogin.Header.Set("Content-Type", "application/json")
+		respLogin, err := app.Test(reqLogin)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, respLogin.StatusCode)
+
+		cookies := respLogin.Cookies()
+		var foundCookie *http.Cookie
+		for _, c := range cookies {
+			if c.Name == handler.AuthCookieName {
+				foundCookie = c
+				break
+			}
+		}
+		require.NotNil(t, foundCookie, "Cookie tuwaktu_token wajib disertakan pada response login")
+		assert.NotEmpty(t, foundCookie.Value)
+		assert.True(t, foundCookie.HttpOnly, "Cookie wajib HttpOnly")
+		assert.Equal(t, "/", foundCookie.Path)
+		assert.True(t, foundCookie.MaxAge > 0, "Cookie MaxAge harus positif untuk sesi tersimpan")
+	})
+
+	// Buat token admin valid untuk pengujian cookie
+	token, err := auth.GenerateToken(adminAccount.ID, "", adminAccount.Email, domain.RoleAdmin, domain.AccountStatusActive, 7*24*time.Hour)
+	require.NoError(t, err)
+
+	t.Run("GET /api/v1/auth/me tanpa token mengembalikan 401 Unauthorized", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/me", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+			Error   string `json:"error"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "UNAUTHORIZED", res.Error)
+		assert.Contains(t, res.Message, "Otentikasi diperlukan")
+	})
+
+	t.Run("GET /api/v1/auth/me dengan HTTP-Only Cookie tuwaktu_token berhasil mengambil profil sesi", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/me", nil)
+		req.Header.Set("Cookie", fmt.Sprintf("%s=%s", handler.AuthCookieName, token))
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                   `json:"success"`
+			Message string                 `json:"message"`
+			Data    domain.AuthUserSession `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Sesi otentikasi aktif berhasil diambil", res.Message)
+		assert.Equal(t, adminAccount.ID, res.Data.ID)
+		assert.Equal(t, adminAccount.Email, res.Data.Email)
+		assert.Equal(t, domain.RoleAdmin, res.Data.Role)
+		assert.Equal(t, "Super Administrator", res.Data.Name)
+		assert.Equal(t, "admin", res.Data.Slug)
+	})
+
+	t.Run("Akses rute proteksi admin /api/v1/admin/workers berhasil hanya menggunakan cookie", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/workers", nil)
+		req.Header.Set("Cookie", fmt.Sprintf("%s=%s", handler.AuthCookieName, token))
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("POST /api/v1/auth/logout menghapus cookie otentikasi", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		cookies := resp.Cookies()
+		var foundDeletedCookie bool
+		for _, c := range cookies {
+			if c.Name == handler.AuthCookieName {
+				assert.Equal(t, "", c.Value)
+				assert.True(t, c.MaxAge < 0 || c.Expires.Before(time.Now()))
+				foundDeletedCookie = true
+			}
+		}
+		assert.True(t, foundDeletedCookie, "Cookie tuwaktu_token harus dihapus pada respons logout")
+
+		var res struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Sesi otentikasi berhasil ditutup", res.Message)
+	})
+
+	t.Run("GET /api/v1/auth/me dengan akun SUSPENDED di database mengembalikan 403 Forbidden", func(t *testing.T) {
+		suspendedAccount := &domain.WorkerAccount{
+			ID:                 "worker-suspended-1",
+			Email:              "suspended@tuwaktu.com",
+			PhoneNumber:        "6281200009999",
+			PasswordHash:       string(pwHash),
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusSuspended,
+			MustChangePassword: false,
+		}
+		repo.SeedAccount(suspendedAccount)
+
+		suspendedToken, err := auth.GenerateToken(suspendedAccount.ID, "", suspendedAccount.Email, domain.RoleWorker, domain.AccountStatusActive, 7*24*time.Hour)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/me", nil)
+		req.Header.Set("Cookie", fmt.Sprintf("%s=%s", handler.AuthCookieName, suspendedToken))
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+		var res struct {
+			Success bool   `json:"success"`
+			Error   string `json:"error"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&res)
+		assert.False(t, res.Success)
+		assert.Equal(t, "ACCOUNT_SUSPENDED", res.Error)
+	})
+}
+
 

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 import { WorkerLoginFormComponent } from './worker-login-form.component';
 import { AuthService } from '../../../services/auth.service';
 
@@ -13,7 +14,10 @@ describe('WorkerLoginFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [WorkerLoginFormComponent],
       providers: [
-        provideRouter([{ path: 'dashboard', component: class DummyDashboardComponent {} }]),
+        provideRouter([
+          { path: 'dashboard', component: class DummyDashboardComponent {} },
+          { path: 'admin/workers', component: class DummyAdminComponent {} },
+        ]),
         AuthService,
       ],
     }).compileComponents();
@@ -79,6 +83,15 @@ describe('WorkerLoginFormComponent', () => {
   it('harus berhasil login dan berpindah ke dasbor jika data valid', () => {
     jest.useFakeTimers();
     const navigateSpy = jest.spyOn(router, 'navigate');
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'usr-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
+      return of({ success: true });
+    });
 
     component.waNumber = '081288992211';
     component.securityPin = '123456';
@@ -91,6 +104,34 @@ describe('WorkerLoginFormComponent', () => {
 
     jest.runAllTimers();
     expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    jest.useRealTimers();
+  });
+
+  it('harus berhasil login dan berpindah ke panel admin jika akun berwewenang ADMIN', () => {
+    jest.useFakeTimers();
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    jest.spyOn(authService, 'login').mockImplementation(() => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      return of({ success: true });
+    });
+
+    component.setMethod('id');
+    component.workerId = 'admin@tuwaktu.com';
+    component.securityPin = '123456';
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    expect(component.loginError()).toBe('');
+    expect(component.loginSuccess()).toContain('Otentikasi berhasil');
+
+    jest.runAllTimers();
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/workers']);
     jest.useRealTimers();
   });
 

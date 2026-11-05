@@ -14,10 +14,32 @@ func NewAuthMiddleware() *AuthMiddleware {
 	return &AuthMiddleware{}
 }
 
-// RequireAuth memastikan request membawa token JWT valid
+// RequireAuth memastikan request membawa token JWT valid baik dari Authorization Header maupun HTTP-Only Cookie
 func (m *AuthMiddleware) RequireAuth(c *fiber.Ctx) error {
+	var tokenStr string
+
 	authHeader := c.Get("Authorization")
-	if authHeader == "" {
+	if authHeader != "" {
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Format token otentikasi tidak valid. Gunakan format 'Bearer <token>'",
+				"data":    nil,
+				"error":   "INVALID_TOKEN_FORMAT",
+			})
+		}
+		tokenStr = strings.TrimSpace(parts[1])
+	}
+
+	if tokenStr == "" {
+		tokenStr = c.Cookies(AuthCookieName)
+		if tokenStr == "" {
+			tokenStr = c.Cookies(LegacyAuthCookieName)
+		}
+	}
+
+	if tokenStr == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"success": false,
 			"message": "Otentikasi diperlukan: silakan masuk terlebih dahulu",
@@ -26,17 +48,6 @@ func (m *AuthMiddleware) RequireAuth(c *fiber.Ctx) error {
 		})
 	}
 
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"success": false,
-			"message": "Format token otentikasi tidak valid. Gunakan format 'Bearer <token>'",
-			"data":    nil,
-			"error":   "INVALID_TOKEN_FORMAT",
-		})
-	}
-
-	tokenStr := strings.TrimSpace(parts[1])
 	claims, err := auth.ValidateToken(tokenStr)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

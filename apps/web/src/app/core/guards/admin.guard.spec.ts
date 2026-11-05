@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { firstValueFrom, isObservable, of } from 'rxjs';
 import { adminGuard } from './admin.guard';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { Component } from '@angular/core';
@@ -34,11 +35,12 @@ describe('adminGuard', () => {
     authService.logout();
   });
 
-  it('harus mengalihkan ke /login jika pengguna belum login', () => {
+  it('harus mengalihkan ke /login jika pengguna belum login', async () => {
     authService.setSession(null);
     const result = TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+    const resolvedResult = isObservable(result) ? await firstValueFrom(result) : result;
     const expectedUrlTree = router.createUrlTree(['/login']);
-    expect(result).toEqual(expectedUrlTree);
+    expect(resolvedResult).toEqual(expectedUrlTree);
   });
 
   it('harus mengalihkan ke /dashboard jika pengguna login sebagai WORKER', () => {
@@ -64,6 +66,40 @@ describe('adminGuard', () => {
 
     const result = TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
     expect(result).toBe(true);
+  });
+
+  it('harus memverifikasi sesi via checkSession jika currentUser di memori masih null dan mengizinkan admin', async () => {
+    authService.setSession(null);
+    jest.spyOn(authService, 'checkSession').mockReturnValue(
+      of({
+        id: 'admin-cookie',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      })
+    );
+
+    const result = TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+    const resolvedResult = isObservable(result) ? await firstValueFrom(result) : result;
+    expect(resolvedResult).toBe(true);
+    expect(authService.checkSession).toHaveBeenCalled();
+  });
+
+  it('harus memverifikasi sesi via checkSession jika currentUser null dan mengalihkan pekerja ke /dashboard', async () => {
+    authService.setSession(null);
+    jest.spyOn(authService, 'checkSession').mockReturnValue(
+      of({
+        id: 'worker-cookie',
+        name: 'Mitra Kerja',
+        slug: 'mitra-kerja',
+        role: 'worker',
+      })
+    );
+
+    const result = TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+    const resolvedResult = isObservable(result) ? await firstValueFrom(result) : result;
+    const expectedUrlTree = router.createUrlTree(['/dashboard']);
+    expect(resolvedResult).toEqual(expectedUrlTree);
   });
 });
 

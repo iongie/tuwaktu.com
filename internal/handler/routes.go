@@ -76,6 +76,8 @@ func RegisterRoutes(
 	if authHandler != nil {
 		api.Post("/auth/login", authHandler.Login)
 		v1.Post("/auth/login", authHandler.Login)
+		api.Post("/auth/logout", authHandler.Logout)
+		v1.Post("/auth/logout", authHandler.Logout)
 		if authMiddleware != nil {
 			api.Get("/auth/me", authMiddleware.RequireAuth, authHandler.Me)
 			v1.Get("/auth/me", authMiddleware.RequireAuth, authHandler.Me)

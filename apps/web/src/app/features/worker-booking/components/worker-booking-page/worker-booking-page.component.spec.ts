@@ -244,7 +244,7 @@ it('harus berhasil submit reservasi ketika form valid dan menyusun URL WhatsApp'
   windowOpenSpy.mockRestore();
 });
 
-it('harus mengarahkan tautan navigasi dan avatar mitra ke rute dashboard/integrasi-whatsapp bukan rute usang', () => {
+it('harus mengarahkan tautan navigasi ke rute dashboard/integrasi-whatsapp bukan rute usang', () => {
   const el = fixture.nativeElement as HTMLElement;
   const links = Array.from(el.querySelectorAll('a'));
 
@@ -254,9 +254,11 @@ it('harus mengarahkan tautan navigasi dan avatar mitra ke rute dashboard/integra
   });
   expect(obsoleteLinks.length).toBe(0);
 
-  const avatarLink = el.querySelector('a[title="Masuk Profil Mitra"]');
-  expect(avatarLink).toBeTruthy();
-  expect(avatarLink?.getAttribute('routerLink')).toBe('/dashboard/integrasi-whatsapp');
+  const navWhatsappLinks = links.filter((l) => {
+    const href = l.getAttribute('href') || l.getAttribute('routerLink') || '';
+    return href.includes('dashboard/integrasi-whatsapp');
+  });
+  expect(navWhatsappLinks.length).toBeGreaterThan(0);
 });
 
 it('harus menyediakan akses tombol Masuk dan Daftar Mitra di navbar atas', () => {

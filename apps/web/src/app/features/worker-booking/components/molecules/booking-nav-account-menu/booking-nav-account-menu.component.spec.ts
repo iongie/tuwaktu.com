@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ComponentRef } from '@angular/core';
+import { Component, ComponentRef } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { BookingNavAccountMenuComponent } from './booking-nav-account-menu.component';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
-import { Component } from '@angular/core';
 
 @Component({ standalone: true, template: '' })
 class DummyLoginComponent {}
@@ -56,23 +55,29 @@ describe('BookingNavAccountMenuComponent', () => {
   });
 
   describe('Kondisi Belum Masuk (Guest)', () => {
-    it('harus menampilkan tombol Masuk dan Daftar Mitra', () => {
+    it('harus menampilkan tombol Masuk dan Daftar Mitra yang terlihat jelas', () => {
       const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
       const registerBtn = fixture.nativeElement.querySelector('#navRegisterBtn');
 
       expect(loginBtn).toBeTruthy();
       expect(loginBtn.textContent).toContain('Masuk');
+      expect(loginBtn.classList.contains('sr-only')).toBe(false);
       expect(loginBtn.getAttribute('routerLink') || loginBtn.getAttribute('href')).toContain('/login');
 
       expect(registerBtn).toBeTruthy();
       expect(registerBtn.textContent).toContain('Daftar Mitra');
+      expect(registerBtn.classList.contains('sr-only')).toBe(false);
       expect(registerBtn.getAttribute('routerLink') || registerBtn.getAttribute('href')).toContain('/register');
     });
 
-    it('harus menampilkan nama dan tautan profil mitra yang sedang aktif', () => {
-      const avatarLink = fixture.nativeElement.querySelector('a[title="Masuk Profil Mitra"]');
-      expect(avatarLink).toBeTruthy();
-      expect(avatarLink.getAttribute('routerLink')).toBe('/dashboard/integrasi-whatsapp');
+    it('tidak boleh merender profil fiktif Budi Santoso atau dropdown menu akun saat belum login', () => {
+      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+      const dropdownMenu = fixture.nativeElement.querySelector('[role="menu"]');
+
+      expect(userProfileBtn).toBeNull();
+      expect(dropdownMenu).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Budi Santoso');
+      expect(fixture.nativeElement.textContent).not.toContain('Teknisi HVAC');
     });
   });
 
@@ -87,8 +92,13 @@ describe('BookingNavAccountMenuComponent', () => {
       fixture.detectChanges();
     });
 
-    it('harus menampilkan trigger menu akun profil mitra sesuai desain Stitch', () => {
+    it('harus menyembunyikan tombol tamu Masuk/Daftar dan menampilkan trigger menu akun profil mitra', () => {
+      const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
+      const registerBtn = fixture.nativeElement.querySelector('#navRegisterBtn');
       const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+
+      expect(loginBtn).toBeNull();
+      expect(registerBtn).toBeNull();
       expect(userProfileBtn).toBeTruthy();
       expect(userProfileBtn.textContent).toContain('Sarah Melinda');
       expect(userProfileBtn.textContent).toContain('Mitra');

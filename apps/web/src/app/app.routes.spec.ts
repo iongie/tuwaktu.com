@@ -28,9 +28,11 @@ describe('appRoutes', () => {
     expect(profileRoute?.redirectTo).toBe('dashboard/integrasi-whatsapp');
   });
 
-  it('harus memiliki modul dasbor terkonfigurasi dengan child routes yang tepat', () => {
+  it('harus memiliki modul dasbor terkonfigurasi dengan child routes yang tepat serta terproteksi authGuard', () => {
     const dashboardRoute = appRoutes.find((r) => r.path === 'dashboard');
     expect(dashboardRoute).toBeDefined();
+    expect(dashboardRoute?.canActivate).toBeDefined();
+    expect(dashboardRoute?.canActivateChild).toBeDefined();
     expect(dashboardRoute?.children).toBeDefined();
 
     const children = dashboardRoute?.children ?? [];
@@ -101,19 +103,58 @@ describe('appRoutes', () => {
       router = TestBed.inject(Router);
     });
 
-    it('harus menavigasi ke /dashboard/integrasi-whatsapp saat mengakses /dashboard/profile', async () => {
+    it('harus mengarahkan pengunjung tanpa sesi ke /login saat mengakses /dashboard/ringkasan', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession(null);
+      jest.spyOn(authService, 'checkSession').mockReturnValue(of(null));
+      const navigated = await router.navigateByUrl('/dashboard/ringkasan');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/login?returnUrl=%2Fdashboard%2Fringkasan');
+    });
+
+    it('harus mengarahkan pengunjung tanpa sesi ke /login saat mengakses /dashboard', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession(null);
+      jest.spyOn(authService, 'checkSession').mockReturnValue(of(null));
+      const navigated = await router.navigateByUrl('/dashboard');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/login?returnUrl=%2Fdashboard%2Fringkasan');
+    });
+
+    it('harus menavigasi ke /dashboard/integrasi-whatsapp saat pengguna yang sudah login mengakses /dashboard/profile', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'worker-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
       const navigated = await router.navigateByUrl('/dashboard/profile');
       expect(navigated).toBe(true);
       expect(router.url).toBe('/dashboard/integrasi-whatsapp');
     });
 
-    it('harus mempertahankan query parameter slug saat redirect dari /dashboard/profile', async () => {
+    it('harus mempertahankan query parameter slug saat redirect dari /dashboard/profile bagi pengguna yang sudah login', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'worker-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
       const navigated = await router.navigateByUrl('/dashboard/profile?slug=budi-santoso');
       expect(navigated).toBe(true);
       expect(router.url).toBe('/dashboard/integrasi-whatsapp?slug=budi-santoso');
     });
 
-    it('harus mengarahkan root /dashboard ke /dashboard/ringkasan', async () => {
+    it('harus mengarahkan root /dashboard ke /dashboard/ringkasan bagi pengguna yang sudah login', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'worker-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
       const navigated = await router.navigateByUrl('/dashboard');
       expect(navigated).toBe(true);
       expect(router.url).toBe('/dashboard/ringkasan');

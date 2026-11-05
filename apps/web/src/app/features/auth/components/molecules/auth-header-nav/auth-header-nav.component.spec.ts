@@ -46,6 +46,38 @@ describe('AuthHeaderNavComponent', () => {
     expect(accountMenu).toBeTruthy();
   });
 
+  it('harus menampilkan tombol Masuk dan Daftar Mitra di navbar saat pengguna belum login', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.setSession(null);
+    fixture.detectChanges();
+
+    const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
+    const registerBtn = fixture.nativeElement.querySelector('#navRegisterBtn');
+    const profileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+
+    expect(loginBtn).toBeTruthy();
+    expect(registerBtn).toBeTruthy();
+    expect(profileBtn).toBeNull();
+  });
+
+  it('harus menampilkan profil akun di navbar saat pengguna sudah login', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.setSession({
+      id: 'worker-1',
+      name: 'Sarah Melinda',
+      slug: 'sarah-cleaning',
+      role: 'worker',
+    });
+    fixture.detectChanges();
+
+    const profileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
+    const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
+
+    expect(profileBtn).toBeTruthy();
+    expect(profileBtn.textContent).toContain('Sarah Melinda');
+    expect(loginBtn).toBeNull();
+  });
+
   it('harus melakukan navigasi ke profil pekerja saat executeTechnicianLookup dipanggil', () => {
     const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 

@@ -18,6 +18,10 @@ import {
   normalizeAdminUrl,
   sanitizeReturnUrl,
 } from '../../../../../core/guards/admin.guard';
+import {
+  isDashboardUrl,
+  normalizeDashboardUrl,
+} from '../../../../../core/guards/auth.guard';
 
 @Component({
   selector: 'app-worker-login-form',
@@ -92,6 +96,22 @@ import {
             </span>
             <span class="font-caption text-caption text-amber-800 leading-relaxed">
               Halaman yang Anda tuju memerlukan wewenang administrator. Silakan masuk menggunakan akun pengelola yang terverifikasi.
+            </span>
+          </div>
+        </div>
+      } @else if (requiresDashboardLogin()) {
+        <div
+          id="dashboardAuthNoticeBanner"
+          class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm"
+          role="status"
+        >
+          <span class="material-symbols-outlined text-amber-700 text-[20px] shrink-0">lock</span>
+          <div class="flex flex-col gap-0.5">
+            <span class="font-body-strong text-body-strong font-semibold text-amber-950">
+              Akses Konsol Dasbor Memerlukan Autentikasi
+            </span>
+            <span class="font-caption text-caption text-amber-800 leading-relaxed">
+              Halaman konsol kerja mandiri yang Anda tuju memerlukan sesi masuk aktif. Silakan masuk terlebih dahulu untuk melanjutkan.
             </span>
           </div>
         </div>
@@ -367,6 +387,9 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
   readonly requiresAdminLogin = computed<boolean>(() => {
     return isAdminUrl(this.returnUrl());
   });
+  readonly requiresDashboardLogin = computed<boolean>(() => {
+    return isDashboardUrl(this.returnUrl());
+  });
 
   waNumber = '';
   workerId = '';
@@ -460,13 +483,15 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
           if (currentRole === 'ADMIN') {
             if (targetUrl && isAdminUrl(targetUrl)) {
               destination = normalizeAdminUrl(targetUrl);
+            } else if (targetUrl && isDashboardUrl(targetUrl)) {
+              destination = normalizeDashboardUrl(targetUrl);
             } else {
               destination = '/admin/workers';
             }
             this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke panel administrator...');
           } else {
             if (targetUrl && !isAdminUrl(targetUrl)) {
-              destination = targetUrl;
+              destination = normalizeDashboardUrl(targetUrl);
             } else {
               destination = '/dashboard';
             }

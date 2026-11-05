@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 import { adminGuard } from './core/guards/admin.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -15,6 +16,8 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'dashboard',
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     loadComponent: () =>
       import(
         './features/worker-dashboard/components/pages/worker-dashboard-layout/worker-dashboard-layout.component'

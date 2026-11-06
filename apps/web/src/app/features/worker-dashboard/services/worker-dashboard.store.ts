@@ -10,131 +10,9 @@ import {
   UpdateWorkerServicePayload,
 } from '../models/worker-profile.model';
 
-export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
-  {
-    id: 'srv-dcl-01',
-    code: 'DCL-01',
-    name: 'Deep Clean Detailing',
-    description:
-      'Pembersihan kerak kamar mandi membandel, kerak minyak dapur, desinfeksi menyeluruh & sedot tungau matras bertekanan tinggi untuk hasil higienis tuntas.',
-    price: 65000,
-    base_price: 65000,
-    rate_type: 'HOURLY',
-    duration_minutes: 120,
-    min_hours: 2.0,
-    equipment_label: 'Polisher & Vac Industri',
-    equipment_badge: 'Alat Berat Industri Siap Pakai',
-    equipment_icon: 'verified',
-    image_url:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuB_PTYqBj7kWz6kDcBIbeqy7Qk6ULYNaPUGnT7rQMruEPhCK6fBXGJhwpQx77ma_hufKEfzP1vn4S2tZ57dWIYRbANbwBxcCP6JVZpQ1Fu1QHdDrioV6J_o7iJ7pWKqD2wUw6C1wg8vp-7fLARDBREYW9WHja4w2wYKc9RvnYUww0an9MTLf1W76ZWrf-pQPUtjDDfQ5sOS3ctx1tfy_o8824LsHgIoVKkMHJGXbDs',
-    tags: [
-      'Bahan Kimia Ramah Lingkungan',
-      'Termasuk Mesin Polisher',
-      'Alat & Cairan Lengkap',
-    ],
-    status: 'ACTIVE',
-    is_public: true,
-  },
-  {
-    id: 'srv-gcl-02',
-    code: 'GCL-02',
-    name: 'General Clean',
-    description:
-      'Penyapuan, pengepelan lantai higienis, pengelapan debu permukaan meja & lemari, perapihan kasur, serta pembuangan sampah rutin harian untuk hunian rapi seketika.',
-    price: 150000,
-    base_price: 150000,
-    rate_type: 'UNIT',
-    duration_minutes: 120,
-    max_hours: 2.0,
-    equipment_label: 'Alat Ringan Bawa Sendiri',
-    equipment_badge: 'Pembersihan Cepat & Efisien',
-    equipment_icon: 'flash_on',
-    image_url:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCIUz4rsfL--4VOkoeNpRvEL8Ln807ps7IRkWKk32oIEhJ-7P9oDQ8eFUbtjurXjTvOrzr_ODiP9uZRnbHBWp5L9Hqs2vCLUeK_j0cFrXdJfak0eY8vcOfgJg6FZ0LeoaeqF9sYiFFTSyeWAKxYnGXb-ajsJyMSzeXsHgVMXWy1Sxp0YSqbD9uU0deTMIvtGO6vB950_iVs0ij0rzjhhGjWo94TDPNnU63kkSORgKY',
-    tags: ['Alat Bawa Sendiri', 'Cocok Apartemen / Studio', 'Cepat Bersih'],
-    status: 'ACTIVE',
-    is_public: true,
-  },
-  {
-    id: 'srv-acp-03',
-    code: 'ACP-03',
-    name: 'Pembersihan Karpet & Sofa Lama',
-    description:
-      'Pembersihan kain basah dan ekstraksi noda mendalam pada sofa kain serta karpet tebal.',
-    price: 200000,
-    base_price: 200000,
-    rate_type: 'UNIT',
-    duration_minutes: 90,
-    max_hours: 1.5,
-    equipment_label: 'Ekstraktor Vacuum Portabel',
-    equipment_badge: 'Perawatan Kain Khusus',
-    equipment_icon: 'archive',
-    image_url: '',
-    tags: ['Khusus Sofa', 'Bahan Anti Bau'],
-    status: 'ARCHIVED',
-    is_public: false,
-  },
-];
+export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [];
 
-export const DEFAULT_WEEKLY_SCHEDULES: WorkerScheduleItem[] = [
-  {
-    day_of_week: 1,
-    day_name: 'Senin',
-    is_active: true,
-    slot_morning: true,
-    slot_afternoon: true,
-    slot_evening: false,
-  },
-  {
-    day_of_week: 2,
-    day_name: 'Selasa',
-    is_active: true,
-    slot_morning: true,
-    slot_afternoon: true,
-    slot_evening: false,
-  },
-  {
-    day_of_week: 3,
-    day_name: 'Rabu',
-    is_active: true,
-    slot_morning: true,
-    slot_afternoon: true,
-    slot_evening: false,
-  },
-  {
-    day_of_week: 4,
-    day_name: 'Kamis',
-    is_active: true,
-    slot_morning: true,
-    slot_afternoon: true,
-    slot_evening: false,
-  },
-  {
-    day_of_week: 5,
-    day_name: 'Jumat',
-    is_active: true,
-    slot_morning: true,
-    slot_afternoon: true,
-    slot_evening: false,
-  },
-  {
-    day_of_week: 6,
-    day_name: 'Sabtu',
-    is_active: true,
-    slot_morning: true,
-    slot_afternoon: true,
-    slot_evening: false,
-  },
-  {
-    day_of_week: 0,
-    day_name: 'Minggu',
-    is_active: false,
-    slot_morning: false,
-    slot_afternoon: false,
-    slot_evening: false,
-  },
-];
-
+export const DEFAULT_WEEKLY_SCHEDULES: WorkerScheduleItem[] = [];
 
 export interface WhatsAppPreviewSampleData {
   readonly clientName: string;
@@ -156,7 +34,8 @@ export const DEFAULT_WHATSAPP_SAMPLE_DATA: WhatsAppPreviewSampleData = {
   distanceKm: '4.2 km',
   travelFeeBreakdown: 'Jasa Rp 162.500 + Ongkir Rp 3.600',
   totalCost: 'Rp 166.100',
-  specialNotes: 'Tolong bawa disinfektan sendiri, fokus kerak kamar mandi utama',
+  specialNotes:
+    'Tolong bawa disinfektan sendiri, fokus kerak kamar mandi utama',
   mapsLocationUrl: 'https://maps.google.com/?q=-6.2297,106.8093',
 };
 
@@ -203,7 +82,8 @@ export function formatWhatsAppDisplay(phone: string): string {
   return `+${digits}`;
 }
 
-export const STORAGE_WHATSAPP_CONFIG_KEY_PREFIX = 'tuwaktu_worker_whatsapp_config_';
+export const STORAGE_WHATSAPP_CONFIG_KEY_PREFIX =
+  'tuwaktu_worker_whatsapp_config_';
 
 export function normalizeWhatsAppNumberForWaMe(phone: string): string {
   let digits = (phone || '').replace(/\D/g, '');
@@ -223,13 +103,15 @@ export function renderWhatsAppMessageText(
   sample: WhatsAppPreviewSampleData,
   includeGmaps: boolean,
   includeBreakdown: boolean,
-  includeNotes: boolean
+  includeNotes: boolean,
 ): string {
   let text = template;
   const alamatVal = includeGmaps
     ? `${sample.clientAddress} (${sample.mapsLocationUrl})`
     : sample.clientAddress;
-  const rincianVal = includeBreakdown ? sample.travelFeeBreakdown : 'Rp 166.100 Nett';
+  const rincianVal = includeBreakdown
+    ? sample.travelFeeBreakdown
+    : 'Rp 166.100 Nett';
   const catatanVal = includeNotes ? sample.specialNotes : '-';
 
   text = text.replace(/\{\{NAMA_KLIEN\}\}/g, sample.clientName);
@@ -264,24 +146,28 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly workerBasePrice = signal<number | null>(null);
   readonly workerRateType = signal<'HOURLY' | 'UNIT'>('HOURLY');
 
-  readonly workerServices = signal<WorkerServiceCatalogItem[]>(DEFAULT_WORKER_SERVICES);
-  readonly servicesActiveTab = signal<'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('ACTIVE');
+  readonly workerServices = signal<WorkerServiceCatalogItem[]>(
+    DEFAULT_WORKER_SERVICES,
+  );
+  readonly servicesActiveTab = signal<'ACTIVE' | 'DRAFT' | 'ARCHIVED'>(
+    'ACTIVE',
+  );
   readonly isMobileSidebarOpen = signal<boolean>(false);
   readonly lastRatesSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
   readonly lastLocationSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
   readonly lastScheduleSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
 
   readonly activeServicesCount = computed(
-    () => this.workerServices().filter((s) => s.status === 'ACTIVE').length
+    () => this.workerServices().filter((s) => s.status === 'ACTIVE').length,
   );
   readonly draftServicesCount = computed(
-    () => this.workerServices().filter((s) => s.status === 'DRAFT').length
+    () => this.workerServices().filter((s) => s.status === 'DRAFT').length,
   );
   readonly archivedServicesCount = computed(
-    () => this.workerServices().filter((s) => s.status === 'ARCHIVED').length
+    () => this.workerServices().filter((s) => s.status === 'ARCHIVED').length,
   );
   readonly filteredServices = computed(() =>
-    this.workerServices().filter((s) => s.status === this.servicesActiveTab())
+    this.workerServices().filter((s) => s.status === this.servicesActiveTab()),
   );
 
   readonly workerLat = signal<number | null>(-6.234129);
@@ -290,10 +176,12 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly workerFreeRadiusKm = signal<number>(3.0);
   readonly workerExtraFeePerKm = signal<number>(3000);
   readonly workerBasecampAddress = signal<string>(
-    'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
+    'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan',
   );
 
-  readonly workerSchedules = signal<WorkerScheduleItem[]>(DEFAULT_WEEKLY_SCHEDULES);
+  readonly workerSchedules = signal<WorkerScheduleItem[]>(
+    DEFAULT_WEEKLY_SCHEDULES,
+  );
   readonly transitBufferMinutes = signal<number>(90);
   readonly autoPeakHourBuffer = signal<boolean>(true);
   readonly mandatoryLunchBreak = signal<boolean>(true);
@@ -321,11 +209,15 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly planFeedbackSuccess = signal<string | null>(null);
   readonly boostFeedbackSuccess = signal<string | null>(null);
   readonly currentPlanTier = signal<'STARTER' | 'PRO' | 'FLEET'>('PRO');
-  readonly activeBoostPackage = signal<'NONE' | 'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D'>('WEEKEND_72H');
+  readonly activeBoostPackage = signal<
+    'NONE' | 'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D'
+  >('WEEKEND_72H');
   readonly isBoostActive = signal<boolean>(true);
   readonly clipboardFeedbackMessage = signal<string | null>(null);
 
-  readonly whatsappMessageTemplate = signal<string>(buildDefaultWhatsAppTemplate());
+  readonly whatsappMessageTemplate = signal<string>(
+    buildDefaultWhatsAppTemplate(),
+  );
   readonly includeGmapsLocation = signal<boolean>(true);
   readonly includeCostBreakdown = signal<boolean>(true);
   readonly includeSpecialNotes = signal<boolean>(true);
@@ -362,13 +254,17 @@ export class WorkerDashboardStore implements OnDestroy {
       DEFAULT_WHATSAPP_SAMPLE_DATA,
       this.includeGmapsLocation(),
       this.includeCostBreakdown(),
-      this.includeSpecialNotes()
+      this.includeSpecialNotes(),
     );
   });
 
   readonly generatedWhatsAppDeepLink = computed(() => {
-    const cleanPhone = normalizeWhatsAppNumberForWaMe(this.workerWhatsAppNumber());
-    const encodedText = encodeURIComponent(this.renderedWhatsAppMessagePreview());
+    const cleanPhone = normalizeWhatsAppNumberForWaMe(
+      this.workerWhatsAppNumber(),
+    );
+    const encodedText = encodeURIComponent(
+      this.renderedWhatsAppMessagePreview(),
+    );
     return `https://wa.me/${cleanPhone}?text=${encodedText}`;
   });
 
@@ -425,7 +321,12 @@ export class WorkerDashboardStore implements OnDestroy {
 
   readonly formattedBasePricePreview = computed(() => {
     const price = this.workerBasePrice();
-    if (price === null || price === undefined || Number.isNaN(price) || price <= 0) {
+    if (
+      price === null ||
+      price === undefined ||
+      Number.isNaN(price) ||
+      price <= 0
+    ) {
       return null;
     }
     const formatted = new Intl.NumberFormat('id-ID', {
@@ -433,7 +334,8 @@ export class WorkerDashboardStore implements OnDestroy {
       currency: 'IDR',
       maximumFractionDigits: 0,
     }).format(price);
-    const unitLabel = (this.workerRateType() || '').toUpperCase() === 'UNIT' ? 'Sesi' : 'Jam';
+    const unitLabel =
+      (this.workerRateType() || '').toUpperCase() === 'UNIT' ? 'Sesi' : 'Jam';
     return `${formatted} / ${unitLabel}`;
   });
 
@@ -455,7 +357,9 @@ export class WorkerDashboardStore implements OnDestroy {
   }
 
   resetWhatsAppTemplateToDefault(): void {
-    this.whatsappMessageTemplate.set(buildDefaultWhatsAppTemplate(this.workerFullName()));
+    this.whatsappMessageTemplate.set(
+      buildDefaultWhatsAppTemplate(this.workerFullName()),
+    );
     this.includeGmapsLocation.set(true);
     this.includeCostBreakdown.set(true);
     this.includeSpecialNotes.set(true);
@@ -469,7 +373,12 @@ export class WorkerDashboardStore implements OnDestroy {
 
   insertTokenIntoWhatsAppTemplate(token: string, cursorPos?: number): void {
     const current = this.whatsappMessageTemplate();
-    if (cursorPos === undefined || cursorPos === null || cursorPos < 0 || cursorPos > current.length) {
+    if (
+      cursorPos === undefined ||
+      cursorPos === null ||
+      cursorPos < 0 ||
+      cursorPos > current.length
+    ) {
       this.whatsappMessageTemplate.set(current + ' ' + token);
     } else {
       const before = current.substring(0, cursorPos);
@@ -525,7 +434,9 @@ export class WorkerDashboardStore implements OnDestroy {
   }
 
   startEditingWhatsAppNumber(): void {
-    this.editWhatsAppNumberInput.set(this.workerWhatsAppNumber() || '6281288992211');
+    this.editWhatsAppNumberInput.set(
+      this.workerWhatsAppNumber() || '6281288992211',
+    );
     this.isEditingWhatsAppNumber.set(true);
   }
 
@@ -556,7 +467,11 @@ export class WorkerDashboardStore implements OnDestroy {
 
   openWhatsAppDeepLink(): void {
     if (typeof window !== 'undefined') {
-      window.open(this.generatedWhatsAppDeepLink(), '_blank', 'noopener,noreferrer');
+      window.open(
+        this.generatedWhatsAppDeepLink(),
+        '_blank',
+        'noopener,noreferrer',
+      );
     }
   }
 
@@ -589,7 +504,7 @@ export class WorkerDashboardStore implements OnDestroy {
           return { ...item, is_public: nextVisibility };
         }
         return item;
-      })
+      }),
     );
     this.updateRatesSyncTimestamp();
 
@@ -604,13 +519,14 @@ export class WorkerDashboardStore implements OnDestroy {
         next: (response) => {
           if (response.success) {
             this.ratesFeedbackSuccess.set(
-              response.message || 'Visibilitas layanan berhasil diperbarui'
+              response.message || 'Visibilitas layanan berhasil diperbarui',
             );
           }
         },
         error: (err) => {
           this.ratesFeedbackError.set(
-            err?.error?.message || 'Gagal menyinkronkan visibilitas layanan ke backend.'
+            err?.error?.message ||
+              'Gagal menyinkronkan visibilitas layanan ke backend.',
           );
         },
       });
@@ -618,7 +534,7 @@ export class WorkerDashboardStore implements OnDestroy {
 
   updateServiceCatalogItem(
     serviceId: string,
-    patch: Partial<WorkerServiceCatalogItem>
+    patch: Partial<WorkerServiceCatalogItem>,
   ): void {
     this.workerServices.update((services) =>
       services.map((item) => {
@@ -630,7 +546,7 @@ export class WorkerDashboardStore implements OnDestroy {
           return updated;
         }
         return item;
-      })
+      }),
     );
 
     const updatedItem = this.workerServices().find((s) => s.id === serviceId);
@@ -649,33 +565,37 @@ export class WorkerDashboardStore implements OnDestroy {
 
     const payload: UpdateWorkerServicePayload = {};
     if (patch.name !== undefined) payload.name = patch.name;
-    if (patch.description !== undefined) payload.description = patch.description;
+    if (patch.description !== undefined)
+      payload.description = patch.description;
     if (patch.price !== undefined) {
       payload.price = patch.price;
       payload.base_price = patch.base_price ?? patch.price;
     }
     if (patch.rate_type !== undefined) payload.rate_type = patch.rate_type;
-    if (patch.duration_minutes !== undefined) payload.duration_minutes = patch.duration_minutes;
+    if (patch.duration_minutes !== undefined)
+      payload.duration_minutes = patch.duration_minutes;
     if (patch.is_public !== undefined) payload.is_active = patch.is_public;
     if (patch.status !== undefined) {
       payload.is_active = patch.status !== 'ARCHIVED';
     }
 
-    this.apiService.updateWorkerService(workerId, serviceId, payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.ratesFeedbackSuccess.set(
-            response.message || 'Paket layanan berhasil diperbarui'
-          );
-        }
-      },
-      error: (err) => {
-        const errorMsg =
-          err?.error?.message ||
-          'Gagal memperbarui data layanan di backend. Perubahan hanya tersimpan lokal.';
-        this.ratesFeedbackError.set(errorMsg);
-      },
-    });
+    this.apiService
+      .updateWorkerService(workerId, serviceId, payload)
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.ratesFeedbackSuccess.set(
+              response.message || 'Paket layanan berhasil diperbarui',
+            );
+          }
+        },
+        error: (err) => {
+          const errorMsg =
+            err?.error?.message ||
+            'Gagal memperbarui data layanan di backend. Perubahan hanya tersimpan lokal.';
+          this.ratesFeedbackError.set(errorMsg);
+        },
+      });
   }
 
   addNewCatalogService(item: Omit<WorkerServiceCatalogItem, 'id'>): void {
@@ -707,11 +627,11 @@ export class WorkerDashboardStore implements OnDestroy {
         if (response.success && response.data?.id) {
           this.workerServices.update((services) =>
             services.map((s) =>
-              s.id === generatedId ? { ...s, id: response.data.id } : s
-            )
+              s.id === generatedId ? { ...s, id: response.data.id } : s,
+            ),
           );
           this.ratesFeedbackSuccess.set(
-            response.message || 'Layanan baru berhasil ditambahkan ke katalog'
+            response.message || 'Layanan baru berhasil ditambahkan ke katalog',
           );
         }
       },
@@ -726,7 +646,7 @@ export class WorkerDashboardStore implements OnDestroy {
 
   deleteServiceCatalogItem(serviceId: string): void {
     this.workerServices.update((services) =>
-      services.filter((item) => item.id !== serviceId)
+      services.filter((item) => item.id !== serviceId),
     );
     this.updateRatesSyncTimestamp();
 
@@ -739,14 +659,14 @@ export class WorkerDashboardStore implements OnDestroy {
       next: (response) => {
         if (response.success) {
           this.ratesFeedbackSuccess.set(
-            response.message || 'Paket layanan berhasil dinonaktifkan dari katalog'
+            response.message ||
+              'Paket layanan berhasil dinonaktifkan dari katalog',
           );
         }
       },
       error: (err) => {
         const errorMsg =
-          err?.error?.message ||
-          'Gagal menonaktifkan layanan di backend.';
+          err?.error?.message || 'Gagal menonaktifkan layanan di backend.';
         this.ratesFeedbackError.set(errorMsg);
       },
     });
@@ -824,7 +744,7 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerFreeRadiusKm.set(3.0);
     this.workerExtraFeePerKm.set(3000);
     this.workerBasecampAddress.set(
-      'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
+      'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan',
     );
     this.clearLocationValidationError('coordinates');
     this.clearLocationValidationError('max_radius_km');
@@ -882,7 +802,10 @@ export class WorkerDashboardStore implements OnDestroy {
       if (!/^[0-9+\s-]+$/.test(wa)) {
         errors['whatsapp_number'] =
           'Nomor WhatsApp hanya boleh berisi angka dan tanda plus atau strip.';
-      } else if ((wa.includes('+') && !wa.startsWith('+')) || (wa.match(/\+/g) || []).length > 1) {
+      } else if (
+        (wa.includes('+') && !wa.startsWith('+')) ||
+        (wa.match(/\+/g) || []).length > 1
+      ) {
         errors['whatsapp_number'] =
           'Tanda plus (+) hanya boleh berada di awal nomor telepon sebagai awalan kode negara.';
       } else {
@@ -905,13 +828,19 @@ export class WorkerDashboardStore implements OnDestroy {
     const errors: Record<string, string> = {};
     const price = this.workerBasePrice();
 
-    if (price === null || price === undefined || Number.isNaN(price) || price <= 0) {
+    if (
+      price === null ||
+      price === undefined ||
+      Number.isNaN(price) ||
+      price <= 0
+    ) {
       errors['base_price'] = 'Nominal tarif dasar harus lebih besar dari Rp 0.';
     }
 
     const type = (this.workerRateType() || '').toUpperCase();
     if (type !== 'HOURLY' && type !== 'UNIT') {
-      errors['rate_type'] = 'Pilih tipe tarif yang valid (Tarif Per Jam atau Tarif Per Sesi).';
+      errors['rate_type'] =
+        'Pilih tipe tarif yang valid (Tarif Per Jam atau Tarif Per Sesi).';
     }
 
     this.ratesValidationErrors.set(errors);
@@ -927,11 +856,13 @@ export class WorkerDashboardStore implements OnDestroy {
     }
 
     if (this.workerMaxRadiusKm() <= 0) {
-      errors['max_radius_km'] = 'Batas radius maksimal harus lebih besar dari 0 km.';
+      errors['max_radius_km'] =
+        'Batas radius maksimal harus lebih besar dari 0 km.';
     }
 
     if (this.workerFreeRadiusKm() < 0) {
-      errors['free_radius_km'] = 'Radius bebas ongkir tidak boleh bernilai negatif.';
+      errors['free_radius_km'] =
+        'Radius bebas ongkir tidak boleh bernilai negatif.';
     }
 
     if (this.workerFreeRadiusKm() > this.workerMaxRadiusKm()) {
@@ -984,7 +915,7 @@ export class WorkerDashboardStore implements OnDestroy {
       error: () => {
         this.isProfileLoading.set(false);
         this.profileFeedbackError.set(
-          'Gagal memuat profil pekerja. Periksa slug atau coba beberapa saat lagi.'
+          'Gagal memuat profil pekerja. Periksa slug atau coba beberapa saat lagi.',
         );
       },
     });
@@ -1007,7 +938,7 @@ export class WorkerDashboardStore implements OnDestroy {
       free_radius_km?: number;
       extra_fee_per_km?: number;
       services?: import('../../worker-booking/models/worker-catalog.model').PublicServiceCatalogItem[];
-    }
+    },
   ): void {
     this.workerRecordId.set(id);
     this.workerSlugIdentifier.set(profile.slug);
@@ -1035,13 +966,21 @@ export class WorkerDashboardStore implements OnDestroy {
       (profile.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
     this.workerRateType.set(normalizedRateType);
 
-    if (profile.lat !== undefined && profile.lat !== null && !Number.isNaN(profile.lat)) {
+    if (
+      profile.lat !== undefined &&
+      profile.lat !== null &&
+      !Number.isNaN(profile.lat)
+    ) {
       this.workerLat.set(profile.lat);
     } else {
       this.workerLat.set(null);
     }
 
-    if (profile.lng !== undefined && profile.lng !== null && !Number.isNaN(profile.lng)) {
+    if (
+      profile.lng !== undefined &&
+      profile.lng !== null &&
+      !Number.isNaN(profile.lng)
+    ) {
       this.workerLng.set(profile.lng);
     } else {
       this.workerLng.set(null);
@@ -1078,52 +1017,63 @@ export class WorkerDashboardStore implements OnDestroy {
     }
 
     if (profile.services && profile.services.length > 0) {
-      const mappedServices: WorkerServiceCatalogItem[] = profile.services.map((srv, idx) => {
-        const rateType: 'HOURLY' | 'UNIT' =
-          (srv.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
-        const price = srv.price || srv.base_price || (profile.base_price ?? 75000);
-        const prefix = rateType === 'HOURLY' ? 'DCL' : 'GCL';
-        const code = `${prefix}-0${idx + 1}`;
-        return {
-          id: srv.id || `srv-${idx + 1}`,
-          code: code,
-          name: srv.name,
-          description: srv.description || '',
-          price: price,
-          base_price: price,
-          rate_type: rateType,
-          duration_minutes: srv.duration_minutes || 60,
-          min_hours: rateType === 'HOURLY' ? 2.0 : undefined,
-          max_hours: rateType === 'UNIT' ? 2.0 : undefined,
-          equipment_label:
-            rateType === 'HOURLY' ? 'Polisher & Vac Industri' : 'Alat Ringan Bawa Sendiri',
-          equipment_badge:
-            rateType === 'HOURLY'
-              ? 'Alat Berat Industri Siap Pakai'
-              : 'Pembersihan Cepat & Efisien',
-          equipment_icon: rateType === 'HOURLY' ? 'verified' : 'flash_on',
-          image_url:
-            rateType === 'HOURLY'
-              ? DEFAULT_WORKER_SERVICES[0].image_url
-              : DEFAULT_WORKER_SERVICES[1].image_url,
-          tags:
-            rateType === 'HOURLY'
-              ? [
-                  'Bahan Kimia Ramah Lingkungan',
-                  'Termasuk Mesin Polisher',
-                  'Alat & Cairan Lengkap',
-                ]
-              : ['Alat Bawa Sendiri', 'Cocok Apartemen / Studio', 'Cepat Bersih'],
-          status: 'ACTIVE',
-          is_public: true,
-        };
-      });
+      const mappedServices: WorkerServiceCatalogItem[] = profile.services.map(
+        (srv, idx) => {
+          const rateType: 'HOURLY' | 'UNIT' =
+            (srv.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
+          const price =
+            srv.price || srv.base_price || (profile.base_price ?? 75000);
+          const prefix = rateType === 'HOURLY' ? 'DCL' : 'GCL';
+          const code = `${prefix}-0${idx + 1}`;
+          return {
+            id: srv.id || `srv-${idx + 1}`,
+            code: code,
+            name: srv.name,
+            description: srv.description || '',
+            price: price,
+            base_price: price,
+            rate_type: rateType,
+            duration_minutes: srv.duration_minutes || 60,
+            min_hours: rateType === 'HOURLY' ? 2.0 : undefined,
+            max_hours: rateType === 'UNIT' ? 2.0 : undefined,
+            equipment_label:
+              rateType === 'HOURLY'
+                ? 'Polisher & Vac Industri'
+                : 'Alat Ringan Bawa Sendiri',
+            equipment_badge:
+              rateType === 'HOURLY'
+                ? 'Alat Berat Industri Siap Pakai'
+                : 'Pembersihan Cepat & Efisien',
+            equipment_icon: rateType === 'HOURLY' ? 'verified' : 'flash_on',
+            image_url:
+              rateType === 'HOURLY'
+                ? DEFAULT_WORKER_SERVICES[0].image_url
+                : DEFAULT_WORKER_SERVICES[1].image_url,
+            tags:
+              rateType === 'HOURLY'
+                ? [
+                    'Bahan Kimia Ramah Lingkungan',
+                    'Termasuk Mesin Polisher',
+                    'Alat & Cairan Lengkap',
+                  ]
+                : [
+                    'Alat Bawa Sendiri',
+                    'Cocok Apartemen / Studio',
+                    'Cepat Bersih',
+                  ],
+            status: 'ACTIVE',
+            is_public: true,
+          };
+        },
+      );
       this.workerServices.set(mappedServices);
     }
 
     const hasCustomConfig = this.loadWhatsAppSettingsFromStorage(profile.slug);
     if (!hasCustomConfig && profile.name) {
-      this.whatsappMessageTemplate.set(buildDefaultWhatsAppTemplate(profile.name));
+      this.whatsappMessageTemplate.set(
+        buildDefaultWhatsAppTemplate(profile.name),
+      );
     }
   }
 
@@ -1143,7 +1093,7 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerFreeRadiusKm.set(3);
     this.workerExtraFeePerKm.set(0);
     this.workerBasecampAddress.set(
-      'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan'
+      'Jl. Tebet Timur Dalam Raya No. 18, Tebet, Jakarta Selatan',
     );
     this.workerLookupSlugInput.set('');
     this.workerSchedules.set([]);
@@ -1167,7 +1117,7 @@ export class WorkerDashboardStore implements OnDestroy {
     const workerId = this.workerRecordId().trim();
     if (!workerId) {
       this.profileFeedbackError.set(
-        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
+        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.',
       );
       return;
     }
@@ -1177,7 +1127,9 @@ export class WorkerDashboardStore implements OnDestroy {
     this.profileFeedbackError.set(null);
 
     const rawNumber = this.workerWhatsAppNumber().trim();
-    const sanitizedWhatsApp = rawNumber ? normalizeWhatsAppNumberForWaMe(rawNumber) : '';
+    const sanitizedWhatsApp = rawNumber
+      ? normalizeWhatsAppNumberForWaMe(rawNumber)
+      : '';
     const payload: WorkerProfileUpdatePayload = {
       name: this.workerFullName().trim(),
       zone: this.workerProfessionZone().trim(),
@@ -1190,7 +1142,9 @@ export class WorkerDashboardStore implements OnDestroy {
       next: (response) => {
         this.isProfileSubmitting.set(false);
         if (response.success) {
-          this.profileFeedbackSuccess.set('Profil pekerja berhasil diperbarui!');
+          this.profileFeedbackSuccess.set(
+            'Profil pekerja berhasil diperbarui!',
+          );
           if (response.data) {
             this.workerFullName.set(response.data.name);
             this.workerProfessionZone.set(response.data.zone);
@@ -1198,7 +1152,9 @@ export class WorkerDashboardStore implements OnDestroy {
             this.workerAvatarUrl.set(response.data.avatar_url || '');
             this.workerSlugIdentifier.set(response.data.slug);
             if (response.data.whatsapp_number !== undefined) {
-              this.workerWhatsAppNumber.set(response.data.whatsapp_number || '');
+              this.workerWhatsAppNumber.set(
+                response.data.whatsapp_number || '',
+              );
             }
           }
         }
@@ -1208,7 +1164,7 @@ export class WorkerDashboardStore implements OnDestroy {
         const serverMsg = err?.error?.message;
         this.profileFeedbackError.set(
           serverMsg ||
-            'Gagal menyimpan perubahan profil pekerja. Silakan periksa koneksi atau coba kembali.'
+            'Gagal menyimpan perubahan profil pekerja. Silakan periksa koneksi atau coba kembali.',
         );
       },
     });
@@ -1222,7 +1178,9 @@ export class WorkerDashboardStore implements OnDestroy {
     const workerId = this.workerRecordId().trim();
     if (!workerId) {
       this.updateRatesSyncTimestamp();
-      this.ratesFeedbackSuccess.set('Pengaturan katalog tarif pekerja berhasil diperbarui!');
+      this.ratesFeedbackSuccess.set(
+        'Pengaturan katalog tarif pekerja berhasil diperbarui!',
+      );
       return;
     }
 
@@ -1240,7 +1198,7 @@ export class WorkerDashboardStore implements OnDestroy {
         this.isRatesSubmitting.set(false);
         if (response.success) {
           this.ratesFeedbackSuccess.set(
-            response.message || 'Pengaturan tarif pekerja berhasil diperbarui!'
+            response.message || 'Pengaturan tarif pekerja berhasil diperbarui!',
           );
           if (response.data) {
             if (
@@ -1263,7 +1221,7 @@ export class WorkerDashboardStore implements OnDestroy {
         const serverMsg = err?.error?.message;
         this.ratesFeedbackError.set(
           serverMsg ||
-            'Gagal menyimpan pengaturan tarif pekerja. Silakan periksa koneksi atau coba kembali.'
+            'Gagal menyimpan pengaturan tarif pekerja. Silakan periksa koneksi atau coba kembali.',
         );
       },
     });
@@ -1278,7 +1236,7 @@ export class WorkerDashboardStore implements OnDestroy {
     if (!workerId) {
       this.updateLocationSyncTimestamp();
       this.locationFeedbackSuccess.set(
-        'Pengaturan lokasi dan radius jangkauan berhasil disimpan!'
+        'Pengaturan lokasi dan radius jangkauan berhasil disimpan!',
       );
       return;
     }
@@ -1301,7 +1259,8 @@ export class WorkerDashboardStore implements OnDestroy {
         if (response.success) {
           this.updateLocationSyncTimestamp();
           this.locationFeedbackSuccess.set(
-            response.message || 'Pengaturan lokasi dan radius jangkauan berhasil disimpan!'
+            response.message ||
+              'Pengaturan lokasi dan radius jangkauan berhasil disimpan!',
           );
           if (response.data) {
             if (response.data.lat !== undefined && response.data.lat !== null) {
@@ -1327,7 +1286,7 @@ export class WorkerDashboardStore implements OnDestroy {
         const serverMsg = err?.error?.message;
         this.locationFeedbackError.set(
           serverMsg ||
-            'Gagal menyimpan pengaturan lokasi pekerja. Silakan periksa koneksi atau coba kembali.'
+            'Gagal menyimpan pengaturan lokasi pekerja. Silakan periksa koneksi atau coba kembali.',
         );
       },
     });
@@ -1344,7 +1303,9 @@ export class WorkerDashboardStore implements OnDestroy {
       next: (response) => {
         this.isScheduleLoading.set(false);
         if (response.success && response.data && response.data.length > 0) {
-          this.workerSchedules.set(this.sortSchedulesMondayFirst(response.data));
+          this.workerSchedules.set(
+            this.sortSchedulesMondayFirst(response.data),
+          );
         } else {
           this.workerSchedules.set(this.createDefaultWeeklySchedule());
         }
@@ -1376,8 +1337,18 @@ export class WorkerDashboardStore implements OnDestroy {
     }));
   }
 
-  private sortSchedulesMondayFirst(items: WorkerScheduleItem[]): WorkerScheduleItem[] {
-    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  private sortSchedulesMondayFirst(
+    items: WorkerScheduleItem[],
+  ): WorkerScheduleItem[] {
+    const dayNames = [
+      'Minggu',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+    ];
     const map = new Map<number, WorkerScheduleItem>();
     for (const item of items) {
       map.set(item.day_of_week, item);
@@ -1415,7 +1386,7 @@ export class WorkerDashboardStore implements OnDestroy {
 
   toggleScheduleSlot(
     dayOfWeek: number,
-    slotKey: 'slot_morning' | 'slot_afternoon' | 'slot_evening'
+    slotKey: 'slot_morning' | 'slot_afternoon' | 'slot_evening',
   ): void {
     const current = this.workerSchedules();
     const updated = current.map((item) => {
@@ -1431,7 +1402,7 @@ export class WorkerDashboardStore implements OnDestroy {
     const workerId = this.workerRecordId().trim();
     if (!workerId) {
       this.scheduleFeedbackError.set(
-        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.'
+        'ID pekerja belum tersedia. Silakan muat profil terlebih dahulu.',
       );
       return;
     }
@@ -1440,28 +1411,33 @@ export class WorkerDashboardStore implements OnDestroy {
     this.scheduleFeedbackSuccess.set(null);
     this.scheduleFeedbackError.set(null);
 
-    this.apiService.updateWorkerSchedules(workerId, this.workerSchedules()).subscribe({
-      next: (response) => {
-        this.isScheduleSubmitting.set(false);
-        if (response.success) {
-          this.updateScheduleSyncTimestamp();
-          this.scheduleFeedbackSuccess.set(
-            response.message || 'Konfigurasi jadwal kerja mingguan berhasil disimpan!'
-          );
-          if (response.data && response.data.length > 0) {
-            this.workerSchedules.set(this.sortSchedulesMondayFirst(response.data));
+    this.apiService
+      .updateWorkerSchedules(workerId, this.workerSchedules())
+      .subscribe({
+        next: (response) => {
+          this.isScheduleSubmitting.set(false);
+          if (response.success) {
+            this.updateScheduleSyncTimestamp();
+            this.scheduleFeedbackSuccess.set(
+              response.message ||
+                'Konfigurasi jadwal kerja mingguan berhasil disimpan!',
+            );
+            if (response.data && response.data.length > 0) {
+              this.workerSchedules.set(
+                this.sortSchedulesMondayFirst(response.data),
+              );
+            }
           }
-        }
-      },
-      error: (err) => {
-        this.isScheduleSubmitting.set(false);
-        const serverMsg = err?.error?.message;
-        this.scheduleFeedbackError.set(
-          serverMsg ||
-            'Gagal menyimpan konfigurasi jadwal kerja. Silakan periksa koneksi atau coba kembali.'
-        );
-      },
-    });
+        },
+        error: (err) => {
+          this.isScheduleSubmitting.set(false);
+          const serverMsg = err?.error?.message;
+          this.scheduleFeedbackError.set(
+            serverMsg ||
+              'Gagal menyimpan konfigurasi jadwal kerja. Silakan periksa koneksi atau coba kembali.',
+          );
+        },
+      });
   }
 
   setTransitBufferMinutes(minutes: number): void {
@@ -1513,7 +1489,9 @@ export class WorkerDashboardStore implements OnDestroy {
     this.selectedScheduleDateSegment.set('Besok (25 Okt)');
     this.isSlot3Locked.set(false);
     this.updateScheduleSyncTimestamp();
-    this.scheduleFeedbackSuccess.set('Jadwal kerja dan aturan buffer berhasil diatur ulang ke default!');
+    this.scheduleFeedbackSuccess.set(
+      'Jadwal kerja dan aturan buffer berhasil diatur ulang ke default!',
+    );
   }
 
   updateScheduleSyncTimestamp(): void {
@@ -1578,26 +1556,33 @@ export class WorkerDashboardStore implements OnDestroy {
       PRO: 'Paket Mandiri Pro (Prioritas Radar & Verified)',
       FLEET: 'Paket Bengkel & Tim (Studio Fleet)',
     };
-    this.planFeedbackSuccess.set(`Paket berhasil diubah ke ${tierLabels[tier]}!`);
+    this.planFeedbackSuccess.set(
+      `Paket berhasil diubah ke ${tierLabels[tier]}!`,
+    );
   }
 
   activateBoost(pkg: 'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D'): void {
     this.activeBoostPackage.set(pkg);
     this.isBoostActive.set(true);
-    const packageLabels: Record<'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D', string> = {
+    const packageLabels: Record<
+      'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D',
+      string
+    > = {
       FLASH_24H: 'Boost Kilat 24 Jam',
       WEEKEND_72H: 'Boost Akhir Pekan (72 Jam)',
       WEEKLY_7D: 'Boost Mingguan (7 Hari)',
     };
     this.boostFeedbackSuccess.set(
-      `Permintaan aktivasi ${packageLabels[pkg]} berhasil diaktifkan! Radar visibilitas Anda kini aktif.`
+      `Permintaan aktivasi ${packageLabels[pkg]} berhasil diaktifkan! Radar visibilitas Anda kini aktif.`,
     );
   }
 
   toggleBoostStatus(): void {
     this.isBoostActive.update((active) => !active);
     if (!this.isBoostActive()) {
-      this.boostFeedbackSuccess.set('Boost visibilitas radar dinonaktifkan sementara.');
+      this.boostFeedbackSuccess.set(
+        'Boost visibilitas radar dinonaktifkan sementara.',
+      );
     } else {
       this.boostFeedbackSuccess.set('Boost visibilitas radar kembali aktif.');
     }

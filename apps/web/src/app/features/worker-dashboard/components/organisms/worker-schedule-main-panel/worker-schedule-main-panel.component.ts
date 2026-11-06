@@ -58,7 +58,7 @@ export class WorkerScheduleMainPanelComponent {
   readonly selectedSegment = input<string>('Besok (25 Okt)');
   readonly isSlot3Locked = input<boolean>(false);
   readonly isTodayEmergencyLocked = input<boolean>(false);
-  readonly publicProfileUrl = input<string>('tuwaktu.com/sarah-cleaning');
+  readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly schedules = input<WorkerScheduleItem[]>([]);
   readonly leadTimeHours = input<number>(3);
 

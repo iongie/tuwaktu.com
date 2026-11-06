@@ -92,12 +92,19 @@ import { AdminWorkerStatusBadgeComponent } from '../../molecules/admin-worker-st
 
                   <!-- Kolom Tarif -->
                   <td class="py-4 px-4 md:px-6">
-                    <div class="font-semibold text-on-surface font-mono">
-                      Rp {{ worker.base_price.toLocaleString('id-ID') }}
-                    </div>
-                    <div class="text-[11px] text-on-surface-variant uppercase">
-                      {{ worker.rate_type === 'HOURLY' ? 'Per Jam' : 'Per Sesi' }}
-                    </div>
+                    <a
+                      [routerLink]="['/dashboard/tarif-layanan']"
+                      [queryParams]="{ slug: worker.slug }"
+                      class="group/rate inline-block text-left"
+                      title="Kelola Tarif & Layanan {{ worker.name }}"
+                    >
+                      <div class="font-semibold text-on-surface font-mono group-hover/rate:text-primary group-hover/rate:underline">
+                        Rp {{ worker.base_price.toLocaleString('id-ID') }}
+                      </div>
+                      <div class="text-[11px] text-on-surface-variant uppercase">
+                        {{ worker.rate_type === 'HOURLY' ? 'Per Jam' : 'Per Sesi' }}
+                      </div>
+                    </a>
                   </td>
 
                   <!-- Kolom Status -->
@@ -108,6 +115,16 @@ import { AdminWorkerStatusBadgeComponent } from '../../molecules/admin-worker-st
                   <!-- Kolom Aksi -->
                   <td class="py-4 px-4 md:px-6 text-right">
                     <div class="flex items-center justify-end gap-2">
+                      <a
+                        [routerLink]="['/dashboard/tarif-layanan']"
+                        [queryParams]="{ slug: worker.slug }"
+                        class="min-h-[44px] px-3 py-1.5 rounded-xl border border-hairline-subtle text-on-surface hover:bg-surface-container-high text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1"
+                        title="Kelola Tarif & Layanan Mitra"
+                        [attr.data-testid]="'manage-rates-btn-' + worker.slug"
+                      >
+                        <span class="material-symbols-outlined text-[16px]">payments</span>
+                        <span class="hidden md:inline">Tarif &amp; Layanan</span>
+                      </a>
                       @if (worker.account_status === 'ACTIVE') {
                         <button
                           type="button"

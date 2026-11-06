@@ -40,7 +40,7 @@ export class WorkerDashboardScheduleComponent implements OnDestroy {
 
   readonly publicProfileDisplayUrl = computed(() => {
     const slug = this.store.workerSlugIdentifier().trim();
-    return slug ? `tuwaktu.com/${slug}` : 'tuwaktu.com/sarah-cleaning';
+    return slug ? `tuwaktu.com/${slug}` : 'tuwaktu.com/profil';
   });
 
   toggleDay(dayOfWeek: number): void {

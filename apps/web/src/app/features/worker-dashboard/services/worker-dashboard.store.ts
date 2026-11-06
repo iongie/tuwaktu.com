@@ -10,7 +10,69 @@ import {
   UpdateWorkerServicePayload,
 } from '../models/worker-profile.model';
 
-export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [];
+export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
+  {
+    id: 'srv-dcl-01',
+    code: 'DCL-01',
+    name: 'Deep Clean Detailing',
+    description:
+      'Pembersihan kerak kamar mandi membandel, kerak minyak dapur, desinfeksi menyeluruh & sedot tungau matras bertekanan tinggi untuk hasil higienis tuntas.',
+    price: 65000,
+    base_price: 65000,
+    rate_type: 'HOURLY',
+    duration_minutes: 120,
+    min_hours: 2.0,
+    equipment_label: 'Polisher & Vac Industri',
+    equipment_badge: 'Alat Berat Industri Siap Pakai',
+    equipment_icon: 'verified',
+    image_url: '',
+    tags: [
+      'Bahan Kimia Ramah Lingkungan',
+      'Termasuk Mesin Polisher',
+      'Alat & Cairan Lengkap',
+    ],
+    status: 'ACTIVE',
+    is_public: true,
+  },
+  {
+    id: 'srv-gcl-02',
+    code: 'GCL-02',
+    name: 'General Clean',
+    description:
+      'Penyapuan, pengepelan lantai higienis, pengelapan debu permukaan meja & lemari, perapihan kasur, serta pembuangan sampah rutin harian untuk hunian rapi seketika.',
+    price: 150000,
+    base_price: 150000,
+    rate_type: 'UNIT',
+    duration_minutes: 120,
+    max_hours: 2.0,
+    equipment_label: 'Alat Ringan Bawa Sendiri',
+    equipment_badge: 'Pembersihan Cepat & Efisien',
+    equipment_icon: 'flash_on',
+    image_url: '',
+    tags: ['Alat Bawa Sendiri', 'Cocok Apartemen / Studio', 'Cepat Bersih'],
+    status: 'ACTIVE',
+    is_public: true,
+  },
+  {
+    id: 'srv-acp-03',
+    code: 'ACP-03',
+    name: 'Pembersihan Karpet & Sofa Lama',
+    description:
+      'Pembersihan kain basah dan ekstraksi noda mendalam pada sofa kain serta karpet tebal.',
+    price: 200000,
+    base_price: 200000,
+    rate_type: 'UNIT',
+    duration_minutes: 90,
+    max_hours: 1.5,
+    equipment_label: 'Ekstraktor Vacuum Portabel',
+    equipment_badge: 'Perawatan Kain Khusus',
+    equipment_icon: 'archive',
+    image_url: '',
+    tags: ['Khusus Sofa', 'Bahan Anti Bau'],
+    status: 'ARCHIVED',
+    is_public: false,
+  },
+];
 
 export const DEFAULT_WEEKLY_SCHEDULES: WorkerScheduleItem[] = [];
 
@@ -1023,7 +1085,7 @@ export class WorkerDashboardStore implements OnDestroy {
             (srv.rate_type || '').toUpperCase() === 'UNIT' ? 'UNIT' : 'HOURLY';
           const price =
             srv.price || srv.base_price || (profile.base_price ?? 75000);
-          const prefix = rateType === 'HOURLY' ? 'DCL' : 'GCL';
+          const prefix = rateType === 'HOURLY' ? 'SRV' : 'PKG';
           const code = `${prefix}-0${idx + 1}`;
           return {
             id: srv.id || `srv-${idx + 1}`,
@@ -1038,35 +1100,23 @@ export class WorkerDashboardStore implements OnDestroy {
             max_hours: rateType === 'UNIT' ? 2.0 : undefined,
             equipment_label:
               rateType === 'HOURLY'
-                ? 'Polisher & Vac Industri'
+                ? 'Peralatan Standar Lengkap'
                 : 'Alat Ringan Bawa Sendiri',
             equipment_badge:
               rateType === 'HOURLY'
-                ? 'Alat Berat Industri Siap Pakai'
+                ? 'Standar Profesional'
                 : 'Pembersihan Cepat & Efisien',
             equipment_icon: rateType === 'HOURLY' ? 'verified' : 'flash_on',
-            image_url:
-              rateType === 'HOURLY'
-                ? DEFAULT_WORKER_SERVICES[0].image_url
-                : DEFAULT_WORKER_SERVICES[1].image_url,
-            tags:
-              rateType === 'HOURLY'
-                ? [
-                    'Bahan Kimia Ramah Lingkungan',
-                    'Termasuk Mesin Polisher',
-                    'Alat & Cairan Lengkap',
-                  ]
-                : [
-                    'Alat Bawa Sendiri',
-                    'Cocok Apartemen / Studio',
-                    'Cepat Bersih',
-                  ],
+            image_url: srv.image_url || '',
+            tags: [],
             status: 'ACTIVE',
             is_public: true,
           };
         },
       );
       this.workerServices.set(mappedServices);
+    } else {
+      this.workerServices.set([]);
     }
 
     const hasCustomConfig = this.loadWhatsAppSettingsFromStorage(profile.slug);

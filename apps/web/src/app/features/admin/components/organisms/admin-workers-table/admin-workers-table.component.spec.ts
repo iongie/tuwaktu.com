@@ -68,6 +68,10 @@ describe('AdminWorkersTableComponent', () => {
     expect(rows.length).toBe(2);
     expect(fixture.nativeElement.textContent).toContain('Budi Santoso');
     expect(fixture.nativeElement.textContent).toContain('Siti Aminah');
+
+    const manageRatesBtn = fixture.nativeElement.querySelector('[data-testid="manage-rates-btn-budi-santoso"]');
+    expect(manageRatesBtn).toBeTruthy();
+    expect(manageRatesBtn.getAttribute('href')).toContain('/dashboard/tarif-layanan');
   });
 
   it('harus memancarkan toggleStatusClick saat tombol Tangguhkan atau Aktifkan diklik', () => {

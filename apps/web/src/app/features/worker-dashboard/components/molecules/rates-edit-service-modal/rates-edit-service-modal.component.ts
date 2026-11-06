@@ -332,7 +332,9 @@ export class RatesEditServiceModalComponent implements OnInit {
     const isHourly = this.rateType() === 'HOURLY';
     const updated: WorkerServiceCatalogItem = {
       id: existing ? existing.id : `srv-${Date.now()}`,
-      code: existing ? existing.code : isHourly ? 'DCL-03' : 'GCL-03',
+      code: existing
+        ? existing.code
+        : (isHourly ? 'SRV' : 'PKG') + '-' + Math.floor(100 + Math.random() * 900),
       name: this.serviceName().trim(),
       description: this.serviceDescription().trim(),
       price: rawPrice,
@@ -341,11 +343,15 @@ export class RatesEditServiceModalComponent implements OnInit {
       duration_minutes: Math.round(rawHours * 60) || 120,
       min_hours: isHourly ? rawHours : undefined,
       max_hours: !isHourly ? rawHours : undefined,
-      equipment_label: this.serviceEquipment().trim() || (isHourly ? 'Polisher & Vac Industri' : 'Alat Bawa Sendiri'),
-      equipment_badge: existing?.equipment_badge || (isHourly ? 'Alat Berat Industri Siap Pakai' : 'Pembersihan Cepat & Efisien'),
+      equipment_label:
+        this.serviceEquipment().trim() ||
+        (isHourly ? 'Peralatan Standar Lengkap' : 'Alat Mandiri'),
+      equipment_badge:
+        existing?.equipment_badge ||
+        (isHourly ? 'Standar Profesional' : 'Layanan Mandiri'),
       equipment_icon: existing?.equipment_icon || (isHourly ? 'verified' : 'flash_on'),
-      image_url: existing?.image_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_PTYqBj7kWz6kDcBIbeqy7Qk6ULYNaPUGnT7rQMruEPhCK6fBXGJhwpQx77ma_hufKEfzP1vn4S2tZ57dWIYRbANbwBxcCP6JVZpQ1Fu1QHdDrioV6J_o7iJ7pWKqD2wUw6C1wg8vp-7fLARDBREYW9WHja4w2wYKc9RvnYUww0an9MTLf1W76ZWrf-pQPUtjDDfQ5sOS3ctx1tfy_o8824LsHgIoVKkMHJGXbDs',
-      tags: existing?.tags || ['Bahan Kimia Ramah Lingkungan', 'Alat Lengkap'],
+      image_url: existing?.image_url || '',
+      tags: existing?.tags || [],
       status: this.serviceStatus(),
       is_public: existing ? existing.is_public : true,
     };

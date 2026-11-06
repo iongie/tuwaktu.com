@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 
 @Component({
   selector: 'app-summary-services-dispatch-card',
@@ -37,39 +38,23 @@ import { RouterLink } from '@angular/router';
 
       <!-- Service Items List -->
       <div class="space-y-2.5">
-        <!-- Item 1 -->
-        <div
-          class="p-3 rounded-xl bg-surface-container-low border border-hairline-subtle flex items-center justify-between gap-3"
-        >
-          <div class="space-y-0.5 min-w-0">
-            <h4 class="text-xs font-bold text-on-surface truncate">
-              Deep Cleaning Specialist
-            </h4>
-            <p class="text-[11px] text-on-surface-variant truncate">
-              Vakum debu, toilet kerak berat &amp; dapur
-            </p>
+        @for (srv of displayServices(); track srv.name) {
+          <div
+            class="p-3 rounded-xl bg-surface-container-low border border-hairline-subtle flex items-center justify-between gap-3"
+          >
+            <div class="space-y-0.5 min-w-0">
+              <h4 class="text-xs font-bold text-on-surface truncate">
+                {{ srv.name }}
+              </h4>
+              <p class="text-[11px] text-on-surface-variant truncate">
+                {{ srv.description }}
+              </p>
+            </div>
+            <span class="font-mono text-xs font-bold text-on-surface whitespace-nowrap shrink-0">
+              {{ srv.priceText }}
+            </span>
           </div>
-          <span class="font-mono text-xs font-bold text-on-surface whitespace-nowrap shrink-0">
-            Rp 90.000/jam
-          </span>
-        </div>
-
-        <!-- Item 2 -->
-        <div
-          class="p-3 rounded-xl bg-surface-container-low border border-hairline-subtle flex items-center justify-between gap-3"
-        >
-          <div class="space-y-0.5 min-w-0">
-            <h4 class="text-xs font-bold text-on-surface truncate">
-              General Cleaning Room
-            </h4>
-            <p class="text-[11px] text-on-surface-variant truncate">
-              Sapu, pel, sanitasi permukaan perabot
-            </p>
-          </div>
-          <span class="font-mono text-xs font-bold text-on-surface whitespace-nowrap shrink-0">
-            Rp 80.000/jam
-          </span>
-        </div>
+        }
       </div>
 
       <!-- WhatsApp Dispatch Handoff Channel Strip -->
@@ -87,7 +72,7 @@ import { RouterLink } from '@angular/router';
               WhatsApp Dispatch Channel
             </span>
             <span class="font-mono text-xs font-bold text-emerald-800 block truncate">
-              +62 812-8899-2211
+              {{ displayWhatsAppNumber() }}
             </span>
           </div>
         </div>
@@ -103,4 +88,34 @@ import { RouterLink } from '@angular/router';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SummaryServicesDispatchCardComponent {}
+export class SummaryServicesDispatchCardComponent {
+  private readonly store = inject(WorkerDashboardStore, { optional: true });
+
+  readonly displayServices = computed(() => {
+    const list = this.store?.workerServices() || [];
+    if (list.length > 0) {
+      return list.slice(0, 2).map((item) => ({
+        name: item.name,
+        description: item.description || 'Layanan operasional terverifikasi',
+        priceText: `Rp ${(item.price || item.base_price).toLocaleString('id-ID')}${item.rate_type === 'HOURLY' ? '/jam' : ''}`,
+      }));
+    }
+
+    return [
+      {
+        name: 'Deep Cleaning Specialist',
+        description: 'Vakum debu, toilet kerak berat & dapur',
+        priceText: 'Rp 90.000/jam',
+      },
+      {
+        name: 'General Clean Room',
+        description: 'Sapu, pel, sanitasi permukaan perabot',
+        priceText: 'Rp 80.000/jam',
+      },
+    ];
+  });
+
+  readonly displayWhatsAppNumber = computed(() => {
+    return this.store?.workerWhatsAppNumber() || '+62 812-8899-2211';
+  });
+}

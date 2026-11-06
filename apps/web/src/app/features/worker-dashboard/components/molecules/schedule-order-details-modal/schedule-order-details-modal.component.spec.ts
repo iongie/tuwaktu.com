@@ -32,6 +32,25 @@ describe('ScheduleOrderDetailsModalComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('General Clean Living Room');
   });
 
+  it('harus menampilkan data order dinamis jika orderData di-pass sebagai input', () => {
+    fixture.componentRef.setInput('orderData', {
+      id: 'ord-cust-99',
+      clientName: 'Siti Rahmawati',
+      serviceName: 'Pembersihan AC 1 PK',
+      executionTime: '10:00 - 12:00 WIB (2 Jam)',
+      clientLocation: 'Kuningan Barat No. 12 (3.1 km)',
+      slotBadge: 'SLOT 01 • TERKONFIRMASI',
+      departureEstimate: '09:40 WIB',
+      statusText: 'Dikonfirmasi Mitra',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Siti Rahmawati');
+    expect(fixture.nativeElement.textContent).toContain('Pembersihan AC 1 PK');
+    expect(fixture.nativeElement.textContent).toContain('Kuningan Barat No. 12 (3.1 km)');
+    expect(fixture.nativeElement.textContent).toContain('09:40 WIB');
+  });
+
   it('harus memancarkan dismissModal saat tombol tutup diklik', () => {
     const emitSpy = jest.spyOn(component.dismissModal, 'emit');
     const closeBtn = fixture.nativeElement.querySelector('button');

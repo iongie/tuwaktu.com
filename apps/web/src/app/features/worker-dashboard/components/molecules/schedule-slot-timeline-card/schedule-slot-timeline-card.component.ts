@@ -200,7 +200,7 @@ import { CommonModule } from '@angular/common';
                   </span>
                 </div>
                 <span class="font-caption text-caption text-ink-secondary">
-                  Sterilisasi Mesin Ekstraktor &amp; Perjalanan Tebet ke Senopati (Sistem Menolak Booking Baru)
+                  Jeda Transit Perjalanan &amp; Persiapan Peralatan Operasional (Sistem Menolak Booking Baru)
                 </span>
               </div>
             </div>
@@ -264,7 +264,7 @@ import { CommonModule } from '@angular/common';
                   </span>
                 </div>
                 <span class="font-caption text-caption text-ink-secondary">
-                  Perjalanan Senopati + Buffer Jam Sibuk Sore (+15m) &amp; Rehidrasi Pekerja
+                  Jeda Transit Perjalanan + Buffer Jam Sibuk Sore &amp; Rehidrasi Pekerja
                 </span>
               </div>
             </div>
@@ -366,7 +366,7 @@ import { CommonModule } from '@angular/common';
 export class ScheduleSlotTimelineCardComponent {
   readonly selectedSegment = input<string>('Besok (25 Okt)');
   readonly isSlot3Locked = input<boolean>(false);
-  readonly publicProfileUrl = input<string>('tuwaktu.com/sarah-cleaning');
+  readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly bufferMinutes = input<number>(90);
   readonly isTodayEmergencyLocked = input<boolean>(false);
 

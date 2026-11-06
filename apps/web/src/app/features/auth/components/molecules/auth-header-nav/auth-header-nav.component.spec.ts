@@ -46,9 +46,19 @@ describe('AuthHeaderNavComponent', () => {
     expect(accountMenu).toBeTruthy();
   });
 
+  it('harus menampilkan skeleton loading di navbar saat sesi belum terinisialisasi', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.isInitialized.set(false);
+    fixture.detectChanges();
+
+    const skeleton = fixture.nativeElement.querySelector('[data-testid="nav-session-skeleton"]');
+    expect(skeleton).toBeTruthy();
+  });
+
   it('harus menampilkan tombol Masuk dan Daftar Mitra di navbar saat pengguna belum login', () => {
     const authService = TestBed.inject(AuthService);
     authService.setSession(null);
+    authService.isInitialized.set(true);
     fixture.detectChanges();
 
     const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');

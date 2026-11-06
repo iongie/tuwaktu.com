@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ComponentRef } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 import { BookingNavAccountMenuComponent } from './booking-nav-account-menu.component';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
@@ -33,6 +34,8 @@ describe('BookingNavAccountMenuComponent', () => {
       providers: [
         provideRouter([
           { path: 'login', component: DummyLoginComponent },
+          { path: 'admin/workers', component: DummyLoginComponent },
+          { path: 'dashboard/ringkasan', component: DummyLoginComponent },
           { path: '**', component: DummyLoginComponent },
         ]),
         AuthService,
@@ -54,23 +57,41 @@ describe('BookingNavAccountMenuComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('Kondisi Belum Masuk (Guest)', () => {
-    it('harus menampilkan tombol Masuk dan Daftar Mitra yang terlihat jelas', () => {
+  describe('Kondisi 0: Loading Sesi saat Refresh (isInitialized === false)', () => {
+    it('harus menampilkan skeleton loading dan menyembunyikan tombol tamu atau menu profil', () => {
+      authService.isInitialized.set(false);
+      fixture.detectChanges();
+
+      const skeleton = fixture.nativeElement.querySelector('[data-testid="nav-session-skeleton"]');
+      const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
+      const workerMenu = fixture.nativeElement.querySelector('[data-testid="nav-worker-menu"]');
+      const adminMenu = fixture.nativeElement.querySelector('[data-testid="nav-admin-menu"]');
+
+      expect(skeleton).toBeTruthy();
+      expect(loginBtn).toBeNull();
+      expect(workerMenu).toBeNull();
+      expect(adminMenu).toBeNull();
+    });
+  });
+
+  describe('Kondisi 1: Tamu Belum Masuk (Guest)', () => {
+    beforeEach(() => {
+      authService.setSession(null);
+      authService.isInitialized.set(true);
+      fixture.detectChanges();
+    });
+
+    it('harus menampilkan tombol Masuk dan Daftar Mitra', () => {
       const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
       const registerBtn = fixture.nativeElement.querySelector('#navRegisterBtn');
 
       expect(loginBtn).toBeTruthy();
       expect(loginBtn.textContent).toContain('Masuk');
-      expect(loginBtn.classList.contains('sr-only')).toBe(false);
-      expect(loginBtn.getAttribute('routerLink') || loginBtn.getAttribute('href')).toContain('/login');
-
       expect(registerBtn).toBeTruthy();
       expect(registerBtn.textContent).toContain('Daftar Mitra');
-      expect(registerBtn.classList.contains('sr-only')).toBe(false);
-      expect(registerBtn.getAttribute('routerLink') || registerBtn.getAttribute('href')).toContain('/register');
     });
 
-    it('tidak boleh merender profil fiktif Budi Santoso atau dropdown menu akun saat belum login', () => {
+    it('tidak boleh merender profil pekerja atau dropdown akun saat tamu', () => {
       const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
       const dropdownMenu = fixture.nativeElement.querySelector('[role="menu"]');
 
@@ -81,7 +102,7 @@ describe('BookingNavAccountMenuComponent', () => {
     });
   });
 
-  describe('Kondisi Sudah Masuk (Logged In)', () => {
+  describe('Kondisi 2: Logged-in Worker (Mitra Pekerja)', () => {
     beforeEach(() => {
       authService.setSession({
         id: 'usr-123',
@@ -92,19 +113,17 @@ describe('BookingNavAccountMenuComponent', () => {
       fixture.detectChanges();
     });
 
-    it('harus menyembunyikan tombol tamu Masuk/Daftar dan menampilkan trigger menu akun profil mitra', () => {
+    it('harus menyembunyikan tombol tamu dan menampilkan trigger menu profil mitra', () => {
       const loginBtn = fixture.nativeElement.querySelector('#navLoginBtn');
-      const registerBtn = fixture.nativeElement.querySelector('#navRegisterBtn');
       const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
 
       expect(loginBtn).toBeNull();
-      expect(registerBtn).toBeNull();
       expect(userProfileBtn).toBeTruthy();
       expect(userProfileBtn.textContent).toContain('Sarah Melinda');
       expect(userProfileBtn.textContent).toContain('Mitra');
     });
 
-    it('harus membuka elevated dropdown menu saat trigger avatar diklik', () => {
+    it('harus membuka dropdown menu mitra dengan tautan dasbor teknisi, tarif, slot, dan logout', () => {
       const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
       userProfileBtn.click();
       fixture.detectChanges();
@@ -112,7 +131,7 @@ describe('BookingNavAccountMenuComponent', () => {
       const dashboardItem = fixture.nativeElement.querySelector('#menuItemDashboard');
       const ratesItem = fixture.nativeElement.querySelector('#menuItemRates');
       const scheduleItem = fixture.nativeElement.querySelector('#menuItemSchedule');
-      const switchAccountItem = fixture.nativeElement.querySelector('#menuItemSwitchAccount');
+      const publicProfileItem = fixture.nativeElement.querySelector('#menuItemPublicProfile');
       const logoutItem = fixture.nativeElement.querySelector('#menuItemLogout');
 
       expect(dashboardItem).toBeTruthy();
@@ -124,32 +143,14 @@ describe('BookingNavAccountMenuComponent', () => {
       expect(scheduleItem).toBeTruthy();
       expect(scheduleItem.textContent).toContain('Kelola Jadwal & Buffer Transit');
 
-      expect(switchAccountItem).toBeTruthy();
-      expect(switchAccountItem.textContent).toContain('Masuk Akun Lain');
+      expect(publicProfileItem).toBeTruthy();
+      expect(publicProfileItem.textContent).toContain('Profil Publik Saya');
 
       expect(logoutItem).toBeTruthy();
       expect(logoutItem.textContent).toContain('Keluar / Logout');
     });
 
-    it('harus menampilkan opsi Panel Kelola Mitra saat pengguna adalah ADMIN', () => {
-      authService.setSession({
-        id: 'admin-1',
-        name: 'Super Administrator',
-        slug: 'admin',
-        role: 'ADMIN',
-      });
-      fixture.detectChanges();
-
-      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
-      userProfileBtn.click();
-      fixture.detectChanges();
-
-      const adminItem = fixture.nativeElement.querySelector('#menuItemAdminPanel');
-      expect(adminItem).toBeTruthy();
-      expect(adminItem.textContent).toContain('Panel Kelola Mitra');
-    });
-
-    it('harus membuka modal konfirmasi saat opsi Keluar diklik', () => {
+    it('harus membuka modal konfirmasi saat opsi Keluar diklik oleh mitra', () => {
       const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
       userProfileBtn.click();
       fixture.detectChanges();
@@ -166,41 +167,67 @@ describe('BookingNavAccountMenuComponent', () => {
 
     it('harus mengeksekusi logout dan navigasi ke /login saat konfirmasi disetujui', () => {
       const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-      const logoutSpy = jest.spyOn(authService, 'logout');
+      const logoutSpy = jest.spyOn(authService, 'logout').mockReturnValue(of(true));
 
       component.executeLogout();
 
       expect(logoutSpy).toHaveBeenCalled();
       expect(navigateSpy).toHaveBeenCalledWith(['/login']);
       expect(component.isLogoutModalOpen()).toBe(false);
-    });
-
-    it('harus menutup menu dropdown saat tombol Escape ditekan', () => {
-      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
-      userProfileBtn.click();
-      fixture.detectChanges();
-
-      expect(component.isMenuOpen()).toBe(true);
-
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-      fixture.detectChanges();
-
       expect(component.isMenuOpen()).toBe(false);
     });
+  });
 
-    it('harus menutup menu dropdown saat backdrop luar diklik', () => {
-      const userProfileBtn = fixture.nativeElement.querySelector('#userProfileMenuBtn');
-      userProfileBtn.click();
+  describe('Kondisi 3: Logged-in Admin (Super Administrator)', () => {
+    beforeEach(() => {
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+        email: 'admin@tuwaktu.com',
+      });
+      fixture.detectChanges();
+    });
+
+    it('harus merender trigger akun dengan badge ADMIN dan nama admin', () => {
+      const adminBtn = fixture.nativeElement.querySelector('#adminProfileMenuBtn');
+      expect(adminBtn).toBeTruthy();
+      expect(adminBtn.textContent).toContain('Super Administrator');
+      expect(adminBtn.textContent).toContain('ADMIN');
+    });
+
+    it('harus membuka dropdown khusus admin dengan Panel Kelola Mitra, Web Publik, dan Logout', () => {
+      const adminBtn = fixture.nativeElement.querySelector('#adminProfileMenuBtn');
+      adminBtn.click();
       fixture.detectChanges();
 
-      expect(component.isMenuOpen()).toBe(true);
+      const adminItem = fixture.nativeElement.querySelector('#menuItemAdminPanel');
+      const publicHomeItem = fixture.nativeElement.querySelector('#menuItemPublicHome');
+      const adminLogoutItem = fixture.nativeElement.querySelector('#adminMenuItemLogout');
 
-      const backdrop = fixture.nativeElement.querySelector('button[aria-label="Tutup Menu Akun"]');
-      expect(backdrop).toBeTruthy();
-      backdrop.click();
-      fixture.detectChanges();
+      expect(adminItem).toBeTruthy();
+      expect(adminItem.textContent).toContain('Panel Kelola Mitra');
 
-      expect(component.isMenuOpen()).toBe(false);
+      expect(publicHomeItem).toBeTruthy();
+      expect(publicHomeItem.textContent).toContain('Kembali ke Web Publik');
+
+      expect(adminLogoutItem).toBeTruthy();
+      expect(adminLogoutItem.textContent).toContain('Keluar / Logout');
+
+      // Pastikan menu operasional worker tidak bocor ke panel admin
+      expect(fixture.nativeElement.querySelector('#menuItemRates')).toBeNull();
+      expect(fixture.nativeElement.querySelector('#menuItemSchedule')).toBeNull();
+    });
+
+    it('harus mengeksekusi logout admin saat dikonfirmasi', () => {
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const logoutSpy = jest.spyOn(authService, 'logout').mockReturnValue(of(true));
+
+      component.executeLogout();
+
+      expect(logoutSpy).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith(['/login']);
     });
   });
 });

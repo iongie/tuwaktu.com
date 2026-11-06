@@ -363,18 +363,8 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
                 <!-- Separator -->
                 <div class="h-px bg-hairline-subtle my-space-xs"></div>
 
-                <!-- Account Switch & Logout -->
-                <div class="space-y-0.5 pt-0.5">
-                  <a
-                    routerLink="/login"
-                    (click)="closeProfileMenu()"
-                    class="flex items-center gap-space-sm px-space-sm py-2 rounded text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption cursor-pointer min-h-[44px]"
-                    role="menuitem"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">switch_account</span>
-                    <span>Masuk Akun Lain</span>
-                  </a>
-
+                <!-- Tombol Keluar Logout -->
+                <div class="pt-0.5">
                   <button
                     type="button"
                     (click)="openLogoutModal()"
@@ -482,8 +472,9 @@ export class WorkerDashboardHeaderComponent {
 
   executeLogout(): void {
     this.isLogoutModalOpen.set(false);
+    this.closeProfileMenu();
     this.store.resetWorkerSelection();
-    this.authService.logout();
     this.router.navigate(['/login']);
+    this.authService.logout()?.subscribe?.();
   }
 }

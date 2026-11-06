@@ -41,8 +41,8 @@ export class AdminWorkersPageComponent implements OnInit {
 
   handleLogoutConfirm(): void {
     this.isLogoutModalOpen.set(false);
-    this.authService.logout();
     this.router.navigate(['/login']);
+    this.authService.logout()?.subscribe?.();
   }
 }
 

@@ -18,10 +18,164 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
   imports: [CommonModule, RouterLink, LogoutConfirmModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (authService.isLoggedIn()) {
-      <!-- Authenticated User Profile Dropdown Component -->
-      <div class="relative group">
-        <!-- Profile Button Trigger -->
+    @if (!authService.isInitialized()) {
+      <!-- Kondisi 0: Skeleton Indikator Loading Sesi saat Inisialisasi/Refresh (Mencegah Kedipan) -->
+      <div
+        class="flex items-center gap-2 h-10 px-2 animate-pulse"
+        role="status"
+        aria-label="Memeriksa status sesi pengguna"
+        data-testid="nav-session-skeleton"
+      >
+        <div class="w-8 h-8 rounded-full bg-surface-container-high shrink-0"></div>
+        <div class="hidden sm:flex flex-col gap-1 w-20">
+          <div class="h-3 bg-surface-container-high rounded w-16"></div>
+          <div class="h-2 bg-surface-container rounded w-12"></div>
+        </div>
+        <span class="sr-only">Memeriksa status sesi...</span>
+      </div>
+    } @else if (authService.isLoggedIn() && isAdmin()) {
+      <!-- Kondisi 1: Logged-in Admin (Pintasan Panel Kelola Mitra & Web Publik) -->
+      <div class="relative group" data-testid="nav-admin-menu">
+        <button
+          type="button"
+          (click)="toggleMenu()"
+          class="flex items-center gap-space-sm p-1 sm:px-2 py-1 rounded hover:bg-surface-highlight transition-colors text-left focus:outline-none min-h-[44px] cursor-pointer"
+          id="adminProfileMenuBtn"
+          aria-label="Buka Menu Administrator"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="isMenuOpen()"
+        >
+          <div class="relative shrink-0">
+            <div
+              class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-caption ring-2 ring-primary/20 overflow-hidden"
+            >
+              @if (sessionAvatarUrl()) {
+                <img [src]="sessionAvatarUrl()" [alt]="sessionName()" class="w-full h-full object-cover" />
+              } @else {
+                <span>{{ sessionInitials() }}</span>
+              }
+            </div>
+            <span
+              class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-body-canvas"
+              title="Status: Administrator Sistem"
+            ></span>
+          </div>
+
+          <div class="hidden sm:flex flex-col min-w-0 text-left">
+            <div class="flex items-center gap-1">
+              <span class="font-body-strong text-body-strong text-on-surface leading-tight truncate max-w-[130px]">
+                {{ sessionName() }}
+              </span>
+              <span
+                class="inline-block px-1.5 py-0.5 rounded bg-primary text-on-primary font-micro-uppercase text-[10px] uppercase font-bold tracking-wider"
+              >
+                ADMIN
+              </span>
+            </div>
+            <span class="font-micro-uppercase text-caption text-ink-secondary leading-none mt-0.5 truncate max-w-[140px]">
+              {{ sessionEmail() || 'Administrator Sistem' }}
+            </span>
+          </div>
+
+          <span
+            class="material-symbols-outlined text-[18px] text-ink-secondary transition-transform group-hover:rotate-180"
+            [class.rotate-180]="isMenuOpen()"
+          >
+            expand_more
+          </span>
+        </button>
+
+        @if (isMenuOpen()) {
+          <button
+            type="button"
+            class="fixed inset-0 z-40 bg-transparent w-full h-full cursor-default border-none p-0"
+            (click)="closeMenu()"
+            aria-label="Tutup Menu Akun Admin"
+            tabindex="-1"
+          ></button>
+        }
+
+        <div
+          class="hidden group-hover:block hover:block absolute right-0 top-full pt-1.5 w-72 z-50 transition-all text-left"
+          [class.!block]="isMenuOpen()"
+          role="menu"
+          aria-orientation="vertical"
+          tabindex="-1"
+        >
+          <div
+            class="bg-body-canvas rounded-xl shadow-xl ring-1 ring-hairline-subtle overflow-hidden p-space-sm border border-hairline-subtle"
+          >
+            <!-- User Identity Capsule Khusus Admin -->
+            <div class="p-space-sm bg-surface-container-low rounded-lg mb-space-xs">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-body-strong text-body-strong text-on-surface truncate">
+                  {{ sessionName() }}
+                </span>
+                <span
+                  class="px-space-xs py-0.5 rounded bg-primary text-on-primary font-micro-uppercase text-[10px] font-bold uppercase tracking-wider shrink-0"
+                >
+                  Super Admin
+                </span>
+              </div>
+              <p class="font-caption text-caption text-ink-secondary mt-1 truncate">
+                {{ sessionEmail() || 'Administrator Sistem Tuwaktu' }}
+              </p>
+            </div>
+
+            <!-- Pintasan Rute Khusus Admin -->
+            <div class="space-y-0.5 py-1">
+              <a
+                routerLink="/admin/workers"
+                (click)="closeMenu()"
+                class="flex items-center gap-space-sm px-space-sm py-2 rounded text-primary hover:bg-surface-highlight transition-colors font-button-label text-caption font-semibold cursor-pointer min-h-[44px]"
+                role="menuitem"
+                id="menuItemAdminPanel"
+              >
+                <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
+                <span>Panel Kelola Mitra</span>
+              </a>
+
+              <a
+                routerLink="/"
+                (click)="closeMenu()"
+                class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
+                role="menuitem"
+                id="menuItemPublicHome"
+              >
+                <span class="material-symbols-outlined text-[18px] text-ink-secondary">public</span>
+                <span>Kembali ke Web Publik</span>
+              </a>
+            </div>
+
+            <!-- Separator -->
+            <div class="h-px bg-hairline-subtle my-space-xs"></div>
+
+            <!-- Tombol Keluar Admin -->
+            <div class="pt-0.5">
+              <button
+                type="button"
+                (click)="openLogoutConfirm()"
+                class="w-full flex items-center gap-space-sm px-space-sm py-2 rounded text-error hover:bg-error-surface transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px] text-left"
+                role="menuitem"
+                id="adminMenuItemLogout"
+              >
+                <span class="material-symbols-outlined text-[18px] text-error">logout</span>
+                <span>Keluar / Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Konfirmasi Logout -->
+      <app-logout-confirm-modal
+        [isOpen]="isLogoutModalOpen()"
+        (confirmed)="executeLogout()"
+        (cancelled)="closeLogoutConfirm()"
+      />
+    } @else if (authService.isLoggedIn()) {
+      <!-- Kondisi 2: Logged-in Worker (Pintasan Dashboard & Profil Publik Mitra) -->
+      <div class="relative group" data-testid="nav-worker-menu">
         <button
           type="button"
           (click)="toggleMenu()"
@@ -53,9 +207,9 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
                 {{ sessionName() }}
               </span>
               <span
-                class="inline-block px-1 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-[10px] uppercase font-semibold"
+                class="inline-block px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-[10px] uppercase font-semibold"
               >
-                {{ isAdmin() ? 'Admin' : 'Mitra' }}
+                Mitra
               </span>
             </div>
             <span class="font-micro-uppercase text-caption text-ink-secondary leading-none mt-0.5 truncate max-w-[140px]">
@@ -71,20 +225,18 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           </span>
         </button>
 
-        <!-- Backdrop Clickable to close when explicitly opened via click -->
         @if (isMenuOpen()) {
           <button
             type="button"
             class="fixed inset-0 z-40 bg-transparent w-full h-full cursor-default border-none p-0"
             (click)="closeMenu()"
-            aria-label="Tutup Menu Akun"
+            aria-label="Tutup Menu Akun Mitra"
             tabindex="-1"
           ></button>
         }
 
-        <!-- Elevated Popover / Dropdown Menu (Muncul saat Hover maupun Klik) -->
         <div
-          class="hidden group-hover:block hover:block absolute right-0 top-full pt-1.5 w-72 z-50 transition-all"
+          class="hidden group-hover:block hover:block absolute right-0 top-full pt-1.5 w-72 z-50 transition-all text-left"
           [class.!block]="isMenuOpen()"
           role="menu"
           aria-orientation="vertical"
@@ -93,16 +245,16 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           <div
             class="bg-body-canvas rounded-xl shadow-xl ring-1 ring-hairline-subtle overflow-hidden p-space-sm border border-hairline-subtle"
           >
-            <!-- User Identity Capsule -->
+            <!-- User Identity Capsule Mitra -->
             <div class="p-space-sm bg-surface-container-low rounded-lg mb-space-xs">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-2">
                 <span class="font-body-strong text-body-strong text-on-surface truncate">
                   {{ sessionName() }}
                 </span>
                 <span
                   class="px-space-xs py-0.5 rounded bg-success-surface text-success font-micro-uppercase text-micro-uppercase font-bold uppercase shrink-0"
                 >
-                  {{ isAdmin() ? 'Super Admin' : 'Mitra Terverifikasi' }}
+                  Mitra Terverifikasi
                 </span>
               </div>
               <p class="font-caption text-caption text-ink-secondary mt-0.5 truncate">
@@ -116,23 +268,10 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
               </div>
             </div>
 
-            <!-- Quick Portal Links -->
+            <!-- Quick Portal Links Mitra -->
             <div class="space-y-0.5 py-1">
-              @if (isAdmin()) {
-                <a
-                  routerLink="/admin/workers"
-                  (click)="closeMenu()"
-                  class="flex items-center gap-space-sm px-space-sm py-2 rounded text-primary hover:bg-surface-highlight transition-colors font-button-label text-caption font-semibold cursor-pointer min-h-[44px]"
-                  role="menuitem"
-                  id="menuItemAdminPanel"
-                >
-                  <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
-                  <span>Panel Kelola Mitra</span>
-                </a>
-              }
-
               <a
-                routerLink="/dashboard"
+                routerLink="/dashboard/ringkasan"
                 (click)="closeMenu()"
                 class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
                 role="menuitem"
@@ -172,37 +311,15 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
                 id="menuItemPublicProfile"
               >
                 <span class="material-symbols-outlined text-[18px] text-ink-secondary">storefront</span>
-                <span>Profil Publik</span>
+                <span>Profil Publik Saya</span>
               </a>
             </div>
 
             <!-- Separator -->
             <div class="h-px bg-hairline-subtle my-space-xs"></div>
 
-            <!-- Account Switch & Logout / Auth Options -->
-            <div class="space-y-0.5 pt-0.5">
-              <a
-                routerLink="/login"
-                (click)="closeMenu()"
-                class="flex items-center gap-space-sm px-space-sm py-2 rounded text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption cursor-pointer min-h-[44px]"
-                role="menuitem"
-                id="menuItemSwitchAccount"
-              >
-                <span class="material-symbols-outlined text-[18px]">switch_account</span>
-                <span>Masuk Akun Lain</span>
-              </a>
-
-              <a
-                routerLink="/register"
-                (click)="closeMenu()"
-                class="flex items-center gap-space-sm px-space-sm py-2 rounded text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption cursor-pointer min-h-[44px]"
-                role="menuitem"
-                id="menuItemRegisterAccount"
-              >
-                <span class="material-symbols-outlined text-[18px]">person_add</span>
-                <span>Daftar Mitra Baru</span>
-              </a>
-
+            <!-- Logout Aksi Mitra -->
+            <div class="pt-0.5">
               <button
                 type="button"
                 (click)="openLogoutConfirm()"
@@ -225,8 +342,13 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
         (cancelled)="closeLogoutConfirm()"
       />
     } @else {
-      <!-- Tombol Aksi Autentikasi Tamu (Belum Masuk) -->
-      <div class="flex items-center gap-space-xs sm:gap-space-sm" role="group" aria-label="Aksi Autentikasi Mitra">
+      <!-- Kondisi 3: Guest (Tamu / Belum Masuk) -->
+      <div
+        class="flex items-center gap-space-xs sm:gap-space-sm"
+        role="group"
+        aria-label="Aksi Autentikasi Mitra"
+        data-testid="nav-guest-actions"
+      >
         <a
           routerLink="/login"
           id="navLoginBtn"
@@ -260,6 +382,11 @@ export class BookingNavAccountMenuComponent {
     const session = this.authService.currentUser();
     if (session?.name) return session.name;
     return 'Mitra Terdaftar';
+  }
+
+  sessionEmail(): string {
+    const session = this.authService.currentUser();
+    return session?.email || '';
   }
 
   sessionInitials(): string {
@@ -338,7 +465,8 @@ export class BookingNavAccountMenuComponent {
 
   executeLogout(): void {
     this.closeLogoutConfirm();
-    this.authService.logout();
+    this.closeMenu();
     this.router.navigate(['/login']);
+    this.authService.logout()?.subscribe?.();
   }
 }

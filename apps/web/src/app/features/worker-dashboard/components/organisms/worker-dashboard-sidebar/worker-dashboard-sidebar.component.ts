@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
@@ -42,13 +47,19 @@ export interface DashboardSidebarMenuItem {
             <div
               class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary"
             >
-              <span class="material-symbols-outlined text-[18px]">schedule</span>
+              <span class="material-symbols-outlined text-[18px]"
+                >schedule</span
+              >
             </div>
             <div class="flex flex-col">
-              <span class="font-heading-3 text-heading-3 text-primary tracking-tight font-bold leading-tight">
+              <span
+                class="font-heading-3 text-heading-3 text-primary tracking-tight font-bold leading-tight"
+              >
                 TUWAKTU
               </span>
-              <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary tracking-widest">
+              <span
+                class="font-micro-uppercase text-micro-uppercase text-ink-secondary tracking-widest"
+              >
                 WORKSPACE PRO
               </span>
             </div>
@@ -65,13 +76,18 @@ export interface DashboardSidebarMenuItem {
 
         <!-- Section Label -->
         <div class="px-6">
-          <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary uppercase tracking-wider">
+          <span
+            class="font-micro-uppercase text-micro-uppercase text-ink-secondary uppercase tracking-wider"
+          >
             Modul Kerja
           </span>
         </div>
 
         <!-- Navigation Menu -->
-        <nav aria-label="Navigasi Utama Dasbor" class="flex flex-col px-3 gap-1">
+        <nav
+          aria-label="Navigasi Utama Dasbor"
+          class="flex flex-col px-3 gap-1"
+        >
           @for (item of menuItems; track item.routePath) {
             <a
               [routerLink]="item.routePath"
@@ -81,12 +97,19 @@ export interface DashboardSidebarMenuItem {
               (click)="store.closeMobileSidebar()"
               class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-highlight hover:text-on-surface transition-colors rounded text-button-label font-button-label cursor-pointer min-h-[44px]"
             >
-              <span class="material-symbols-outlined text-[20px]">{{ item.icon }}</span>
+              <span class="material-symbols-outlined text-[20px]">{{
+                item.icon
+              }}</span>
               <span>{{ item.label }}</span>
             </a>
           }
         </nav>
+      </div>
 
+      <!-- Sidebar Footer -->
+      <div
+        class="px-6 flex flex-col gap-3 pt-4 border-t border-hairline-subtle"
+      >
         <!-- Tombol Keluar Konsol -->
         <div class="px-3 pt-2">
           <button
@@ -98,20 +121,6 @@ export interface DashboardSidebarMenuItem {
             <span class="material-symbols-outlined text-[20px]">logout</span>
             <span>Keluar Konsol</span>
           </button>
-        </div>
-      </div>
-
-      <!-- Sidebar Footer -->
-      <div class="px-6 flex flex-col gap-3 pt-4 border-t border-hairline-subtle">
-        <div class="flex items-center justify-between text-caption font-caption">
-          <span class="text-ink-secondary">Versi Mesin</span>
-          <span class="font-mono-rate text-mono-rate text-on-surface font-semibold">
-            v2.4-SOVEREIGN
-          </span>
-        </div>
-        <div class="flex items-center gap-2 text-caption text-success font-caption">
-          <span class="w-2 h-2 rounded-full bg-success inline-block"></span>
-          <span class="font-bold">Sinkronisasi Aktif</span>
         </div>
       </div>
     </aside>
@@ -133,12 +142,36 @@ export class WorkerDashboardSidebarComponent {
   readonly isLogoutModalOpen = signal<boolean>(false);
 
   readonly menuItems: readonly DashboardSidebarMenuItem[] = [
-    { routePath: '/dashboard/ringkasan', label: 'Ringkasan', icon: 'grid_view' },
-    { routePath: '/dashboard/tarif-layanan', label: 'Tarif & Layanan', icon: 'sell' },
-    { routePath: '/dashboard/logistik-radius', label: 'Logistik & Basecamp', icon: 'distance' },
-    { routePath: '/dashboard/kalender-slot', label: 'Kalender & Slot', icon: 'calendar_month' },
-    { routePath: '/dashboard/integrasi-whatsapp', label: 'Integrasi WhatsApp', icon: 'chat' },
-    { routePath: '/dashboard/plan', label: 'Paket & Langganan', icon: 'workspace_premium' },
+    {
+      routePath: '/dashboard/ringkasan',
+      label: 'Ringkasan',
+      icon: 'grid_view',
+    },
+    {
+      routePath: '/dashboard/tarif-layanan',
+      label: 'Tarif & Layanan',
+      icon: 'sell',
+    },
+    {
+      routePath: '/dashboard/logistik-radius',
+      label: 'Logistik & Basecamp',
+      icon: 'distance',
+    },
+    {
+      routePath: '/dashboard/kalender-slot',
+      label: 'Kalender & Slot',
+      icon: 'calendar_month',
+    },
+    {
+      routePath: '/dashboard/integrasi-whatsapp',
+      label: 'Integrasi WhatsApp',
+      icon: 'chat',
+    },
+    {
+      routePath: '/dashboard/plan',
+      label: 'Paket & Langganan',
+      icon: 'workspace_premium',
+    },
     { routePath: '/dashboard/boost', label: 'Boost Visibilitas', icon: 'bolt' },
   ];
 
@@ -158,5 +191,3 @@ export class WorkerDashboardSidebarComponent {
     this.router.navigate(['/login']);
   }
 }
-
-

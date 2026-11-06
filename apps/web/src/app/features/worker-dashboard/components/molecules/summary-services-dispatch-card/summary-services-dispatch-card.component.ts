@@ -97,7 +97,7 @@ export class SummaryServicesDispatchCardComponent {
       return list.slice(0, 2).map((item) => ({
         name: item.name,
         description: item.description || 'Layanan operasional terverifikasi',
-        priceText: `Rp ${(item.price || item.base_price).toLocaleString('id-ID')}${item.rate_type === 'HOURLY' ? '/jam' : ''}`,
+        priceText: `Rp ${(item.price || item.base_price || 0).toLocaleString('id-ID')}${item.rate_type === 'HOURLY' ? '/jam' : ''}`,
       }));
     }
 

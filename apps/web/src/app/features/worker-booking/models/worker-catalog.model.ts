@@ -6,6 +6,7 @@ export interface PublicServiceCatalogItem {
   base_price?: number;
   rate_type?: 'HOURLY' | 'UNIT' | string;
   duration_minutes: number;
+  image_url?: string;
 }
 
 export interface PublicTechnicianProfile {

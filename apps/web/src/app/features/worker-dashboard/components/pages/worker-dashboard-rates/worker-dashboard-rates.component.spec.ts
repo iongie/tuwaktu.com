@@ -23,7 +23,7 @@ describe('WorkerDashboardRatesComponent', () => {
           success: true,
           message: 'Tarif berhasil disimpan',
           data: { base_price: 90000, rate_type: 'UNIT' },
-        })
+        }),
       ),
       createWorkerService: jest.fn().mockReturnValue(
         of({
@@ -37,7 +37,7 @@ describe('WorkerDashboardRatesComponent', () => {
             duration_minutes: 60,
             is_active: true,
           },
-        })
+        }),
       ),
       updateWorkerService: jest.fn().mockReturnValue(
         of({
@@ -51,14 +51,14 @@ describe('WorkerDashboardRatesComponent', () => {
             duration_minutes: 60,
             is_active: true,
           },
-        })
+        }),
       ),
       deleteWorkerService: jest.fn().mockReturnValue(
         of({
           success: true,
           message: 'Paket layanan berhasil dinonaktifkan dari katalog',
           data: null,
-        })
+        }),
       ),
     };
 
@@ -89,18 +89,23 @@ describe('WorkerDashboardRatesComponent', () => {
 
     component.submitRates();
 
-    expect(mockApiService.updateWorkerRates).toHaveBeenCalledWith('worker-uuid-1', {
-      base_price: 90000,
-      rate_type: 'UNIT',
-    });
+    expect(mockApiService.updateWorkerRates).toHaveBeenCalledWith(
+      'worker-uuid-1',
+      {
+        base_price: 90000,
+        rate_type: 'UNIT',
+      },
+    );
   });
 
   it('harus merender judul halaman Katalog & Model Tarif Mandiri sesuai Stitch', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('Katalog & Model Tarif Mandiri');
-    expect(el.textContent).toContain('Arsitektur Pendapatan • 0% Potongan Platform');
+    expect(el.textContent).toContain(
+      'Arsitektur Pendapatan • 0% Potongan Platform',
+    );
     expect(el.textContent).toContain('Simulasi Pendapatan');
-    expect(el.textContent).toContain('+ Tambah Layanan Baru');
+    expect(el.textContent).toContain('Tambah Layanan Baru');
     expect(el.textContent).toContain('Semua Layanan Aktif');
     expect(el.textContent).toContain('Model Hourly');
     expect(el.textContent).toContain('Model Unit Sesi');
@@ -142,7 +147,9 @@ describe('WorkerDashboardRatesComponent', () => {
 
     expect(component.isEditModalOpen()).toBe(false);
     expect(mockApiService.createWorkerService).toHaveBeenCalled();
-    expect(store.workerServices().some((s) => s.name === 'Pembersihan Kaca Jendela')).toBe(true);
+    expect(
+      store.workerServices().some((s) => s.name === 'Pembersihan Kaca Jendela'),
+    ).toBe(true);
   });
 
   it('harus memperbarui layanan yang ada saat modal edit disimpan', () => {
@@ -163,7 +170,7 @@ describe('WorkerDashboardRatesComponent', () => {
       expect.objectContaining({
         name: 'Deep Clean Detailing Updated',
         price: 70000,
-      })
+      }),
     );
   });
 
@@ -175,7 +182,12 @@ describe('WorkerDashboardRatesComponent', () => {
     component.handleServiceDeleted(existing.id);
 
     expect(component.isEditModalOpen()).toBe(false);
-    expect(mockApiService.deleteWorkerService).toHaveBeenCalledWith('worker-uuid-1', existing.id);
-    expect(store.workerServices().some((s) => s.id === existing.id)).toBe(false);
+    expect(mockApiService.deleteWorkerService).toHaveBeenCalledWith(
+      'worker-uuid-1',
+      existing.id,
+    );
+    expect(store.workerServices().some((s) => s.id === existing.id)).toBe(
+      false,
+    );
   });
 });

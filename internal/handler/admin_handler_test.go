@@ -372,6 +372,29 @@ func TestAuth_CookieBasedSessionAndEndpoints(t *testing.T) {
 		assert.False(t, res.Success)
 		assert.Equal(t, "ACCOUNT_SUSPENDED", res.Error)
 	})
+
+	t.Run("GET /api/v1/admin/stats mengembalikan statistik riil agregasi platform", func(t *testing.T) {
+		adminToken, err := auth.GenerateToken("admin-acc-stats", "", "admin@tuwaktu.com", domain.RoleAdmin, domain.AccountStatusActive, time.Hour)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/stats", nil)
+		req.Header.Set("Authorization", "Bearer "+adminToken)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool              `json:"success"`
+			Message string            `json:"message"`
+			Data    domain.AdminStats `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&res)
+		require.NoError(t, err)
+		assert.True(t, res.Success)
+		assert.Equal(t, "Statistik panel admin berhasil dimuat", res.Message)
+		assert.GreaterOrEqual(t, res.Data.TotalWorkers, int64(0))
+	})
 }
 
 

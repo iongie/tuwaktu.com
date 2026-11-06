@@ -139,5 +139,30 @@ describe('AdminWorkerApiService', () => {
       data: { worker_id: 'wrk-1', status: 'SUSPENDED' },
     });
   });
+
+  it('harus memanggil GET /api/v1/admin/stats untuk memuat metrik statistik platform', () => {
+    const mockStats = {
+      total_workers: 5,
+      active_workers: 4,
+      suspended_workers: 1,
+      total_bookings: 12,
+    };
+
+    service.fetchStats().subscribe((res) => {
+      expect(res.success).toBe(true);
+      expect(res.data).toEqual(mockStats);
+    });
+
+    const req = httpTestingController.expectOne('http://localhost:3000/api/v1/admin/stats');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer mock-jwt-token-xyz');
+    expect(req.request.withCredentials).toBe(true);
+
+    req.flush({
+      success: true,
+      message: 'Statistik panel admin berhasil dimuat',
+      data: mockStats,
+    });
+  });
 });
 

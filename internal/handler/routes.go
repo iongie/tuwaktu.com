@@ -100,6 +100,14 @@ func RegisterRoutes(
 		adminGroup.Post("/workers", adminHandler.CreateWorker)
 		adminGroup.Get("/workers", adminHandler.GetWorkers)
 		adminGroup.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
+		adminGroup.Get("/stats", adminHandler.GetStats)
+
+		// Backward compatible /api/admin
+		legacyAdmin := api.Group("/admin", authMiddleware.RequireAuth, authMiddleware.RequireAdmin)
+		legacyAdmin.Post("/workers", adminHandler.CreateWorker)
+		legacyAdmin.Get("/workers", adminHandler.GetWorkers)
+		legacyAdmin.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
+		legacyAdmin.Get("/stats", adminHandler.GetStats)
 	}
 
 	v1Pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)

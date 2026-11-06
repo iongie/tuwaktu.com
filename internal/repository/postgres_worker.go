@@ -486,7 +486,7 @@ func (r *PostgresWorkerRepository) GetAdminWorkerList(ctx context.Context) ([]do
 		return nil, err
 	}
 
-	var items []domain.AdminWorkerListItem
+	items := make([]domain.AdminWorkerListItem, 0)
 	query := `
 		SELECT 
 			wa.id as account_id,
@@ -517,7 +517,49 @@ func (r *PostgresWorkerRepository) GetAdminWorkerList(ctx context.Context) ([]do
 		return nil, fmt.Errorf("mengambil daftar mitra admin: %w", err)
 	}
 
+	if items == nil {
+		items = make([]domain.AdminWorkerListItem, 0)
+	}
+
 	return items, nil
+}
+
+// GetAdminStats mengambil agregasi data statistik mitra dan pemesanan secara riil dari database
+func (r *PostgresWorkerRepository) GetAdminStats(ctx context.Context) (*domain.AdminStats, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	stats := &domain.AdminStats{}
+
+	var counts struct {
+		TotalWorkers     int64 `gorm:"column:total_workers"`
+		ActiveWorkers    int64 `gorm:"column:active_workers"`
+		SuspendedWorkers int64 `gorm:"column:suspended_workers"`
+	}
+
+	queryWorkers := `
+		SELECT 
+			COALESCE(COUNT(CASE WHEN role = 'WORKER' THEN 1 END), 0) as total_workers,
+			COALESCE(COUNT(CASE WHEN role = 'WORKER' AND account_status = 'ACTIVE' THEN 1 END), 0) as active_workers,
+			COALESCE(COUNT(CASE WHEN role = 'WORKER' AND account_status = 'SUSPENDED' THEN 1 END), 0) as suspended_workers
+		FROM worker_accounts
+	`
+	if err := r.db.WithContext(ctx).Raw(queryWorkers).Scan(&counts).Error; err != nil {
+		return nil, fmt.Errorf("menghitung statistik mitra admin: %w", err)
+	}
+
+	stats.TotalWorkers = counts.TotalWorkers
+	stats.ActiveWorkers = counts.ActiveWorkers
+	stats.SuspendedWorkers = counts.SuspendedWorkers
+
+	var totalBookings int64
+	if err := r.db.WithContext(ctx).Table("bookings").Count(&totalBookings).Error; err != nil {
+		return nil, fmt.Errorf("menghitung total pemesanan admin: %w", err)
+	}
+	stats.TotalBookings = totalBookings
+
+	return stats, nil
 }
 
 // UpdateWorkerAccountStatus mengubah status akun mitra (ACTIVE/SUSPENDED) dan menyinkronkan is_active worker

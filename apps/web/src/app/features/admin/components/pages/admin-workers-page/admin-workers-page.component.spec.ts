@@ -118,5 +118,27 @@ describe('AdminWorkersPageComponent', () => {
     const errorBanner = fixture.nativeElement.querySelector('[data-testid="admin-error-banner"]');
     expect(errorBanner).toBeNull();
   });
+
+  it('harus merender loading skeleton tabel saat store.isLoading bernilai true', () => {
+    (mockStore.isLoading as jest.Mock).mockReturnValue(true);
+    fixture.detectChanges();
+
+    const skeleton = fixture.nativeElement.querySelector('[data-testid="admin-table-skeleton"]');
+    expect(skeleton).toBeTruthy();
+
+    const table = fixture.nativeElement.querySelector('app-admin-workers-table');
+    expect(table).toBeNull();
+  });
+
+  it('harus merender komponen app-admin-workers-table saat store.isLoading bernilai false', () => {
+    (mockStore.isLoading as jest.Mock).mockReturnValue(false);
+    fixture.detectChanges();
+
+    const skeleton = fixture.nativeElement.querySelector('[data-testid="admin-table-skeleton"]');
+    expect(skeleton).toBeNull();
+
+    const table = fixture.nativeElement.querySelector('app-admin-workers-table');
+    expect(table).toBeTruthy();
+  });
 });
 

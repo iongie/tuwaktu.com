@@ -99,6 +99,14 @@ type AdminWorkerListItem struct {
 	CreatedAt          time.Time `json:"created_at"`
 }
 
+// AdminStats merepresentasikan agregasi metrik statistik platform untuk panel admin
+type AdminStats struct {
+	TotalWorkers     int64 `json:"total_workers"`
+	ActiveWorkers    int64 `json:"active_workers"`
+	SuspendedWorkers int64 `json:"suspended_workers"`
+	TotalBookings    int64 `json:"total_bookings"`
+}
+
 // AdminUpdateWorkerStatusPayload payload untuk mengubah status aktif/nonaktif mitra
 type AdminUpdateWorkerStatusPayload struct {
 	Status string `json:"status"`

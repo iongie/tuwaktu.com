@@ -35,6 +35,7 @@ type WorkerService interface {
 	OnboardWorker(ctx context.Context, payload *domain.AdminCreateWorkerPayload) (*domain.AdminWorkerCreatedResponse, error)
 	RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthLoginResponse, error)
 	ListWorkersForAdmin(ctx context.Context) ([]domain.AdminWorkerListItem, error)
+	GetAdminStats(ctx context.Context) (*domain.AdminStats, error)
 	SetWorkerStatus(ctx context.Context, workerID string, status string) error
 	Authenticate(ctx context.Context, identifier string, password string) (*domain.AuthLoginResponse, error)
 	GetSessionProfile(ctx context.Context, accountID string) (*domain.AuthUserSession, error)
@@ -662,7 +663,21 @@ func (s *workerService) ListWorkersForAdmin(ctx context.Context) ([]domain.Admin
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return s.repo.GetAdminWorkerList(ctx)
+	workers, err := s.repo.GetAdminWorkerList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if workers == nil {
+		workers = []domain.AdminWorkerListItem{}
+	}
+	return workers, nil
+}
+
+func (s *workerService) GetAdminStats(ctx context.Context) (*domain.AdminStats, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	return s.repo.GetAdminStats(ctx)
 }
 
 func (s *workerService) SetWorkerStatus(ctx context.Context, workerID string, status string) error {

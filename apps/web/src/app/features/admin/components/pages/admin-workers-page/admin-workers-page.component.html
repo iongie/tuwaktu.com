@@ -175,9 +175,13 @@
           </div>
         </div>
         <div class="mt-4">
-          <div class="text-3xl md:text-4xl font-extrabold text-emerald-900 dark:text-emerald-200 font-mono">
-            {{ store.activeWorkersCount() }}
-          </div>
+          @if (store.isLoading() && store.workers().length === 0) {
+            <div class="h-9 w-16 bg-surface-container-high rounded-lg animate-pulse"></div>
+          } @else {
+            <div class="text-3xl md:text-4xl font-extrabold text-emerald-900 dark:text-emerald-200 font-mono">
+              {{ store.activeWorkersCount() }}
+            </div>
+          }
           <div class="text-xs text-emerald-700 mt-1">
             Menerima booking publik aktif
           </div>
@@ -197,9 +201,13 @@
           </div>
         </div>
         <div class="mt-4">
-          <div class="text-3xl md:text-4xl font-extrabold text-rose-900 dark:text-rose-200 font-mono">
-            {{ store.suspendedWorkersCount() }}
-          </div>
+          @if (store.isLoading() && store.workers().length === 0) {
+            <div class="h-9 w-16 bg-surface-container-high rounded-lg animate-pulse"></div>
+          } @else {
+            <div class="text-3xl md:text-4xl font-extrabold text-rose-900 dark:text-rose-200 font-mono">
+              {{ store.suspendedWorkersCount() }}
+            </div>
+          }
           <div class="text-xs text-rose-700 mt-1">
             Halaman booking terkunci
           </div>
@@ -218,12 +226,57 @@
       (filterChange)="store.setStatusFilter($event)"
     />
 
-    <!-- Tabel Mitra Component -->
+    <!-- Tabel Mitra Component & Skeleton Loader -->
     <section>
       @if (store.isLoading()) {
-        <div class="p-12 text-center rounded-2xl bg-surface border border-hairline">
-          <div class="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <div class="text-sm font-semibold text-on-surface-variant">Memuat data mitra dari server...</div>
+        <div class="w-full overflow-hidden rounded-2xl border border-hairline-subtle bg-surface shadow-xs" data-testid="admin-table-skeleton">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-hairline bg-surface-container-low text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                  <th scope="col" class="py-3.5 px-4 md:px-6">Mitra</th>
+                  <th scope="col" class="py-3.5 px-4 md:px-6">Kontak & Zona</th>
+                  <th scope="col" class="py-3.5 px-4 md:px-6">Tarif Dasar</th>
+                  <th scope="col" class="py-3.5 px-4 md:px-6">Status Akun</th>
+                  <th scope="col" class="py-3.5 px-4 md:px-6 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-hairline text-sm">
+                @for (row of [1, 2, 3, 4]; track row) {
+                  <tr class="animate-pulse">
+                    <td class="py-4 px-4 md:px-6">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-surface-container-high shrink-0"></div>
+                        <div class="space-y-2">
+                          <div class="h-4 bg-surface-container-high rounded w-32"></div>
+                          <div class="h-3 bg-surface-container-high/60 rounded w-20"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4 md:px-6">
+                      <div class="space-y-2">
+                        <div class="h-3 bg-surface-container-high rounded w-36"></div>
+                        <div class="h-3 bg-surface-container-high/60 rounded w-24"></div>
+                        <div class="h-3 bg-surface-container-high/40 rounded w-28"></div>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4 md:px-6">
+                      <div class="space-y-2">
+                        <div class="h-4 bg-surface-container-high rounded w-24"></div>
+                        <div class="h-3 bg-surface-container-high/60 rounded w-16"></div>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4 md:px-6">
+                      <div class="h-6 bg-surface-container-high rounded-full w-20"></div>
+                    </td>
+                    <td class="py-4 px-4 md:px-6 text-right">
+                      <div class="h-8 bg-surface-container-high rounded-xl w-24 ml-auto"></div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       } @else {
         <app-admin-workers-table

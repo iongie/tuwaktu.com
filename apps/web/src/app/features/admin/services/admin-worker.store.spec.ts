@@ -58,6 +58,18 @@ describe('AdminWorkerStore', () => {
   beforeEach(() => {
     mockApiService = {
       fetchWorkers: jest.fn().mockReturnValue(of({ success: true, message: 'OK', data: sampleWorkers })),
+      fetchStats: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'OK',
+          data: {
+            total_workers: 2,
+            active_workers: 1,
+            suspended_workers: 1,
+            total_bookings: 5,
+          },
+        })
+      ),
       createWorker: jest.fn(),
       updateWorkerStatus: jest.fn(),
     } as unknown as jest.Mocked<AdminWorkerApiService>;
@@ -76,10 +88,12 @@ describe('AdminWorkerStore', () => {
     store.loadWorkers();
 
     expect(mockApiService.fetchWorkers).toHaveBeenCalled();
+    expect(mockApiService.fetchStats).toHaveBeenCalled();
     expect(store.workers().length).toBe(2);
     expect(store.totalWorkersCount()).toBe(2);
     expect(store.activeWorkersCount()).toBe(1);
     expect(store.suspendedWorkersCount()).toBe(1);
+    expect(store.totalBookingsCount()).toBe(5);
     expect(store.isLoading()).toBe(false);
   });
 

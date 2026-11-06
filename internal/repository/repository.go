@@ -23,6 +23,7 @@ type WorkerRepository interface {
 	// Manajemen Admin & Otentikasi
 	CreateWorkerWithAccountTx(ctx context.Context, worker *domain.Worker, schedules []domain.WorkerSchedule, account *domain.WorkerAccount) error
 	GetAdminWorkerList(ctx context.Context) ([]domain.AdminWorkerListItem, error)
+	GetAdminStats(ctx context.Context) (*domain.AdminStats, error)
 	UpdateWorkerAccountStatus(ctx context.Context, workerID string, newStatus string) error
 	GetAccountByEmailOrPhone(ctx context.Context, identifier string) (*domain.WorkerAccount, error)
 	GetAccountByID(ctx context.Context, accountID string) (*domain.WorkerAccount, error)

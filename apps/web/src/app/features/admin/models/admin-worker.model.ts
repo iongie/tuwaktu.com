@@ -60,5 +60,12 @@ export interface AdminUpdateWorkerStatusPayload {
   status: 'ACTIVE' | 'SUSPENDED';
 }
 
+export interface AdminStats {
+  readonly total_workers: number;
+  readonly active_workers: number;
+  readonly suspended_workers: number;
+  readonly total_bookings: number;
+}
+
 export type AdminWorkerFilterStatus = 'ALL' | 'ACTIVE' | 'SUSPENDED';
 

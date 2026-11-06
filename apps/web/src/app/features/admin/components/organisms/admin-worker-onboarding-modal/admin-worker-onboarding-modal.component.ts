@@ -303,12 +303,25 @@ export class AdminWorkerOnboardingModalComponent {
     name: '',
     whatsapp_number: '',
     email: '',
-    zone: 'Jakarta Selatan',
-    base_price: 75000,
+    zone: '',
+    base_price: undefined,
     rate_type: 'HOURLY',
     bio: '',
     temporary_password: '',
   };
+
+  resetForm(): void {
+    this.formData = {
+      name: '',
+      whatsapp_number: '',
+      email: '',
+      zone: '',
+      base_price: undefined,
+      rate_type: 'HOURLY',
+      bio: '',
+      temporary_password: '',
+    };
+  }
 
   @HostListener('window:keydown.escape')
   handleEscape(): void {
@@ -335,6 +348,7 @@ export class AdminWorkerOnboardingModalComponent {
 
   closeModal(): void {
     this.isCopied.set(false);
+    this.resetForm();
     this.closeClick.emit();
   }
 

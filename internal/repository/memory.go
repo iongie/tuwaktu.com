@@ -553,7 +553,7 @@ func (m *MemoryRepository) GetAdminWorkerList(ctx context.Context) ([]domain.Adm
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	var items []domain.AdminWorkerListItem
+	items := make([]domain.AdminWorkerListItem, 0)
 	for _, acc := range m.accounts {
 		if acc.Role != domain.RoleWorker {
 			continue
@@ -592,6 +592,25 @@ func (m *MemoryRepository) GetAdminWorkerList(ctx context.Context) ([]domain.Adm
 	}
 
 	return items, nil
+}
+
+func (m *MemoryRepository) GetAdminStats(ctx context.Context) (*domain.AdminStats, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	stats := &domain.AdminStats{}
+	for _, acc := range m.accounts {
+		if acc.Role == domain.RoleWorker {
+			stats.TotalWorkers++
+			if acc.AccountStatus == domain.AccountStatusActive {
+				stats.ActiveWorkers++
+			} else if acc.AccountStatus == domain.AccountStatusSuspended {
+				stats.SuspendedWorkers++
+			}
+		}
+	}
+	stats.TotalBookings = int64(len(m.bookings))
+	return stats, nil
 }
 
 func (m *MemoryRepository) UpdateWorkerAccountStatus(ctx context.Context, workerID string, newStatus string) error {

@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { AdminWorkerApiService } from './admin-worker-api.service';
 import {
   AdminCreateWorkerPayload,
+  AdminStats,
   AdminWorkerCreatedResponse,
   AdminWorkerFilterStatus,
   AdminWorkerListItem,
@@ -14,6 +15,7 @@ export class AdminWorkerStore {
   private readonly apiService = inject(AdminWorkerApiService);
 
   readonly workers = signal<AdminWorkerListItem[]>([]);
+  readonly stats = signal<AdminStats | null>(null);
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly feedbackMessage = signal<string | null>(null);
@@ -25,12 +27,21 @@ export class AdminWorkerStore {
   readonly isOnboardingSubmitting = signal<boolean>(false);
   readonly newlyCreatedWorker = signal<AdminWorkerCreatedResponse | null>(null);
 
-  readonly totalWorkersCount = computed<number>(() => this.workers().length);
+  readonly totalWorkersCount = computed<number>(
+    () => this.stats()?.total_workers ?? this.workers().length
+  );
   readonly activeWorkersCount = computed<number>(
-    () => this.workers().filter((w) => w.account_status === 'ACTIVE').length
+    () =>
+      this.stats()?.active_workers ??
+      this.workers().filter((w) => w.account_status === 'ACTIVE').length
   );
   readonly suspendedWorkersCount = computed<number>(
-    () => this.workers().filter((w) => w.account_status === 'SUSPENDED').length
+    () =>
+      this.stats()?.suspended_workers ??
+      this.workers().filter((w) => w.account_status === 'SUSPENDED').length
+  );
+  readonly totalBookingsCount = computed<number>(
+    () => this.stats()?.total_bookings ?? 0
   );
 
   readonly filteredWorkers = computed<AdminWorkerListItem[]>(() => {
@@ -62,15 +73,34 @@ export class AdminWorkerStore {
     });
   });
 
+  loadStats(): void {
+    if (typeof this.apiService.fetchStats === 'function') {
+      this.apiService.fetchStats().subscribe({
+        next: (res) => {
+          if (res?.success && res.data) {
+            this.stats.set(res.data);
+          }
+        },
+        error: () => {
+          // Gagal memuat statistik tidak boleh menghentikan tabel mitra
+        },
+      });
+    }
+  }
+
   loadWorkers(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
+
+    this.loadStats();
 
     this.apiService.fetchWorkers().subscribe({
       next: (res) => {
         this.isLoading.set(false);
         if (res.success && Array.isArray(res.data)) {
           this.workers.set(res.data);
+        } else {
+          this.workers.set([]);
         }
       },
       error: (err) => {
@@ -159,6 +189,7 @@ export class AdminWorkerStore {
           this.feedbackMessage.set(
             `Status mitra "${worker.name}" berhasil ${statusLabel}.`
           );
+          this.loadStats();
         }
       },
       error: (err) => {

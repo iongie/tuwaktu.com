@@ -42,7 +42,21 @@ func (h *AdminHandler) GetWorkers(c *fiber.Ctx) error {
 		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal mengambil daftar mitra: "+err.Error(), "INTERNAL_ERROR")
 	}
 
+	if workers == nil {
+		workers = []domain.AdminWorkerListItem{}
+	}
+
 	return SuccessResponse(c, fiber.StatusOK, "Daftar seluruh mitra berhasil dimuat", workers)
+}
+
+// GetStats mengambil agregasi data statistik mitra dan pemesanan untuk panel admin
+func (h *AdminHandler) GetStats(c *fiber.Ctx) error {
+	stats, err := h.workerSvc.GetAdminStats(c.Context())
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memuat data statistik admin: "+err.Error(), "INTERNAL_ERROR")
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Statistik panel admin berhasil dimuat", stats)
 }
 
 // UpdateWorkerStatus mengubah status aktif atau penangguhan (suspend) mitra

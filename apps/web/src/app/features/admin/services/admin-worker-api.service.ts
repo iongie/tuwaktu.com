@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../../../../environments/environment.model';
 import { AuthService } from '../../auth/services/auth.service';
 import {
   AdminCreateWorkerPayload,
+  AdminStats,
   AdminUpdateWorkerStatusPayload,
   AdminWorkerCreatedResponse,
   AdminWorkerListItem,
@@ -42,6 +43,13 @@ export class AdminWorkerApiService {
   fetchWorkers(): Observable<AdminApiResponse<AdminWorkerListItem[]>> {
     return this.httpClient.get<AdminApiResponse<AdminWorkerListItem[]>>(
       `${this.normalizedBaseUrl}/api/v1/admin/workers`,
+      { headers: this.authHeaders, withCredentials: true }
+    );
+  }
+
+  fetchStats(): Observable<AdminApiResponse<AdminStats>> {
+    return this.httpClient.get<AdminApiResponse<AdminStats>>(
+      `${this.normalizedBaseUrl}/api/v1/admin/stats`,
       { headers: this.authHeaders, withCredentials: true }
     );
   }

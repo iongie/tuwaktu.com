@@ -41,6 +41,9 @@ export interface DashboardTransactionRecord {
         <button
           type="button"
           (click)="downloadCsv()"
+          [disabled]="transactions().length === 0"
+          [class.opacity-50]="transactions().length === 0"
+          [class.cursor-not-allowed]="transactions().length === 0"
           class="min-h-[44px] px-4 rounded-lg border border-hairline-subtle bg-surface-container-low hover:bg-surface-container text-on-surface font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer self-start sm:self-center"
           aria-label="Unduh Rekap CSV Transaksi"
         >
@@ -51,75 +54,91 @@ export interface DashboardTransactionRecord {
         </button>
       </div>
 
-      <!-- Responsive Table Container -->
-      <div class="overflow-x-auto -mx-5 sm:mx-0">
-        <table class="w-full text-left text-xs min-w-[640px]">
-          <thead>
-            <tr class="border-b border-hairline-subtle bg-surface-container-low/60 text-on-surface-variant font-mono text-[11px] uppercase tracking-wider">
-              <th scope="col" class="py-3 px-4 sm:px-5 font-semibold">TANGGAL &amp; WAKTU</th>
-              <th scope="col" class="py-3 px-4 font-semibold">KLIEN</th>
-              <th scope="col" class="py-3 px-4 font-semibold">LAYANAN</th>
-              <th scope="col" class="py-3 px-4 font-semibold text-center">DURASI</th>
-              <th scope="col" class="py-3 px-4 font-semibold text-right">TOTAL DITERIMA</th>
-              <th scope="col" class="py-3 px-4 sm:px-5 font-semibold text-right">STATUS</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-hairline-subtle">
-            @for (tx of transactions(); track tx.id) {
-              <tr class="hover:bg-surface-container-low/40 transition-colors">
-                <!-- Tanggal & Waktu -->
-                <td class="py-3.5 px-4 sm:px-5 font-mono text-on-surface whitespace-nowrap">
-                  {{ tx.dateTime }}
-                </td>
-
-                <!-- Klien -->
-                <td class="py-3.5 px-4">
-                  <div class="font-bold text-on-surface">{{ tx.clientName }}</div>
-                  <div class="text-[11px] text-on-surface-variant font-mono">{{ tx.clientArea }}</div>
-                </td>
-
-                <!-- Layanan -->
-                <td class="py-3.5 px-4 font-medium text-on-surface">
-                  {{ tx.serviceName }}
-                </td>
-
-                <!-- Durasi -->
-                <td class="py-3.5 px-4 font-mono text-center text-on-surface-variant whitespace-nowrap">
-                  {{ tx.durationHours }}
-                </td>
-
-                <!-- Total Diterima -->
-                <td class="py-3.5 px-4 font-mono font-bold text-right text-on-surface whitespace-nowrap">
-                  {{ tx.totalReceived }}
-                </td>
-
-                <!-- Status -->
-                <td class="py-3.5 px-4 sm:px-5 text-right whitespace-nowrap">
-                  @if (tx.status === 'Selesai') {
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    >
-                      Selesai
-                    </span>
-                  } @else if (tx.status === 'Terjadwal') {
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200"
-                    >
-                      Terjadwal
-                    </span>
-                  } @else {
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gray-100 text-gray-700 border border-gray-200"
-                    >
-                      {{ tx.status }}
-                    </span>
-                  }
-                </td>
+      <!-- Responsive Table Container / Empty State -->
+      @if (transactions().length === 0) {
+        <div class="py-10 text-center flex flex-col items-center justify-center space-y-3">
+          <div
+            class="w-12 h-12 rounded-2xl bg-surface-container-low border border-hairline-subtle flex items-center justify-center text-on-surface-variant"
+          >
+            <span class="material-symbols-outlined text-[26px]">receipt_long</span>
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-sm font-bold text-on-surface">Belum Ada Riwayat Transaksi</h3>
+            <p class="text-xs text-on-surface-variant max-w-sm">
+              Pencatatan riil pemesanan dan penerimaan biaya jasa akan otomatis tercatat di sini tanpa potongan komisi.
+            </p>
+          </div>
+        </div>
+      } @else {
+        <div class="overflow-x-auto -mx-5 sm:mx-0">
+          <table class="w-full text-left text-xs min-w-[640px]">
+            <thead>
+              <tr class="border-b border-hairline-subtle bg-surface-container-low/60 text-on-surface-variant font-mono text-[11px] uppercase tracking-wider">
+                <th scope="col" class="py-3 px-4 sm:px-5 font-semibold">TANGGAL &amp; WAKTU</th>
+                <th scope="col" class="py-3 px-4 font-semibold">KLIEN</th>
+                <th scope="col" class="py-3 px-4 font-semibold">LAYANAN</th>
+                <th scope="col" class="py-3 px-4 font-semibold text-center">DURASI</th>
+                <th scope="col" class="py-3 px-4 font-semibold text-right">TOTAL DITERIMA</th>
+                <th scope="col" class="py-3 px-4 sm:px-5 font-semibold text-right">STATUS</th>
               </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody class="divide-y divide-hairline-subtle">
+              @for (tx of transactions(); track tx.id) {
+                <tr class="hover:bg-surface-container-low/40 transition-colors">
+                  <!-- Tanggal & Waktu -->
+                  <td class="py-3.5 px-4 sm:px-5 font-mono text-on-surface whitespace-nowrap">
+                    {{ tx.dateTime }}
+                  </td>
+
+                  <!-- Klien -->
+                  <td class="py-3.5 px-4">
+                    <div class="font-bold text-on-surface">{{ tx.clientName }}</div>
+                    <div class="text-[11px] text-on-surface-variant font-mono">{{ tx.clientArea }}</div>
+                  </td>
+
+                  <!-- Layanan -->
+                  <td class="py-3.5 px-4 font-medium text-on-surface">
+                    {{ tx.serviceName }}
+                  </td>
+
+                  <!-- Durasi -->
+                  <td class="py-3.5 px-4 font-mono text-center text-on-surface-variant whitespace-nowrap">
+                    {{ tx.durationHours }}
+                  </td>
+
+                  <!-- Total Diterima -->
+                  <td class="py-3.5 px-4 font-mono font-bold text-right text-on-surface whitespace-nowrap">
+                    {{ tx.totalReceived }}
+                  </td>
+
+                  <!-- Status -->
+                  <td class="py-3.5 px-4 sm:px-5 text-right whitespace-nowrap">
+                    @if (tx.status === 'Selesai') {
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      >
+                        Selesai
+                      </span>
+                    } @else if (tx.status === 'Terjadwal') {
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                      >
+                        Terjadwal
+                      </span>
+                    } @else {
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gray-100 text-gray-700 border border-gray-200"
+                      >
+                        {{ tx.status }}
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -127,50 +146,10 @@ export interface DashboardTransactionRecord {
 export class SummaryRecentTransactionsTableComponent {
   readonly isDownloaded = signal(false);
 
-  readonly transactions = signal<DashboardTransactionRecord[]>([
-    {
-      id: 'tx-01',
-      dateTime: '24 Okt 2024 • 08:30',
-      clientName: 'Bu Ratna K.',
-      clientArea: 'Tebet Barat 1.8 Km',
-      serviceName: 'Deep Cleaning',
-      durationHours: '3.0 Jam',
-      totalReceived: 'Rp 280.000',
-      status: 'Selesai',
-    },
-    {
-      id: 'tx-02',
-      dateTime: '24 Okt 2024 • 13:00',
-      clientName: 'Pak Dimas Arya',
-      clientArea: 'Senopati 3.9 Km',
-      serviceName: 'General Cleaning',
-      durationHours: '2.5 Jam',
-      totalReceived: 'Rp 216.000',
-      status: 'Terjadwal',
-    },
-    {
-      id: 'tx-03',
-      dateTime: '23 Okt 2024 • 14:00',
-      clientName: 'Clara Veronica',
-      clientArea: 'Pancoran 2.4 Km',
-      serviceName: 'Deep Cleaning',
-      durationHours: '4.0 Jam',
-      totalReceived: 'Rp 360.000',
-      status: 'Selesai',
-    },
-    {
-      id: 'tx-04',
-      dateTime: '22 Okt 2024 • 09:00',
-      clientName: 'Hendra Wijaya',
-      clientArea: 'Kuningan 3.2 Km',
-      serviceName: 'Sanitasi Kasur & Sofa',
-      durationHours: '2.0 Jam',
-      totalReceived: 'Rp 180.000',
-      status: 'Selesai',
-    },
-  ]);
+  readonly transactions = signal<DashboardTransactionRecord[]>([]);
 
   downloadCsv(): void {
+    if (this.transactions().length === 0) return;
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
     const headers = [

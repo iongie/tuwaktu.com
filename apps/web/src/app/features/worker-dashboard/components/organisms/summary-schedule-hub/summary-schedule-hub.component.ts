@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SummarySlotTrackBarComponent } from '../../molecules/summary-slot-track-bar/summary-slot-track-bar.component';
 import {
@@ -31,7 +31,7 @@ import {
               Jadwal &amp; Status Slot Hari Ini
             </h2>
             <p class="text-xs text-on-surface-variant mt-0.5">
-              Kamis, 24 Oktober 2024 • Otomatis Terkunci Buffer
+              {{ todayFormattedDate() }}
             </p>
           </div>
         </div>
@@ -39,7 +39,7 @@ import {
         <span
           class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 self-start sm:self-center"
         >
-          2/3 Slot Terisi
+          {{ activeSlotsBadge() }}
         </span>
       </div>
 
@@ -60,19 +60,28 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SummaryScheduleHubComponent {
+  readonly todayFormattedDate = computed(() => {
+    const now = new Date();
+    const formatted = new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(now);
+    return `${formatted} • Otomatis Terkunci Buffer`;
+  });
+
   readonly timelineItems = signal<SummaryTimelineSlotItem[]>([
     {
       id: 'slot-1',
       type: 'slot',
       timeRange: '08:30 - 11:30',
-      title: 'Bu Ratna K.',
-      service: 'Deep Clean (3 Jam)',
-      location: 'Tebet Barat VII No. 12 (1.8 km dari Basecamp)',
-      payment: 'Rp 280.000 • Diterima via Tunai/QRIS',
-      statusBadge: 'SELESAI',
-      statusVariant: 'completed',
-      chatUrl: 'https://wa.me/6281288992211?text=Halo%20Bu%20Ratna,%20terima%20kasih%20telah%20memesan%20layanan%20Tuwaktu.',
-      actionType: 'chat',
+      title: 'Slot Pagi Terbuka',
+      description: 'Jendela kerja: 08:30 - 11:30 (Maks 3.0 Jam Durasi)',
+      statusBadge: 'SIAP DIPESAN',
+      statusVariant: 'available',
+      actionType: 'lock',
+      isLocked: false,
     },
     {
       id: 'buffer-1',
@@ -86,14 +95,12 @@ export class SummaryScheduleHubComponent {
       id: 'slot-2',
       type: 'slot',
       timeRange: '13:00 - 15:30',
-      title: 'Pak Dimas Arya',
-      service: 'General Clean (2.5 Jam)',
-      location: 'Jl. Suryo No. 44, Senopati (3.9 km • Ekstra Ongkir)',
-      payment: 'Rp 210.000 + Rp 6.000 Ongkir Transit',
-      statusBadge: 'SIAP BERANGKAT',
-      statusVariant: 'active',
-      mapsUrl: 'https://maps.google.com/?q=Jl.+Suryo+No.+44+Senopati',
-      actionType: 'maps',
+      title: 'Slot Siang Terbuka',
+      description: 'Jendela kerja: 13:00 - 15:30 (Maks 2.5 Jam Durasi)',
+      statusBadge: 'SIAP DIPESAN',
+      statusVariant: 'available',
+      actionType: 'lock',
+      isLocked: false,
     },
     {
       id: 'buffer-2',
@@ -116,6 +123,14 @@ export class SummaryScheduleHubComponent {
     },
   ]);
 
+  readonly activeSlotsBadge = computed(() => {
+    const slots = this.timelineItems().filter((item) => item.type === 'slot');
+    const filledCount = slots.filter(
+      (item) => item.statusVariant !== 'available' && !item.isLocked,
+    ).length;
+    return `${filledCount}/${slots.length} Slot Terisi`;
+  });
+
   handleLockToggle(item: SummaryTimelineSlotItem): void {
     this.timelineItems.update((items) =>
       items.map((slot) => {
@@ -128,7 +143,7 @@ export class SummaryScheduleHubComponent {
           };
         }
         return slot;
-      })
+      }),
     );
   }
 }

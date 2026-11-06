@@ -29,19 +29,49 @@ describe('SummaryRecentTransactionsTableComponent', () => {
     expect(el.textContent).toContain('Unduh Rekap CSV');
   });
 
-  it('harus merender 4 baris data transaksi klien', () => {
+  it('harus merender empty state saat belum ada riwayat transaksi', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Bu Ratna K.');
-    expect(el.textContent).toContain('Pak Dimas Arya');
-    expect(el.textContent).toContain('Clara Veronica');
-    expect(el.textContent).toContain('Hendra Wijaya');
-    expect(el.textContent).toContain('Rp 280.000');
-    expect(el.textContent).toContain('Rp 216.000');
-    expect(el.textContent).toContain('Rp 360.000');
-    expect(el.textContent).toContain('Rp 180.000');
+    expect(el.textContent).toContain('Belum Ada Riwayat Transaksi');
+    expect(el.textContent).toContain('Pencatatan riil pemesanan dan penerimaan biaya jasa');
   });
 
-  it('harus memicu fungsi downloadCsv saat tombol diklik', () => {
+  it('harus merender baris data transaksi klien saat data transaksi tersedia', () => {
+    component.transactions.set([
+      {
+        id: 'tx-01',
+        dateTime: '24 Okt 2024 • 08:30',
+        clientName: 'Ratna Kusuma',
+        clientArea: 'Tebet Barat 1.8 Km',
+        serviceName: 'Deep Cleaning',
+        durationHours: '3.0 Jam',
+        totalReceived: 'Rp 280.000',
+        status: 'Selesai',
+      },
+    ]);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Ratna Kusuma');
+    expect(el.textContent).toContain('Deep Cleaning');
+    expect(el.textContent).toContain('Rp 280.000');
+    expect(el.textContent).toContain('Selesai');
+  });
+
+  it('harus memicu fungsi downloadCsv saat tombol diklik dan ada transaksi', () => {
+    component.transactions.set([
+      {
+        id: 'tx-01',
+        dateTime: '24 Okt 2024 • 08:30',
+        clientName: 'Ratna Kusuma',
+        clientArea: 'Tebet Barat 1.8 Km',
+        serviceName: 'Deep Cleaning',
+        durationHours: '3.0 Jam',
+        totalReceived: 'Rp 280.000',
+        status: 'Selesai',
+      },
+    ]);
+    fixture.detectChanges();
+
     const spy = jest.spyOn(component, 'downloadCsv');
     const button = fixture.nativeElement.querySelector('button');
     expect(button).toBeTruthy();

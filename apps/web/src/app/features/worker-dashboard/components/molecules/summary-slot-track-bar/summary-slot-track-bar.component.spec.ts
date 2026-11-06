@@ -22,9 +22,9 @@ describe('SummarySlotTrackBarComponent', () => {
   it('harus merender bar multi-segment dan teks legenda', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('Distribusi Waktu Kerja Harian');
-    expect(el.textContent).toContain('08:30 Pagi (Terisi)');
+    expect(el.textContent).toContain('08:30 Pagi (Buka)');
     expect(el.textContent).toContain('Buffer 90m');
-    expect(el.textContent).toContain('13:00 Siang (Terisi)');
+    expect(el.textContent).toContain('13:00 Siang (Buka)');
     expect(el.textContent).toContain('17:00 Sore (Buka)');
   });
 });

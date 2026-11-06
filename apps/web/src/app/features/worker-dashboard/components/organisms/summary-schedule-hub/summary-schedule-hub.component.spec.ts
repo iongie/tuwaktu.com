@@ -19,18 +19,18 @@ describe('SummaryScheduleHubComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('harus merender judul, tanggal hari ini, dan badge 2/3 Slot Terisi', () => {
+  it('harus merender judul, tanggal hari ini secara dinamis, dan badge slot', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('Jadwal & Status Slot Hari Ini');
-    expect(el.textContent).toContain('Kamis, 24 Oktober 2024 • Otomatis Terkunci Buffer');
-    expect(el.textContent).toContain('2/3 Slot Terisi');
+    expect(el.textContent).toContain(component.todayFormattedDate());
+    expect(el.textContent).toContain('0/3 Slot Terisi');
   });
 
-  it('harus merender seluruh 5 entri timeline (slot 1, buffer 1, slot 2, buffer 2, slot 3)', () => {
+  it('harus merender seluruh 5 entri timeline operasional (slot pagi, buffer 1, slot siang, buffer 2, slot sore)', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Bu Ratna K.');
+    expect(el.textContent).toContain('Slot Pagi Terbuka');
     expect(el.textContent).toContain('TRANSIT BUFFER • 90 MENIT');
-    expect(el.textContent).toContain('Pak Dimas Arya');
+    expect(el.textContent).toContain('Slot Siang Terbuka');
     expect(el.textContent).toContain('Slot Sore Terbuka');
   });
 

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 
 @Component({
   selector: 'app-summary-basecamp-radar-card',
@@ -56,8 +57,8 @@ import { RouterLink } from '@angular/router';
           <path d="M 80 -20 Q 140 90 200 200" fill="none" stroke="#475569" stroke-width="2" />
           <path d="M 0 140 L 320 60" fill="none" stroke="#475569" stroke-width="1.5" />
           <!-- Landmarks -->
-          <text x="20" y="30" fill="#94a3b8" font-size="9" font-family="monospace">Jl. Tebet Timur Dalam</text>
-          <text x="180" y="150" fill="#94a3b8" font-size="9" font-family="monospace">Tebet Barat</text>
+          <text x="20" y="30" fill="#94a3b8" font-size="9" font-family="monospace">Radius Operasional</text>
+          <text x="180" y="150" fill="#94a3b8" font-size="9" font-family="monospace">Batas Area</text>
         </svg>
 
         <!-- Concentric Radar Rings -->
@@ -79,14 +80,14 @@ import { RouterLink } from '@angular/router';
           class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded bg-black/80 backdrop-blur-xs text-[10px] font-mono font-bold text-emerald-300 border border-white/10 flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>TITIK PUSAT: TEBET TIMUR</span>
+          <span>{{ basecampCenterBadge() }}</span>
         </div>
 
         <!-- Bottom-Right Free Zone Badge -->
         <div
           class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/70 text-[9px] font-mono text-white/80 border border-white/10"
         >
-          Radius Bebas 3.0 Km
+          {{ freeRadiusBadge() }}
         </div>
       </div>
 
@@ -94,28 +95,62 @@ import { RouterLink } from '@angular/router';
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
         <div class="p-2.5 rounded-lg bg-surface-container-low border border-hairline-subtle space-y-0.5">
           <span class="text-[10px] font-mono text-on-surface-variant uppercase block">Lokasi Asal</span>
-          <span class="font-bold text-on-surface truncate block" title="Tebet Timur Dalam Raya No. 18">
-            Tebet Timur Dalam Raya No. 18
+          <span class="font-bold text-on-surface truncate block" [title]="basecampAddress()">
+            {{ basecampAddress() }}
           </span>
         </div>
 
         <div class="p-2.5 rounded-lg bg-surface-container-low border border-hairline-subtle space-y-0.5">
           <span class="text-[10px] font-mono text-on-surface-variant uppercase block">Radius Bebas Biaya</span>
-          <span class="font-mono font-bold text-emerald-700 block">0.0 - 3.0 Km (Rp 0)</span>
+          <span class="font-mono font-bold text-emerald-700 block">{{ freeRadiusRange() }}</span>
         </div>
 
         <div class="p-2.5 rounded-lg bg-surface-container-low border border-hairline-subtle space-y-0.5">
           <span class="text-[10px] font-mono text-on-surface-variant uppercase block">Batas Jangkauan Maks</span>
-          <span class="font-mono font-bold text-on-surface block">5.0 Km</span>
+          <span class="font-mono font-bold text-on-surface block">{{ maxRadiusLabel() }}</span>
         </div>
 
         <div class="p-2.5 rounded-lg bg-surface-container-low border border-hairline-subtle space-y-0.5">
           <span class="text-[10px] font-mono text-on-surface-variant uppercase block">Surcharge Luar Radius</span>
-          <span class="font-mono font-bold text-amber-800 block">+Rp 3.000 / Km</span>
+          <span class="font-mono font-bold text-amber-800 block">{{ extraFeeLabel() }}</span>
         </div>
       </div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SummaryBasecampRadarCardComponent {}
+export class SummaryBasecampRadarCardComponent {
+  private readonly store = inject(WorkerDashboardStore, { optional: true });
+
+  readonly basecampAddress = computed(() => {
+    const addr = this.store?.workerBasecampAddress();
+    return addr && addr.trim() ? addr.trim() : 'Alamat Basecamp Belum Diatur';
+  });
+
+  readonly basecampCenterBadge = computed(() => {
+    const addr = this.store?.workerBasecampAddress();
+    if (!addr || !addr.trim()) return 'TITIK PUSAT: BASECAMP';
+    const area = addr.split(',')[0].replace(/^Jl\.\s*/i, '').trim();
+    return `TITIK PUSAT: ${area.toUpperCase()}`;
+  });
+
+  readonly freeRadiusBadge = computed(() => {
+    const freeKm = this.store?.workerFreeRadiusKm() ?? 3.0;
+    return `Radius Bebas ${freeKm.toFixed(1)} Km`;
+  });
+
+  readonly freeRadiusRange = computed(() => {
+    const freeKm = this.store?.workerFreeRadiusKm() ?? 3.0;
+    return `0.0 - ${freeKm.toFixed(1)} Km (Rp 0)`;
+  });
+
+  readonly maxRadiusLabel = computed(() => {
+    const maxKm = this.store?.workerMaxRadiusKm() ?? 5.0;
+    return `${maxKm.toFixed(1)} Km`;
+  });
+
+  readonly extraFeeLabel = computed(() => {
+    const fee = this.store?.workerExtraFeePerKm() ?? 3000;
+    return `+Rp ${fee.toLocaleString('id-ID')} / Km`;
+  });
+}

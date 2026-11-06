@@ -68,10 +68,10 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
               </div>
 
               <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                {{ store.workerFullName() || 'Sarah Melinda' }}
+                {{ store.workerFullName() || 'Mitra Teknisi' }}
               </h1>
               <p class="text-xs sm:text-sm text-white/70 max-w-xl font-normal">
-                {{ store.workerProfessionZone() || 'Spesialis Sanitasi Hunian & Deep Cleaning Mandiri' }}
+                {{ store.workerProfessionZone() || 'Layanan Mandiri Terverifikasi' }}
               </p>
             </div>
           </div>
@@ -155,7 +155,7 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
                   Tautan Publik Klien
                 </span>
                 <div class="font-mono text-xs sm:text-sm font-bold text-white tracking-tight truncate">
-                  tuwaktu.com/{{ store.workerSlugIdentifier() || 'sarah-cleaning' }}
+                  tuwaktu.com/{{ store.workerSlugIdentifier() || 'mitra' }}
                 </div>
                 <div class="flex items-center gap-2 pt-1">
                   <button
@@ -197,10 +197,10 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
         <!-- 1. Bulan Berjalan -->
         <app-dashboard-metric-stat-card
           [label]="'Bulan Berjalan'"
-          [value]="28"
+          [value]="completedOrdersCount()"
           [subtext]="'Pesanan Selesai'"
           [icon]="'task_alt'"
-          [trendText]="'+6 order dibanding bulan lalu'"
+          [trendText]="'Rekapitulasi pesanan aktif'"
           [trendIcon]="'arrow_upward'"
           [trendType]="'positive'"
         />
@@ -208,7 +208,7 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
         <!-- 2. Pendapatan Mandiri -->
         <app-dashboard-metric-stat-card
           [label]="'Pendapatan Mandiri'"
-          [value]="'Rp 4.550.000'"
+          [value]="formattedRevenue()"
           [subtext]="'100% Bersih Diterima'"
           [icon]="'payments'"
           [badgeText]="'0% POTONGAN'"
@@ -221,10 +221,10 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
         <!-- 3. Efisiensi Kerja -->
         <app-dashboard-metric-stat-card
           [label]="'Efisiensi Kerja'"
-          [value]="'2.5 Jam'"
+          [value]="workEfficiencyText()"
           [subtext]="'Rata-rata Durasi/Order'"
           [icon]="'timelapse'"
-          [trendText]="'70 Jam kumulatif bulan ini'"
+          [trendText]="'Waktu kerja operasional'"
           [trendIcon]="'schedule'"
           [trendType]="'neutral'"
         />
@@ -232,8 +232,8 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
         <!-- 4. Reputasi Klien -->
         <app-dashboard-metric-stat-card
           [label]="'Reputasi Klien'"
-          [value]="'4.9 / 5.0'"
-          [subtext]="'128 Ulasan Terverifikasi'"
+          [value]="reputationRatingText()"
+          [subtext]="reputationReviewsText()"
           [icon]="'star'"
           [starsCount]="5"
           [trendText]="'Validasi OTP WhatsApp Klien'"
@@ -250,12 +250,18 @@ export class WorkerDashboardHeroBannerComponent {
   readonly isCopied = signal(false);
   readonly isShared = signal(false);
 
+  readonly completedOrdersCount = signal(0);
+  readonly formattedRevenue = signal('Rp 0');
+  readonly workEfficiencyText = signal('0 Jam');
+  readonly reputationRatingText = signal('5.0 / 5.0');
+  readonly reputationReviewsText = signal('Ulasan Terverifikasi');
+
   readonly fallbackAvatar =
     'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop';
 
   readonly workerBadgeCode = computed(() => {
     const id = this.store.workerRecordId().trim();
-    if (!id) return 'TWK-JKT-8821';
+    if (!id) return 'TWK-MITRA';
     if (id.startsWith('TWK-')) return id;
     return 'TWK-' + id.substring(0, 8).toUpperCase();
   });
@@ -267,15 +273,15 @@ export class WorkerDashboardHeroBannerComponent {
   }
 
   shareLink(): void {
-    const slug = this.store.workerSlugIdentifier() || 'sarah-cleaning';
-    const fullName = this.store.workerFullName() || 'Sarah Melinda';
+    const slug = this.store.workerSlugIdentifier() || 'mitra';
+    const fullName = this.store.workerFullName() || 'Mitra Teknisi';
     const url = `https://tuwaktu.com/${slug}`;
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       navigator
         .share({
           title: `${fullName} - Tuwaktu`,
-          text: 'Pesan layanan sanitasi langsung tanpa komisi aplikasi di Tuwaktu',
+          text: 'Pesan layanan profesional langsung tanpa komisi aplikasi di Tuwaktu',
           url: url,
         })
         .then(() => {

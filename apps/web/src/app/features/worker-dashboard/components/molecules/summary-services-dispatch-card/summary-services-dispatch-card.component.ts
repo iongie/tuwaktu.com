@@ -36,26 +36,37 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
         </a>
       </div>
 
-      <!-- Service Items List -->
-      <div class="space-y-2.5">
-        @for (srv of displayServices(); track srv.name) {
-          <div
-            class="p-3 rounded-xl bg-surface-container-low border border-hairline-subtle flex items-center justify-between gap-3"
-          >
-            <div class="space-y-0.5 min-w-0">
-              <h4 class="text-xs font-bold text-on-surface truncate">
-                {{ srv.name }}
-              </h4>
-              <p class="text-[11px] text-on-surface-variant truncate">
-                {{ srv.description }}
-              </p>
+      <!-- Service Items List / Empty State -->
+      @if (displayServices().length === 0) {
+        <div class="p-4 rounded-xl bg-surface-container-low border border-hairline-subtle text-center space-y-1.5">
+          <p class="text-xs font-bold text-on-surface">
+            Belum ada katalog layanan aktif
+          </p>
+          <p class="text-[11px] text-on-surface-variant">
+            Silakan tambahkan layanan pada menu Tarif &amp; Layanan.
+          </p>
+        </div>
+      } @else {
+        <div class="space-y-2.5">
+          @for (srv of displayServices(); track srv.name) {
+            <div
+              class="p-3 rounded-xl bg-surface-container-low border border-hairline-subtle flex items-center justify-between gap-3"
+            >
+              <div class="space-y-0.5 min-w-0">
+                <h4 class="text-xs font-bold text-on-surface truncate">
+                  {{ srv.name }}
+                </h4>
+                <p class="text-[11px] text-on-surface-variant truncate">
+                  {{ srv.description }}
+                </p>
+              </div>
+              <span class="font-mono text-xs font-bold text-on-surface whitespace-nowrap shrink-0">
+                {{ srv.priceText }}
+              </span>
             </div>
-            <span class="font-mono text-xs font-bold text-on-surface whitespace-nowrap shrink-0">
-              {{ srv.priceText }}
-            </span>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
 
       <!-- WhatsApp Dispatch Handoff Channel Strip -->
       <div
@@ -93,29 +104,18 @@ export class SummaryServicesDispatchCardComponent {
 
   readonly displayServices = computed(() => {
     const list = this.store?.workerServices() || [];
-    if (list.length > 0) {
-      return list.slice(0, 2).map((item) => ({
+    return list
+      .filter((item) => item.status === 'ACTIVE')
+      .slice(0, 2)
+      .map((item) => ({
         name: item.name,
         description: item.description || 'Layanan operasional terverifikasi',
         priceText: `Rp ${(item.price || item.base_price || 0).toLocaleString('id-ID')}${item.rate_type === 'HOURLY' ? '/jam' : ''}`,
       }));
-    }
-
-    return [
-      {
-        name: 'Deep Cleaning Specialist',
-        description: 'Vakum debu, toilet kerak berat & dapur',
-        priceText: 'Rp 90.000/jam',
-      },
-      {
-        name: 'General Clean Room',
-        description: 'Sapu, pel, sanitasi permukaan perabot',
-        priceText: 'Rp 80.000/jam',
-      },
-    ];
   });
 
   readonly displayWhatsAppNumber = computed(() => {
-    return this.store?.workerWhatsAppNumber() || '+62 812-8899-2211';
+    const phone = this.store?.workerWhatsAppNumber();
+    return phone && phone.trim() ? phone.trim() : 'Nomor WhatsApp Belum Diatur';
   });
 }

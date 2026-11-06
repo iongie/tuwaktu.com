@@ -564,5 +564,57 @@ describe('AuthService', () => {
       expect(callCount).toBe(2);
       expect(service.currentUser()?.name).toBe('Budi Santoso');
     });
+
+    it('harus memperbarui sinyal isInitialized menjadi true setelah checkAuthStatus selesai', () => {
+      expect(service.isInitialized()).toBe(false);
+
+      let emittedSession: unknown = undefined;
+      service.checkAuthStatus().subscribe((session) => {
+        emittedSession = session;
+      });
+
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/me');
+      req.flush({
+        success: true,
+        message: 'Sesi otentikasi aktif berhasil diambil',
+        data: {
+          id: 'worker-id-1',
+          name: 'Budi Santoso',
+          slug: 'budi-santoso',
+          email: 'budi@tuwaktu.com',
+          phone_number: '6281288992211',
+          role: 'WORKER',
+          account_status: 'ACTIVE',
+          must_change_password: false,
+        },
+      });
+
+      expect(service.isInitialized()).toBe(true);
+      expect(emittedSession).toBeTruthy();
+    });
+
+    it('harus memperbarui sinyal isInitialized menjadi true meski checkAuthStatus gagal (401)', () => {
+      expect(service.isInitialized()).toBe(false);
+
+      let emittedSession: unknown = 'initial';
+      service.checkAuthStatus().subscribe((session) => {
+        emittedSession = session;
+      });
+
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/me');
+      req.flush(
+        {
+          success: false,
+          message: 'Otentikasi diperlukan: silakan masuk terlebih dahulu',
+          data: null,
+          error: 'UNAUTHORIZED',
+        },
+        { status: 401, statusText: 'Unauthorized' }
+      );
+
+      expect(service.isInitialized()).toBe(true);
+      expect(emittedSession).toBeNull();
+      expect(service.currentUser()).toBeNull();
+    });
   });
 });

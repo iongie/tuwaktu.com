@@ -51,8 +51,11 @@ export const appConfig: ApplicationConfig = {
       const authService = inject(AuthService);
       const platformId = inject(PLATFORM_ID);
       if (isPlatformBrowser(platformId)) {
-        return firstValueFrom(authService.checkSession().pipe(catchError(() => of(null))));
+        return firstValueFrom(
+          authService.checkAuthStatus().pipe(catchError(() => of(null)))
+        );
       }
+      authService.isInitialized.set(true);
       return Promise.resolve(null);
     }),
     {

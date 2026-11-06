@@ -93,26 +93,32 @@ export const adminGuard: CanActivateFn & CanActivateChildFn = (
     });
   };
 
-  const currentUser = authService.currentUser();
-  if (currentUser) {
-    const role = (currentUser.role || '').toUpperCase();
+  const evaluateAdminRole = (user: { role?: string }): boolean | UrlTree => {
+    const role = (user.role || '').toUpperCase();
     if (role === 'ADMIN') {
       return true;
     }
     return router.createUrlTree(['/dashboard']);
+  };
+
+  const currentUser = authService.currentUser();
+  if (currentUser) {
+    return evaluateAdminRole(currentUser);
   }
 
-  // Jika sinyal memori belum ter-hydrate, verifikasi sesi via checkSession (GET /api/v1/auth/me)
-  return authService.checkSession().pipe(
+  // Jika status autentikasi sudah selesai diinisialisasi dan pengguna belum masuk,
+  // langsung alihkan ke /login secara sinkron tanpa panggilan jaringan redundan.
+  if (authService.isInitialized()) {
+    return createLoginRedirectTree();
+  }
+
+  // Jika belum diinisialisasi (misal siklus awal page reload), tahan eksekusi guard hingga checkAuthStatus selesai.
+  return authService.checkAuthStatus().pipe(
     map((user) => {
       if (!user) {
         return createLoginRedirectTree();
       }
-      const role = (user.role || '').toUpperCase();
-      if (role === 'ADMIN') {
-        return true;
-      }
-      return router.createUrlTree(['/dashboard']);
+      return evaluateAdminRole(user);
     }),
     catchError(() => of(createLoginRedirectTree()))
   );

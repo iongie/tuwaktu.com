@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, finalize, map, Observable, of, shareReplay } from 'rxjs';
 import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
   AuthLoginResult,
@@ -47,6 +47,7 @@ export class AuthService {
   readonly currentUser = signal<AuthUserSession | null>(null);
   readonly currentWorker = computed<AuthUserSession | null>(() => this.currentUser());
   readonly isLoggedIn = computed<boolean>(() => this.currentUser() !== null);
+  readonly isInitialized = signal<boolean>(false);
 
   private get normalizedBaseUrl(): string {
     return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
@@ -61,10 +62,18 @@ export class AuthService {
   setSession(session: AuthUserSession | null): void {
     this.inFlightSession$ = null;
     this.currentUser.set(session);
+    if (session !== null) {
+      this.isInitialized.set(true);
+    }
+  }
+
+  checkAuthStatus(force = false): Observable<AuthUserSession | null> {
+    return this.checkSession(force);
   }
 
   checkSession(force = false): Observable<AuthUserSession | null> {
     if (!this.httpClient) {
+      this.isInitialized.set(true);
       return of(this.currentUser());
     }
 
@@ -102,6 +111,9 @@ export class AuthService {
           this.inFlightSession$ = null;
           this.currentUser.set(null);
           return of(null);
+        }),
+        finalize(() => {
+          this.isInitialized.set(true);
         }),
         shareReplay(1)
       );
@@ -172,6 +184,7 @@ export class AuthService {
           mustChangePassword: extra?.mustChangePassword ?? false,
         };
         this.currentUser.set(fallbackSession);
+        this.isInitialized.set(true);
         return of({ success: true });
       }
 
@@ -196,6 +209,7 @@ export class AuthService {
                 mustChangePassword: s.must_change_password,
               };
               this.currentUser.set(session);
+              this.isInitialized.set(true);
               return { success: true };
             }
             return { success: false, error: resp?.message || 'Proses masuk gagal' };

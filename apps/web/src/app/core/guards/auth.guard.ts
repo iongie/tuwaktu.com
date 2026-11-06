@@ -105,7 +105,14 @@ export const authGuard: CanActivateFn & CanActivateChildFn = (
     return true;
   }
 
-  return authService.checkSession().pipe(
+  // Jika status autentikasi sudah selesai diinisialisasi dan pengguna belum masuk,
+  // langsung alihkan ke /login secara sinkron tanpa panggilan jaringan redundan.
+  if (authService.isInitialized()) {
+    return createLoginRedirectTree();
+  }
+
+  // Jika belum diinisialisasi (misal siklus awal page reload), tahan eksekusi guard hingga checkAuthStatus selesai.
+  return authService.checkAuthStatus().pipe(
     map((user) => {
       if (!user) {
         return createLoginRedirectTree();

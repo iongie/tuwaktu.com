@@ -222,6 +222,41 @@ describe('adminGuard and Routing Security Helpers', () => {
       });
       expect(resolvedResult).toEqual(expectedUrlTree);
     });
+
+    it('harus mengalihkan ke /login secara sinkron tanpa memanggil checkAuthStatus jika isInitialized sudah true dan currentUser null', () => {
+      authService.setSession(null);
+      authService.isInitialized.set(true);
+      const checkSpy = jest.spyOn(authService, 'checkAuthStatus');
+
+      const result = TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+
+      expect(isObservable(result)).toBe(false);
+      const expectedUrlTree = router.createUrlTree(['/login'], {
+        queryParams: { returnUrl: '/admin/workers' },
+      });
+      expect(result).toEqual(expectedUrlTree);
+      expect(checkSpy).not.toHaveBeenCalled();
+    });
+
+    it('harus menahan eksekusi adminGuard via Observable checkAuthStatus jika isInitialized bernilai false', async () => {
+      authService.setSession(null);
+      expect(authService.isInitialized()).toBe(false);
+      const checkSpy = jest.spyOn(authService, 'checkAuthStatus').mockReturnValue(
+        of({
+          id: 'admin-delayed',
+          name: 'Super Admin',
+          slug: 'admin',
+          role: 'ADMIN',
+        })
+      );
+
+      const result = TestBed.runInInjectionContext(() => adminGuard(mockRoute, mockState));
+
+      expect(isObservable(result)).toBe(true);
+      const resolved = await firstValueFrom(result as Observable<unknown>);
+      expect(resolved).toBe(true);
+      expect(checkSpy).toHaveBeenCalled();
+    });
   });
 });
 

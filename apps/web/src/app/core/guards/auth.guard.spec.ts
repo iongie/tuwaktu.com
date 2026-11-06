@@ -249,5 +249,44 @@ describe('authGuard and Dashboard Routing Helpers', () => {
       });
       expect(resolvedResult).toEqual(expectedUrlTree);
     });
+
+    it('harus mengalihkan ke /login secara sinkron tanpa memanggil checkAuthStatus jika isInitialized sudah true dan currentUser null', () => {
+      authService.setSession(null);
+      authService.isInitialized.set(true);
+      const checkSpy = jest.spyOn(authService, 'checkAuthStatus');
+
+      const result = TestBed.runInInjectionContext(() =>
+        authGuard(mockRoute, mockState)
+      );
+
+      expect(isObservable(result)).toBe(false);
+      const expectedUrlTree = router.createUrlTree(['/login'], {
+        queryParams: { returnUrl: '/dashboard/ringkasan' },
+      });
+      expect(result).toEqual(expectedUrlTree);
+      expect(checkSpy).not.toHaveBeenCalled();
+    });
+
+    it('harus menahan eksekusi guard via Observable checkAuthStatus jika isInitialized bernilai false', async () => {
+      authService.setSession(null);
+      expect(authService.isInitialized()).toBe(false);
+      const checkSpy = jest.spyOn(authService, 'checkAuthStatus').mockReturnValue(
+        of({
+          id: 'worker-delayed',
+          name: 'Sarah Melinda',
+          slug: 'sarah-cleaning',
+          role: 'worker',
+        })
+      );
+
+      const result = TestBed.runInInjectionContext(() =>
+        authGuard(mockRoute, mockState)
+      );
+
+      expect(isObservable(result)).toBe(true);
+      const resolved = await firstValueFrom(result as Observable<unknown>);
+      expect(resolved).toBe(true);
+      expect(checkSpy).toHaveBeenCalled();
+    });
   });
 });

@@ -1,6 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+export interface ScheduleSlotBooking {
+  readonly id: string;
+  readonly slotNumber: '01' | '02' | '03';
+  readonly clientName: string;
+  readonly serviceName: string;
+  readonly timeRange: string;
+  readonly durationText: string;
+  readonly clientLocation: string;
+  readonly statusText: string;
+  readonly statusBadge: string;
+  readonly departureEstimate?: string;
+  readonly orderId: string;
+}
+
 @Component({
   selector: 'app-schedule-slot-timeline-card',
   standalone: true,
@@ -24,49 +38,49 @@ import { CommonModule } from '@angular/common';
         <div class="flex items-center gap-space-xs bg-surface-highlight p-1 rounded-xl border border-hairline-subtle flex-wrap">
           <button
             type="button"
-            (click)="segmentChange.emit('Hari Ini (24 Okt)')"
+            (click)="segmentChange.emit('Hari Ini')"
             class="px-space-md py-space-xs font-button-label text-button-label rounded-lg transition-colors cursor-pointer min-h-[44px] flex items-center"
-            [class.bg-primary]="selectedSegment() === 'Hari Ini (24 Okt)'"
-            [class.text-on-primary]="selectedSegment() === 'Hari Ini (24 Okt)'"
-            [class.shadow-xs]="selectedSegment() === 'Hari Ini (24 Okt)'"
-            [class.text-ink-secondary]="selectedSegment() !== 'Hari Ini (24 Okt)'"
-            [class.hover:text-primary]="selectedSegment() !== 'Hari Ini (24 Okt)'"
+            [class.bg-primary]="isToday()"
+            [class.text-on-primary]="isToday()"
+            [class.shadow-xs]="isToday()"
+            [class.text-ink-secondary]="!isToday()"
+            [class.hover:text-primary]="!isToday()"
           >
-            Hari Ini (24 Okt)
+            Hari Ini
           </button>
           <button
             type="button"
-            (click)="segmentChange.emit('Besok (25 Okt)')"
+            (click)="segmentChange.emit('Besok')"
             class="px-space-md py-space-xs font-button-label text-button-label rounded-lg transition-colors cursor-pointer min-h-[44px] flex items-center"
-            [class.bg-primary]="selectedSegment() === 'Besok (25 Okt)'"
-            [class.text-on-primary]="selectedSegment() === 'Besok (25 Okt)'"
-            [class.shadow-xs]="selectedSegment() === 'Besok (25 Okt)'"
-            [class.text-ink-secondary]="selectedSegment() !== 'Besok (25 Okt)'"
-            [class.hover:text-primary]="selectedSegment() !== 'Besok (25 Okt)'"
+            [class.bg-primary]="isTomorrow()"
+            [class.text-on-primary]="isTomorrow()"
+            [class.shadow-xs]="isTomorrow()"
+            [class.text-ink-secondary]="!isTomorrow()"
+            [class.hover:text-primary]="!isTomorrow()"
           >
-            Besok (25 Okt)
+            Besok
           </button>
           <button
             type="button"
-            (click)="segmentChange.emit('Sabtu (26 Okt)')"
+            (click)="segmentChange.emit('Sabtu')"
             class="px-space-md py-space-xs font-button-label text-button-label rounded-lg transition-colors cursor-pointer min-h-[44px] flex items-center"
-            [class.bg-primary]="selectedSegment() === 'Sabtu (26 Okt)'"
-            [class.text-on-primary]="selectedSegment() === 'Sabtu (26 Okt)'"
-            [class.shadow-xs]="selectedSegment() === 'Sabtu (26 Okt)'"
-            [class.text-ink-secondary]="selectedSegment() !== 'Sabtu (26 Okt)'"
-            [class.hover:text-primary]="selectedSegment() !== 'Sabtu (26 Okt)'"
+            [class.bg-primary]="isSaturday()"
+            [class.text-on-primary]="isSaturday()"
+            [class.shadow-xs]="isSaturday()"
+            [class.text-ink-secondary]="!isSaturday()"
+            [class.hover:text-primary]="!isSaturday()"
           >
-            Sabtu (26 Okt)
+            Sabtu
           </button>
           <button
             type="button"
             (click)="segmentChange.emit('Minggu (Libur)')"
             class="px-space-md py-space-xs font-button-label text-button-label rounded-lg transition-colors cursor-pointer min-h-[44px] flex items-center"
-            [class.bg-error]="selectedSegment() === 'Minggu (Libur)'"
-            [class.text-on-error]="selectedSegment() === 'Minggu (Libur)'"
-            [class.shadow-xs]="selectedSegment() === 'Minggu (Libur)'"
-            [class.text-error]="selectedSegment() !== 'Minggu (Libur)'"
-            [class.hover:bg-error-surface]="selectedSegment() !== 'Minggu (Libur)'"
+            [class.bg-error]="isSunday()"
+            [class.text-on-error]="isSunday()"
+            [class.shadow-xs]="isSunday()"
+            [class.text-error]="!isSunday()"
+            [class.hover:bg-error-surface]="!isSunday()"
           >
             Minggu (Libur)
           </button>
@@ -94,13 +108,13 @@ import { CommonModule } from '@angular/common';
           } @else if (isToday() && isTodayEmergencyLocked()) {
             <div class="bg-error h-full w-full" title="Terkunci Darurat"></div>
           } @else if (isSaturday()) {
-            <div class="bg-primary h-full w-[50%]" title="Slot 01: Terisi"></div>
-            <div class="bg-success-surface h-full w-[50%] border-l border-white/40" title="Slot 02: Tersedia"></div>
+            <div [class.bg-primary]="slot1Booking()" [class.bg-success-surface]="!slot1Booking()" class="h-full w-[50%]" [title]="slot1Booking() ? 'Slot 01: Terisi' : 'Slot 01: Tersedia'"></div>
+            <div [class.bg-voltage-orange]="slot2Booking()" [class.bg-success-surface]="!slot2Booking()" class="h-full w-[50%] border-l border-white/40" [title]="slot2Booking() ? 'Slot 02: Terisi' : 'Slot 02: Tersedia'"></div>
           } @else {
-            <div class="bg-primary h-full w-[33.3%]" title="Slot 01: Terisi"></div>
-            <div class="bg-voltage-orange h-full w-[33.3%]" title="Slot 02: Terisi"></div>
+            <div [class.bg-primary]="slot1Booking()" [class.bg-success-surface]="!slot1Booking()" class="h-full w-[33.3%]" [title]="slot1Booking() ? 'Slot 01: Terisi' : 'Slot 01: Tersedia'"></div>
+            <div [class.bg-voltage-orange]="slot2Booking()" [class.bg-success-surface]="!slot2Booking()" class="h-full w-[33.3%]" [title]="slot2Booking() ? 'Slot 02: Terisi' : 'Slot 02: Tersedia'"></div>
             @if (!isSlot3Locked()) {
-              <div class="bg-success-surface h-full w-[33.4%] border-l border-white/40" title="Slot 03: Tersedia"></div>
+              <div [class.bg-secondary]="slot3Booking()" [class.bg-success-surface]="!slot3Booking()" class="h-full w-[33.4%] border-l border-white/40" [title]="slot3Booking() ? 'Slot 03: Terisi' : 'Slot 03: Tersedia'"></div>
             } @else {
               <div class="bg-neutral-600 h-full w-[33.4%] border-l border-white/40" title="Slot 03: Terkunci"></div>
             }
@@ -147,42 +161,77 @@ import { CommonModule } from '@angular/common';
             </div>
           }
 
-          <!-- SLOT 1: Booked & Confirmed -->
-          <div class="bg-surface-highlight p-space-lg rounded-xl border border-hairline-subtle flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-            <div class="flex items-start gap-space-md">
-              <div class="w-12 h-12 bg-primary text-on-primary rounded-xl flex flex-col items-center justify-center shrink-0">
-                <span class="font-micro-uppercase text-micro-uppercase tracking-wider">SLOT</span>
-                <span class="font-body-strong text-body-strong font-bold">01</span>
+          <!-- SLOT 1 -->
+          @if (slot1Booking(); as booking1) {
+            <div class="bg-surface-highlight p-space-lg rounded-xl border border-hairline-subtle flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+              <div class="flex items-start gap-space-md">
+                <div class="w-12 h-12 bg-primary text-on-primary rounded-xl flex flex-col items-center justify-center shrink-0">
+                  <span class="font-micro-uppercase text-micro-uppercase tracking-wider">SLOT</span>
+                  <span class="font-body-strong text-body-strong font-bold">01</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <div class="flex items-center gap-space-sm flex-wrap">
+                    <span class="font-mono-rate text-mono-rate text-primary font-bold">{{ booking1.timeRange }}</span>
+                    <span class="font-caption text-caption text-ink-secondary">({{ booking1.durationText }})</span>
+                    <span class="bg-success-surface text-success px-space-xs py-0.5 rounded font-micro-uppercase text-micro-uppercase font-bold">
+                      {{ booking1.statusBadge }}
+                    </span>
+                  </div>
+                  <span class="font-lead-body text-lead-body text-primary font-bold">
+                    {{ booking1.serviceName }} • {{ booking1.clientName }}
+                  </span>
+                  <div class="flex items-center gap-space-xs text-caption text-ink-secondary flex-wrap">
+                    <span class="material-symbols-outlined text-[14px]">pin_drop</span>
+                    <span>{{ booking1.clientLocation }}</span>
+                    <span class="text-ink-secondary">•</span>
+                    <span class="text-whatsapp-green font-semibold">{{ booking1.statusText }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-space-sm flex-wrap">
-                  <span class="font-mono-rate text-mono-rate text-primary font-bold">08:30 - 11:30 WIB</span>
-                  <span class="font-caption text-caption text-ink-secondary">(Durasi 3 Jam)</span>
-                  <span class="bg-success-surface text-success px-space-xs py-0.5 rounded font-micro-uppercase text-micro-uppercase font-bold">
-                    TERKONFIRMASI / SIAP JALAN
+              <div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+                <button
+                  type="button"
+                  (click)="viewOrderDetails.emit(booking1.orderId)"
+                  class="px-space-md py-space-xs bg-surface-container-lowest text-on-surface hover:bg-surface-container rounded-lg text-caption font-button-label transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
+                >
+                  Rincian Order
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="bg-surface-highlight p-space-lg rounded-xl border border-hairline-subtle flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+              <div class="flex items-start gap-space-md">
+                <div class="w-12 h-12 bg-success text-on-primary rounded-xl flex flex-col items-center justify-center shrink-0">
+                  <span class="font-micro-uppercase text-micro-uppercase tracking-wider">SLOT</span>
+                  <span class="font-body-strong text-body-strong font-bold">01</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <div class="flex items-center gap-space-sm flex-wrap">
+                    <span class="font-mono-rate text-mono-rate text-primary font-bold">08:30 - 11:30 WIB</span>
+                    <span class="font-caption text-caption text-ink-secondary">(Durasi 3 Jam)</span>
+                    <span class="bg-success text-on-primary px-space-xs py-0.5 rounded font-micro-uppercase text-micro-uppercase font-bold">
+                      SLOT TERBUKA PUBLIK
+                    </span>
+                  </div>
+                  <span class="font-lead-body text-lead-body text-primary font-bold">
+                    Siap Menerima Pesanan Klien Pagi
+                  </span>
+                  <span class="font-caption text-caption text-ink-secondary">
+                    Tampil aktif di tautan publik {{ publicProfileUrl() }}
                   </span>
                 </div>
-                <span class="font-lead-body text-lead-body text-primary font-bold">
-                  Deep Clean Detailing • Bu Ratna K.
-                </span>
-                <div class="flex items-center gap-space-xs text-caption text-ink-secondary flex-wrap">
-                  <span class="material-symbols-outlined text-[14px]">pin_drop</span>
-                  <span>Tebet Barat Dalam VII, Jakarta Selatan (6.2 km)</span>
-                  <span class="text-ink-secondary">•</span>
-                  <span class="text-whatsapp-green font-semibold">Dipesan via WhatsApp Terverifikasi</span>
-                </div>
+              </div>
+              <div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+                <button
+                  type="button"
+                  (click)="editSlotTime.emit('slot-01')"
+                  class="px-space-md py-space-xs bg-surface-container-lowest text-on-surface hover:bg-surface-highlight rounded-lg text-caption font-button-label transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
+                >
+                  Ubah Jam
+                </button>
               </div>
             </div>
-            <div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
-              <button
-                type="button"
-                (click)="viewOrderDetails.emit('order-ratna')"
-                class="px-space-md py-space-xs bg-surface-container-lowest text-on-surface hover:bg-surface-container rounded-lg text-caption font-button-label transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
-              >
-                Rincian Order
-              </button>
-            </div>
-          </div>
+          }
 
           <!-- MANDATORY BUFFER BLOCK 1 -->
           <div class="p-space-md rounded-xl bg-surface-container flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm border border-hairline-subtle">
@@ -211,42 +260,79 @@ import { CommonModule } from '@angular/common';
             </div>
           </div>
 
-          <!-- SLOT 2: Booked & Ready -->
-          <div class="bg-surface-highlight p-space-lg rounded-xl border border-hairline-subtle flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-            <div class="flex items-start gap-space-md">
-              <div class="w-12 h-12 bg-primary text-on-primary rounded-xl flex flex-col items-center justify-center shrink-0">
-                <span class="font-micro-uppercase text-micro-uppercase tracking-wider">SLOT</span>
-                <span class="font-body-strong text-body-strong font-bold">02</span>
+          <!-- SLOT 2 -->
+          @if (slot2Booking(); as booking2) {
+            <div class="bg-surface-highlight p-space-lg rounded-xl border border-hairline-subtle flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+              <div class="flex items-start gap-space-md">
+                <div class="w-12 h-12 bg-primary text-on-primary rounded-xl flex flex-col items-center justify-center shrink-0">
+                  <span class="font-micro-uppercase text-micro-uppercase tracking-wider">SLOT</span>
+                  <span class="font-body-strong text-body-strong font-bold">02</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <div class="flex items-center gap-space-sm flex-wrap">
+                    <span class="font-mono-rate text-mono-rate text-primary font-bold">{{ booking2.timeRange }}</span>
+                    <span class="font-caption text-caption text-ink-secondary">({{ booking2.durationText }})</span>
+                    <span class="bg-warning-surface text-warning px-space-xs py-0.5 rounded font-micro-uppercase text-micro-uppercase font-bold">
+                      {{ booking2.statusBadge }}
+                    </span>
+                  </div>
+                  <span class="font-lead-body text-lead-body text-primary font-bold">
+                    {{ booking2.serviceName }} • {{ booking2.clientName }}
+                  </span>
+                  <div class="flex items-center gap-space-xs text-caption text-ink-secondary flex-wrap">
+                    <span class="material-symbols-outlined text-[14px]">pin_drop</span>
+                    <span>{{ booking2.clientLocation }}</span>
+                    @if (booking2.departureEstimate) {
+                      <span class="text-ink-secondary">•</span>
+                      <span class="text-primary font-semibold">{{ booking2.departureEstimate }}</span>
+                    }
+                  </div>
+                </div>
               </div>
-              <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-space-sm flex-wrap">
-                  <span class="font-mono-rate text-mono-rate text-primary font-bold">13:00 - 16:00 WIB</span>
-                  <span class="font-caption text-caption text-ink-secondary">(Durasi 3 Jam)</span>
-                  <span class="bg-warning-surface text-warning px-space-xs py-0.5 rounded font-micro-uppercase text-micro-uppercase font-bold">
-                    TERJADWAL / SIAP JALAN
+              <div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+                <button
+                  type="button"
+                  (click)="viewOrderDetails.emit(booking2.orderId)"
+                  class="px-space-md py-space-xs bg-surface-container-lowest text-on-surface hover:bg-surface-container rounded-lg text-caption font-button-label transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
+                >
+                  Rincian Order
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="bg-surface-highlight p-space-lg rounded-xl border border-hairline-subtle flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+              <div class="flex items-start gap-space-md">
+                <div class="w-12 h-12 bg-success text-on-primary rounded-xl flex flex-col items-center justify-center shrink-0">
+                  <span class="font-micro-uppercase text-micro-uppercase tracking-wider">SLOT</span>
+                  <span class="font-body-strong text-body-strong font-bold">02</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <div class="flex items-center gap-space-sm flex-wrap">
+                    <span class="font-mono-rate text-mono-rate text-primary font-bold">13:00 - 16:00 WIB</span>
+                    <span class="font-caption text-caption text-ink-secondary">(Durasi 3 Jam)</span>
+                    <span class="bg-success text-on-primary px-space-xs py-0.5 rounded font-micro-uppercase text-micro-uppercase font-bold">
+                      SLOT TERBUKA PUBLIK
+                    </span>
+                  </div>
+                  <span class="font-lead-body text-lead-body text-primary font-bold">
+                    Siap Menerima Pesanan Klien Siang
+                  </span>
+                  <span class="font-caption text-caption text-ink-secondary">
+                    Tampil aktif di tautan publik {{ publicProfileUrl() }}
                   </span>
                 </div>
-                <span class="font-lead-body text-lead-body text-primary font-bold">
-                  General Clean Living Room • Pak Dimas Arya
-                </span>
-                <div class="flex items-center gap-space-xs text-caption text-ink-secondary flex-wrap">
-                  <span class="material-symbols-outlined text-[14px]">pin_drop</span>
-                  <span>Jl. Senopati No. 42, Kebayoran Baru (4.8 km)</span>
-                  <span class="text-ink-secondary">•</span>
-                  <span class="text-primary font-semibold">Berangkat estimasi pkl 12:35 WIB</span>
-                </div>
+              </div>
+              <div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+                <button
+                  type="button"
+                  (click)="editSlotTime.emit('slot-02')"
+                  class="px-space-md py-space-xs bg-surface-container-lowest text-on-surface hover:bg-surface-highlight rounded-lg text-caption font-button-label transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
+                >
+                  Ubah Jam
+                </button>
               </div>
             </div>
-            <div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
-              <button
-                type="button"
-                (click)="viewOrderDetails.emit('order-dimas')"
-                class="px-space-md py-space-xs bg-surface-container-lowest text-on-surface hover:bg-surface-container rounded-lg text-caption font-button-label transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
-              >
-                Rincian Order
-              </button>
-            </div>
-          </div>
+          }
 
           <!-- MANDATORY BUFFER BLOCK 2 -->
           <div class="p-space-md rounded-xl bg-surface-container flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm border border-hairline-subtle">
@@ -356,7 +442,7 @@ import { CommonModule } from '@angular/common';
           class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-highlight hover:bg-surface-container text-primary font-button-label text-button-label rounded-lg transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
         >
           <span class="material-symbols-outlined text-[18px]">more_time</span>
-          <span>+ Tambah Slot Khusus / Lembur Besok</span>
+          <span>+ Tambah Slot Khusus / Lembur</span>
         </button>
       </div>
     </section>
@@ -364,11 +450,12 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScheduleSlotTimelineCardComponent {
-  readonly selectedSegment = input<string>('Besok (25 Okt)');
+  readonly selectedSegment = input<string>('Besok');
   readonly isSlot3Locked = input<boolean>(false);
   readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly bufferMinutes = input<number>(90);
   readonly isTodayEmergencyLocked = input<boolean>(false);
+  readonly bookings = input<ScheduleSlotBooking[]>([]);
 
   readonly segmentChange = output<string>();
   readonly viewOrderDetails = output<string>();
@@ -376,9 +463,14 @@ export class ScheduleSlotTimelineCardComponent {
   readonly toggleSlotLock = output<string>();
   readonly addCustomSlot = output<void>();
 
+  readonly slot1Booking = computed(() => this.bookings().find((b) => b.slotNumber === '01') || null);
+  readonly slot2Booking = computed(() => this.bookings().find((b) => b.slotNumber === '02') || null);
+  readonly slot3Booking = computed(() => this.bookings().find((b) => b.slotNumber === '03') || null);
+
   readonly isSunday = computed(() => this.selectedSegment().includes('Minggu'));
   readonly isToday = computed(() => this.selectedSegment().includes('Hari Ini'));
   readonly isSaturday = computed(() => this.selectedSegment().includes('Sabtu'));
+  readonly isTomorrow = computed(() => this.selectedSegment().includes('Besok'));
 
   readonly capacityHeadline = computed(() => {
     if (this.isSunday()) {
@@ -397,37 +489,35 @@ export class ScheduleSlotTimelineCardComponent {
     if (this.isSunday()) {
       return 'Hari Libur Mandiri (0 Slot)';
     }
-    if (this.isToday()) {
-      if (this.isTodayEmergencyLocked()) {
-        return 'Terkunci Sementara (Darurat)';
+    if (this.isToday() && this.isTodayEmergencyLocked()) {
+      return 'Terkunci Sementara (Darurat)';
+    }
+
+    const totalSlots = this.isSaturday() ? 2 : 3;
+    const booked = this.bookings().length;
+    if (booked === 0) {
+      if (this.isSlot3Locked() && !this.isSaturday()) {
+        return '1 dari 3 Slot Terkunci';
       }
-      return '2 dari 3 Slot Terisi';
+      return `0 dari ${totalSlots} Slot Terisi`;
     }
-    if (this.isSaturday()) {
-      return '1 dari 2 Slot Terisi';
-    }
-    if (this.isSlot3Locked()) {
-      return '3 dari 3 Slot Terisi / Terkunci';
-    }
-    return '2 dari 3 Slot Terisi';
+    return `${booked} dari ${totalSlots} Slot Terisi`;
   });
 
   readonly capacitySubText = computed(() => {
     if (this.isSunday()) {
       return '0% Kapasitas • Tidak Menerima Pemesanan Publik';
     }
-    if (this.isToday()) {
-      if (this.isTodayEmergencyLocked()) {
-        return '0 Slot Tersedia • Emergency Lock Aktif';
-      }
-      return '67% Kapasitas Terpakai • 1 Slot Tersedia';
+    if (this.isToday() && this.isTodayEmergencyLocked()) {
+      return '0 Slot Tersedia • Emergency Lock Aktif';
     }
-    if (this.isSaturday()) {
-      return '50% Kapasitas Terpakai • 1 Slot Tersedia (Slot Pendek)';
-    }
-    if (this.isSlot3Locked()) {
-      return '100% Kapasitas Terpakai • 0 Slot Tersedia';
-    }
-    return '67% Kapasitas Terpakai • 1 Slot Tersedia';
+
+    const totalSlots = this.isSaturday() ? 2 : 3;
+    const booked = this.bookings().length;
+    const lockedCount = (!this.isSaturday() && this.isSlot3Locked()) ? 1 : 0;
+    const available = Math.max(0, totalSlots - booked - lockedCount);
+    const percent = Math.round(((booked + lockedCount) / totalSlots) * 100);
+
+    return `${percent}% Kapasitas Terpakai • ${available} Slot Tersedia`;
   });
 }

@@ -52,10 +52,10 @@ import { CommonModule } from '@angular/common';
 
           <!-- Slots mockup -->
           <div class="space-y-2">
-            <span class="text-xs font-bold text-primary block">Ketersediaan Slot Besok (25 Okt):</span>
+            <span class="text-xs font-bold text-primary block">Pratinjau Ketersediaan Slot Pemesanan Publik:</span>
             <div class="p-3 rounded-lg border border-hairline-subtle bg-surface-container/60 opacity-60 flex justify-between items-center text-xs">
               <span class="line-through font-mono">08:30 - 11:30 WIB</span>
-              <span class="font-bold text-ink-disabled">TERISI (Klien Ratna)</span>
+              <span class="font-bold text-ink-disabled">TERISI (Pesanan Terjadwal)</span>
             </div>
             <div class="p-2.5 rounded-lg bg-surface-dim flex justify-between items-center text-xs italic text-ink-secondary">
               <span>11:30 - 13:00 WIB (Proteksi Buffer Transit 90m)</span>
@@ -63,7 +63,7 @@ import { CommonModule } from '@angular/common';
             </div>
             <div class="p-3 rounded-lg border border-hairline-subtle bg-surface-container/60 opacity-60 flex justify-between items-center text-xs">
               <span class="line-through font-mono">13:00 - 16:00 WIB</span>
-              <span class="font-bold text-ink-disabled">TERISI (Klien Dimas)</span>
+              <span class="font-bold text-ink-disabled">TERISI (Pesanan Terjadwal)</span>
             </div>
             <div class="p-2.5 rounded-lg bg-surface-dim flex justify-between items-center text-xs italic text-ink-secondary">
               <span>16:00 - 17:30 WIB (Proteksi Buffer Transit 90m)</span>
@@ -91,6 +91,6 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScheduleSimulationModalComponent {
-  readonly workerName = input<string>('Sarah Melinda');
+  readonly workerName = input<string>('Mitra Teknisi');
   readonly dismissModal = output<void>();
 }

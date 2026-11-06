@@ -74,7 +74,64 @@ export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
   },
 ];
 
-export const DEFAULT_WEEKLY_SCHEDULES: WorkerScheduleItem[] = [];
+export const DEFAULT_WEEKLY_SCHEDULES: WorkerScheduleItem[] = [
+  {
+    day_of_week: 1,
+    day_name: 'Senin',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 2,
+    day_name: 'Selasa',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 3,
+    day_name: 'Rabu',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 4,
+    day_name: 'Kamis',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 5,
+    day_name: 'Jumat',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 6,
+    day_name: 'Sabtu',
+    is_active: true,
+    slot_morning: true,
+    slot_afternoon: true,
+    slot_evening: false,
+  },
+  {
+    day_of_week: 0,
+    day_name: 'Minggu',
+    is_active: false,
+    slot_morning: false,
+    slot_afternoon: false,
+    slot_evening: false,
+  },
+];
 
 export interface WhatsAppPreviewSampleData {
   readonly clientName: string;
@@ -250,7 +307,7 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly isTodayEmergencyLocked = signal<boolean>(false);
   readonly orderLeadTimeHours = signal<number>(3);
   readonly autoBlockPersonalAgenda = signal<boolean>(true);
-  readonly selectedScheduleDateSegment = signal<string>('Besok (25 Okt)');
+  readonly selectedScheduleDateSegment = signal<string>('Besok');
   readonly isSlot3Locked = signal<boolean>(false);
 
   readonly isProfileLoading = signal<boolean>(false);
@@ -1536,7 +1593,7 @@ export class WorkerDashboardStore implements OnDestroy {
     this.isTodayEmergencyLocked.set(false);
     this.orderLeadTimeHours.set(3);
     this.autoBlockPersonalAgenda.set(true);
-    this.selectedScheduleDateSegment.set('Besok (25 Okt)');
+    this.selectedScheduleDateSegment.set('Besok');
     this.isSlot3Locked.set(false);
     this.updateScheduleSyncTimestamp();
     this.scheduleFeedbackSuccess.set(

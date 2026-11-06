@@ -30,10 +30,10 @@ import { CommonModule } from '@angular/common';
       <div class="bg-surface-highlight p-space-md rounded-xl border border-hairline-subtle flex flex-col gap-space-sm">
         <div class="flex items-center justify-between pb-space-xs border-b border-hairline-subtle/60">
           <span class="font-micro-uppercase text-micro-uppercase text-primary font-bold">
-            BESOK, 25 OKTOBER
+            SLOT JADWAL OPERASIONAL
           </span>
           <span class="font-caption text-caption text-ink-secondary font-medium">
-            {{ workerName() || 'Sarah Melinda' }}
+            {{ workerName() || 'Mitra Teknisi' }}
           </span>
         </div>
 
@@ -123,8 +123,8 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SchedulePublicPreviewCardComponent {
-  readonly workerName = input<string>('Sarah Melinda');
-  readonly publicProfileUrl = input<string>('tuwaktu.com/sarah-cleaning');
+  readonly workerName = input<string>('Mitra Teknisi');
+  readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly isSlot3Locked = input<boolean>(false);
 
   readonly openPublicSimulation = output<void>();

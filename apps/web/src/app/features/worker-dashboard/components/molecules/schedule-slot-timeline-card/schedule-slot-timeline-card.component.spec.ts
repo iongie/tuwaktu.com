@@ -23,14 +23,30 @@ describe('ScheduleSlotTimelineCardComponent', () => {
     const emitSpy = jest.spyOn(component.segmentChange, 'emit');
     const segmentButtons = fixture.nativeElement.querySelectorAll('button');
 
-    // Button 0 is 'Hari Ini (24 Okt)'
+    // Button 0 is 'Hari Ini'
     segmentButtons[0].click();
 
-    expect(emitSpy).toHaveBeenCalledWith('Hari Ini (24 Okt)');
+    expect(emitSpy).toHaveBeenCalledWith('Hari Ini');
   });
 
   it('harus memancarkan viewOrderDetails saat tombol rincian order ditekan', () => {
     const emitSpy = jest.spyOn(component.viewOrderDetails, 'emit');
+    fixture.componentRef.setInput('bookings', [
+      {
+        id: 'bk-1',
+        slotNumber: '01',
+        clientName: 'Bu Ratna K.',
+        serviceName: 'Deep Clean Detailing',
+        timeRange: '08:30 - 11:30 WIB',
+        durationText: 'Durasi 3 Jam',
+        clientLocation: 'Tebet Barat Dalam VII (6.2 km)',
+        statusText: 'Dipesan via WhatsApp Terverifikasi',
+        statusBadge: 'TERKONFIRMASI / SIAP JALAN',
+        orderId: 'order-ratna',
+      },
+    ]);
+    fixture.detectChanges();
+
     const orderDetailButtons = Array.from(
       fixture.nativeElement.querySelectorAll('button')
     ).filter((btn) => (btn as HTMLElement).textContent?.includes('Rincian Order')) as HTMLButtonElement[];
@@ -76,7 +92,7 @@ describe('ScheduleSlotTimelineCardComponent', () => {
   });
 
   it('harus menampilkan peringatan darurat saat segmen Hari Ini aktif dengan status emergency lock', () => {
-    fixture.componentRef.setInput('selectedSegment', 'Hari Ini (24 Okt)');
+    fixture.componentRef.setInput('selectedSegment', 'Hari Ini');
     fixture.componentRef.setInput('isTodayEmergencyLocked', true);
     fixture.detectChanges();
 

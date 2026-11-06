@@ -130,7 +130,7 @@
     <!-- RIGHT / AUXILIARY COLUMN (4 Columns - Organism) -->
     <div class="lg:col-span-4 flex flex-col gap-space-xl">
       <app-worker-schedule-sidebar-panel
-        [workerName]="store.workerFullName() || 'Sarah Melinda'"
+        [workerName]="store.workerFullName() || 'Mitra Teknisi'"
         [publicProfileUrl]="publicProfileDisplayUrl()"
         [isSlot3Locked]="store.isSlot3Locked()"
         (openPublicSimulation)="openSimulationModal()"
@@ -143,7 +143,7 @@
   <!-- Modals -->
   @if (isSimulationModalOpen()) {
     <app-schedule-simulation-modal
-      [workerName]="store.workerFullName() || 'Sarah Melinda'"
+      [workerName]="store.workerFullName() || 'Mitra Teknisi'"
       (dismissModal)="isSimulationModalOpen.set(false)"
     />
   }

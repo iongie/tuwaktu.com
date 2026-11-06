@@ -38,8 +38,8 @@ import { ScheduleCalendarSyncCardComponent } from '../../molecules/schedule-cale
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkerScheduleSidebarPanelComponent {
-  readonly workerName = input<string>('Sarah Melinda');
-  readonly publicProfileUrl = input<string>('tuwaktu.com/sarah-cleaning');
+  readonly workerName = input<string>('Mitra Teknisi');
+  readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly webcalUrl = input<string>('webcal://tuwaktu.com/feed/cal/c8f29e10');
   readonly autoBlockAgenda = input<boolean>(true);
   readonly isSlot3Locked = input<boolean>(false);

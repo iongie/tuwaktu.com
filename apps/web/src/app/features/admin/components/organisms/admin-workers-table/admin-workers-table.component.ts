@@ -125,6 +125,16 @@ import { AdminWorkerStatusBadgeComponent } from '../../molecules/admin-worker-st
                         <span class="material-symbols-outlined text-[16px]">payments</span>
                         <span class="hidden md:inline">Tarif &amp; Layanan</span>
                       </a>
+                      <a
+                        [routerLink]="['/dashboard/kalender-slot']"
+                        [queryParams]="{ slug: worker.slug }"
+                        class="min-h-[44px] px-3 py-1.5 rounded-xl border border-hairline-subtle text-on-surface hover:bg-surface-container-high text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1"
+                        title="Kelola Kalender & Slot Mitra"
+                        [attr.data-testid]="'manage-schedule-btn-' + worker.slug"
+                      >
+                        <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                        <span class="hidden md:inline">Kalender &amp; Slot</span>
+                      </a>
                       @if (worker.account_status === 'ACTIVE') {
                         <button
                           type="button"

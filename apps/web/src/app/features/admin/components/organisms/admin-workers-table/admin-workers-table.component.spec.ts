@@ -72,6 +72,10 @@ describe('AdminWorkersTableComponent', () => {
     const manageRatesBtn = fixture.nativeElement.querySelector('[data-testid="manage-rates-btn-budi-santoso"]');
     expect(manageRatesBtn).toBeTruthy();
     expect(manageRatesBtn.getAttribute('href')).toContain('/dashboard/tarif-layanan');
+
+    const manageScheduleBtn = fixture.nativeElement.querySelector('[data-testid="manage-schedule-btn-budi-santoso"]');
+    expect(manageScheduleBtn).toBeTruthy();
+    expect(manageScheduleBtn.getAttribute('href')).toContain('/dashboard/kalender-slot');
   });
 
   it('harus memancarkan toggleStatusClick saat tombol Tangguhkan atau Aktifkan diklik', () => {

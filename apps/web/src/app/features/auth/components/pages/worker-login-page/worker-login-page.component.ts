@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthHeaderNavComponent } from '../../molecules/auth-header-nav/auth-header-nav.component';
 import { AuthFooterBarComponent } from '../../molecules/auth-footer-bar/auth-footer-bar.component';
 import { WorkerLoginFormComponent } from '../../organisms/worker-login-form/worker-login-form.component';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-worker-login-page',
@@ -155,8 +156,31 @@ import { WorkerLoginFormComponent } from '../../organisms/worker-login-form/work
             </div>
 
             <!-- Sisi Kanan: Form Masuk Utama (7 Cols) -->
-            <div class="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between bg-body-canvas">
-              <app-worker-login-form />
+            <div class="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between bg-body-canvas min-h-[520px]">
+              @if (!authService.isInitialized()) {
+                <!-- Skeleton / Indikator Loading saat Inisialisasi Sesi (Mencegah Kedipan Form) -->
+                <div
+                  class="flex-1 flex flex-col justify-center items-center py-16 px-4 gap-4 text-center"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="session-initializing-loader"
+                >
+                  <div class="relative w-12 h-12 flex items-center justify-center">
+                    <span class="w-12 h-12 rounded-full border-2 border-hairline-subtle border-t-primary animate-spin"></span>
+                    <span class="material-symbols-outlined text-primary text-[20px] absolute">sync_lock</span>
+                  </div>
+                  <div class="flex flex-col gap-1.5 max-w-xs animate-pulse">
+                    <span class="font-body-strong text-body-strong text-on-surface">Memverifikasi Sesi...</span>
+                    <span class="font-caption text-caption text-ink-secondary">
+                      Menghubungkan ke simpul otentikasi mandiri Tuwaktu
+                    </span>
+                    <div class="h-2 w-32 bg-surface-container-high rounded-full mx-auto mt-2"></div>
+                  </div>
+                  <span class="sr-only">Sedang memverifikasi sesi aktif...</span>
+                </div>
+              } @else {
+                <app-worker-login-form />
+              }
             </div>
           </div>
         </div>
@@ -167,4 +191,6 @@ import { WorkerLoginFormComponent } from '../../organisms/worker-login-form/work
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WorkerLoginPageComponent {}
+export class WorkerLoginPageComponent {
+  readonly authService = inject(AuthService);
+}

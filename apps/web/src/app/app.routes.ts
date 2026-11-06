@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { adminGuard } from './core/guards/admin.guard';
 import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -120,6 +121,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import(
         './features/auth/components/pages/worker-login-page/worker-login-page.component'

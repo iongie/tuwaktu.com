@@ -101,6 +101,8 @@ describe('appRoutes', () => {
       }).compileComponents();
 
       router = TestBed.inject(Router);
+      const authService = TestBed.inject(AuthService);
+      authService.isInitialized.set(true);
     });
 
     it('harus mengarahkan pengunjung tanpa sesi ke /login saat mengakses /dashboard/ringkasan', async () => {
@@ -221,6 +223,32 @@ describe('appRoutes', () => {
         role: 'ADMIN',
       });
       const navigated = await router.navigateByUrl('/admin/workers');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/admin/workers');
+    });
+
+    it('harus mengalihkan pengguna yang sudah login ke dasbor saat mengakses /login (guestGuard)', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'worker-1',
+        name: 'Budi Santoso',
+        slug: 'budi-santoso',
+        role: 'worker',
+      });
+      const navigated = await router.navigateByUrl('/login');
+      expect(navigated).toBe(true);
+      expect(router.url).toBe('/dashboard/ringkasan');
+    });
+
+    it('harus mengalihkan akun ADMIN ke panel admin saat mengakses /login (guestGuard)', async () => {
+      const authService = TestBed.inject(AuthService);
+      authService.setSession({
+        id: 'admin-1',
+        name: 'Super Administrator',
+        slug: 'admin',
+        role: 'ADMIN',
+      });
+      const navigated = await router.navigateByUrl('/login');
       expect(navigated).toBe(true);
       expect(router.url).toBe('/admin/workers');
     });

@@ -2,11 +2,9 @@ import {
   ApplicationConfig,
   ErrorHandler,
   inject,
-  PLATFORM_ID,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
@@ -49,14 +47,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([credentialsInterceptor])),
     provideAppInitializer(() => {
       const authService = inject(AuthService);
-      const platformId = inject(PLATFORM_ID);
-      if (isPlatformBrowser(platformId)) {
-        return firstValueFrom(
-          authService.checkAuthStatus().pipe(catchError(() => of(null)))
-        );
-      }
-      authService.isInitialized.set(true);
-      return Promise.resolve(null);
+      return firstValueFrom(
+        authService.checkAuthStatus().pipe(catchError(() => of(null)))
+      );
     }),
     {
       provide: API_BASE_URL,

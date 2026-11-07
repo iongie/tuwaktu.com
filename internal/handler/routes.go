@@ -82,6 +82,8 @@ func RegisterRoutes(
 
 	// Auth routes
 	if authHandler != nil {
+		api.Get("/auth/altcha-challenge", authHandler.GetAltchaChallenge)
+		v1.Get("/auth/altcha-challenge", authHandler.GetAltchaChallenge)
 		api.Post("/auth/login", authHandler.Login)
 		v1.Post("/auth/login", authHandler.Login)
 		api.Post("/auth/register", authHandler.Register)

@@ -186,9 +186,12 @@ func TestAdminRoutes_UpdateStatusAndSuspensionEffect(t *testing.T) {
 	assert.True(t, respPubSuspended.StatusCode == http.StatusForbidden || respPubSuspended.StatusCode == http.StatusNotFound)
 
 	// 5. Coba login dengan kredensial mitra suspended -> Harus ditolak (HTTP 403)
+	validAltcha, err := auth.GenerateValidAltchaPayload()
+	require.NoError(t, err)
 	loginPayload := domain.AuthLoginPayload{
-		Identifier: "rudi.santika@internal.tuwaktu.com",
-		Password:   "PasswordRudi123!",
+		Identifier:    "rudi.santika@internal.tuwaktu.com",
+		Password:      "PasswordRudi123!",
+		AltchaPayload: validAltcha,
 	}
 	lBytes, _ := json.Marshal(loginPayload)
 	reqLogin := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(lBytes))
@@ -210,7 +213,15 @@ func TestAdminRoutes_UpdateStatusAndSuspensionEffect(t *testing.T) {
 	assert.Equal(t, http.StatusOK, respAct.StatusCode)
 
 	// 7. Login sekarang sukses -> HTTP 200
-	reqLoginSuccess := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(lBytes))
+	validAltchaSuccess, err := auth.GenerateValidAltchaPayload()
+	require.NoError(t, err)
+	loginSuccessPayload := domain.AuthLoginPayload{
+		Identifier:    "rudi.santika@internal.tuwaktu.com",
+		Password:      "PasswordRudi123!",
+		AltchaPayload: validAltchaSuccess,
+	}
+	lSuccessBytes, _ := json.Marshal(loginSuccessPayload)
+	reqLoginSuccess := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(lSuccessBytes))
 	reqLoginSuccess.Header.Set("Content-Type", "application/json")
 	respLoginSuccess, err := app.Test(reqLoginSuccess)
 	require.NoError(t, err)
@@ -237,9 +248,12 @@ func TestAuth_CookieBasedSessionAndEndpoints(t *testing.T) {
 
 	// 2. Login via POST /api/v1/auth/login menetapkan HTTP-Only Cookie
 	t.Run("POST /api/v1/auth/login menetapkan HTTP-Only Cookie tuwaktu_token dengan atribut keamanan", func(t *testing.T) {
+		validAltcha, err := auth.GenerateValidAltchaPayload()
+		require.NoError(t, err)
 		loginPayload := domain.AuthLoginPayload{
-			Identifier: "admin.cookie@tuwaktu.com",
-			Password:   "password123",
+			Identifier:    "admin.cookie@tuwaktu.com",
+			Password:      "password123",
+			AltchaPayload: validAltcha,
 		}
 		lBytes, _ := json.Marshal(loginPayload)
 		reqLogin := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(lBytes))

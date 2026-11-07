@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/handler"
+	"tuwaktu.com/internal/pkg/auth"
 	"tuwaktu.com/internal/repository"
 	"tuwaktu.com/internal/service"
 )
@@ -26,7 +27,102 @@ func setupAuthTestApp(repo repository.WorkerRepository) *fiber.App {
 	return app
 }
 
+func TestAuthHandler_AltchaChallenge(t *testing.T) {
+	t.Run("GET /api/v1/auth/altcha-challenge mengembalikan tantangan ALTCHA yang valid", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/altcha-challenge", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		var resBody struct {
+			Success bool                 `json:"success"`
+			Message string               `json:"message"`
+			Data    auth.AltchaChallenge `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.True(t, resBody.Success)
+		assert.Equal(t, "Tantangan keamanan captcha berhasil dibuat", resBody.Message)
+		assert.Equal(t, "SHA-256", resBody.Data.Algorithm)
+		assert.NotEmpty(t, resBody.Data.Challenge)
+		assert.NotEmpty(t, resBody.Data.Salt)
+		assert.NotEmpty(t, resBody.Data.Signature)
+		assert.Greater(t, resBody.Data.MaxNumber, int64(0))
+	})
+}
+
+func TestAuthHandler_Login_AltchaValidation(t *testing.T) {
+	t.Run("gagal dengan 400 jika altcha_payload kosong saat login", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"identifier": "6281299887766",
+			"password":   "654321",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var resBody struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+			Error   string `json:"error"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.False(t, resBody.Success)
+		assert.Equal(t, "Verifikasi keamanan captcha wajib diselesaikan", resBody.Message)
+		assert.Equal(t, "ALTCHA_REQUIRED", resBody.Error)
+	})
+
+	t.Run("gagal dengan 400 jika altcha_payload tidak sah saat login", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"identifier":     "6281299887766",
+			"password":       "654321",
+			"altcha_payload": "invalid-payload-token",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var resBody struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+			Error   string `json:"error"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.False(t, resBody.Success)
+		assert.Equal(t, "Verifikasi keamanan captcha tidak valid atau telah kedaluwarsa", resBody.Message)
+		assert.Equal(t, "ALTCHA_INVALID", resBody.Error)
+	})
+}
+
 func TestAuthHandler_Register(t *testing.T) {
+	newAltcha := func(t *testing.T) string {
+		t.Helper()
+		p, err := auth.GenerateValidAltchaPayload()
+		require.NoError(t, err)
+		return p
+	}
+
 	t.Run("berhasil mendaftar via POST /api/v1/auth/register dan mengatur cookie", func(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		app := setupAuthTestApp(repo)
@@ -39,6 +135,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			"basecamp":       "Jakarta Selatan",
 			"customSlug":     "rian-ac-jakarta",
 			"pin":            "654321",
+			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
 
@@ -77,6 +174,38 @@ func TestAuthHandler_Register(t *testing.T) {
 		assert.Equal(t, resBody.Data.Token, tokenCookie.Value)
 	})
 
+	t.Run("gagal dengan 400 jika altcha_payload kosong saat registrasi", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"fullName":   "Rian Hendrawan",
+			"waNumber":   "6281299887766",
+			"basecamp":   "Jakarta Selatan",
+			"customSlug": "rian-ac-jakarta",
+			"pin":        "654321",
+		}
+		body, _ := json.Marshal(payload)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var resBody struct {
+			Success bool   `json:"success"`
+			Message string `json:"message"`
+			Error   string `json:"error"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&resBody)
+		require.NoError(t, err)
+		assert.False(t, resBody.Success)
+		assert.Equal(t, "Verifikasi keamanan captcha wajib diselesaikan", resBody.Message)
+		assert.Equal(t, "ALTCHA_REQUIRED", resBody.Error)
+	})
+
 	t.Run("gagal dengan 400 jika format payload tidak valid", func(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		app := setupAuthTestApp(repo)
@@ -94,8 +223,9 @@ func TestAuthHandler_Register(t *testing.T) {
 		app := setupAuthTestApp(repo)
 
 		payload := map[string]interface{}{
-			"fullName": "",
-			"waNumber": "6281299887766",
+			"fullName":       "",
+			"waNumber":       "6281299887766",
+			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
 
@@ -128,11 +258,12 @@ func TestAuthHandler_Register(t *testing.T) {
 		app := setupAuthTestApp(repo)
 
 		payload := map[string]interface{}{
-			"fullName":   "Rian Hendrawan",
-			"waNumber":   "6281299887766",
-			"basecamp":   "Jakarta Selatan",
-			"customSlug": "rian-baru",
-			"pin":        "654321",
+			"fullName":       "Rian Hendrawan",
+			"waNumber":       "6281299887766",
+			"basecamp":       "Jakarta Selatan",
+			"customSlug":     "rian-baru",
+			"pin":            "654321",
+			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
 
@@ -164,11 +295,12 @@ func TestAuthHandler_Register(t *testing.T) {
 		app := setupAuthTestApp(repo)
 
 		payload := map[string]interface{}{
-			"fullName":   "Rian Baru",
-			"waNumber":   "6289999888877",
-			"basecamp":   "Jakarta Selatan",
-			"customSlug": "rian-ac",
-			"pin":        "654321",
+			"fullName":       "Rian Baru",
+			"waNumber":       "6289999888877",
+			"basecamp":       "Jakarta Selatan",
+			"customSlug":     "rian-ac",
+			"pin":            "654321",
+			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
 

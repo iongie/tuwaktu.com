@@ -27,6 +27,7 @@ describe('WorkerLoginFormComponent', () => {
     authService = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
     jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    component.onAltchaVerified('mock-altcha-payload');
     fixture.detectChanges();
   });
 
@@ -386,5 +387,19 @@ describe('WorkerLoginFormComponent', () => {
       '/dashboard/integrasi-whatsapp?slug=sarah-cleaning&tab=template'
     );
     jest.useRealTimers();
+  });
+
+  it('harus menolak submit login jika tantangan ALTCHA belum diverifikasi', () => {
+    const loginSpy = jest.spyOn(authService, 'login');
+
+    component.waNumber = '081288992211';
+    component.securityPin = '123456';
+    component.onAltchaVerified('');
+
+    component.handleLoginSubmit();
+    fixture.detectChanges();
+
+    expect(loginSpy).not.toHaveBeenCalled();
+    expect(component.loginError()).toContain('Verifikasi keamanan captcha wajib diselesaikan');
   });
 });

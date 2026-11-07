@@ -26,6 +26,7 @@ describe('WorkerRegisterFormComponent', () => {
     authService = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
     jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    component.onAltchaVerified('mock-altcha-payload');
     fixture.detectChanges();
   });
 
@@ -168,5 +169,24 @@ describe('WorkerRegisterFormComponent', () => {
     component.handleFormSubmit();
 
     expect(registerSpy).not.toHaveBeenCalled();
+  });
+
+  it('harus menolak submit registrasi jika tantangan ALTCHA belum diverifikasi', () => {
+    const registerSpy = jest.spyOn(authService, 'register');
+
+    component.fullName = 'Budi Santoso';
+    component.waNumber = '081234567890';
+    component.basecamp = 'Jakarta Selatan';
+    component.customSlug = 'budi-santoso';
+    component.workerPin = '123456';
+    component.workerPinConfirm = '123456';
+    component.doctrineAgreement = true;
+    component.onAltchaVerified('');
+
+    component.handleFormSubmit();
+    fixture.detectChanges();
+
+    expect(registerSpy).not.toHaveBeenCalled();
+    expect(component.formError()).toContain('Verifikasi keamanan captcha wajib diselesaikan');
   });
 });

@@ -114,8 +114,31 @@ type AdminUpdateWorkerStatusPayload struct {
 
 // AuthLoginPayload payload untuk login mitra atau admin
 type AuthLoginPayload struct {
-	Identifier string `json:"identifier"` // Email atau nomor WhatsApp
-	Password   string `json:"password"`
+	Identifier    string `json:"identifier"` // Email atau nomor WhatsApp
+	Password      string `json:"password"`
+	AltchaPayload string `json:"altcha_payload,omitempty"`
+}
+
+func (p *AuthLoginPayload) UnmarshalJSON(data []byte) error {
+	type Alias AuthLoginPayload
+	aux := &struct {
+		AltchaPayloadAlt string `json:"altchaPayload"`
+		AltchaAlt        string `json:"altcha"`
+		*Alias
+	}{
+		Alias: (*Alias)(p),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if p.AltchaPayload == "" {
+		if aux.AltchaPayloadAlt != "" {
+			p.AltchaPayload = aux.AltchaPayloadAlt
+		} else if aux.AltchaAlt != "" {
+			p.AltchaPayload = aux.AltchaAlt
+		}
+	}
+	return nil
 }
 
 // AuthUserSession informasi sesi pengguna yang terautentikasi
@@ -151,6 +174,7 @@ type AuthRegisterPayload struct {
 	Slug           string `json:"slug"`
 	PIN            string `json:"pin"`
 	Password       string `json:"password,omitempty"`
+	AltchaPayload  string `json:"altcha_payload,omitempty"`
 }
 
 // UnmarshalJSON menangani deserialisasi fleksibel dengan berbagai variasi nama field (snake_case, camelCase, alias)
@@ -165,6 +189,8 @@ func (p *AuthRegisterPayload) UnmarshalJSON(data []byte) error {
 		WhatsAppNumberAlt string `json:"whatsAppNumber"`
 		CustomSlugAlt     string `json:"customSlug"`
 		WorkerPinAlt      string `json:"workerPin"`
+		AltchaPayloadAlt  string `json:"altchaPayload"`
+		AltchaAlt         string `json:"altcha"`
 		*Alias
 	}{
 		Alias: (*Alias)(p),
@@ -172,6 +198,14 @@ func (p *AuthRegisterPayload) UnmarshalJSON(data []byte) error {
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
+	}
+
+	if p.AltchaPayload == "" {
+		if aux.AltchaPayloadAlt != "" {
+			p.AltchaPayload = aux.AltchaPayloadAlt
+		} else if aux.AltchaAlt != "" {
+			p.AltchaPayload = aux.AltchaAlt
+		}
 	}
 
 	if p.Name == "" {

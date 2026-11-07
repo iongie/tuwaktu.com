@@ -616,5 +616,108 @@ describe('AuthService', () => {
       expect(emittedSession).toBeNull();
       expect(service.currentUser()).toBeNull();
     });
+
+    it('harus mengambil tantangan ALTCHA dari GET /api/v1/auth/altcha-challenge', () => {
+      let receivedChallenge: unknown = null;
+      service.fetchAltchaChallenge().subscribe((ch) => {
+        receivedChallenge = ch;
+      });
+
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/altcha-challenge');
+      expect(req.request.method).toBe('GET');
+      req.flush({
+        success: true,
+        message: 'Tantangan keamanan captcha berhasil dibuat',
+        data: {
+          algorithm: 'SHA-256',
+          challenge: 'abc123',
+          maxnumber: 100,
+          salt: 'salt123?expires=9999999999',
+          signature: 'sig123',
+        },
+      });
+
+      expect(receivedChallenge).toEqual({
+        algorithm: 'SHA-256',
+        challenge: 'abc123',
+        maxnumber: 100,
+        salt: 'salt123?expires=9999999999',
+        signature: 'sig123',
+      });
+    });
+
+    it('harus menyertakan altcha_payload ke POST /api/v1/auth/login dan POST /api/v1/auth/register jika tersedia', () => {
+      service
+        .login({
+          method: 'wa',
+          waNumber: '081288992211',
+          workerId: '',
+          pin: '123456',
+          rememberDevice: false,
+          altchaPayload: 'altcha-token-login',
+        })
+        .subscribe();
+
+      const loginReq = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/login');
+      expect(loginReq.request.body.altcha_payload).toBe('altcha-token-login');
+      loginReq.flush({ success: true, message: 'OK', data: { token: 't', session: { id: '1', name: 'A', role: 'WORKER', account_status: 'ACTIVE', email: '', phone_number: '', must_change_password: false } } });
+
+      service
+        .register({
+          fullName: 'Budi',
+          specialtyId: 'cleaning',
+          specialtyLabel: 'Cleaning',
+          waNumber: '081288992211',
+          basecamp: 'Jakarta',
+          customSlug: 'budi-clean',
+          pin: '123456',
+          pinConfirm: '123456',
+          doctrineAccepted: true,
+          altchaPayload: 'altcha-token-register',
+        })
+        .subscribe();
+
+      const regReq = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/register');
+      expect(regReq.request.body.altcha_payload).toBe('altcha-token-register');
+      regReq.flush({ success: true, message: 'OK', data: { token: 't', session: { id: '1', name: 'Budi', role: 'WORKER', account_status: 'ACTIVE', email: '', phone_number: '', must_change_password: false } } });
+    });
+
+    it('harus menyelesaikan solveAltchaChallenge meskipun crypto.subtle tidak tersedia (fallback SHA-256 murni)', async () => {
+      const originalCrypto = globalThis.crypto;
+      Object.defineProperty(globalThis, 'crypto', {
+        value: {},
+        configurable: true,
+      });
+
+      try {
+        // SHA-256("test0") = f25f5841d0f32b4f212b035b320f08b904ab43f7126401e6b3f0e0689236b018
+        // SHA-256("test")  = 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+        const solved = await service.solveAltchaChallenge({
+          algorithm: 'SHA-256',
+          challenge: 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+          maxnumber: 10,
+          salt: 'ab',
+          signature: 'sig-abc',
+        });
+        expect(solved).toBeNull();
+
+        const solvedValid = await service.solveAltchaChallenge({
+          algorithm: 'SHA-256',
+          challenge: (service as unknown as { computeSha256FallbackHex: (m: string) => string }).computeSha256FallbackHex('test3'),
+          maxnumber: 10,
+          salt: 'test',
+          signature: 'sig-abc',
+        });
+        expect(solvedValid).toBeTruthy();
+        const decoded = JSON.parse(Buffer.from(solvedValid!, 'base64').toString('utf-8'));
+        expect(decoded.number).toBe(3);
+        expect(decoded.salt).toBe('test');
+      } finally {
+        Object.defineProperty(globalThis, 'crypto', {
+          value: originalCrypto,
+          configurable: true,
+        });
+      }
+    });
   });
 });

@@ -13,11 +13,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { RegisterFormData, SpecialtyOption } from '../../../models/auth.models';
 import { AuthSpecialtyPickerComponent } from '../../molecules/auth-specialty-picker/auth-specialty-picker.component';
+import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-field/altcha-captcha-field.component';
 
 @Component({
   selector: 'app-worker-register-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AuthSpecialtyPickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AuthSpecialtyPickerComponent, AltchaCaptchaFieldComponent],
   template: `
     <div class="bg-body-canvas rounded-xl p-6 sm:p-8 shadow-sm flex flex-col gap-6">
       <div class="flex items-center justify-between pb-2 border-b border-hairline-subtle/40">
@@ -286,6 +287,13 @@ import { AuthSpecialtyPickerComponent } from '../../molecules/auth-specialty-pic
           </label>
         </div>
 
+        <!-- Verifikasi Keamanan Anti-Bot ALTCHA -->
+        <app-altcha-captcha-field
+          [disabled]="isLoading()"
+          [resetTick]="altchaResetTick()"
+          (verifiedPayload)="onAltchaVerified($event)"
+        />
+
         <!-- Execution Trigger -->
         <div class="flex flex-col gap-3 pt-2">
           <button
@@ -342,10 +350,21 @@ export class WorkerRegisterFormComponent implements OnDestroy {
   readonly formError = signal<string>('');
   readonly formSuccess = signal<string>('');
   readonly isLoading = signal<boolean>(false);
+  readonly altchaPayload = signal<string>('');
+  readonly altchaVerified = signal<boolean>(false);
+  readonly altchaResetTick = signal<number>(0);
 
   readonly slugValidation = computed(() => {
     return this.authService.validateSlug(this.customSlug);
   });
+
+  onAltchaVerified(payload: string): void {
+    this.altchaPayload.set(payload);
+    this.altchaVerified.set(Boolean(payload));
+    if (payload) {
+      this.formError.set('');
+    }
+  }
 
   ngOnDestroy(): void {
     if (this.redirectTimeoutId !== null) {
@@ -395,11 +414,17 @@ export class WorkerRegisterFormComponent implements OnDestroy {
       pin: this.workerPin,
       pinConfirm: this.workerPinConfirm,
       doctrineAccepted: this.doctrineAgreement,
+      altchaPayload: this.altchaPayload(),
     };
 
     const validation = this.authService.validateRegistration(payload);
     if (!validation.isValid) {
       this.formError.set(validation.error || 'Terjadi kesalahan pada data formulir.');
+      return;
+    }
+
+    if (!this.altchaVerified()) {
+      this.formError.set('Verifikasi keamanan captcha wajib diselesaikan sebelum mendaftar.');
       return;
     }
 
@@ -417,11 +442,13 @@ export class WorkerRegisterFormComponent implements OnDestroy {
             this.router.navigate(['/dashboard/ringkasan']);
           }, 1200);
         } else {
+          this.altchaResetTick.update((v) => v + 1);
           this.formError.set(result.error || 'Pendaftaran mitra gagal. Silakan coba lagi.');
         }
       },
       error: (err: unknown) => {
         this.isLoading.set(false);
+        this.altchaResetTick.update((v) => v + 1);
         const httpErr = err as { message?: string; error?: { message?: string } | string };
         const errorMessage =
           (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||

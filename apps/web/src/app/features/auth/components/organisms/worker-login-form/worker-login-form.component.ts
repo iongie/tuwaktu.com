@@ -13,6 +13,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { AuthMethod, LoginFormData } from '../../../models/auth.models';
+import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-field/altcha-captcha-field.component';
 import {
   isAdminUrl,
   normalizeAdminUrl,
@@ -26,7 +27,7 @@ import {
 @Component({
   selector: 'app-worker-login-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AltchaCaptchaFieldComponent],
   template: `
     <div class="flex flex-col gap-6 max-w-xl mx-auto w-full">
       <div class="flex flex-col gap-1.5">
@@ -267,6 +268,13 @@ import {
           </label>
         </div>
 
+        <!-- Verifikasi Keamanan Anti-Bot ALTCHA -->
+        <app-altcha-captcha-field
+          [disabled]="isLoading()"
+          [resetTick]="altchaResetTick()"
+          (verifiedPayload)="onAltchaVerified($event)"
+        />
+
         <!-- Action Buttons -->
         <div class="flex flex-col gap-3 pt-2">
           <button
@@ -396,6 +404,18 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
   securityPin = '';
   rememberDevice = false;
 
+  readonly altchaPayload = signal<string>('');
+  readonly altchaVerified = signal<boolean>(false);
+  readonly altchaResetTick = signal<number>(0);
+
+  onAltchaVerified(payload: string): void {
+    this.altchaPayload.set(payload);
+    this.altchaVerified.set(Boolean(payload));
+    if (payload) {
+      this.loginError.set('');
+    }
+  }
+
   ngOnInit(): void {
     const rawInitialUrl =
       this.route.snapshot?.queryParamMap?.get('returnUrl') ||
@@ -463,11 +483,17 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
       workerId: this.workerId,
       pin: this.securityPin,
       rememberDevice: this.rememberDevice,
+      altchaPayload: this.altchaPayload(),
     };
 
     const validation = this.authService.validateLogin(payload);
     if (!validation.isValid) {
       this.loginError.set(validation.error || 'Data kredensial tidak valid.');
+      return;
+    }
+
+    if (!this.altchaVerified()) {
+      this.loginError.set('Verifikasi keamanan captcha wajib diselesaikan sebelum masuk.');
       return;
     }
 
@@ -506,11 +532,13 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
             }
           }, 1000);
         } else {
+          this.altchaResetTick.update((v) => v + 1);
           this.loginError.set(res.error || 'Data kredensial tidak valid.');
         }
       },
       error: (err) => {
         this.isLoading.set(false);
+        this.altchaResetTick.update((v) => v + 1);
         const errorMsg =
           err?.error?.message ||
           'Gagal terhubung ke server autentikasi. Silakan periksa koneksi Anda.';

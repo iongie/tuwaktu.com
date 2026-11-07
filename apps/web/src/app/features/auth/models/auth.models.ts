@@ -10,6 +10,16 @@ export type OtpDispatchStatus = 'idle' | 'sending' | 'sent' | 'error';
 
 export type MagicLinkStatus = 'idle' | 'sending' | 'sent' | 'error';
 
+export type AltchaStatus = 'idle' | 'verifying' | 'verified' | 'error';
+
+export interface AltchaChallenge {
+  readonly algorithm: string;
+  readonly challenge: string;
+  readonly maxnumber: number;
+  readonly salt: string;
+  readonly signature: string;
+}
+
 export interface RegisterFormData {
   fullName: string;
   specialtyId: string;
@@ -20,6 +30,7 @@ export interface RegisterFormData {
   pin: string;
   pinConfirm: string;
   doctrineAccepted: boolean;
+  altchaPayload?: string;
 }
 
 export interface LoginFormData {
@@ -28,6 +39,7 @@ export interface LoginFormData {
   workerId: string;
   pin: string;
   rememberDevice: boolean;
+  altchaPayload?: string;
 }
 
 export interface SlugValidationState {

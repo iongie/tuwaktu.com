@@ -441,13 +441,24 @@ export class AdminWorkerOnboardingModalComponent {
   }
 
   generateRandomPassword(): void {
-    const chars =
-      'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$';
-    let res = '';
-    for (let i = 0; i < 10; i++) {
-      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    const weakPins = new Set([
+      '000000', '111111', '222222', '333333', '444444',
+      '555555', '666666', '777777', '888888', '999999',
+      '012345', '123456', '234567', '345678', '456789', '567890',
+      '987654', '876543', '765432', '654321', '543210', '432109',
+      '112233', '121212', '123123', '123321', '102030', '101010',
+    ]);
+    for (let attempt = 0; attempt < 20; attempt++) {
+      let pin = '';
+      for (let i = 0; i < 6; i++) {
+        pin += Math.floor(Math.random() * 10).toString();
+      }
+      if (!weakPins.has(pin)) {
+        this.formData.temporary_password = pin;
+        return;
+      }
     }
-    this.formData.temporary_password = res;
+    this.formData.temporary_password = '482915';
   }
 
   handleSubmit(): void {

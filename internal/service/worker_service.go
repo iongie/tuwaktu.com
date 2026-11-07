@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +16,16 @@ import (
 	"tuwaktu.com/internal/pkg/slug"
 	"tuwaktu.com/internal/repository"
 )
+
+const (
+	MaxFailedLoginAttempts = 5
+	AccountLockoutDuration = 15 * time.Minute
+)
+
+type loginAttemptState struct {
+	attempts    int
+	lockedUntil time.Time
+}
 
 type WorkerService interface {
 	GetPublicProfileBySlug(ctx context.Context, slug string) (*domain.PublicWorkerProfile, error)
@@ -43,10 +54,16 @@ type WorkerService interface {
 
 type workerService struct {
 	repo repository.WorkerRepository
+	// shortcut: pelacak rate-limit in-memory untuk identitas tidak terdaftar; pindahkan ke Redis jika multi-instance
+	loginMu       sync.Mutex
+	loginAttempts map[string]*loginAttemptState
 }
 
 func NewWorkerService(repo repository.WorkerRepository) WorkerService {
-	return &workerService{repo: repo}
+	return &workerService{
+		repo:          repo,
+		loginAttempts: make(map[string]*loginAttemptState),
+	}
 }
 
 func (s *workerService) GetPublicProfileBySlug(ctx context.Context, slug string) (*domain.PublicWorkerProfile, error) {
@@ -335,6 +352,25 @@ func generateRandomPassword(length int) string {
 	return string(res)
 }
 
+func generateRandomStrongPIN() string {
+	for attempt := 0; attempt < 20; attempt++ {
+		var sb strings.Builder
+		for i := 0; i < 6; i++ {
+			n, err := rand.Int(rand.Reader, big.NewInt(10))
+			if err != nil {
+				sb.WriteByte('0' + byte((i*3+7)%10))
+			} else {
+				sb.WriteByte('0' + byte(n.Int64()))
+			}
+		}
+		candidate := sb.String()
+		if !auth.IsWeakPIN(candidate) {
+			return candidate
+		}
+	}
+	return "482915"
+}
+
 func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.AdminCreateWorkerPayload) (*domain.AdminWorkerCreatedResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -393,9 +429,12 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 	// Generate password sementara jika belum disediakan
 	tempPassword := strings.TrimSpace(payload.TemporaryPassword)
 	if tempPassword == "" {
-		tempPassword = generateRandomPassword(10)
+		tempPassword = generateRandomStrongPIN()
 	}
-	if len(tempPassword) < 8 {
+	if len(tempPassword) == 6 && auth.IsWeakPIN(tempPassword) {
+		return nil, fmt.Errorf("%w: %s", domain.ErrInvalidInput, auth.ErrWeakPIN.Error())
+	}
+	if len(tempPassword) < 8 && len(tempPassword) != 6 {
 		return nil, fmt.Errorf("%w: kata sandi sementara minimal 8 karakter", domain.ErrInvalidInput)
 	}
 
@@ -565,6 +604,9 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 	if len(pin) < 6 {
 		return nil, fmt.Errorf("%w: PIN kedaulatan minimal 6 digit", domain.ErrInvalidInput)
 	}
+	if err := auth.ValidatePIN(pin); err != nil {
+		return nil, fmt.Errorf("%w: %s", domain.ErrInvalidInput, err.Error())
+	}
 
 	// 1. Cek apakah nomor WhatsApp sudah terdaftar di worker_accounts
 	existingAccPhone, errPhone := s.repo.GetAccountByEmailOrPhone(ctx, sanitizedWA)
@@ -720,6 +762,47 @@ func (s *workerService) SetWorkerStatus(ctx context.Context, workerID string, st
 	return s.repo.UpdateWorkerAccountStatus(ctx, workerID, status)
 }
 
+func (s *workerService) isIdentifierLockedInMemory(key string, now time.Time) bool {
+	s.loginMu.Lock()
+	defer s.loginMu.Unlock()
+
+	state, exists := s.loginAttempts[key]
+	if !exists {
+		return false
+	}
+	if !state.lockedUntil.IsZero() && now.Before(state.lockedUntil) {
+		return true
+	}
+	return false
+}
+
+func (s *workerService) recordFailedAttemptInMemory(key string, now time.Time) (int, bool) {
+	s.loginMu.Lock()
+	defer s.loginMu.Unlock()
+
+	state, exists := s.loginAttempts[key]
+	if !exists {
+		state = &loginAttemptState{}
+		s.loginAttempts[key] = state
+	} else if !state.lockedUntil.IsZero() && now.After(state.lockedUntil) {
+		state.attempts = 0
+		state.lockedUntil = time.Time{}
+	}
+
+	state.attempts++
+	if state.attempts >= MaxFailedLoginAttempts {
+		state.lockedUntil = now.Add(AccountLockoutDuration)
+		return state.attempts, true
+	}
+	return state.attempts, false
+}
+
+func (s *workerService) resetFailedAttemptInMemory(key string) {
+	s.loginMu.Lock()
+	defer s.loginMu.Unlock()
+	delete(s.loginAttempts, key)
+}
+
 func (s *workerService) Authenticate(ctx context.Context, identifier string, password string) (*domain.AuthLoginResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -731,12 +814,44 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 		return nil, fmt.Errorf("%w: identitas akun dan kata sandi wajib diisi", domain.ErrInvalidInput)
 	}
 
+	if !strings.Contains(identifier, "@") {
+		if sanitizedWA, errWA := domain.SanitizeAndValidateWhatsAppNumber(identifier); errWA == nil {
+			identifier = sanitizedWA
+		} else if strings.HasPrefix(identifier, "0") && len(identifier) >= 8 {
+			if sanitizedWA, errWA := domain.SanitizeAndValidateWhatsAppNumber("62" + identifier[1:]); errWA == nil {
+				identifier = sanitizedWA
+			}
+		}
+	}
+
+	normalizedKey := strings.ToLower(identifier)
+	now := time.Now().UTC()
+
+	if s.isIdentifierLockedInMemory(normalizedKey, now) {
+		return nil, fmt.Errorf("%w: akun Anda terkunci sementara selama 15 menit karena mencapai batas maksimal %d kali percobaan gagal", domain.ErrAccountLocked, MaxFailedLoginAttempts)
+	}
+
 	account, err := s.repo.GetAccountByEmailOrPhone(ctx, identifier)
 	if err != nil {
 		if errors.Is(err, domain.ErrWorkerNotFound) {
+			if _, locked := s.recordFailedAttemptInMemory(normalizedKey, now); locked {
+				return nil, fmt.Errorf("%w: terlalu banyak percobaan gagal (maksimal %d kali). Silakan coba lagi dalam 15 menit", domain.ErrAccountLocked, MaxFailedLoginAttempts)
+			}
 			return nil, fmt.Errorf("%w: akun dengan email atau nomor WhatsApp tersebut tidak ditemukan", domain.ErrInvalidInput)
 		}
 		return nil, err
+	}
+
+	accountKeys := []string{normalizedKey}
+	if emailKey := strings.ToLower(strings.TrimSpace(account.Email)); emailKey != "" && emailKey != normalizedKey {
+		accountKeys = append(accountKeys, emailKey)
+	}
+	if phoneKey := strings.ToLower(strings.TrimSpace(account.PhoneNumber)); phoneKey != "" && phoneKey != normalizedKey {
+		accountKeys = append(accountKeys, phoneKey)
+	}
+
+	if account.LockedUntil != nil && now.Before(*account.LockedUntil) {
+		return nil, fmt.Errorf("%w: akun Anda terkunci sementara selama 15 menit karena mencapai batas maksimal %d kali percobaan gagal", domain.ErrAccountLocked, MaxFailedLoginAttempts)
 	}
 
 	if account.AccountStatus == domain.AccountStatusSuspended {
@@ -745,7 +860,24 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 
 	match, err := auth.VerifyPassword(account.PasswordHash, password)
 	if err != nil || !match {
+		attempts, lockedUntil, recErr := s.repo.RecordFailedLogin(ctx, account.ID, MaxFailedLoginAttempts, AccountLockoutDuration)
+		memLocked := false
+		for _, k := range accountKeys {
+			if _, locked := s.recordFailedAttemptInMemory(k, now); locked {
+				memLocked = true
+			}
+		}
+		if (recErr == nil && (attempts >= MaxFailedLoginAttempts || (lockedUntil != nil && now.Before(*lockedUntil)))) || memLocked {
+			return nil, fmt.Errorf("%w: akun Anda terkunci sementara selama 15 menit setelah %d kali percobaan masuk yang gagal", domain.ErrAccountLocked, MaxFailedLoginAttempts)
+		}
 		return nil, fmt.Errorf("%w: kata sandi yang Anda masukkan tidak sesuai", domain.ErrInvalidInput)
+	}
+
+	for _, k := range accountKeys {
+		s.resetFailedAttemptInMemory(k)
+	}
+	if account.FailedLoginAttempts > 0 || account.LockedUntil != nil {
+		_ = s.repo.ResetFailedLogin(ctx, account.ID)
 	}
 
 	workerIDStr := ""

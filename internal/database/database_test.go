@@ -81,6 +81,8 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 			role TEXT,
 			account_status TEXT,
 			must_change_password BOOLEAN,
+			failed_login_attempts INTEGER DEFAULT 0,
+			locked_until DATETIME,
 			created_at DATETIME,
 			updated_at DATETIME
 		);

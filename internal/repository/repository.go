@@ -28,6 +28,8 @@ type WorkerRepository interface {
 	UpdateWorkerAccountStatus(ctx context.Context, workerID string, newStatus string) error
 	GetAccountByEmailOrPhone(ctx context.Context, identifier string) (*domain.WorkerAccount, error)
 	GetAccountByID(ctx context.Context, accountID string) (*domain.WorkerAccount, error)
+	RecordFailedLogin(ctx context.Context, accountID string, maxAttempts int, lockDuration time.Duration) (int, *time.Time, error)
+	ResetFailedLogin(ctx context.Context, accountID string) error
 }
 
 type BookingRepository interface {

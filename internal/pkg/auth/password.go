@@ -22,7 +22,80 @@ const (
 var (
 	ErrInvalidHash         = errors.New("format hash kata sandi argon2id tidak valid")
 	ErrIncompatibleVersion = errors.New("versi argon2 tidak kompatibel")
+	ErrInvalidPINFormat    = errors.New("PIN keamanan harus berupa 6 digit angka")
+	ErrWeakPIN             = errors.New("PIN terlalu lemah: hindari kombinasi angka berurutan atau berulang seperti 123456 atau 111111")
 )
+
+var weakPINBlacklist = map[string]struct{}{
+	"000000": {}, "111111": {}, "222222": {}, "333333": {}, "444444": {},
+	"555555": {}, "666666": {}, "777777": {}, "888888": {}, "999999": {},
+	"012345": {}, "123456": {}, "234567": {}, "345678": {}, "456789": {}, "567890": {},
+	"987654": {}, "876543": {}, "765432": {}, "654321": {}, "543210": {}, "432109": {},
+	"112233": {}, "121212": {}, "123123": {}, "123321": {}, "102030": {},
+	"001122": {}, "223344": {}, "334455": {}, "445566": {}, "556677": {},
+	"667788": {}, "778899": {}, "889900": {}, "998877": {}, "101010": {},
+}
+
+// IsWeakPIN memeriksa apakah PIN 6 digit termasuk dalam daftar terlarang, berulang, atau berurutan.
+func IsWeakPIN(pin string) bool {
+	pin = strings.TrimSpace(pin)
+	if len(pin) != 6 {
+		return false
+	}
+	for i := 0; i < 6; i++ {
+		if pin[i] < '0' || pin[i] > '9' {
+			return false
+		}
+	}
+
+	if _, blacklisted := weakPINBlacklist[pin]; blacklisted {
+		return true
+	}
+
+	allSame := true
+	isAsc := true
+	isDesc := true
+	for i := 1; i < 6; i++ {
+		if pin[i] != pin[0] {
+			allSame = false
+		}
+		if int(pin[i])-int(pin[i-1]) != 1 {
+			isAsc = false
+		}
+		if int(pin[i-1])-int(pin[i]) != 1 {
+			isDesc = false
+		}
+	}
+	if allSame || isAsc || isDesc {
+		return true
+	}
+
+	// Blokir pola pengulangan pasangan 2 digit (ABABAB), 3 digit (ABCABC), atau kembar berpasangan (AABBCC)
+	if (pin[0] == pin[2] && pin[2] == pin[4] && pin[1] == pin[3] && pin[3] == pin[5]) ||
+		(pin[0] == pin[3] && pin[1] == pin[4] && pin[2] == pin[5]) ||
+		(pin[0] == pin[1] && pin[2] == pin[3] && pin[4] == pin[5]) {
+		return true
+	}
+
+	return false
+}
+
+// ValidatePIN memvalidasi bahwa PIN terdiri dari tepat 6 digit numerik dan bukan kombinasi lemah.
+func ValidatePIN(pin string) error {
+	pin = strings.TrimSpace(pin)
+	if len(pin) != 6 {
+		return ErrInvalidPINFormat
+	}
+	for i := 0; i < 6; i++ {
+		if pin[i] < '0' || pin[i] > '9' {
+			return ErrInvalidPINFormat
+		}
+	}
+	if IsWeakPIN(pin) {
+		return ErrWeakPIN
+	}
+	return nil
+}
 
 // HashPassword mengenkripsi kata sandi atau PIN menggunakan algoritma Argon2id dalam format standar PHC
 func HashPassword(password string) (string, error) {

@@ -62,6 +62,9 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	result, err := h.workerSvc.Authenticate(c.Context(), payload.Identifier, payload.Password)
 	if err != nil {
+		if errors.Is(err, domain.ErrAccountLocked) {
+			return ErrorResponse(c, fiber.StatusTooManyRequests, err.Error(), "ACCOUNT_LOCKED")
+		}
 		if errors.Is(err, domain.ErrInvalidInput) {
 			return ErrorResponse(c, fiber.StatusUnauthorized, err.Error(), "INVALID_CREDENTIALS")
 		}

@@ -173,7 +173,7 @@ ON CONFLICT (worker_id, day_of_week) DO UPDATE SET
     slot_afternoon = EXCLUDED.slot_afternoon,
     slot_evening = EXCLUDED.slot_evening;
 
--- Worker Accounts (Super Admin & Worker Accounts)
+-- Worker Accounts (Super Admin: PIN 849205 & Worker Accounts: PIN 739184)
 INSERT INTO worker_accounts (
     id, worker_id, email, phone_number, password_hash, role, account_status, must_change_password
 ) VALUES
@@ -182,7 +182,7 @@ INSERT INTO worker_accounts (
         NULL,
         'admin@tuwaktu.com',
         '6281200000000',
-        '$argon2id$v=19$m=65536,t=1,p=4$h/Q2qYh7zsDv75pBmrRVhg$RXPT5jUCz0gCbq9DHF3Rrh4JNSakKukU3MMK+yDYs58',
+        '$argon2id$v=19$m=65536,t=1,p=4$uiYTw8zX3xJl1cpIqo//XA$LnCOOfHd56X6q9B+PSCdEy38A8oH8a1/fvdvETKrhKM',
         'ADMIN',
         'ACTIVE',
         FALSE
@@ -192,7 +192,7 @@ INSERT INTO worker_accounts (
         'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
         'budi.santoso@internal.tuwaktu.com',
         '6281234567890',
-        '$argon2id$v=19$m=65536,t=1,p=4$kguxhYUFs7XucnY26sw4BQ$xH2Q9SU7o50Lp0MevX4AKgozmFdVGvkUmANpoya98qU',
+        '$argon2id$v=19$m=65536,t=1,p=4$MAaxkWmbfdPHDfyqWXInBw$9f6WM1rw47nmLMh0WkiXvDdGjU0hYU4tau+jIeaivBM',
         'WORKER',
         'ACTIVE',
         FALSE
@@ -202,7 +202,7 @@ INSERT INTO worker_accounts (
         'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
         'siti.aminah@internal.tuwaktu.com',
         '6281987654321',
-        '$argon2id$v=19$m=65536,t=1,p=4$kguxhYUFs7XucnY26sw4BQ$xH2Q9SU7o50Lp0MevX4AKgozmFdVGvkUmANpoya98qU',
+        '$argon2id$v=19$m=65536,t=1,p=4$MAaxkWmbfdPHDfyqWXInBw$9f6WM1rw47nmLMh0WkiXvDdGjU0hYU4tau+jIeaivBM',
         'WORKER',
         'ACTIVE',
         FALSE

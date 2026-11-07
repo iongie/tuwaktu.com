@@ -134,7 +134,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			"waNumber":       "6281299887766",
 			"basecamp":       "Jakarta Selatan",
 			"customSlug":     "rian-ac-jakarta",
-			"pin":            "654321",
+			"pin":            "482915",
 			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
@@ -172,6 +172,40 @@ func TestAuthHandler_Register(t *testing.T) {
 		require.NotNil(t, tokenCookie)
 		assert.True(t, tokenCookie.HttpOnly)
 		assert.Equal(t, resBody.Data.Token, tokenCookie.Value)
+	})
+
+	t.Run("gagal dengan 400 jika PIN termasuk blacklist PIN lemah (123456, 000000, 111111)", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		for _, weakPIN := range []string{"123456", "000000", "111111", "654321"} {
+			payload := map[string]interface{}{
+				"fullName":       "Rian Hendrawan",
+				"waNumber":       "6281299887766",
+				"basecamp":       "Jakarta Selatan",
+				"customSlug":     "rian-ac-jakarta",
+				"pin":            weakPIN,
+				"altcha_payload": newAltcha(t),
+			}
+			body, _ := json.Marshal(payload)
+
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+			var resBody struct {
+				Success bool   `json:"success"`
+				Message string `json:"message"`
+				Error   string `json:"error"`
+			}
+			err = json.NewDecoder(resp.Body).Decode(&resBody)
+			require.NoError(t, err)
+			assert.False(t, resBody.Success)
+			assert.Contains(t, resBody.Message, "PIN terlalu lemah")
+		}
 	})
 
 	t.Run("gagal dengan 400 jika altcha_payload kosong saat registrasi", func(t *testing.T) {
@@ -262,7 +296,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			"waNumber":       "6281299887766",
 			"basecamp":       "Jakarta Selatan",
 			"customSlug":     "rian-baru",
-			"pin":            "654321",
+			"pin":            "482915",
 			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
@@ -299,7 +333,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			"waNumber":       "6289999888877",
 			"basecamp":       "Jakarta Selatan",
 			"customSlug":     "rian-ac",
-			"pin":            "654321",
+			"pin":            "482915",
 			"altcha_payload": newAltcha(t),
 		}
 		body, _ := json.Marshal(payload)
@@ -319,5 +353,57 @@ func TestAuthHandler_Register(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, resBody.Success)
 		assert.Equal(t, "Slug profil sudah digunakan. Silakan pilih slug lain.", resBody.Message)
+	})
+}
+
+func TestAuthHandler_Login_RateLimitAndLockout(t *testing.T) {
+	newAltcha := func(t *testing.T) string {
+		t.Helper()
+		p, err := auth.GenerateValidAltchaPayload()
+		require.NoError(t, err)
+		return p
+	}
+
+	t.Run("mengembalikan 429 ACCOUNT_LOCKED setelah 5 kali percobaan login gagal", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedAccount(&domain.WorkerAccount{
+			ID:                 "99999999-9999-4999-8999-999999999999",
+			Email:              "admin@tuwaktu.com",
+			PhoneNumber:        "6281200000000",
+			PasswordHash:       "$argon2id$v=19$m=65536,t=1,p=4$uiYTw8zX3xJl1cpIqo//XA$LnCOOfHd56X6q9B+PSCdEy38A8oH8a1/fvdvETKrhKM",
+			Role:               domain.RoleAdmin,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		})
+		app := setupAuthTestApp(repo)
+
+		for attempt := 1; attempt <= 5; attempt++ {
+			payload := map[string]interface{}{
+				"identifier":     "admin@tuwaktu.com",
+				"password":       "000000",
+				"altcha_payload": newAltcha(t),
+			}
+			body, _ := json.Marshal(payload)
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+
+			if attempt < 5 {
+				assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+			} else {
+				assert.Equal(t, fiber.StatusTooManyRequests, resp.StatusCode)
+				var resBody struct {
+					Success bool   `json:"success"`
+					Message string `json:"message"`
+					Error   string `json:"error"`
+				}
+				require.NoError(t, json.NewDecoder(resp.Body).Decode(&resBody))
+				assert.False(t, resBody.Success)
+				assert.Equal(t, "ACCOUNT_LOCKED", resBody.Error)
+				assert.Contains(t, resBody.Message, "terkunci sementara")
+			}
+		}
 	})
 }

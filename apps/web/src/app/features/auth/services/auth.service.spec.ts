@@ -107,8 +107,8 @@ describe('AuthService', () => {
       waNumber: '081234567890',
       basecamp: 'Tebet Barat, Jakarta Selatan',
       customSlug: 'budi-santoso',
-      pin: '123456',
-      pinConfirm: '123456',
+      pin: '482915',
+      pinConfirm: '482915',
       doctrineAccepted: true,
     };
 
@@ -135,8 +135,16 @@ describe('AuthService', () => {
       expect(res.error).toContain('6 digit');
     });
 
+    it('harus gagal jika PIN termasuk daftar hitam sekuensial atau repetitif (123456, 000000, 111111)', () => {
+      for (const weakPin of ['123456', '654321', '000000', '111111', '121212']) {
+        const res = service.validateRegistration({ ...validData, pin: weakPin, pinConfirm: weakPin });
+        expect(res.isValid).toBe(false);
+        expect(res.error).toContain('PIN terlalu lemah');
+      }
+    });
+
     it('harus gagal jika konfirmasi PIN tidak cocok', () => {
-      const res = service.validateRegistration({ ...validData, pin: '123456', pinConfirm: '654321' });
+      const res = service.validateRegistration({ ...validData, pin: '482915', pinConfirm: '739184' });
       expect(res.isValid).toBe(false);
       expect(res.error).toContain('tidak cocok');
     });
@@ -323,8 +331,8 @@ describe('AuthService', () => {
           waNumber: '081987654321',
           basecamp: 'Cilandak, Jakarta Selatan',
           customSlug: 'eko-teknisi-ac',
-          pin: '654321',
-          pinConfirm: '654321',
+          pin: '482915',
+          pinConfirm: '482915',
           doctrineAccepted: true,
         })
         .subscribe((res) => {
@@ -374,8 +382,8 @@ describe('AuthService', () => {
           waNumber: '081987654321',
           basecamp: 'Cilandak, Jakarta Selatan',
           customSlug: 'eko-teknisi-ac',
-          pin: '654321',
-          pinConfirm: '654321',
+          pin: '482915',
+          pinConfirm: '482915',
           doctrineAccepted: false,
         })
         .subscribe((res) => {
@@ -401,8 +409,8 @@ describe('AuthService', () => {
           waNumber: '081987654321',
           basecamp: 'Cilandak, Jakarta Selatan',
           customSlug: 'eko-teknisi-ac',
-          pin: '654321',
-          pinConfirm: '654321',
+          pin: '482915',
+          pinConfirm: '482915',
           doctrineAccepted: true,
         })
         .subscribe((res) => {
@@ -439,8 +447,8 @@ describe('AuthService', () => {
           waNumber: '081987654321',
           basecamp: 'Cilandak, Jakarta Selatan',
           customSlug: 'eko-teknisi-ac',
-          pin: '654321',
-          pinConfirm: '654321',
+          pin: '482915',
+          pinConfirm: '482915',
           doctrineAccepted: true,
         })
         .subscribe((res) => {
@@ -472,8 +480,8 @@ describe('AuthService', () => {
           waNumber: '081234567890',
           basecamp: 'Jakarta',
           customSlug: 'budi-santoso',
-          pin: '123456',
-          pinConfirm: '123456',
+          pin: '482915',
+          pinConfirm: '482915',
           doctrineAccepted: true,
         })
         .subscribe((res) => {
@@ -670,8 +678,8 @@ describe('AuthService', () => {
           waNumber: '081288992211',
           basecamp: 'Jakarta',
           customSlug: 'budi-clean',
-          pin: '123456',
-          pinConfirm: '123456',
+          pin: '482915',
+          pinConfirm: '482915',
           doctrineAccepted: true,
           altchaPayload: 'altcha-token-register',
         })

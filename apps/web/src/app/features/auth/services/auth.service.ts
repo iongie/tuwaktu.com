@@ -578,6 +578,74 @@ export class AuthService {
     });
   }
 
+  private static readonly WEAK_PIN_BLACKLIST = new Set([
+    '000000',
+    '111111',
+    '222222',
+    '333333',
+    '444444',
+    '555555',
+    '666666',
+    '777777',
+    '888888',
+    '999999',
+    '012345',
+    '123456',
+    '234567',
+    '345678',
+    '456789',
+    '567890',
+    '987654',
+    '876543',
+    '765432',
+    '654321',
+    '543210',
+    '432109',
+    '112233',
+    '121212',
+    '123123',
+    '123321',
+    '102030',
+    '101010',
+  ]);
+
+  isWeakPin(pin: string): boolean {
+    const clean = pin.trim();
+    if (!/^\d{6}$/.test(clean)) {
+      return false;
+    }
+    if (AuthService.WEAK_PIN_BLACKLIST.has(clean)) {
+      return true;
+    }
+    let allSame = true;
+    let isAsc = true;
+    let isDesc = true;
+    for (let i = 1; i < 6; i++) {
+      const prev = clean.charCodeAt(i - 1);
+      const curr = clean.charCodeAt(i);
+      if (curr !== clean.charCodeAt(0)) {
+        allSame = false;
+      }
+      if (curr - prev !== 1) {
+        isAsc = false;
+      }
+      if (prev - curr !== 1) {
+        isDesc = false;
+      }
+    }
+    if (allSame || isAsc || isDesc) {
+      return true;
+    }
+    if (
+      (clean[0] === clean[2] && clean[2] === clean[4] && clean[1] === clean[3] && clean[3] === clean[5]) ||
+      (clean[0] === clean[3] && clean[1] === clean[4] && clean[2] === clean[5]) ||
+      (clean[0] === clean[1] && clean[2] === clean[3] && clean[4] === clean[5])
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   validateRegistration(data: RegisterFormData): { isValid: boolean; error?: string } {
     if (!data.fullName.trim()) {
       return { isValid: false, error: 'Nama lengkap pekerja atau entitas usaha wajib diisi.' };
@@ -594,6 +662,12 @@ export class AuthService {
     }
     if (!/^\d{6}$/.test(data.pin)) {
       return { isValid: false, error: 'PIN keamanan harus berupa 6 digit angka.' };
+    }
+    if (this.isWeakPin(data.pin)) {
+      return {
+        isValid: false,
+        error: 'PIN terlalu lemah: hindari kombinasi angka berurutan atau berulang seperti 123456 atau 111111.',
+      };
     }
     if (data.pin !== data.pinConfirm) {
       return { isValid: false, error: 'Konfirmasi PIN tidak cocok dengan PIN Akses.' };

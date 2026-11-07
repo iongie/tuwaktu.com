@@ -35,10 +35,10 @@ describe('AdminWorkerOnboardingModalComponent', () => {
     );
   });
 
-  it('harus mengisi temporary_password saat generateRandomPassword dipanggil', () => {
+  it('harus mengisi temporary_password dengan 6 digit PIN kuat saat generateRandomPassword dipanggil', () => {
     expect(component.formData.temporary_password).toBe('');
     component.generateRandomPassword();
-    expect(component.formData.temporary_password.length).toBe(10);
+    expect(component.formData.temporary_password).toMatch(/^\d{6}$/);
   });
 
   it('harus menampilkan view sukses saat createdResult ada', () => {

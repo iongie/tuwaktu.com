@@ -71,14 +71,29 @@ describe('WorkerRegisterFormComponent', () => {
     component.waNumber = '081234567890';
     component.basecamp = 'Jakarta Selatan';
     component.customSlug = 'budi-santoso';
-    component.workerPin = '123456';
-    component.workerPinConfirm = '654321';
+    component.workerPin = '482915';
+    component.workerPinConfirm = '739184';
     component.doctrineAgreement = true;
 
     component.handleFormSubmit();
     fixture.detectChanges();
 
     expect(component.formError()).toContain('tidak cocok');
+  });
+
+  it('harus menolak submit jika PIN menggunakan kombinasi lemah seperti 123456 atau 000000', () => {
+    component.fullName = 'Budi Santoso';
+    component.waNumber = '081234567890';
+    component.basecamp = 'Jakarta Selatan';
+    component.customSlug = 'budi-santoso';
+    component.workerPin = '123456';
+    component.workerPinConfirm = '123456';
+    component.doctrineAgreement = true;
+
+    component.handleFormSubmit();
+    fixture.detectChanges();
+
+    expect(component.formError()).toContain('PIN terlalu lemah');
   });
 
   it('harus berhasil submit dan navigasi ke dashboard saat seluruh data valid', () => {
@@ -91,8 +106,8 @@ describe('WorkerRegisterFormComponent', () => {
     component.waNumber = '081234567890';
     component.basecamp = 'Jakarta Selatan';
     component.customSlug = 'budi-santoso';
-    component.workerPin = '123456';
-    component.workerPinConfirm = '123456';
+    component.workerPin = '482915';
+    component.workerPinConfirm = '482915';
     component.doctrineAgreement = true;
 
     component.handleFormSubmit();
@@ -118,8 +133,8 @@ describe('WorkerRegisterFormComponent', () => {
     component.waNumber = '081234567890';
     component.basecamp = 'Jakarta Selatan';
     component.customSlug = 'budi-santoso';
-    component.workerPin = '123456';
-    component.workerPinConfirm = '123456';
+    component.workerPin = '482915';
+    component.workerPinConfirm = '482915';
     component.doctrineAgreement = true;
 
     component.handleFormSubmit();
@@ -162,8 +177,8 @@ describe('WorkerRegisterFormComponent', () => {
     component.waNumber = '081234567890';
     component.basecamp = 'Jakarta Selatan';
     component.customSlug = 'budi-santoso';
-    component.workerPin = '123456';
-    component.workerPinConfirm = '123456';
+    component.workerPin = '482915';
+    component.workerPinConfirm = '482915';
     component.doctrineAgreement = true;
 
     component.handleFormSubmit();
@@ -178,8 +193,8 @@ describe('WorkerRegisterFormComponent', () => {
     component.waNumber = '081234567890';
     component.basecamp = 'Jakarta Selatan';
     component.customSlug = 'budi-santoso';
-    component.workerPin = '123456';
-    component.workerPinConfirm = '123456';
+    component.workerPin = '482915';
+    component.workerPinConfirm = '482915';
     component.doctrineAgreement = true;
     component.onAltchaVerified('');
 

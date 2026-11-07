@@ -20,16 +20,18 @@ const (
 
 // WorkerAccount merepresentasikan entitas akun login untuk pekerja maupun admin
 type WorkerAccount struct {
-	ID                 string    `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
-	WorkerID           *string   `json:"worker_id,omitempty" db:"worker_id" gorm:"type:uuid;index"`
-	Email              string    `json:"email" db:"email" gorm:"uniqueIndex;type:varchar(150);not null"`
-	PhoneNumber        string    `json:"phone_number" db:"phone_number" gorm:"uniqueIndex;type:varchar(30)"`
-	PasswordHash       string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
-	Role               string    `json:"role" db:"role" gorm:"type:varchar(20);not null;default:'WORKER'"`
-	AccountStatus      string    `json:"account_status" db:"account_status" gorm:"type:varchar(20);not null;default:'ACTIVE'"`
-	MustChangePassword bool      `json:"must_change_password" db:"must_change_password" gorm:"type:boolean;not null;default:true"`
-	CreatedAt          time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
-	UpdatedAt          time.Time `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
+	ID                  string     `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
+	WorkerID            *string    `json:"worker_id,omitempty" db:"worker_id" gorm:"type:uuid;index"`
+	Email               string     `json:"email" db:"email" gorm:"uniqueIndex;type:varchar(150);not null"`
+	PhoneNumber         string     `json:"phone_number" db:"phone_number" gorm:"uniqueIndex;type:varchar(30)"`
+	PasswordHash        string     `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
+	Role                string     `json:"role" db:"role" gorm:"type:varchar(20);not null;default:'WORKER'"`
+	AccountStatus       string     `json:"account_status" db:"account_status" gorm:"type:varchar(20);not null;default:'ACTIVE'"`
+	MustChangePassword  bool       `json:"must_change_password" db:"must_change_password" gorm:"type:boolean;not null;default:true"`
+	FailedLoginAttempts int        `json:"-" db:"failed_login_attempts" gorm:"type:int;not null;default:0"`
+	LockedUntil         *time.Time `json:"-" db:"locked_until" gorm:"type:timestamptz"`
+	CreatedAt           time.Time  `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
+	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
 
 	// Relasi opsional ke entitas Worker
 	Worker *Worker `json:"worker,omitempty" gorm:"foreignKey:WorkerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

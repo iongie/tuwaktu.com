@@ -191,3 +191,49 @@ func TestMigrationRunner_EdgeCases(t *testing.T) {
 		assert.NotContains(t, appliedMap, "000099_bad")
 	})
 }
+
+func TestMigrationRunner_LockoutMigration000007AndSeed(t *testing.T) {
+	db, tempDir := openTestSQLDB(t)
+	migrationsDir := filepath.Join(tempDir, "migrations")
+	require.NoError(t, os.MkdirAll(migrationsDir, 0755))
+
+	initTable := `
+		CREATE TABLE worker_accounts (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			email TEXT UNIQUE NOT NULL,
+			phone_number TEXT UNIQUE,
+			password_hash TEXT NOT NULL,
+			role TEXT NOT NULL DEFAULT 'WORKER',
+			account_status TEXT NOT NULL DEFAULT 'ACTIVE',
+			must_change_password BOOLEAN NOT NULL DEFAULT 1,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000006_create_worker_accounts.up.sql"), []byte(initTable), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000006_create_worker_accounts.down.sql"), []byte("DROP TABLE IF EXISTS worker_accounts;"), 0644))
+
+	realUp007, err := os.ReadFile(filepath.Join("..", "..", "migrations", "000007_add_account_lockout.up.sql"))
+	require.NoError(t, err)
+	sqliteUp007 := `
+		ALTER TABLE worker_accounts ADD COLUMN failed_login_attempts INT NOT NULL DEFAULT 0;
+		ALTER TABLE worker_accounts ADD COLUMN locked_until TIMESTAMPTZ NULL;
+	`
+	assert.Contains(t, string(realUp007), "failed_login_attempts")
+	assert.Contains(t, string(realUp007), "locked_until")
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000007_add_account_lockout.up.sql"), []byte(sqliteUp007), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000007_add_account_lockout.down.sql"), []byte("ALTER TABLE worker_accounts DROP COLUMN locked_until; ALTER TABLE worker_accounts DROP COLUMN failed_login_attempts;"), 0644))
+
+	require.NoError(t, runUp(db, migrationsDir))
+
+	var attempts int
+	var lockedUntil sql.NullString
+	_, err = db.Exec(`INSERT INTO worker_accounts (id, email, phone_number, password_hash, role, account_status, must_change_password) VALUES ('admin-1', 'admin@tuwaktu.com', '6281200000000', 'hash', 'ADMIN', 'ACTIVE', 0)`)
+	require.NoError(t, err)
+
+	err = db.QueryRow(`SELECT failed_login_attempts, locked_until FROM worker_accounts WHERE email = 'admin@tuwaktu.com'`).Scan(&attempts, &lockedUntil)
+	require.NoError(t, err)
+	assert.Equal(t, 0, attempts)
+	assert.False(t, lockedUntil.Valid)
+}

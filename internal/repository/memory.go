@@ -682,6 +682,53 @@ func (m *MemoryRepository) GetAccountByID(ctx context.Context, accountID string)
 	return nil, domain.ErrWorkerNotFound
 }
 
+func (m *MemoryRepository) RecordFailedLogin(ctx context.Context, accountID string, maxAttempts int, lockDuration time.Duration) (int, *time.Time, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	accountID = strings.TrimSpace(accountID)
+	acc, ok := m.accounts[accountID]
+	if !ok {
+		return 0, nil, domain.ErrWorkerNotFound
+	}
+
+	now := time.Now().UTC()
+	if acc.LockedUntil != nil && now.After(*acc.LockedUntil) {
+		acc.FailedLoginAttempts = 0
+		acc.LockedUntil = nil
+	}
+
+	acc.FailedLoginAttempts++
+	acc.UpdatedAt = now
+	if maxAttempts > 0 && acc.FailedLoginAttempts >= maxAttempts {
+		until := now.Add(lockDuration)
+		acc.LockedUntil = &until
+	}
+
+	var lockedCopy *time.Time
+	if acc.LockedUntil != nil {
+		u := *acc.LockedUntil
+		lockedCopy = &u
+	}
+	return acc.FailedLoginAttempts, lockedCopy, nil
+}
+
+func (m *MemoryRepository) ResetFailedLogin(ctx context.Context, accountID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	accountID = strings.TrimSpace(accountID)
+	acc, ok := m.accounts[accountID]
+	if !ok {
+		return domain.ErrWorkerNotFound
+	}
+
+	acc.FailedLoginAttempts = 0
+	acc.LockedUntil = nil
+	acc.UpdatedAt = time.Now().UTC()
+	return nil
+}
+
 func (m *MemoryRepository) ListPublicWorkers(ctx context.Context) ([]domain.Worker, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

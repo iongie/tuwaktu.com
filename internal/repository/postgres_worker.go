@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"tuwaktu.com/internal/domain"
 )
 
@@ -663,6 +664,81 @@ func (r *PostgresWorkerRepository) GetAccountByID(ctx context.Context, accountID
 	}
 
 	return &account, nil
+}
+
+// RecordFailedLogin mencatat kegagalan login pada akun dan mengunci sementara bila mencapai batas maksimal
+func (r *PostgresWorkerRepository) RecordFailedLogin(ctx context.Context, accountID string, maxAttempts int, lockDuration time.Duration) (int, *time.Time, error) {
+	if err := ctx.Err(); err != nil {
+		return 0, nil, err
+	}
+	accountID = strings.TrimSpace(accountID)
+	if accountID == "" {
+		return 0, nil, domain.ErrInvalidInput
+	}
+
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return 0, nil, fmt.Errorf("memulai transaksi pencatatan gagal login: %w", tx.Error)
+	}
+
+	var account domain.WorkerAccount
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", accountID).First(&account).Error; err != nil {
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, nil, domain.ErrWorkerNotFound
+		}
+		return 0, nil, fmt.Errorf("mencari akun untuk pencatatan gagal login: %w", err)
+	}
+
+	now := time.Now().UTC()
+	if account.LockedUntil != nil && now.After(*account.LockedUntil) {
+		account.FailedLoginAttempts = 0
+		account.LockedUntil = nil
+	}
+
+	account.FailedLoginAttempts++
+	if maxAttempts > 0 && account.FailedLoginAttempts >= maxAttempts {
+		until := now.Add(lockDuration)
+		account.LockedUntil = &until
+	}
+
+	updates := map[string]interface{}{
+		"failed_login_attempts": account.FailedLoginAttempts,
+		"locked_until":          account.LockedUntil,
+		"updated_at":            now,
+	}
+	if err := tx.Model(&domain.WorkerAccount{}).Where("id = ?", accountID).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return 0, nil, fmt.Errorf("memperbarui jumlah kegagalan login: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return 0, nil, fmt.Errorf("melakukan commit pencatatan gagal login: %w", err)
+	}
+
+	return account.FailedLoginAttempts, account.LockedUntil, nil
+}
+
+// ResetFailedLogin mengembalikan penghitung gagal login ke nol dan membuka kunci akun setelah berhasil masuk
+func (r *PostgresWorkerRepository) ResetFailedLogin(ctx context.Context, accountID string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	accountID = strings.TrimSpace(accountID)
+	if accountID == "" {
+		return domain.ErrInvalidInput
+	}
+
+	updates := map[string]interface{}{
+		"failed_login_attempts": 0,
+		"locked_until":          nil,
+		"updated_at":            time.Now().UTC(),
+	}
+	if err := r.db.WithContext(ctx).Model(&domain.WorkerAccount{}).Where("id = ?", accountID).Updates(updates).Error; err != nil {
+		return fmt.Errorf("mereset status gagal login akun: %w", err)
+	}
+
+	return nil
 }
 
 // ListPublicWorkers mengambil daftar seluruh mitra aktif untuk halaman beranda / katalog publik

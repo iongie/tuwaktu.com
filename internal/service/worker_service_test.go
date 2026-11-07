@@ -665,7 +665,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "6281234567890",
 			Zone:           "Jakarta Selatan",
 			Slug:           "budi-ac-jakarta",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		resp, err := svc.RegisterWorker(ctx, payload)
@@ -693,7 +693,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		assert.Len(t, schedules, 7)
 
 		// Verifikasi autentikasi dengan PIN yang didaftarkan (Argon2id) berhasil
-		authResp, err := svc.Authenticate(ctx, "6281234567890", "123456")
+		authResp, err := svc.Authenticate(ctx, "6281234567890", "482915")
 		require.NoError(t, err)
 		require.NotNil(t, authResp)
 		assert.Equal(t, w.ID, *authResp.Session.WorkerID)
@@ -702,6 +702,26 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		_, errWrong := svc.Authenticate(ctx, "6281234567890", "999999")
 		require.Error(t, errWrong)
 		assert.Contains(t, errWrong.Error(), "kata sandi yang Anda masukkan tidak sesuai")
+	})
+
+	t.Run("gagal jika menggunakan PIN lemah yang sekuensial atau repetitif", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		weakPINs := []string{"123456", "654321", "000000", "111111", "121212"}
+		for _, weakPIN := range weakPINs {
+			payload := &domain.AuthRegisterPayload{
+				Name:           "Budi Santoso",
+				WhatsAppNumber: "6281234567890",
+				Zone:           "Jakarta Selatan",
+				Slug:           "budi-ac-jakarta",
+				PIN:            weakPIN,
+			}
+			_, err := svc.RegisterWorker(ctx, payload)
+			require.Error(t, err, "PIN %s seharusnya ditolak", weakPIN)
+			assert.ErrorIs(t, err, domain.ErrInvalidInput)
+			assert.Contains(t, err.Error(), "PIN terlalu lemah")
+		}
 	})
 
 	t.Run("gagal jika nama lengkap kosong", func(t *testing.T) {
@@ -713,7 +733,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "6281234567890",
 			Zone:           "Jakarta Selatan",
 			Slug:           "budi-ac",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		_, err := svc.RegisterWorker(ctx, payload)
@@ -730,7 +750,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "081234", // diawali 0
 			Zone:           "Jakarta Selatan",
 			Slug:           "budi-ac",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		_, err := svc.RegisterWorker(ctx, payload)
@@ -747,7 +767,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "6281234567890",
 			Zone:           "",
 			Slug:           "budi-ac",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		_, err := svc.RegisterWorker(ctx, payload)
@@ -764,7 +784,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "6281234567890",
 			Zone:           "Jakarta Selatan",
 			Slug:           "ab",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		_, err := svc.RegisterWorker(ctx, payload)
@@ -805,7 +825,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "6281234567890",
 			Zone:           "Jakarta Selatan",
 			Slug:           "budi-baru",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		_, err := svc.RegisterWorker(ctx, payload)
@@ -829,12 +849,141 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 			WhatsAppNumber: "6289999999999",
 			Zone:           "Jakarta Selatan",
 			Slug:           "budi-ac",
-			PIN:            "123456",
+			PIN:            "482915",
 		}
 
 		_, err := svc.RegisterWorker(ctx, payload)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Slug profil sudah digunakan. Silakan pilih slug lain.")
+	})
+}
+
+func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("akun terkunci sementara setelah 5 kali percobaan PIN salah berturut-turut", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+			Name:           "Rian Teknisi",
+			WhatsAppNumber: "6281299887766",
+			Zone:           "Jakarta Selatan",
+			Slug:           "rian-teknisi",
+			PIN:            "482915",
+		})
+		require.NoError(t, err)
+
+		// Percobaan 1 s/d 4 gagal dengan ErrInvalidInput
+		for i := 1; i <= 4; i++ {
+			_, errAuth := svc.Authenticate(ctx, "6281299887766", "999999")
+			require.Error(t, errAuth)
+			assert.ErrorIs(t, errAuth, domain.ErrInvalidInput)
+			assert.NotErrorIs(t, errAuth, domain.ErrAccountLocked)
+		}
+
+		// Percobaan ke-5 memicu penguncian akun sementara (ErrAccountLocked)
+		_, errFifth := svc.Authenticate(ctx, "6281299887766", "999999")
+		require.Error(t, errFifth)
+		assert.ErrorIs(t, errFifth, domain.ErrAccountLocked)
+
+		// Percobaan berikutnya dengan PIN yang BENAR tetap ditolak selama masa terkunci
+		_, errWhileLocked := svc.Authenticate(ctx, "6281299887766", "482915")
+		require.Error(t, errWhileLocked)
+		assert.ErrorIs(t, errWhileLocked, domain.ErrAccountLocked)
+	})
+
+	t.Run("penghitung gagal login direset kembali ke nol jika berhasil masuk sebelum percobaan ke-5", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+			Name:           "Dedi Teknisi",
+			WhatsAppNumber: "6281377889900",
+			Zone:           "Jakarta Barat",
+			Slug:           "dedi-teknisi",
+			PIN:            "739184",
+		})
+		require.NoError(t, err)
+
+		// 4 kali gagal
+		for i := 1; i <= 4; i++ {
+			_, errAuth := svc.Authenticate(ctx, "6281377889900", "000000")
+			require.ErrorIs(t, errAuth, domain.ErrInvalidInput)
+		}
+
+		// Berhasil login pada percobaan ke-5 -> mereset counter
+		resp, errSuccess := svc.Authenticate(ctx, "6281377889900", "739184")
+		require.NoError(t, errSuccess)
+		require.NotNil(t, resp)
+
+		// Gagal 1 kali lagi tidak langsung mengunci akun
+		_, errAfterReset := svc.Authenticate(ctx, "6281377889900", "000000")
+		require.ErrorIs(t, errAfterReset, domain.ErrInvalidInput)
+		assert.NotErrorIs(t, errAfterReset, domain.ErrAccountLocked)
+	})
+
+	t.Run("penghitung gagal login direset lintas identifier (WhatsApp dan email) setelah berhasil masuk", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+			Name:           "Hendra Teknisi",
+			WhatsAppNumber: "6281355667788",
+			Zone:           "Jakarta Pusat",
+			Slug:           "hendra-teknisi",
+			PIN:            "739184",
+		})
+		require.NoError(t, err)
+
+		// 4 kali gagal via WhatsApp
+		for i := 1; i <= 4; i++ {
+			_, errAuth := svc.Authenticate(ctx, "6281355667788", "000000")
+			require.ErrorIs(t, errAuth, domain.ErrInvalidInput)
+		}
+
+		// Berhasil login via Email -> mereset counter baik di DB maupun in-memory untuk WhatsApp & Email
+		resp, errSuccess := svc.Authenticate(ctx, "hendra-teknisi@tuwaktu.com", "739184")
+		require.NoError(t, errSuccess)
+		require.NotNil(t, resp)
+
+		// Gagal 1 kali lagi via WhatsApp tidak boleh mengunci akun
+		_, errAfterReset := svc.Authenticate(ctx, "6281355667788", "000000")
+		require.ErrorIs(t, errAfterReset, domain.ErrInvalidInput)
+		assert.NotErrorIs(t, errAfterReset, domain.ErrAccountLocked)
+	})
+
+	t.Run("akun Super Admin berhasil autentikasi menggunakan PIN 6-digit 849205", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedAccount(&domain.WorkerAccount{
+			ID:                 "99999999-9999-4999-8999-999999999999",
+			WorkerID:           nil,
+			Email:              "admin@tuwaktu.com",
+			PhoneNumber:        "6281200000000",
+			PasswordHash:       "$argon2id$v=19$m=65536,t=1,p=4$uiYTw8zX3xJl1cpIqo//XA$LnCOOfHd56X6q9B+PSCdEy38A8oH8a1/fvdvETKrhKM",
+			Role:               domain.RoleAdmin,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		})
+
+		svc := service.NewWorkerService(repo)
+
+		respByEmail, err := svc.Authenticate(ctx, "admin@tuwaktu.com", "849205")
+		require.NoError(t, err)
+		assert.Equal(t, domain.RoleAdmin, respByEmail.Session.Role)
+		assert.Equal(t, "Super Administrator", respByEmail.Session.Name)
+
+		respByPhone, err := svc.Authenticate(ctx, "6281200000000", "849205")
+		require.NoError(t, err)
+		assert.Equal(t, domain.RoleAdmin, respByPhone.Session.Role)
+
+		respByLocalPhone, err := svc.Authenticate(ctx, "081200000000", "849205")
+		require.NoError(t, err)
+		assert.Equal(t, domain.RoleAdmin, respByLocalPhone.Session.Role)
+
+		respByPlusPhone, err := svc.Authenticate(ctx, "+6281200000000", "849205")
+		require.NoError(t, err)
+		assert.Equal(t, domain.RoleAdmin, respByPlusPhone.Session.Role)
 	})
 }
 

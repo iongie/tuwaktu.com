@@ -73,6 +73,20 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			created_at DATETIME,
 			updated_at DATETIME
 		);
+		CREATE TABLE worker_accounts (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT,
+			email TEXT UNIQUE,
+			phone_number TEXT UNIQUE,
+			password_hash TEXT,
+			role TEXT,
+			account_status TEXT,
+			must_change_password BOOLEAN,
+			failed_login_attempts INTEGER DEFAULT 0,
+			locked_until DATETIME,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
 		CREATE TABLE bookings (
 			id TEXT PRIMARY KEY,
 			booking_code TEXT UNIQUE,
@@ -991,6 +1005,46 @@ func TestPostgresBookingRepository_BookingsAndSchedules(t *testing.T) {
 		schedules, err := repo.GetWorkerSchedules(ctx, "joko-bkg")
 		require.NoError(t, err)
 		assert.Len(t, schedules, 7)
+	})
+}
+
+func TestPostgresWorkerRepository_RecordAndResetFailedLogin(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("mencatat gagal login hingga 5 kali mengunci akun dan meresetnya kembali", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		acc := &domain.WorkerAccount{
+			ID:                 "acc-lock-01",
+			Email:              "locktest@tuwaktu.com",
+			PhoneNumber:        "6281211223344",
+			PasswordHash:       "hash",
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		}
+		require.NoError(t, db.Create(acc).Error)
+
+		for i := 1; i <= 4; i++ {
+			attempts, lockedUntil, err := repo.RecordFailedLogin(ctx, acc.ID, 5, 15*time.Minute)
+			require.NoError(t, err)
+			assert.Equal(t, i, attempts)
+			assert.Nil(t, lockedUntil)
+		}
+
+		attempts5, lockedUntil5, err := repo.RecordFailedLogin(ctx, acc.ID, 5, 15*time.Minute)
+		require.NoError(t, err)
+		assert.Equal(t, 5, attempts5)
+		require.NotNil(t, lockedUntil5)
+		assert.True(t, lockedUntil5.After(time.Now().UTC()))
+
+		require.NoError(t, repo.ResetFailedLogin(ctx, acc.ID))
+
+		fetched, err := repo.GetAccountByID(ctx, acc.ID)
+		require.NoError(t, err)
+		assert.Equal(t, 0, fetched.FailedLoginAttempts)
+		assert.Nil(t, fetched.LockedUntil)
 	})
 }
 

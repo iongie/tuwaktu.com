@@ -22,15 +22,17 @@ func TestPassword_HashAndVerifyArgon2id(t *testing.T) {
 	})
 
 	t.Run("verifikasi hash seed default admin dan mitra berhasil dengan Argon2id", func(t *testing.T) {
-		adminSeedHash := "$argon2id$v=19$m=65536,t=1,p=4$h/Q2qYh7zsDv75pBmrRVhg$RXPT5jUCz0gCbq9DHF3Rrh4JNSakKukU3MMK+yDYs58"
-		matchAdmin, err := auth.VerifyPassword(adminSeedHash, "AdminTuwaktu2026!")
+		adminSeedHash := "$argon2id$v=19$m=65536,t=1,p=4$uiYTw8zX3xJl1cpIqo//XA$LnCOOfHd56X6q9B+PSCdEy38A8oH8a1/fvdvETKrhKM"
+		matchAdmin, err := auth.VerifyPassword(adminSeedHash, "849205")
 		require.NoError(t, err)
 		assert.True(t, matchAdmin)
+		require.NoError(t, auth.ValidatePIN("849205"))
 
-		workerSeedHash := "$argon2id$v=19$m=65536,t=1,p=4$kguxhYUFs7XucnY26sw4BQ$xH2Q9SU7o50Lp0MevX4AKgozmFdVGvkUmANpoya98qU"
-		matchWorker, err := auth.VerifyPassword(workerSeedHash, "MitraTuwaktu2026!")
+		workerSeedHash := "$argon2id$v=19$m=65536,t=1,p=4$MAaxkWmbfdPHDfyqWXInBw$9f6WM1rw47nmLMh0WkiXvDdGjU0hYU4tau+jIeaivBM"
+		matchWorker, err := auth.VerifyPassword(workerSeedHash, "739184")
 		require.NoError(t, err)
 		assert.True(t, matchWorker)
+		require.NoError(t, auth.ValidatePIN("739184"))
 	})
 
 	t.Run("menghasilkan salt unik untuk kata sandi yang sama", func(t *testing.T) {
@@ -84,3 +86,46 @@ func TestPassword_HashAndVerifyArgon2id(t *testing.T) {
 		assert.False(t, match)
 	})
 }
+
+func TestValidatePIN_WeakBlacklistAndStrongPIN(t *testing.T) {
+	t.Run("menolak kombinasi PIN sekuensial dan repetitif dalam daftar hitam", func(t *testing.T) {
+		weakPINs := []string{
+			"123456",
+			"654321",
+			"000000",
+			"111111",
+			"222222",
+			"999999",
+			"012345",
+			"234567",
+			"987654",
+			"543210",
+			"112233",
+			"121212",
+			"123123",
+			"123321",
+		}
+		for _, pin := range weakPINs {
+			assert.True(t, auth.IsWeakPIN(pin), "PIN %s seharusnya terdeteksi lemah", pin)
+			err := auth.ValidatePIN(pin)
+			assert.ErrorIs(t, err, auth.ErrWeakPIN, "PIN %s seharusnya ditolak oleh ValidatePIN", pin)
+		}
+	})
+
+	t.Run("menolak format PIN yang bukan 6 digit angka", func(t *testing.T) {
+		invalidFormats := []string{"", "1234", "1234567", "12345a", "abcdef"}
+		for _, pin := range invalidFormats {
+			err := auth.ValidatePIN(pin)
+			assert.ErrorIs(t, err, auth.ErrInvalidPINFormat, "input: %s", pin)
+		}
+	})
+
+	t.Run("menerima kombinasi PIN 6 digit yang kuat", func(t *testing.T) {
+		strongPINs := []string{"849205", "482915", "739184", "592837", "309481"}
+		for _, pin := range strongPINs {
+			assert.False(t, auth.IsWeakPIN(pin), "PIN %s seharusnya valid", pin)
+			require.NoError(t, auth.ValidatePIN(pin), "PIN %s seharusnya lulus validasi", pin)
+		}
+	})
+}
+

@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/handler"
 	"tuwaktu.com/internal/pkg/auth"
@@ -231,7 +230,7 @@ func TestAdminRoutes_UpdateStatusAndSuspensionEffect(t *testing.T) {
 func TestAuth_CookieBasedSessionAndEndpoints(t *testing.T) {
 	app, repo := setupTestApp()
 
-	pwHash, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.MinCost)
+	pwHash, err := auth.HashPassword("password123")
 	require.NoError(t, err)
 
 	// 1. Seed akun admin
@@ -239,7 +238,7 @@ func TestAuth_CookieBasedSessionAndEndpoints(t *testing.T) {
 		ID:                 "admin-cookie-acc-1",
 		Email:              "admin.cookie@tuwaktu.com",
 		PhoneNumber:        "6281200001111",
-		PasswordHash:       string(pwHash),
+		PasswordHash:       pwHash,
 		Role:               domain.RoleAdmin,
 		AccountStatus:      domain.AccountStatusActive,
 		MustChangePassword: false,
@@ -361,7 +360,7 @@ func TestAuth_CookieBasedSessionAndEndpoints(t *testing.T) {
 			ID:                 "worker-suspended-1",
 			Email:              "suspended@tuwaktu.com",
 			PhoneNumber:        "6281200009999",
-			PasswordHash:       string(pwHash),
+			PasswordHash:       pwHash,
 			Role:               domain.RoleWorker,
 			AccountStatus:      domain.AccountStatusSuspended,
 			MustChangePassword: false,

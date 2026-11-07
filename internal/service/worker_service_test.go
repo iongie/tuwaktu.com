@@ -691,6 +691,17 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		schedules, err := repo.GetWorkerSchedules(ctx, w.ID)
 		require.NoError(t, err)
 		assert.Len(t, schedules, 7)
+
+		// Verifikasi autentikasi dengan PIN yang didaftarkan (Argon2id) berhasil
+		authResp, err := svc.Authenticate(ctx, "6281234567890", "123456")
+		require.NoError(t, err)
+		require.NotNil(t, authResp)
+		assert.Equal(t, w.ID, *authResp.Session.WorkerID)
+
+		// Verifikasi autentikasi gagal dengan PIN yang salah
+		_, errWrong := svc.Authenticate(ctx, "6281234567890", "999999")
+		require.Error(t, errWrong)
+		assert.Contains(t, errWrong.Error(), "kata sandi yang Anda masukkan tidak sesuai")
 	})
 
 	t.Run("gagal jika nama lengkap kosong", func(t *testing.T) {

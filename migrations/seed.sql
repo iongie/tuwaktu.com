@@ -182,7 +182,7 @@ INSERT INTO worker_accounts (
         NULL,
         'admin@tuwaktu.com',
         '6281200000000',
-        '$2a$10$OrUOmKDGkaK6VBKq/lQSKuxLh15F47pdbVdx92.B19AdUmSFc4ace',
+        '$argon2id$v=19$m=65536,t=1,p=4$h/Q2qYh7zsDv75pBmrRVhg$RXPT5jUCz0gCbq9DHF3Rrh4JNSakKukU3MMK+yDYs58',
         'ADMIN',
         'ACTIVE',
         FALSE
@@ -192,7 +192,7 @@ INSERT INTO worker_accounts (
         'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
         'budi.santoso@internal.tuwaktu.com',
         '6281234567890',
-        '$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy',
+        '$argon2id$v=19$m=65536,t=1,p=4$kguxhYUFs7XucnY26sw4BQ$xH2Q9SU7o50Lp0MevX4AKgozmFdVGvkUmANpoya98qU',
         'WORKER',
         'ACTIVE',
         FALSE
@@ -202,7 +202,7 @@ INSERT INTO worker_accounts (
         'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
         'siti.aminah@internal.tuwaktu.com',
         '6281987654321',
-        '$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy',
+        '$argon2id$v=19$m=65536,t=1,p=4$kguxhYUFs7XucnY26sw4BQ$xH2Q9SU7o50Lp0MevX4AKgozmFdVGvkUmANpoya98qU',
         'WORKER',
         'ACTIVE',
         FALSE

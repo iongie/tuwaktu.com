@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/pkg/auth"
 	"tuwaktu.com/internal/pkg/slug"
@@ -400,7 +399,7 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 		return nil, fmt.Errorf("%w: kata sandi sementara minimal 8 karakter", domain.ErrInvalidInput)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(tempPassword), bcrypt.DefaultCost)
+	hashedPassword, err := auth.HashPassword(tempPassword)
 	if err != nil {
 		return nil, fmt.Errorf("melakukan hashing password: %w", err)
 	}
@@ -480,7 +479,7 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 	newAccount := domain.WorkerAccount{
 		Email:              email,
 		PhoneNumber:        sanitizedWA,
-		PasswordHash:       string(hashedPassword),
+		PasswordHash:       hashedPassword,
 		Role:               domain.RoleWorker,
 		AccountStatus:      domain.AccountStatusActive,
 		MustChangePassword: true,
@@ -596,7 +595,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 	}
 
 	// 4. Hash PIN
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pin), bcrypt.DefaultCost)
+	hashedPassword, err := auth.HashPassword(pin)
 	if err != nil {
 		return nil, fmt.Errorf("melakukan hashing PIN: %w", err)
 	}
@@ -659,7 +658,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		WorkerID:           &workerIDStr,
 		Email:              email,
 		PhoneNumber:        sanitizedWA,
-		PasswordHash:       string(hashedPassword),
+		PasswordHash:       hashedPassword,
 		Role:               domain.RoleWorker,
 		AccountStatus:      domain.AccountStatusActive,
 		MustChangePassword: false,
@@ -744,7 +743,8 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 		return nil, fmt.Errorf("%w: akun Anda telah dinonaktifkan oleh administrator", domain.ErrWorkerInactive)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(account.PasswordHash), []byte(password)); err != nil {
+	match, err := auth.VerifyPassword(account.PasswordHash, password)
+	if err != nil || !match {
 		return nil, fmt.Errorf("%w: kata sandi yang Anda masukkan tidak sesuai", domain.ErrInvalidInput)
 	}
 

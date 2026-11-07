@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HomeCategoryCardComponent } from '../../molecules/home-category-card/home-category-card.component';
 import { DisciplineCategory } from '../../../models/home.model';
@@ -41,7 +41,7 @@ import { DisciplineCategory } from '../../../models/home.model';
           @for (category of categories; track category.id) {
             <app-home-category-card
               [category]="category"
-              (selectCategory)="onCategorySelected()"
+              (selectCategory)="onCategorySelected($event)"
             />
           }
         </div>
@@ -51,6 +51,8 @@ import { DisciplineCategory } from '../../../models/home.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeDisciplinesSectionComponent {
+  readonly selectCategory = output<string>();
+
   readonly categories: DisciplineCategory[] = [
     {
       id: 'cat-ac',
@@ -102,7 +104,8 @@ export class HomeDisciplinesSectionComponent {
     },
   ];
 
-  onCategorySelected(): void {
+  onCategorySelected(categorySlug: string): void {
+    this.selectCategory.emit(categorySlug);
     const featuredSection = document.getElementById('spesialis-unggulan');
     if (featuredSection && typeof featuredSection.scrollIntoView === 'function') {
       featuredSection.scrollIntoView({ behavior: 'smooth' });

@@ -1,7 +1,17 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HomeWorkerCardComponent } from '../../molecules/home-worker-card/home-worker-card.component';
 import { FeaturedWorker } from '../../../models/home.model';
+import { HomeApiService } from '../../../services/home-api.service';
 
 @Component({
   selector: 'app-home-featured-workers-section',
@@ -38,90 +48,219 @@ import { FeaturedWorker } from '../../../models/home.model';
           </div>
 
           <div class="text-caption font-mono-rate text-ink-disabled shrink-0">
-            TOTAL 89+ PEKERJA AKTIF
+            @if (isLoading()) {
+              <span class="inline-block w-24 h-4 bg-surface-container-high rounded animate-pulse"></span>
+            } @else {
+              TOTAL {{ totalWorkersCount() }} PEKERJA AKTIF
+            }
           </div>
         </div>
 
-        <!-- 4-Column Grid of Worker Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
-          @for (worker of featuredWorkers; track worker.id) {
-            <app-home-worker-card [worker]="worker" />
+        <!-- Quick Filter Chips -->
+        <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-hairline-subtle text-caption">
+          <span class="text-ink-disabled font-mono-rate">Kategori:</span>
+          @for (cat of categoryFilterOptions; track cat) {
+            <button
+              type="button"
+              (click)="setCategoryFilter(cat)"
+              [class.bg-on-surface]="activeCategory() === cat"
+              [class.text-surface]="activeCategory() === cat"
+              [class.font-bold]="activeCategory() === cat"
+              [class.bg-surface-container]="activeCategory() !== cat"
+              [class.text-on-surface-variant]="activeCategory() !== cat"
+              class="px-3.5 py-1.5 min-h-[36px] inline-flex items-center rounded-full border border-hairline-subtle text-caption transition-colors cursor-pointer"
+            >
+              {{ cat }}
+            </button>
           }
         </div>
+
+        <!-- Content Area: Skeleton, Error, Empty, or Worker Grid -->
+        @if (isLoading()) {
+          <!-- Skeleton Loading State (4 Cards) -->
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg"
+            data-testid="workers-loading-skeleton"
+          >
+            @for (sk of [1, 2, 3, 4]; track sk) {
+              <div
+                class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-md animate-pulse"
+                aria-hidden="true"
+              >
+                <div class="flex items-start gap-space-md">
+                  <div class="w-16 h-16 rounded-xl bg-surface-container-high shrink-0"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-4 bg-surface-container-high rounded w-3/4"></div>
+                    <div class="h-3 bg-surface-container rounded w-1/2"></div>
+                    <div class="h-3 bg-surface-container-low rounded w-1/3"></div>
+                  </div>
+                </div>
+                <div class="h-10 bg-surface-container-low rounded-lg"></div>
+                <div class="flex gap-2">
+                  <div class="h-5 bg-surface-container rounded w-16"></div>
+                  <div class="h-5 bg-surface-container rounded w-20"></div>
+                </div>
+                <div class="pt-space-md border-t border-hairline-subtle flex justify-between items-center">
+                  <div class="h-6 bg-surface-container rounded w-20"></div>
+                  <div class="h-8 bg-surface-container-high rounded w-28"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (errorMessage()) {
+          <!-- Error State with Retry Button -->
+          <div
+            class="p-space-xl rounded-xl bg-error/10 border border-error/30 text-on-surface space-y-space-sm max-w-xl mx-auto text-center"
+            role="alert"
+          >
+            <span class="material-symbols-outlined text-[32px] text-error">error</span>
+            <p class="font-body-strong text-body-strong text-on-surface">
+              {{ errorMessage() }}
+            </p>
+            <p class="font-caption text-ink-secondary">
+              Gagal memuat katalog pekerja mandiri dari server. Silakan coba kembali.
+            </p>
+            <button
+              type="button"
+              (click)="loadWorkers()"
+              class="m3-btn-outlined inline-flex items-center gap-1.5 px-4 py-2 mt-2 text-caption font-bold rounded-lg cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[18px]">refresh</span>
+              <span>Coba Lagi</span>
+            </button>
+          </div>
+        } @else if (filteredWorkers().length === 0) {
+          <!-- Empty State -->
+          <div
+            class="p-space-2xl rounded-2xl bg-surface-container border border-hairline-subtle text-center space-y-space-sm max-w-md mx-auto"
+            data-testid="workers-empty-state"
+          >
+            <span class="material-symbols-outlined text-[40px] text-ink-disabled">
+              search_off
+            </span>
+            <h3 class="font-heading-h3 text-heading-h3 font-bold text-on-surface">
+              Belum Ada Teknisi Ditemukan
+            </h3>
+            <p class="font-body-default text-body-default text-ink-secondary">
+              Tidak ada mitra terverifikasi yang cocok dengan kriteria pencarian Anda.
+            </p>
+            @if (activeCategory() !== 'Semua' || searchQuery()) {
+              <button
+                type="button"
+                (click)="resetFilters()"
+                class="m3-btn-filled px-4 py-2 text-caption font-bold rounded-lg cursor-pointer mt-2"
+              >
+                Tampilkan Semua Teknisi
+              </button>
+            }
+          </div>
+        } @else {
+          <!-- 4-Column Grid of Real Worker Cards from API -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+            @for (worker of filteredWorkers(); track worker.id) {
+              <app-home-worker-card [worker]="worker" />
+            }
+          </div>
+        }
       </div>
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeFeaturedWorkersSectionComponent {
-  readonly featuredWorkers: FeaturedWorker[] = [
-    {
-      id: 'worker-sarah',
-      slug: 'sarah-cleaning',
-      name: 'Sarah Melinda',
-      specialty: 'Spesialis Sanitasi & Deep Clean',
-      category: 'Sanitasi',
-      rating: 4.9,
-      reviewCount: 48,
-      basecampZone: 'Tebet, Jakarta Selatan',
-      startingPrice: 65000,
-      priceUnit: 'jam',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-      isVerified: true,
-      specialtyTags: ['Deep Clean', 'Sterilisasi Kasur', 'Bebas Tungau'],
-      bufferMinutes: 60,
-    },
-    {
-      id: 'worker-budi',
-      slug: 'budi-santoso',
-      name: 'Budi Santoso',
-      specialty: 'Teknisi HVAC & Pendingin Ruangan',
-      category: 'Servis AC',
-      rating: 4.95,
-      reviewCount: 62,
-      basecampZone: 'Jagakarsa, Jakarta Selatan',
-      startingPrice: 75000,
-      priceUnit: 'unit',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400',
-      isVerified: true,
-      specialtyTags: ['Cuci AC Inverter', 'Isi Freon R32', 'Bongkar Pasang'],
-      bufferMinutes: 60,
-    },
-    {
-      id: 'worker-hendra',
-      slug: 'hendra-listrik',
-      name: 'Hendra Gunawan',
-      specialty: 'Teknisi Instalasi & Panel Listrik',
-      category: 'Kelistrikan',
-      rating: 4.88,
-      reviewCount: 39,
-      basecampZone: 'Menteng, Jakarta Pusat',
-      startingPrice: 80000,
-      priceUnit: 'kunjungan',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400',
-      isVerified: true,
-      specialtyTags: ['Korsleting', 'MCB Panel', 'Grounding Presisi'],
-      bufferMinutes: 90,
-    },
-    {
-      id: 'worker-rian',
-      slug: 'rian-audio',
-      name: 'Rian Hendrawan',
-      specialty: 'Audio & Servis Elektronik',
-      category: 'Elektronik',
-      rating: 5.0,
-      reviewCount: 27,
-      basecampZone: 'BSD, Tangerang Selatan',
-      startingPrice: 120000,
-      priceUnit: 'kunjungan',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-      isVerified: true,
-      specialtyTags: ['Home Theater', 'Mesin Cuci', 'TV LED Inverter'],
-      bufferMinutes: 60,
-    },
+export class HomeFeaturedWorkersSectionComponent implements OnInit {
+  private readonly homeApiService = inject(HomeApiService);
+
+  readonly searchQuery = input<string>('');
+  readonly selectedCategory = input<string>('');
+
+  readonly workers = signal<FeaturedWorker[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly errorMessage = signal<string>('');
+
+  readonly activeCategory = signal<string>('Semua');
+
+  readonly categoryFilterOptions = [
+    'Semua',
+    'Servis AC',
+    'Sanitasi',
+    'Kelistrikan',
+    'Elektronik',
   ];
+
+  readonly totalWorkersCount = computed(() => this.workers().length);
+
+  readonly filteredWorkers = computed(() => {
+    let result = this.workers();
+
+    const category = this.activeCategory();
+    if (category !== 'Semua') {
+      const lowerCat = category.toLowerCase();
+      result = result.filter((w) => {
+        const catMatch = w.category.toLowerCase().includes(lowerCat);
+        const specMatch = w.specialty.toLowerCase().includes(lowerCat);
+        const tagMatch = w.specialtyTags.some((t) => t.toLowerCase().includes(lowerCat));
+        return catMatch || specMatch || tagMatch;
+      });
+    }
+
+    const query = this.searchQuery().trim().toLowerCase();
+    if (query) {
+      result = result.filter((w) => {
+        const nameMatch = w.name.toLowerCase().includes(query);
+        const slugMatch = w.slug.toLowerCase().includes(query);
+        const zoneMatch = w.basecampZone.toLowerCase().includes(query);
+        const specMatch = w.specialty.toLowerCase().includes(query);
+        const tagMatch = w.specialtyTags.some((t) => t.toLowerCase().includes(query));
+        return nameMatch || slugMatch || zoneMatch || specMatch || tagMatch;
+      });
+    }
+
+    return result;
+  });
+
+  constructor() {
+    effect(() => {
+      const externalCat = this.selectedCategory();
+      if (externalCat) {
+        const lower = externalCat.toLowerCase();
+        if (lower.includes('ac')) {
+          this.activeCategory.set('Servis AC');
+        } else if (lower.includes('clean') || lower.includes('sanitasi')) {
+          this.activeCategory.set('Sanitasi');
+        } else if (lower.includes('listrik')) {
+          this.activeCategory.set('Kelistrikan');
+        } else if (lower.includes('elektronik') || lower.includes('audio')) {
+          this.activeCategory.set('Elektronik');
+        }
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadWorkers();
+  }
+
+  loadWorkers(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    this.homeApiService.fetchPublicWorkers().subscribe({
+      next: (items) => {
+        this.workers.set(items);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Terjadi kendala saat memuat data teknisi.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  setCategoryFilter(cat: string): void {
+    this.activeCategory.set(cat);
+  }
+
+  resetFilters(): void {
+    this.activeCategory.set('Semua');
+  }
 }

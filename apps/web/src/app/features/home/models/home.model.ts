@@ -1,3 +1,40 @@
+export interface PublicWorkerServiceItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  base_price?: number;
+  rate_type: string;
+  duration_minutes: number;
+}
+
+export interface PublicWorkerProfile {
+  id: string;
+  slug: string;
+  name: string;
+  bio: string;
+  avatar_url: string;
+  rating: number;
+  review_count: number;
+  zone: string;
+  base_price: number;
+  rate_type: string;
+  lat?: number;
+  lng?: number;
+  max_radius_km: number;
+  free_radius_km: number;
+  extra_fee_per_km: number;
+  whatsapp_number?: string;
+  services: PublicWorkerServiceItem[];
+}
+
+export interface PublicWorkersApiResponse {
+  success: boolean;
+  message: string;
+  data: PublicWorkerProfile[];
+  error?: string | null;
+}
+
 export interface FeaturedWorker {
   id: string;
   slug: string;

@@ -665,5 +665,28 @@ func (r *PostgresWorkerRepository) GetAccountByID(ctx context.Context, accountID
 	return &account, nil
 }
 
+// ListPublicWorkers mengambil daftar seluruh mitra aktif untuk halaman beranda / katalog publik
+func (r *PostgresWorkerRepository) ListPublicWorkers(ctx context.Context) ([]domain.Worker, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	var workers []domain.Worker
+	err := r.db.WithContext(ctx).
+		Preload("Services", "is_active = ?", true).
+		Where("is_active = ?", true).
+		Order("rating DESC, review_count DESC, created_at DESC").
+		Find(&workers).Error
+	if err != nil {
+		return nil, fmt.Errorf("mengambil daftar pekerja publik: %w", err)
+	}
+
+	if workers == nil {
+		workers = []domain.Worker{}
+	}
+
+	return workers, nil
+}
+
 
 

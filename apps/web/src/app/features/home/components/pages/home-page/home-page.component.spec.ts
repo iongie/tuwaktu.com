@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
+import { of } from 'rxjs';
 import { HomePageComponent } from './home-page.component';
 import { AuthService } from '../../../../auth/services/auth.service';
+import { HomeApiService } from '../../../services/home-api.service';
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;
@@ -10,10 +12,20 @@ describe('HomePageComponent', () => {
   let titleService: Title;
   let metaService: Meta;
 
+  const mockHomeApiService = {
+    fetchPublicWorkers: jest.fn().mockReturnValue(of([])),
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomePageComponent],
-      providers: [provideRouter([]), AuthService, Title, Meta],
+      providers: [
+        provideRouter([]),
+        AuthService,
+        Title,
+        Meta,
+        { provide: HomeApiService, useValue: mockHomeApiService },
+      ],
     }).compileComponents();
 
     titleService = TestBed.inject(Title);

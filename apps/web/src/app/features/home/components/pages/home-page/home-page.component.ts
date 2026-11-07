@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 import { AuthHeaderNavComponent } from '../../../../auth/components/molecules/auth-header-nav/auth-header-nav.component';
@@ -35,15 +35,26 @@ export class HomePageComponent implements OnInit {
   private readonly documentTitle = inject(Title);
   private readonly metaService = inject(Meta);
 
+  readonly searchQuery = signal<string>('');
+  readonly selectedCategory = signal<string>('');
+
   ngOnInit(): void {
     this.configureSeoMeta();
   }
 
-  onHeroSearch(): void {
+  onHeroSearch(event?: { specialty?: string; location?: string }): void {
+    if (event) {
+      const combined = [event.specialty, event.location].filter(Boolean).join(' ').trim();
+      this.searchQuery.set(combined);
+    }
     const featuredSection = document.getElementById('spesialis-unggulan');
     if (featuredSection && typeof featuredSection.scrollIntoView === 'function') {
       featuredSection.scrollIntoView({ behavior: 'smooth' });
     }
+  }
+
+  onCategorySelected(categorySlug: string): void {
+    this.selectedCategory.set(categorySlug);
   }
 
   private configureSeoMeta(): void {

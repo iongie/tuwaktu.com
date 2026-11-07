@@ -682,5 +682,20 @@ func (m *MemoryRepository) GetAccountByID(ctx context.Context, accountID string)
 	return nil, domain.ErrWorkerNotFound
 }
 
+func (m *MemoryRepository) ListPublicWorkers(ctx context.Context) ([]domain.Worker, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var workers []domain.Worker
+	for _, w := range m.workers {
+		if w.IsActive {
+			wCopy := *w
+			workers = append(workers, wCopy)
+		}
+	}
+	return workers, nil
+}
+
+
 
 

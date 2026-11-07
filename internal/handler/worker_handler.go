@@ -18,6 +18,20 @@ func NewWorkerHandler(service service.WorkerService) *WorkerHandler {
 	return &WorkerHandler{service: service}
 }
 
+// ListPublicWorkers handles GET /api/public/workers and GET /api/v1/public/workers
+func (h *WorkerHandler) ListPublicWorkers(c *fiber.Ctx) error {
+	workers, err := h.service.ListPublicWorkers(c.UserContext())
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal mengambil daftar pekerja publik", err.Error())
+	}
+
+	if workers == nil {
+		workers = []domain.PublicWorkerProfile{}
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Daftar pekerja publik berhasil diambil", workers)
+}
+
 // GetWorkerBySlug handles GET /api/public/workers/:slug
 func (h *WorkerHandler) GetWorkerBySlug(c *fiber.Ctx) error {
 	rawSlug := c.Params("slug")

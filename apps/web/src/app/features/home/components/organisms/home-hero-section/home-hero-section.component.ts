@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -19,22 +25,20 @@ import { Router } from '@angular/router';
         aria-hidden="true"
       ></div>
 
-      <div class="max-w-7xl mx-auto px-margin-desktop relative z-10 space-y-space-2xl">
+      <div
+        class="max-w-7xl mx-auto px-margin-desktop relative z-10 space-y-space-2xl"
+      >
         <!-- Telemetry Status Bar -->
         <div class="flex flex-wrap items-center justify-between gap-space-sm">
           <div
             class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-caption font-mono-rate"
           >
             <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-            <span class="text-ink-on-dark font-medium uppercase tracking-wider text-[11px]">
+            <span
+              class="text-ink-on-dark font-medium uppercase tracking-wider text-[11px]"
+            >
               Protokol Kedaulatan Pekerja Mandiri • 0% Komisi
             </span>
-          </div>
-
-          <div class="hidden sm:flex items-center gap-space-md text-caption font-mono-rate text-ink-disabled">
-            <span>JARINGAN: AKTIF</span>
-            <span class="text-white/20">|</span>
-            <span>JABODETABEK SIAGA</span>
           </div>
         </div>
 
@@ -45,12 +49,18 @@ import { Router } from '@angular/router';
             class="font-heading-h1 text-[32px] sm:text-[44px] md:text-[52px] font-bold text-white tracking-tight leading-[1.12]"
           >
             Cari Spesialis Terverifikasi.
-            <span class="text-voltage-orange block sm:inline">Terhubung Langsung Tanpa Perantara.</span>
+            <span class="text-voltage-orange block sm:inline"
+              >Terhubung Langsung Tanpa Perantara.</span
+            >
           </h1>
 
-          <p class="font-lead-body text-body-default sm:text-lead-body text-white/70 max-w-2xl leading-relaxed">
-            Platform reservasi mandiri untuk teknisi AC, instalasi kelistrikan, sanitasi deep clean, dan servis elektronik.
-            Tarif transparan, proteksi buffer transit perjalanan, dan kontak langsung ke WhatsApp mitra.
+          <p
+            class="font-lead-body text-body-default sm:text-lead-body text-white/70 max-w-2xl leading-relaxed"
+          >
+            Platform reservasi mandiri untuk teknisi AC, instalasi kelistrikan,
+            sanitasi deep clean, dan servis elektronik. Tarif transparan,
+            proteksi buffer transit perjalanan, dan kontak langsung ke WhatsApp
+            mitra.
           </p>
         </div>
 
@@ -59,7 +69,9 @@ import { Router } from '@angular/router';
           class="p-space-lg sm:p-space-xl bg-surface-elevated-dark/80 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl max-w-5xl"
         >
           <form (ngSubmit)="handleSearchSubmit()" class="space-y-space-md">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-center">
+            <div
+              class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-center"
+            >
               <!-- Input Keahlian / Spesialisasi -->
               <div class="md:col-span-5 relative">
                 <label
@@ -69,7 +81,9 @@ import { Router } from '@angular/router';
                   Keahlian atau Nama Pekerja
                 </label>
                 <div class="relative flex items-center">
-                  <span class="material-symbols-outlined absolute left-3.5 text-white/40 text-[20px]">
+                  <span
+                    class="material-symbols-outlined absolute left-3.5 text-white/40 text-[20px]"
+                  >
                     handyman
                   </span>
                   <input
@@ -93,7 +107,9 @@ import { Router } from '@angular/router';
                   Wilayah / Pangkalan
                 </label>
                 <div class="relative flex items-center">
-                  <span class="material-symbols-outlined absolute left-3.5 text-white/40 text-[20px]">
+                  <span
+                    class="material-symbols-outlined absolute left-3.5 text-white/40 text-[20px]"
+                  >
                     location_on
                   </span>
                   <input
@@ -114,15 +130,21 @@ import { Router } from '@angular/router';
                   type="submit"
                   class="w-full h-12 px-space-xl bg-voltage-orange hover:bg-voltage-orange/90 text-white font-button-label text-button-label font-bold rounded-lg flex items-center justify-center gap-space-xs transition-all shadow-md cursor-pointer min-h-[48px]"
                 >
-                  <span class="material-symbols-outlined text-[20px]">search</span>
+                  <span class="material-symbols-outlined text-[20px]"
+                    >search</span
+                  >
                   <span>Temukan Pekerja</span>
                 </button>
               </div>
             </div>
 
             <!-- Quick Filter Chips -->
-            <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10 text-caption">
-              <span class="text-white/50 text-caption font-mono-rate">Kategori Populer:</span>
+            <div
+              class="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10 text-caption"
+            >
+              <span class="text-white/50 text-caption font-mono-rate"
+                >Kategori Populer:</span
+              >
               @for (chip of popularChips; track chip.label) {
                 <button
                   type="button"
@@ -137,13 +159,17 @@ import { Router } from '@angular/router';
         </div>
 
         <!-- 4 Pilar Kepercayaan Tuwaktu -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-lg">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-lg"
+        >
           @for (pillar of trustPillars; track pillar.title) {
             <div
               class="p-space-lg rounded-xl bg-white/5 border border-white/10 space-y-space-xs hover:bg-white/[0.07] transition-colors"
             >
               <div class="flex items-center justify-between">
-                <span class="material-symbols-outlined text-[24px] text-voltage-orange">
+                <span
+                  class="material-symbols-outlined text-[24px] text-voltage-orange"
+                >
                   {{ pillar.icon }}
                 </span>
                 <span
@@ -155,7 +181,9 @@ import { Router } from '@angular/router';
               <h3 class="font-heading-h3 text-[15px] font-bold text-white pt-1">
                 {{ pillar.title }}
               </h3>
-              <p class="font-body-default text-caption text-white/60 leading-relaxed">
+              <p
+                class="font-body-default text-caption text-white/60 leading-relaxed"
+              >
                 {{ pillar.description }}
               </p>
             </div>
@@ -184,25 +212,29 @@ export class HomeHeroSectionComponent {
   readonly trustPillars = [
     {
       title: '0% Potongan Komisi',
-      description: 'Seluruh pembayaran klien 100% diterima langsung oleh pekerja mandiri tanpa potongan.',
+      description:
+        'Seluruh pembayaran klien 100% diterima langsung oleh pekerja mandiri tanpa potongan.',
       icon: 'percent',
       badge: 'Bebas Potongan',
     },
     {
       title: '100% WhatsApp Langsung',
-      description: 'Komunikasi langsung ke kontak asli pekerja. Tanpa masking dan tanpa sensor nomor.',
+      description:
+        'Komunikasi langsung ke kontak asli pekerja. Tanpa masking dan tanpa sensor nomor.',
       icon: 'chat',
       badge: 'Kontak Mandiri',
     },
     {
       title: 'Buffer Transit Otomatis',
-      description: 'Jeda 60-90 menit antar slot reservasi untuk perjalanan tenang dan tepat waktu.',
+      description:
+        'Jeda 60-90 menit antar slot reservasi untuk perjalanan tenang dan tepat waktu.',
       icon: 'timer',
       badge: 'Bebas Bentrok',
     },
     {
       title: 'Kredensial Terverifikasi',
-      description: 'Spesialis melalui verifikasi identitas KTP dan penentuan zona pangkalan nyata.',
+      description:
+        'Spesialis melalui verifikasi identitas KTP dan penentuan zona pangkalan nyata.',
       icon: 'verified_user',
       badge: 'Kurasi Ketat',
     },

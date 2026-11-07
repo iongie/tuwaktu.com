@@ -211,6 +211,56 @@ func seedMemoryRepository(repo *repository.MemoryRepository) {
 	repo.SeedService(service1)
 	repo.SeedService(service2)
 
+	worker2 := &domain.Worker{
+		ID:             "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+		Slug:           "siti-aminah",
+		Name:           "Siti Aminah",
+		Bio:            "Spesialis pembersihan rumah tangga dan deep cleaning profesional.",
+		AvatarURL:      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2",
+		Rating:         4.8,
+		ReviewCount:    35,
+		Zone:           "Tangerang Selatan",
+		PhoneNumber:    "+6281987654321",
+		WhatsAppNumber: "6281987654321",
+		Email:          "siti.aminah@internal.tuwaktu.com",
+		Address:        "Jl. Bintaro Utama Sektor 3, Tangsel",
+		IsActive:       true,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
+
+	service2_1 := &domain.Service{
+		ID:              "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+		WorkerID:        worker2.ID,
+		Name:            "Daily Cleaning (2 Jam)",
+		Description:     "Menyapu, mengepel, membersihkan debu, dan merapikan kamar.",
+		Price:           120000,
+		BasePrice:       120000,
+		RateType:        "HOURLY",
+		DurationMinutes: 120,
+		IsActive:        true,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+
+	service2_2 := &domain.Service{
+		ID:              "a7b8c9d0-e1f2-4a3b-8c9d-6e7f8a9b0c1d",
+		WorkerID:        worker2.ID,
+		Name:            "Deep Cleaning Kamar Mandi",
+		Description:     "Pembersihan kerak keramik, sanitair, dan desinfeksi menyeluruh.",
+		Price:           175000,
+		BasePrice:       175000,
+		RateType:        "UNIT",
+		DurationMinutes: 90,
+		IsActive:        true,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+
+	repo.SeedWorker(worker2)
+	repo.SeedService(service2_1)
+	repo.SeedService(service2_2)
+
 	for d := 0; d < 7; d++ {
 		repo.SeedSchedule(&domain.WorkerSchedule{
 			WorkerID:      worker1.ID,
@@ -220,6 +270,16 @@ func seedMemoryRepository(repo *repository.MemoryRepository) {
 			SlotMorning:   true,
 			SlotAfternoon: true,
 			SlotEvening:   d == 5 || d == 6, // Jumat & Sabtu malam buka
+		})
+
+		repo.SeedSchedule(&domain.WorkerSchedule{
+			WorkerID:      worker2.ID,
+			DayOfWeek:     d,
+			DayName:       domain.GetDayName(d),
+			IsActive:      d != 0,
+			SlotMorning:   true,
+			SlotAfternoon: true,
+			SlotEvening:   false,
 		})
 	}
 
@@ -239,6 +299,17 @@ func seedMemoryRepository(repo *repository.MemoryRepository) {
 		WorkerID:           &worker1.ID,
 		Email:              "budi.santoso@internal.tuwaktu.com",
 		PhoneNumber:        "6281234567890",
+		PasswordHash:       "$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy",
+		Role:               domain.RoleWorker,
+		AccountStatus:      domain.AccountStatusActive,
+		MustChangePassword: false,
+	})
+
+	repo.SeedAccount(&domain.WorkerAccount{
+		ID:                 "88888888-8888-4888-8888-888888888882",
+		WorkerID:           &worker2.ID,
+		Email:              "siti.aminah@internal.tuwaktu.com",
+		PhoneNumber:        "6281987654321",
 		PasswordHash:       "$2a$10$.hXkNufMbQRnGUnRL./iS.n2X.CE2v5O3m/pX//jvoAeFRy/59Izy",
 		Role:               domain.RoleWorker,
 		AccountStatus:      domain.AccountStatusActive,

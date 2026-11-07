@@ -19,6 +19,7 @@ import (
 
 type WorkerService interface {
 	GetPublicProfileBySlug(ctx context.Context, slug string) (*domain.PublicWorkerProfile, error)
+	ListPublicWorkers(ctx context.Context) ([]domain.PublicWorkerProfile, error)
 	UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerRates(ctx context.Context, req *domain.WorkerRateUpdate) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error)
@@ -76,6 +77,39 @@ func (s *workerService) GetPublicProfileBySlug(ctx context.Context, slug string)
 
 	profile := worker.ToPublic(publicServices)
 	return &profile, nil
+}
+
+func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicWorkerProfile, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	workers, err := s.repo.ListPublicWorkers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	profiles := make([]domain.PublicWorkerProfile, 0, len(workers))
+	for _, w := range workers {
+		if !w.IsActive {
+			continue
+		}
+		services, err := s.repo.GetServicesByWorkerID(ctx, w.ID)
+		if err != nil {
+			services = []domain.Service{}
+		}
+
+		publicServices := make([]domain.PublicService, 0, len(services))
+		for _, srv := range services {
+			if srv.IsActive {
+				publicServices = append(publicServices, srv.ToPublic())
+			}
+		}
+
+		profiles = append(profiles, w.ToPublic(publicServices))
+	}
+
+	return profiles, nil
 }
 
 func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error) {

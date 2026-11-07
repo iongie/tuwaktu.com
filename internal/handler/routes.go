@@ -26,6 +26,7 @@ func RegisterRoutes(
 	pub := api.Group("/public")
 
 	// Workers endpoint
+	pub.Get("/workers", workerHandler.ListPublicWorkers)
 	pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	pub.Get("/worker/:slug", workerHandler.GetWorkerBySlug)
 	pub.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)
@@ -112,6 +113,7 @@ func RegisterRoutes(
 		legacyAdmin.Get("/stats", adminHandler.GetStats)
 	}
 
+	v1Pub.Get("/workers", workerHandler.ListPublicWorkers)
 	v1Pub.Get("/workers/:slug", workerHandler.GetWorkerBySlug)
 	v1Pub.Get("/worker/:slug", workerHandler.GetWorkerBySlug)
 	v1Pub.Get("/workers/:slug/available-slots", bookingHandler.GetAvailableSlots)

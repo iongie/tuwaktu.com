@@ -27,14 +27,14 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
             REGISTRASI LANGSUNG
           </span>
           <h2 class="font-heading-h2 text-heading-h2 text-ink-on-light font-bold">
-            Data Identitas & Kedaulatan Akses
+            Data Identitas & Akses Mandiri
           </h2>
         </div>
         <div
           class="flex items-center gap-1.5 bg-whatsapp-surface text-whatsapp-ink px-2.5 py-1 rounded"
         >
           <span class="material-symbols-outlined text-whatsapp-green text-[18px]">verified</span>
-          <span class="font-caption text-caption font-semibold">Bebas OAuth 100%</span>
+          <span class="font-caption text-caption font-semibold">Akses Mandiri</span>
         </div>
       </div>
 
@@ -174,7 +174,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
           </div>
         </div>
 
-        <!-- Field 5: URL Kedaulatan Mandiri -->
+        <!-- Field 5: URL Profil Mandiri -->
         <div class="flex flex-col gap-1">
           <div class="flex justify-between items-baseline">
             <label class="font-body-strong text-body-strong text-ink-on-light" for="customSlug">
@@ -224,7 +224,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div class="flex flex-col gap-1">
             <label class="font-body-strong text-body-strong text-ink-on-light" for="workerPin">
-              PIN Akses 6-Digit Kedaulatan
+              PIN Akses 6-Digit
             </label>
             <input
               id="workerPin"
@@ -280,10 +280,10 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
             for="doctrineAgreement"
             class="font-caption text-caption text-promo-ink cursor-pointer select-none leading-relaxed"
           >
-            <strong>Pakta Kedaulatan Pekerja Tuwaktu:</strong> Saya menyetujui kedaulatan penuh
-            bisnis ini - saya bertanggung jawab langsung terhadap integritas layanan kepada klien,
-            mengontrol 100% tarif serta radius, dan mematuhi buffer transit istirahat demi
-            keselamatan kerja mandiri.
+            <strong>Ketentuan Layanan Pekerja Mandiri:</strong> Saya menyetujui komitmen layanan
+            ini - saya bertanggung jawab langsung terhadap integritas layanan kepada klien,
+            mengatur tarif serta jangkauan radius secara mandiri, dan mematuhi buffer transit istirahat demi
+            keselamatan kerja.
           </label>
         </div>
 
@@ -435,7 +435,7 @@ export class WorkerRegisterFormComponent implements OnDestroy {
         this.isLoading.set(false);
         if (result.success) {
           this.formSuccess.set(
-            `Selamat! Profil kedaulatan Anda berhasil diaktifkan. Tautan resmi: tuwaktu.com/${this.customSlug}`
+            `Selamat! Profil kerja mandiri Anda berhasil diaktifkan. Tautan resmi: tuwaktu.com/${this.customSlug}`
           );
           // Navigasi ke dashboard setelah konfirmasi
           this.redirectTimeoutId = setTimeout(() => {

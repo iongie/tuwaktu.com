@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <div
       class="w-full bg-body-canvas rounded-xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm"
       role="region"
-      aria-label="Jaminan Privasi & Keamanan"
+      aria-label="Privasi & Keamanan Akun"
     >
       <div class="flex items-center gap-3.5">
         <div
@@ -30,11 +30,11 @@ import { CommonModule } from '@angular/common';
       <div class="flex items-center gap-6 shrink-0 self-stretch md:self-auto justify-between md:justify-end">
         <div class="flex items-center gap-1.5 text-ink-secondary font-caption text-caption">
           <span class="material-symbols-outlined text-[16px] text-voltage-orange">bolt</span>
-          <span>Aktivasi Instan &lt; 2 Menit</span>
+          <span>Pendaftaran Praktis & Mandiri</span>
         </div>
         <div class="flex items-center gap-1.5 text-ink-secondary font-caption text-caption">
           <span class="material-symbols-outlined text-[16px] text-whatsapp-green">verified</span>
-          <span>Protokol Enkripsi Terdistribusi</span>
+          <span>Privasi & Keamanan Data Terjaga</span>
         </div>
       </div>
     </div>

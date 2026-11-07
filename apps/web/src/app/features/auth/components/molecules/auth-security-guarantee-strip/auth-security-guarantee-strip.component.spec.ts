@@ -13,10 +13,10 @@ describe('AuthSecurityGuaranteeStripComponent', () => {
     fixture.detectChanges();
   });
 
-  it('harus merender garansi privasi dan enkripsi data mandiri', () => {
+  it('harus merender informasi privasi dan keamanan data mandiri', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Data Klien Milik Anda Sepenuhnya');
-    expect(text).toContain('Aktivasi Instan < 2 Menit');
-    expect(text).toContain('Protokol Enkripsi Terdistribusi');
+    expect(text).toContain('Pendaftaran Praktis & Mandiri');
+    expect(text).toContain('Privasi & Keamanan Data Terjaga');
   });
 });

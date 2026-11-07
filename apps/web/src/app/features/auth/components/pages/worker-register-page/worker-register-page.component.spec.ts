@@ -23,7 +23,7 @@ describe('WorkerRegisterPageComponent', () => {
     expect(text).toContain('FASE 01');
     expect(text).toContain('FASE 02');
     expect(text).toContain('FASE 03');
-    expect(text).toContain('0% Komisi Selamanya');
+    expect(text).toContain('0% Biaya Komisi Layanan');
     expect(text).toContain('Anti-Bentrok & Buffer Otomatis');
     expect(text).toContain('Direct WhatsApp Handoff');
   });

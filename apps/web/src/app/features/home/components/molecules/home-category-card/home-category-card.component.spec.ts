@@ -14,7 +14,7 @@ describe('HomeCategoryCardComponent', () => {
     icon: 'ac_unit',
     startingPrice: 75000,
     priceUnit: 'unit',
-    specialistCount: 24,
+    availabilityTag: 'Tersedia di Katalog',
     highlightTag: 'Populer',
   };
 
@@ -34,7 +34,7 @@ describe('HomeCategoryCardComponent', () => {
     expect(el.textContent).toContain('Servis & Pasang AC');
     expect(el.textContent).toContain('Pembersihan filter dan isi freon.');
     expect(el.textContent).toContain('Populer');
-    expect(el.textContent).toContain('24 Spesialis Siaga');
+    expect(el.textContent).toContain('Tersedia di Katalog');
   });
 
   it('harus memformat tarif awal secara tepat dalam rupiah', () => {

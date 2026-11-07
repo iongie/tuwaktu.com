@@ -58,7 +58,7 @@ import { DisciplineCategory } from '../../../models/home.model';
           <span class="text-ink-disabled">Ketersediaan</span>
           <span class="text-success font-semibold flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
-            {{ category().specialistCount }} Spesialis Siaga
+            {{ category().availabilityTag || 'Tersedia di Katalog' }}
           </span>
         </div>
       </div>

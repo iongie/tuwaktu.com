@@ -200,14 +200,14 @@ import {
           </div>
         }
 
-        <!-- PIN Kedaulatan -->
+        <!-- PIN Keamanan Akun -->
         <div class="flex flex-col gap-1">
           <div class="flex items-center justify-between">
             <label
               class="font-body-strong text-body-strong text-ink-on-light flex items-center gap-1"
               for="securityPin"
             >
-              <span>PIN Kedaulatan (6-Digit)</span>
+              <span>PIN Keamanan Akun (6-Digit)</span>
               <span
                 class="material-symbols-outlined text-[16px] text-ink-secondary cursor-help"
                 title="PIN rahasia autentikasi Anda"

@@ -40,18 +40,17 @@ import { AuthService } from '../../../services/auth.service';
                   <span
                     class="font-micro-uppercase text-micro-uppercase tracking-widest text-on-primary-container uppercase font-bold"
                   >
-                    PROTOKOL AUTENTIKASI KEDAULATAN
+                    PORTAL AKSES PEKERJA MANDIRI
                   </span>
                 </div>
 
                 <div class="flex flex-col gap-2.5">
                   <h1 class="font-heading-h1 text-heading-h1 text-ink-on-dark font-bold leading-tight">
-                    Kedaulatan Penuh Akses Pekerja Mandiri.
+                    Akses Langsung Mitra Mandiri.
                   </h1>
                   <p class="font-body-default text-body-default text-surface-tint leading-relaxed text-gray-400">
                     0% Potongan Komisi, 100% Kontrol Data di Tangan Anda. Tuwaktu beroperasi tanpa
-                    ketergantungan akun raksasa teknologi pihak ketiga. Identitas kerja Anda
-                    sepenuhnya milik Anda.
+                    ketergantungan akun pihak ketiga. Identitas kerja Anda sepenuhnya milik Anda.
                   </p>
                 </div>
 
@@ -63,7 +62,7 @@ import { AuthService } from '../../../services/auth.service';
                     <span>STATUS SISTEM DISPATCH</span>
                     <span class="text-whatsapp-surface flex items-center gap-1.5 font-semibold">
                       <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
-                      AKTIF TERDESENTRALISASI
+                      SISTEM SIAP DIGUNAKAN
                     </span>
                   </div>
 
@@ -82,12 +81,12 @@ import { AuthService } from '../../../services/auth.service';
                   </div>
 
                   <div class="flex justify-between font-caption text-caption text-gray-400 text-xs">
-                    <span>Latency: 18ms (Direct API)</span>
-                    <span>Enkripsi: Ed25519 Standar Militer</span>
+                    <span>Koneksi API Terenkripsi</span>
+                    <span>Enkripsi HTTPS & Kriptografi Modern</span>
                   </div>
                 </div>
 
-                <!-- Kredensial Pilar Kedaulatan -->
+                <!-- Kredensial Pilar Layanan Mandiri -->
                 <div class="flex flex-col gap-4">
                   <div class="flex items-start gap-3.5">
                     <div
@@ -97,11 +96,10 @@ import { AuthService } from '../../../services/auth.service';
                     </div>
                     <div class="flex flex-col">
                       <span class="font-body-strong text-body-strong text-ink-on-dark font-semibold">
-                        Enkripsi Mandiri End-to-End
+                        Keamanan Akses Terenkripsi
                       </span>
                       <span class="font-caption text-caption text-gray-400">
-                        Akses kunci privat tanpa pelacakan pihak ketiga maupun perantara analitik
-                        iklan.
+                        Akses aman tanpa pelacakan iklan pihak ketiga atau manipulasi data pelanggan.
                       </span>
                     </div>
                   </div>
@@ -151,7 +149,7 @@ import { AuthService } from '../../../services/auth.service';
                   </span>
                   <span>Zero Third-Party Trackers</span>
                 </div>
-                <span class="font-mono-rate text-mono-rate text-gray-300">NODE: ID-JKT-01</span>
+                <span class="font-mono-rate text-mono-rate text-gray-300">Wilayah: Jabodetabek</span>
               </div>
             </div>
 

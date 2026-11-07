@@ -19,10 +19,10 @@ describe('ScheduleManifestoCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('harus menampilkan doktrin kedaulatan waktu pekerja', () => {
+  it('harus menampilkan prinsip penjadwalan mandiri pekerja', () => {
     const textContent = fixture.nativeElement.textContent;
-    expect(textContent).toContain('DOKTRIN KEDAULATAN TUWAKTU');
-    expect(textContent).toContain('Disiplin Waktu Kedaulatan Pekerja');
+    expect(textContent).toContain('PRINSIP PENJADWALAN TUWAKTU');
+    expect(textContent).toContain('Pengaturan Jam Kerja & Buffer Perjalanan');
     expect(textContent).toContain('Bukan Karyawan Algoritma');
   });
 });

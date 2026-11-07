@@ -32,10 +32,10 @@ describe('WorkerLoginPageComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Kedaulatan Penuh Akses Pekerja Mandiri.');
-    expect(text).toContain('PROTOKOL AUTENTIKASI KEDAULATAN');
+    expect(text).toContain('Akses Langsung Mitra Mandiri.');
+    expect(text).toContain('PORTAL AKSES PEKERJA MANDIRI');
     expect(text).toContain('STATUS SISTEM DISPATCH');
-    expect(text).toContain('Enkripsi Mandiri End-to-End');
+    expect(text).toContain('Keamanan Akses Terenkripsi');
     expect(text).toContain('Sinkronisasi Slot Kalender Seketika');
     expect(text).toContain('Jalur Cepat WhatsApp Dispatch');
     expect(text).toContain('Masuk ke Konsol Mandiri');

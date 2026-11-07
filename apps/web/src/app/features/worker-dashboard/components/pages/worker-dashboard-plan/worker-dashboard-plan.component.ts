@@ -50,7 +50,7 @@ export class WorkerDashboardPlanComponent {
     {
       id: 'PRO',
       name: 'Paket Mandiri Pro',
-      badge: 'Kedaulatan Penuh • Rekomendasi',
+      badge: 'Akses Lengkap • Rekomendasi',
       priceDisplay: 'Rp 49.000',
       priceSubtext: 'per bulan (atau Rp 490.000 per tahun)',
       description: 'Pilihan utama profesional mandiri untuk memaksimalkan jadwal kerja dan visibilitas radar lokal.',

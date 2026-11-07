@@ -16,7 +16,7 @@ describe('AuthFooterBarComponent', () => {
   it('harus merender teks hak kedaulatan pekerja dan protokol keamanan', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Mandiri Penuh. Tanpa Potongan Komisi.');
-    expect(compiled.textContent).toContain('END-TO-END VERIFIED');
-    expect(compiled.textContent).toContain('Tanpa OAuth Pihak Ketiga');
+    expect(compiled.textContent).toContain('VERIFIKASI AKSES AMAN');
+    expect(compiled.textContent).toContain('Akses Mandiri via WhatsApp & PIN');
   });
 });

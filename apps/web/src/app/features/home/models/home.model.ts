@@ -60,7 +60,8 @@ export interface DisciplineCategory {
   icon: string;
   startingPrice: number;
   priceUnit: string;
-  specialistCount: number;
+  availabilityTag: string;
+  specialistCount?: number;
   highlightTag: string;
 }
 

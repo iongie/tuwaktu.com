@@ -30,17 +30,17 @@ import { CommonModule } from '@angular/common';
             </span>
             <div class="flex flex-col text-left">
               <span class="font-micro-uppercase text-micro-uppercase text-on-surface-variant uppercase">
-                PROTOKOL KEAMANAN
+                SISTEM KEAMANAN
               </span>
               <span class="font-mono-rate text-mono-rate text-on-surface">
-                END-TO-END VERIFIED
+                VERIFIKASI AKSES AMAN
               </span>
             </div>
           </div>
 
           <div class="flex items-center gap-1 text-ink-secondary">
             <span class="material-symbols-outlined text-[16px]">lock</span>
-            <span class="font-caption text-caption">Tanpa OAuth Pihak Ketiga</span>
+            <span class="font-caption text-caption">Akses Mandiri via WhatsApp & PIN</span>
           </div>
         </div>
       </div>

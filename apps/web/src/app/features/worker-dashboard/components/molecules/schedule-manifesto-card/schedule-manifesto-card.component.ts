@@ -10,12 +10,12 @@ import { CommonModule } from '@angular/common';
       <div class="flex items-center gap-space-xs text-voltage-orange">
         <span class="material-symbols-outlined text-[20px]">shield</span>
         <span class="font-micro-uppercase text-micro-uppercase tracking-widest font-bold">
-          DOKTRIN KEDAULATAN TUWAKTU
+          PRINSIP PENJADWALAN TUWAKTU
         </span>
       </div>
 
       <h3 class="font-heading-3 text-heading-3 text-ink-on-dark leading-snug font-bold">
-        Disiplin Waktu Kedaulatan Pekerja
+        Pengaturan Jam Kerja & Buffer Perjalanan
       </h3>
 
       <p class="font-body-default text-body-default text-inverse-primary/80 leading-relaxed">
@@ -31,7 +31,7 @@ import { CommonModule } from '@angular/common';
             Bukan Karyawan Algoritma
           </span>
           <span class="font-caption text-caption text-inverse-primary/60">
-            Kendalikan ritme Anda 100% mandiri
+            Kendalikan ritme kerja Anda secara mandiri
           </span>
         </div>
       </div>

@@ -593,7 +593,7 @@ export class AuthService {
       return { isValid: false, error: slugCheck.message };
     }
     if (!/^\d{6}$/.test(data.pin)) {
-      return { isValid: false, error: 'PIN Kedaulatan harus berupa 6 digit angka.' };
+      return { isValid: false, error: 'PIN keamanan harus berupa 6 digit angka.' };
     }
     if (data.pin !== data.pinConfirm) {
       return { isValid: false, error: 'Konfirmasi PIN tidak cocok dengan PIN Akses.' };
@@ -601,7 +601,7 @@ export class AuthService {
     if (!data.doctrineAccepted) {
       return {
         isValid: false,
-        error: 'Harap setujui Pakta Kedaulatan Pekerja Tuwaktu untuk melanjutkan.',
+        error: 'Harap setujui Ketentuan Layanan Pekerja Mandiri untuk melanjutkan.',
       };
     }
 
@@ -621,7 +621,7 @@ export class AuthService {
     }
 
     if (!/^\d{6}$/.test(data.pin)) {
-      return { isValid: false, error: 'PIN Kedaulatan harus terdiri dari 6 digit angka.' };
+      return { isValid: false, error: 'PIN keamanan harus terdiri dari 6 digit angka.' };
     }
 
     return { isValid: true };

@@ -100,7 +100,7 @@ describe('WorkerRegisterFormComponent', () => {
 
     expect(registerSpy).toHaveBeenCalled();
     expect(component.formError()).toBe('');
-    expect(component.formSuccess()).toContain('Selamat! Profil kedaulatan Anda berhasil diaktifkan');
+    expect(component.formSuccess()).toContain('Selamat! Profil kerja mandiri Anda berhasil diaktifkan');
     expect(component.isLoading()).toBe(false);
 
     jest.runAllTimers();

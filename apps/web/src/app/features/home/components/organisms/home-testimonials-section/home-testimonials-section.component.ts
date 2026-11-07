@@ -1,6 +1,14 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CommunityTestimonial } from '../../../models/home.model';
+
+export interface ServiceCommitment {
+  id: string;
+  icon: string;
+  title: string;
+  badge: string;
+  description: string;
+  keyPoint: string;
+}
 
 @Component({
   selector: 'app-home-testimonials-section',
@@ -8,9 +16,9 @@ import { CommunityTestimonial } from '../../../models/home.model';
   imports: [CommonModule],
   template: `
     <section
-      id="testimoni"
+      id="standar-layanan"
       class="w-full bg-body-canvas py-space-3xl border-b border-hairline-subtle"
-      aria-labelledby="testimonials-heading"
+      aria-labelledby="commitments-heading"
     >
       <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
         <!-- Section Header -->
@@ -19,65 +27,55 @@ import { CommunityTestimonial } from '../../../models/home.model';
             <span
               class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider"
             >
-              Suara Komunitas
+              Komitmen Layanan
             </span>
           </div>
 
           <h2
-            id="testimonials-heading"
+            id="commitments-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
           >
-            Pengalaman Nyata Teknisi &amp; Pemesan
+            Standar &amp; Komitmen Kerja Mitra Mandiri
           </h2>
 
           <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-            Cerita dari pekerja mandiri yang mengambil alih kedaulatan tarif mereka dan klien yang menikmati kepastian jadwal.
+            Prinsip transparansi dan keandalan kerja yang dipegang teguh oleh setiap mitra teknisi independen di Tuwaktu.
           </p>
         </div>
 
-        <!-- 3-Column Testimonial Cards -->
+        <!-- 3-Column Commitment Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
-          @for (item of testimonials; track item.id) {
+          @for (item of commitments; track item.id) {
             <article
-              class="m3-card-outlined p-space-xl bg-body-canvas flex flex-col justify-between h-full space-y-space-md"
+              class="m3-card-outlined p-space-xl bg-body-canvas flex flex-col justify-between h-full space-y-space-md hover:border-hero-canvas transition-colors"
             >
               <div class="space-y-space-sm">
-                <!-- Rating Stars & Badge -->
+                <!-- Icon & Badge Header -->
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-0.5 text-voltage-orange">
-                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                      <span class="material-symbols-outlined text-[18px]">star</span>
-                    }
+                  <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-voltage-orange">
+                    <span class="material-symbols-outlined text-[24px]">{{ item.icon }}</span>
                   </div>
                   <span
                     class="px-2 py-0.5 rounded bg-success-surface text-success font-micro-uppercase text-micro-uppercase font-bold uppercase"
                   >
-                    {{ item.verifiedBadge }}
+                    {{ item.badge }}
                   </span>
                 </div>
 
-                <!-- Testimonial Quote -->
-                <p class="font-body-default text-body-default text-on-surface leading-relaxed italic">
-                  "{{ item.comment }}"
+                <!-- Commitment Title & Description -->
+                <h3 class="font-heading-h3 text-heading-h3 font-bold text-on-surface pt-2">
+                  {{ item.title }}
+                </h3>
+
+                <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
+                  {{ item.description }}
                 </p>
               </div>
 
-              <!-- Author Info -->
-              <div class="pt-space-md border-t border-hairline-subtle flex items-center gap-space-sm">
-                <img
-                  [src]="item.avatarUrl"
-                  [alt]="item.authorName"
-                  class="w-11 h-11 rounded-full object-cover border border-hairline-subtle"
-                  loading="lazy"
-                />
-                <div class="min-w-0">
-                  <h3 class="font-body-strong text-body-strong text-on-surface truncate">
-                    {{ item.authorName }}
-                  </h3>
-                  <p class="font-caption text-caption text-ink-secondary truncate">
-                    {{ item.role }} • {{ item.location }}
-                  </p>
-                </div>
+              <!-- Key Takeaway Footnote -->
+              <div class="pt-space-md border-t border-hairline-subtle flex items-center gap-2 text-caption font-mono-rate text-on-surface-variant">
+                <span class="material-symbols-outlined text-[16px] text-success">check_circle</span>
+                <span>{{ item.keyPoint }}</span>
               </div>
             </article>
           }
@@ -88,42 +86,33 @@ import { CommunityTestimonial } from '../../../models/home.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeTestimonialsSectionComponent {
-  readonly testimonials: CommunityTestimonial[] = [
+  readonly commitments: ServiceCommitment[] = [
     {
-      id: 'testi-1',
-      authorName: 'Budi Santoso',
-      role: 'Teknisi HVAC & Servis AC',
-      location: 'Jagakarsa',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200',
-      rating: 5,
-      comment:
-        'Sebelum memakai Tuwaktu, seperempat omzet bulanan saya habis dipotong komisi aplikasi. Sekarang 100% pendapatan utuh untuk keluarga dan saya bisa mengatur jeda transit antar rumah tanpa terburu-buru.',
-      verifiedBadge: 'Teknisi Terverifikasi',
+      id: 'commit-1',
+      icon: 'payments',
+      title: 'Tarif Pasti Tanpa Markup Perantara',
+      badge: 'Bebas Potongan',
+      description:
+        'Biaya jasa dan ongkos jangkauan radius disepakati langsung sesuai katalog terbuka teknisi. Pembayaran 100% diterima langsung oleh mitra tanpa potongan komisi aplikasi.',
+      keyPoint: 'Harga transparan tanpa biaya tersembunyi',
     },
     {
-      id: 'testi-2',
-      authorName: 'Dian Maharani',
-      role: 'Klien Residensial',
-      location: 'Senopati',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
-      rating: 5,
-      comment:
-        'Sangat menghargai kepastian jadwal dan buffer waktunya. Teknisi datang tepat pada jam slot yang dipilih, nomor WhatsApp yang dihubungi adalah nomor asli teknisi, dan tarifnya sesuai tanpa kejutan.',
-      verifiedBadge: 'Klien Terverifikasi',
+      id: 'commit-2',
+      icon: 'schedule',
+      title: 'Jeda Transit 60-90 Menit Antar Pesanan',
+      badge: 'Jadwal Terlindungi',
+      description:
+        'Sistem otomatis mengunci jeda waktu perjalanan antar lokasi pengerjaan agar teknisi tiba sesuai slot reservasi dan dapat bekerja dengan cermat tanpa terburu-buru.',
+      keyPoint: 'Mitigasi risiko bentrok dan keterlambatan',
     },
     {
-      id: 'testi-3',
-      authorName: 'Sarah Melinda',
-      role: 'Spesialis Sanitasi Kasur & Sofa',
-      location: 'Tebet',
-      avatarUrl:
-        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
-      rating: 5,
-      comment:
-        'Punya link portofolio sendiri (tuwaktu.com/sarah-cleaning) sangat profesional. Klien langganan saya dari Instagram tinggal buka tautan tersebut untuk memilih hari dan memesan langsung via WhatsApp.',
-      verifiedBadge: 'Mitra Kebersihan',
+      id: 'commit-3',
+      icon: 'chat',
+      title: 'Komunikasi Terbuka Langsung via WhatsApp',
+      badge: 'Kontak Mandiri',
+      description:
+        'Rincian pesanan dan koordinasi pengerjaan langsung terhubung ke nomor WhatsApp asli teknisi. Tanpa sistem nomor virtual disamarkan atau penahanan dompet escrow.',
+      keyPoint: 'Pelanggan menjadi relasi langsung mitra',
     },
   ];
 }

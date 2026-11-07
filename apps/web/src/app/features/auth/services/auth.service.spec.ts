@@ -141,10 +141,10 @@ describe('AuthService', () => {
       expect(res.error).toContain('tidak cocok');
     });
 
-    it('harus gagal jika pakta kedaulatan belum disetujui', () => {
+    it('harus gagal jika ketentuan layanan belum disetujui', () => {
       const res = service.validateRegistration({ ...validData, doctrineAccepted: false });
       expect(res.isValid).toBe(false);
-      expect(res.error).toContain('Pakta Kedaulatan');
+      expect(res.error).toContain('Ketentuan Layanan');
     });
   });
 
@@ -362,7 +362,7 @@ describe('AuthService', () => {
       expect(service.currentUser()?.slug).toBe('eko-teknisi-ac');
     });
 
-    it('harus menolak registrasi jika pakta kedaulatan tidak disetujui tanpa mengirim request HTTP', () => {
+    it('harus menolak registrasi jika ketentuan layanan tidak disetujui tanpa mengirim request HTTP', () => {
       let resultSuccess: boolean | undefined;
       let errorMsg: string | undefined;
 
@@ -385,7 +385,7 @@ describe('AuthService', () => {
 
       httpTestingController.expectNone('http://localhost:3000/api/v1/auth/register');
       expect(resultSuccess).toBe(false);
-      expect(errorMsg).toContain('Pakta Kedaulatan Pekerja');
+      expect(errorMsg).toContain('Ketentuan Layanan Pekerja');
       expect(service.isLoggedIn()).toBe(false);
     });
 

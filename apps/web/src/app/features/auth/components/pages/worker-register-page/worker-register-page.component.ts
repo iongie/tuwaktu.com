@@ -144,7 +144,7 @@ import { WorkerRegisterFormComponent } from '../../organisms/worker-register-for
                     </span>
                   </div>
                   <h3 class="font-heading-h3 text-heading-h3 text-ink-on-light mt-2 font-bold">
-                    0% Komisi Selamanya
+                    0% Biaya Komisi Layanan
                   </h3>
                   <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
                     Semua hasil jerih payah Anda 100% masuk ke saku Anda. Pembayaran langsung

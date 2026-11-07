@@ -69,7 +69,7 @@ export class HomeDisciplinesSectionComponent {
       icon: 'ac_unit',
       startingPrice: 75000,
       priceUnit: 'unit',
-      specialistCount: 24,
+      availabilityTag: 'Tersedia di Katalog',
       highlightTag: 'Populer',
     },
     {
@@ -81,7 +81,7 @@ export class HomeDisciplinesSectionComponent {
       icon: 'cleaning_services',
       startingPrice: 65000,
       priceUnit: 'jam',
-      specialistCount: 31,
+      availabilityTag: 'Tersedia di Katalog',
       highlightTag: 'Higienis',
     },
     {
@@ -93,7 +93,7 @@ export class HomeDisciplinesSectionComponent {
       icon: 'bolt',
       startingPrice: 80000,
       priceUnit: 'kunjungan',
-      specialistCount: 19,
+      availabilityTag: 'Tersedia di Katalog',
       highlightTag: 'Prioritas Aman',
     },
     {
@@ -105,7 +105,7 @@ export class HomeDisciplinesSectionComponent {
       icon: 'tv',
       startingPrice: 120000,
       priceUnit: 'kunjungan',
-      specialistCount: 15,
+      availabilityTag: 'Tersedia di Katalog',
       highlightTag: 'Spesialis Ahli',
     },
   ];

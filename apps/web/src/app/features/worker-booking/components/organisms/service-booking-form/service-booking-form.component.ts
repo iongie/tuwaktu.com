@@ -693,11 +693,11 @@ export interface BookingFormDraft {
                 </div>
                 <div class="flex items-center gap-space-xs">
                   <span class="material-symbols-outlined text-[16px] text-success">schedule</span>
-                  <span>Jaminan kepatuhan transit buffer 90 menit</span>
+                  <span>Penjadwalan otomatis dengan jeda transit buffer</span>
                 </div>
                 <div class="flex items-center gap-space-xs">
                   <span class="material-symbols-outlined text-[16px] text-success">handshake</span>
-                  <span>Hubungan langsung mandiri &amp; terlindungi</span>
+                  <span>Komunikasi dan transaksi langsung ke mitra</span>
                 </div>
               </div>
             </div>

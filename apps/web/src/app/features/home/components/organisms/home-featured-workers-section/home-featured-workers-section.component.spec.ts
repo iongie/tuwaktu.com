@@ -114,3 +114,4 @@ describe('HomeFeaturedWorkersSectionComponent', () => {
     expect(alert.textContent).toContain('Gagal memuat katalog pekerja mandiri dari server');
   });
 });
+

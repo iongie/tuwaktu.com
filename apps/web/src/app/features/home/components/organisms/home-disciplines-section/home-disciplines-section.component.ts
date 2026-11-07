@@ -31,13 +31,19 @@ import { DisciplineCategory } from '../../../models/home.model';
             Pilihan Spesialisasi untuk Rumah &amp; Usaha
           </h2>
 
-          <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-            Dari perawatan pendingin ruangan berkala hingga penelusuran gangguan instalasi listrik. Seluruh estimasi tarif transparan tanpa markup perantara.
+          <p
+            class="font-body-default text-body-default text-ink-secondary leading-relaxed"
+          >
+            Dari perawatan pendingin ruangan berkala hingga penelusuran gangguan
+            instalasi listrik. Seluruh estimasi tarif transparan tanpa markup
+            perantara.
           </p>
         </div>
 
         <!-- 4-Column Bento Grid of Category Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg"
+        >
           @for (category of categories; track category.id) {
             <app-home-category-card
               [category]="category"
@@ -107,7 +113,10 @@ export class HomeDisciplinesSectionComponent {
   onCategorySelected(categorySlug: string): void {
     this.selectCategory.emit(categorySlug);
     const featuredSection = document.getElementById('spesialis-unggulan');
-    if (featuredSection && typeof featuredSection.scrollIntoView === 'function') {
+    if (
+      featuredSection &&
+      typeof featuredSection.scrollIntoView === 'function'
+    ) {
       featuredSection.scrollIntoView({ behavior: 'smooth' });
     }
   }

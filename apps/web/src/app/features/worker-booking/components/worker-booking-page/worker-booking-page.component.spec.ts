@@ -7,6 +7,7 @@ import { WorkerBookingStore } from '../../services/worker-booking.store';
 import { WorkerBookingApiService } from '../../services/worker-booking-api.service';
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
 import { environment } from '../../../../../environments/environment';
+import { AuthService } from '../../../auth/services/auth.service';
 
 describe('WorkerBookingPageComponent', () => {
   let component: WorkerBookingPageComponent;
@@ -140,8 +141,13 @@ describe('WorkerBookingPageComponent', () => {
         provide: APP_ENVIRONMENT,
         useValue: environment,
       },
+      AuthService,
     ],
   }).compileComponents();
+
+  const authService = TestBed.inject(AuthService);
+  authService.isInitialized.set(true);
+  authService.currentUser.set(null);
 
   titleService = TestBed.inject(Title);
   metaService = TestBed.inject(Meta);

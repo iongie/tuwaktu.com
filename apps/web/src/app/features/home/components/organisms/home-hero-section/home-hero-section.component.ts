@@ -220,7 +220,7 @@ export class HomeHeroSectionComponent {
     {
       title: '100% WhatsApp Langsung',
       description:
-        'Komunikasi langsung ke kontak asli pekerja. Tanpa masking dan tanpa sensor nomor.',
+        'Komunikasi langsung ke kontak asli pekerja. Tanpa perantara dan tanpa sensor nomor.',
       icon: 'chat',
       badge: 'Kontak Mandiri',
     },

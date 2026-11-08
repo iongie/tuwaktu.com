@@ -236,7 +236,7 @@ export class WorkerDashboardReviewsComponent implements OnInit {
   loadReviews(): void {
     const workerId =
       this.store.workerRecordId() ||
-      this.store.workerSlug() ||
+      this.store.workerSlugIdentifier() ||
       'budi-santoso';
 
     this.isLoading.set(true);

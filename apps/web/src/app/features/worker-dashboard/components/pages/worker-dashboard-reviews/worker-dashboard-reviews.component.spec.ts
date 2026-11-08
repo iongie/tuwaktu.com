@@ -47,7 +47,7 @@ describe('WorkerDashboardReviewsComponent', () => {
 
   const mockStore = {
     workerRecordId: jest.fn().mockReturnValue('worker-123'),
-    workerSlug: jest.fn().mockReturnValue('budi-santoso'),
+    workerSlugIdentifier: jest.fn().mockReturnValue('budi-santoso'),
   };
 
   beforeEach(async () => {

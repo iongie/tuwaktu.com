@@ -32,6 +32,7 @@ import {
 import { BookingSuccessModalComponent } from '../organisms/booking-success-modal/booking-success-modal.component';
 import { WorkerPublicReviewsSectionComponent } from '../organisms/worker-public-reviews-section/worker-public-reviews-section.component';
 import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
+import { AnalyticsService } from '../../../../core/services/analytics.service';
 
 @Component({
   selector: 'app-worker-booking-page',
@@ -58,6 +59,7 @@ export class WorkerBookingPageComponent implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly analyticsService = inject(AnalyticsService);
 
   readonly searchTechnicianSlug = signal<string>('budi-santoso');
   readonly clientValidationErrors = signal<Record<string, string>>({});
@@ -123,6 +125,7 @@ export class WorkerBookingPageComponent implements OnInit {
     if (!slug) return;
 
     this.store.loadTechnicianProfile(slug);
+    this.analyticsService.trackProfileView(slug);
   }
 
   quickSelectTechnician(slug: string): void {
@@ -269,10 +272,14 @@ export class WorkerBookingPageComponent implements OnInit {
 
       this.whatsappRedirectUrl.set(waUrl);
       this.isSuccessModalOpen.set(true);
+      this.analyticsService.trackBookingCreated(confirmation.booking_code, activeProfile.slug);
     });
   }
 
   handleProceedToWhatsApp(): void {
+    const slug = this.searchTechnicianSlug();
+    this.analyticsService.trackWhatsAppClick(slug);
+
     const waUrl = this.whatsappRedirectUrl();
     if (waUrl && typeof window !== 'undefined' && typeof window.open === 'function') {
       window.open(waUrl, '_blank');

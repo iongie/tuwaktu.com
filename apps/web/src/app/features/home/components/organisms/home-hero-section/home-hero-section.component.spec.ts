@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { HomeHeroSectionComponent } from './home-hero-section.component';
 import { HomeApiService } from '../../../services/home-api.service';
 import { FeaturedWorker } from '../../../models/home.model';
+import { AnalyticsService } from '../../../../../core/services/analytics.service';
 
 describe('HomeHeroSectionComponent', () => {
   let component: HomeHeroSectionComponent;
@@ -51,11 +52,19 @@ describe('HomeHeroSectionComponent', () => {
       fetchPublicWorkers: jest.fn().mockReturnValue(of(mockWorkers)),
     };
 
+    const mockAnalyticsService = {
+      trackSearch: jest.fn(),
+      trackWhatsAppClick: jest.fn(),
+      trackProfileView: jest.fn(),
+      trackBookingCreated: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [HomeHeroSectionComponent],
       providers: [
         provideRouter([]),
         { provide: HomeApiService, useValue: mockHomeApiService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
       ],
     }).compileComponents();
 

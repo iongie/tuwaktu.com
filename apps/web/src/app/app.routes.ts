@@ -162,6 +162,17 @@ export const appRoutes: Route[] = [
             './features/admin/components/pages/admin-categories-page/admin-categories-page.component'
           ).then((m) => m.AdminCategoriesPageComponent),
       },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-analytics-page/admin-analytics-page.component'
+          ).then((m) => m.AdminAnalyticsPageComponent),
+      },
+      {
+        path: 'analitik',
+        redirectTo: 'analytics',
+      },
     ],
   },
   {

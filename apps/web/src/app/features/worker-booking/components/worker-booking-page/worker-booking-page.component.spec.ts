@@ -8,6 +8,7 @@ import { WorkerBookingApiService } from '../../services/worker-booking-api.servi
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../auth/services/auth.service';
+import { AnalyticsService } from '../../../../core/services/analytics.service';
 
 describe('WorkerBookingPageComponent', () => {
   let component: WorkerBookingPageComponent;
@@ -142,6 +143,15 @@ describe('WorkerBookingPageComponent', () => {
         useValue: environment,
       },
       AuthService,
+      {
+        provide: AnalyticsService,
+        useValue: {
+          trackProfileView: jest.fn(),
+          trackWhatsAppClick: jest.fn(),
+          trackSearch: jest.fn(),
+          trackBookingCreated: jest.fn(),
+        },
+      },
     ],
   }).compileComponents();
 

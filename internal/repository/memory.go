@@ -20,6 +20,7 @@ type MemoryRepository struct {
 	schedules map[string]map[int]*domain.WorkerSchedule
 	accounts  map[string]*domain.WorkerAccount
 	reviews   map[string]*domain.Review
+	events    []*domain.AnalyticsEvent
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -30,6 +31,7 @@ func NewMemoryRepository() *MemoryRepository {
 		schedules: make(map[string]map[int]*domain.WorkerSchedule),
 		accounts:  make(map[string]*domain.WorkerAccount),
 		reviews:   make(map[string]*domain.Review),
+		events:    make([]*domain.AnalyticsEvent, 0),
 	}
 }
 
@@ -1066,6 +1068,124 @@ func (m *MemoryRepository) GetWorkerRatingStats(ctx context.Context, workerID st
 	}
 	return float64(totalScore) / float64(count), count, nil
 }
+
+func (m *MemoryRepository) RecordEvent(ctx context.Context, event *domain.AnalyticsEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if event.ID == "" {
+		event.ID = uuid.NewString()
+	}
+	if event.CreatedAt.IsZero() {
+		event.CreatedAt = time.Now()
+	}
+	m.events = append(m.events, event)
+	return nil
+}
+
+func (m *MemoryRepository) GetSummary(ctx context.Context, days int) (*domain.AdminAnalyticsSummary, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	summary := &domain.AdminAnalyticsSummary{
+		BookingStatusBreakdown: make(map[string]int64),
+		TopWorkers:             []domain.AnalyticsWorkerMetric{},
+		TopSearches:            []domain.AnalyticsSearchMetric{},
+		DaysRange:              days,
+	}
+
+	useTimeFilter := days > 0
+	var cutoff time.Time
+	if useTimeFilter {
+		cutoff = time.Now().AddDate(0, 0, -days)
+	}
+
+	workerClicks := make(map[string]int64)
+	workerViews := make(map[string]int64)
+	searchCounts := make(map[string]map[string]int64)
+
+	for _, ev := range m.events {
+		if useTimeFilter && ev.CreatedAt.Before(cutoff) {
+			continue
+		}
+
+		switch ev.EventName {
+		case domain.EventWhatsAppClick:
+			summary.TotalWhatsAppClicks++
+			if ev.EntityID != "" {
+				workerClicks[ev.EntityID]++
+			}
+		case domain.EventPageViewWorker:
+			summary.TotalProfileViews++
+			if ev.EntityID != "" {
+				workerViews[ev.EntityID]++
+			}
+		case domain.EventSearchPerformed:
+			summary.TotalSearches++
+			meta := ev.GetMetadataMap()
+			qStr, _ := meta["query"].(string)
+			locStr, _ := meta["location"].(string)
+			qStr = strings.TrimSpace(qStr)
+			locStr = strings.TrimSpace(locStr)
+			if qStr != "" || locStr != "" {
+				key := strings.ToLower(qStr) + "|||" + strings.ToLower(locStr)
+				if searchCounts[key] == nil {
+					searchCounts[key] = map[string]int64{"count": 0}
+				}
+				searchCounts[key]["count"]++
+			}
+		}
+	}
+
+	for _, b := range m.bookings {
+		if useTimeFilter && b.CreatedAt.Before(cutoff) {
+			continue
+		}
+		summary.TotalBookings++
+		summary.BookingStatusBreakdown[b.Status]++
+	}
+
+	for _, w := range m.workers {
+		clicks := workerClicks[w.ID] + workerClicks[w.Slug]
+		views := workerViews[w.ID] + workerViews[w.Slug]
+		summary.TopWorkers = append(summary.TopWorkers, domain.AnalyticsWorkerMetric{
+			WorkerID:       w.ID,
+			WorkerSlug:     w.Slug,
+			WorkerName:     w.Name,
+			Zone:           w.Zone,
+			WhatsAppClicks: clicks,
+			ProfileViews:   views,
+		})
+	}
+
+	sort.Slice(summary.TopWorkers, func(i, j int) bool {
+		if summary.TopWorkers[i].WhatsAppClicks == summary.TopWorkers[j].WhatsAppClicks {
+			return summary.TopWorkers[i].ProfileViews > summary.TopWorkers[j].ProfileViews
+		}
+		return summary.TopWorkers[i].WhatsAppClicks > summary.TopWorkers[j].WhatsAppClicks
+	})
+	if len(summary.TopWorkers) > 5 {
+		summary.TopWorkers = summary.TopWorkers[:5]
+	}
+
+	for k, v := range searchCounts {
+		parts := strings.Split(k, "|||")
+		summary.TopSearches = append(summary.TopSearches, domain.AnalyticsSearchMetric{
+			Query:    parts[0],
+			Location: parts[1],
+			Count:    v["count"],
+		})
+	}
+	sort.Slice(summary.TopSearches, func(i, j int) bool {
+		return summary.TopSearches[i].Count > summary.TopSearches[j].Count
+	})
+	if len(summary.TopSearches) > 5 {
+		summary.TopSearches = summary.TopSearches[:5]
+	}
+
+	return summary, nil
+}
+
 
 
 

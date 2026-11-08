@@ -13,6 +13,7 @@ func RegisterRoutes(
 	authMiddleware *AuthMiddleware,
 	categoryHandler *CategoryHandler,
 	reviewHandler *ReviewHandler,
+	analyticsHandler *AnalyticsHandler,
 ) {
 	// Root & health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -31,6 +32,12 @@ func RegisterRoutes(
 	if categoryHandler != nil {
 		api.Get("/categories", categoryHandler.ListPublicCategories)
 		pub.Get("/categories", categoryHandler.ListPublicCategories)
+	}
+
+	// Telemetry public endpoint
+	if analyticsHandler != nil {
+		pub.Post("/telemetry/events", analyticsHandler.TrackPublicEvent)
+		api.Post("/public/telemetry/events", analyticsHandler.TrackPublicEvent)
 	}
 
 	// Workers endpoint
@@ -137,6 +144,10 @@ func RegisterRoutes(
 			adminGroup.Delete("/categories/:id", categoryHandler.DeleteCategory)
 		}
 
+		if analyticsHandler != nil {
+			adminGroup.Get("/analytics/summary", analyticsHandler.GetAdminSummary)
+		}
+
 		// Backward compatible /api/admin
 		legacyAdmin := api.Group("/admin", authMiddleware.RequireAuth, authMiddleware.RequireAdmin)
 		legacyAdmin.Post("/workers", adminHandler.CreateWorker)
@@ -151,11 +162,20 @@ func RegisterRoutes(
 			legacyAdmin.Put("/categories/:id", categoryHandler.UpdateCategory)
 			legacyAdmin.Delete("/categories/:id", categoryHandler.DeleteCategory)
 		}
+
+		if analyticsHandler != nil {
+			legacyAdmin.Get("/analytics/summary", analyticsHandler.GetAdminSummary)
+		}
 	}
 
 	if categoryHandler != nil {
 		v1.Get("/categories", categoryHandler.ListPublicCategories)
 		v1Pub.Get("/categories", categoryHandler.ListPublicCategories)
+	}
+
+	if analyticsHandler != nil {
+		v1Pub.Post("/telemetry/events", analyticsHandler.TrackPublicEvent)
+		v1.Post("/public/telemetry/events", analyticsHandler.TrackPublicEvent)
 	}
 
 	v1Pub.Get("/workers", workerHandler.ListPublicWorkers)

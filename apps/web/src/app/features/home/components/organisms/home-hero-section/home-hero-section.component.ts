@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 import { SearchAutoSuggestDropdownComponent } from '../../molecules/search-auto-suggest-dropdown/search-auto-suggest-dropdown.component';
 import { HomeApiService } from '../../../services/home-api.service';
 import { FeaturedWorker } from '../../../models/home.model';
+import { AnalyticsService } from '../../../../../core/services/analytics.service';
 
 @Component({
   selector: 'app-home-hero-section',
@@ -228,6 +229,7 @@ import { FeaturedWorker } from '../../../models/home.model';
 export class HomeHeroSectionComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly homeApiService = inject(HomeApiService);
+  private readonly analyticsService = inject(AnalyticsService);
 
   readonly specialtyQuery = signal<string>('');
   readonly locationQuery = signal<string>('Semua Wilayah');
@@ -401,6 +403,8 @@ export class HomeHeroSectionComponent implements OnInit {
       specialty,
       location,
     });
+
+    this.analyticsService.trackSearch(specialty, location);
 
     const targetElement = document.getElementById('spesialis-unggulan');
     if (targetElement && typeof targetElement.scrollIntoView === 'function') {

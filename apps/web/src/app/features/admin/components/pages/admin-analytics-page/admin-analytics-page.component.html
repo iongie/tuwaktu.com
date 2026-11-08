@@ -1,0 +1,365 @@
+<main class="min-h-screen bg-surface-container-lowest text-on-surface">
+  <!-- Top Navigation Bar Admin -->
+  <header class="sticky top-0 w-full z-50 bg-body-canvas/95 backdrop-blur-md border-b border-hairline-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between gap-gutter">
+      <div class="flex items-center gap-space-xl">
+        <a routerLink="/" class="flex items-center gap-space-sm cursor-pointer">
+          <span class="font-heading-h3 text-heading-h3 font-bold tracking-tight text-ink-on-light uppercase">TUWAKTU</span>
+          <span class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded">MANDIRI</span>
+        </a>
+
+        <div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 bg-surface-warm-promo text-promo-ink rounded">
+          <span class="material-symbols-outlined text-[14px] text-promo-ink">admin_panel_settings</span>
+          <span class="font-caption text-caption font-semibold uppercase tracking-wider">Panel Admin</span>
+        </div>
+
+        <nav aria-label="Navigasi Panel Admin" class="hidden md:flex items-center gap-space-xs">
+          <a
+            routerLink="/admin/workers"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Kelola Mitra
+          </a>
+          <a
+            routerLink="/admin/categories"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Katalog Keahlian
+          </a>
+          <a
+            routerLink="/admin/analytics"
+            class="px-space-md py-1.5 bg-surface-highlight text-on-surface font-semibold font-button-label text-button-label rounded cursor-pointer"
+          >
+            Analitik Platform
+          </a>
+          <a
+            routerLink="/dashboard"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Dashboard Teknisi
+          </a>
+          <a
+            routerLink="/"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Jelajah Pekerja
+          </a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-space-md relative">
+        <a
+          routerLink="/"
+          class="hidden sm:inline-flex items-center gap-space-xs px-space-md h-9 rounded bg-surface-highlight text-ink-on-light border border-hairline-light hover:bg-surface-container-high transition-colors font-button-label text-button-label cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px]">visibility</span>
+          <span>Lihat Web Publik</span>
+        </a>
+
+        <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
+
+        <!-- Dropdown Menu Akun Profil -->
+        <app-booking-nav-account-menu />
+      </div>
+    </div>
+  </header>
+
+  <!-- Konten Utama Dashboard Analitik -->
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-space-xl space-y-space-xl">
+    <!-- Header Halaman & Filter Rentang Waktu -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+      <div>
+        <h1 class="font-heading-h1 text-[26px] sm:text-[32px] font-bold text-on-surface tracking-tight">
+          Analitik & Metrik Konversi Platform
+        </h1>
+        <p class="font-body-default text-caption sm:text-body-default text-ink-secondary mt-1">
+          Pantau volume interaksi langsung pengguna, klik kontak WhatsApp mitra, dan tren pencarian tanpa perantara.
+        </p>
+      </div>
+
+      <!-- Kontrol Rentang Waktu & Refresh -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="inline-flex rounded-lg border border-hairline-subtle p-1 bg-surface-container-low">
+          @for (range of timeRanges; track range.days) {
+            <button
+              type="button"
+              (click)="onSelectRange(range.days)"
+              [class.bg-on-surface]="store.selectedDays() === range.days"
+              [class.text-surface]="store.selectedDays() === range.days"
+              [class.font-bold]="store.selectedDays() === range.days"
+              [class.text-on-surface-variant]="store.selectedDays() !== range.days"
+              class="px-3 py-1.5 text-caption rounded-md transition-colors cursor-pointer"
+            >
+              {{ range.label }}
+            </button>
+          }
+        </div>
+
+        <button
+          type="button"
+          (click)="refreshData()"
+          [disabled]="store.isLoading()"
+          class="m3-btn-outlined inline-flex items-center gap-1.5 px-3 py-1.5 text-caption font-bold rounded-lg cursor-pointer min-h-[36px]"
+          title="Segarkan Data"
+        >
+          <span
+            class="material-symbols-outlined text-[18px]"
+            [class.animate-spin]="store.isLoading()"
+          >
+            refresh
+          </span>
+          <span class="hidden sm:inline">Perbarui</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert Error jika Gagal -->
+    @if (store.errorMessage()) {
+      <div class="p-space-md rounded-xl bg-error/10 border border-error/30 text-on-surface flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-error">error</span>
+          <span class="text-caption font-medium">{{ store.errorMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="refreshData()"
+          class="text-caption font-bold text-voltage-orange hover:underline cursor-pointer"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    }
+
+    <!-- 4 Bento KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+      <!-- KPI 1: Klik WhatsApp Mitra (Konversi Utama) -->
+      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-success">
+        <div class="flex items-center justify-between">
+          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+            Klik WhatsApp Mitra
+          </span>
+          <span class="p-2 rounded-lg bg-success/15 text-success flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+          </span>
+        </div>
+        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+          {{ store.totalWhatsAppClicks() }}
+        </div>
+        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-success">check_circle</span>
+          <span>Lead terhubung langsung ke mitra</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Total Reservasi Booking -->
+      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-voltage-orange">
+        <div class="flex items-center justify-between">
+          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+            Total Reservasi Booking
+          </span>
+          <span class="p-2 rounded-lg bg-voltage-orange/15 text-voltage-orange flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">event_available</span>
+          </span>
+        </div>
+        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+          {{ store.totalBookings() }}
+        </div>
+        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-voltage-orange">schedule</span>
+          <span>Pesanan dibuat melalui sistem</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Kunjungan Profil Mitra -->
+      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-indigo-500">
+        <div class="flex items-center justify-between">
+          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+            Kunjungan Profil Mitra
+          </span>
+          <span class="p-2 rounded-lg bg-indigo-500/15 text-indigo-500 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">visibility</span>
+          </span>
+        </div>
+        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+          {{ store.totalProfileViews() }}
+        </div>
+        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-indigo-500">touch_app</span>
+          <span>Tampilan halaman profil pekerja</span>
+        </div>
+      </div>
+
+      <!-- KPI 4: Total Pencarian Beranda -->
+      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-amber-500">
+        <div class="flex items-center justify-between">
+          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+            Pencarian di Beranda
+          </span>
+          <span class="p-2 rounded-lg bg-amber-500/15 text-amber-500 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">search</span>
+          </span>
+        </div>
+        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+          {{ store.totalSearches() }}
+        </div>
+        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-amber-500">query_stats</span>
+          <span>Kata kunci keahlian & wilayah dicari</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bento Grid Bagian Kedua: Top Mitra & Tren Pencarian -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+      <!-- Tabel Top 5 Mitra Paling Diminati (7 Kolom) -->
+      <div class="lg:col-span-7 m3-card-outlined p-space-xl bg-body-canvas space-y-space-md">
+        <div class="flex items-center justify-between border-b border-hairline-subtle pb-space-sm">
+          <div>
+            <h2 class="font-heading-h3 text-[18px] font-bold text-on-surface">
+              Top 5 Mitra Paling Diminati
+            </h2>
+            <p class="text-caption text-ink-secondary">
+              Peringkat mitra berdasarkan jumlah klik WhatsApp dan kunjungan profil.
+            </p>
+          </div>
+          <span class="material-symbols-outlined text-[22px] text-voltage-orange">leaderboard</span>
+        </div>
+
+        @if (store.topWorkers().length === 0) {
+          <div class="py-8 text-center text-caption text-ink-disabled">
+            Belum ada data interaksi mitra pada periode ini.
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-caption border-collapse">
+              <thead>
+                <tr class="border-b border-hairline-subtle text-ink-secondary font-mono-rate text-[11px] uppercase">
+                  <th class="py-2.5 px-3">Nama Mitra</th>
+                  <th class="py-2.5 px-3">Zona Pangkalan</th>
+                  <th class="py-2.5 px-3 text-right">Klik WA</th>
+                  <th class="py-2.5 px-3 text-right">Kunjungan</th>
+                  <th class="py-2.5 px-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-hairline-subtle">
+                @for (worker of store.topWorkers(); track worker.worker_id) {
+                  <tr class="hover:bg-surface-container-low transition-colors">
+                    <td class="py-3 px-3 font-semibold text-on-surface">
+                      {{ worker.worker_name }}
+                    </td>
+                    <td class="py-3 px-3 text-ink-secondary">
+                      {{ worker.zone || 'Jabodetabek' }}
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono-rate font-bold text-success">
+                      {{ worker.whatsapp_clicks }}
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono-rate text-on-surface-variant">
+                      {{ worker.profile_views }}
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                      <a
+                        [routerLink]="['/' + worker.worker_slug]"
+                        target="_blank"
+                        class="inline-flex items-center gap-1 text-[11px] text-voltage-orange hover:underline font-bold cursor-pointer"
+                      >
+                        <span>Lihat Profil</span>
+                        <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                      </a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- Kolom Kanan: Tren Pencarian & Status Booking (5 Kolom) -->
+      <div class="lg:col-span-5 space-y-space-lg">
+        <!-- Tren Pencarian Terpopuler -->
+        <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-md">
+          <div class="flex items-center justify-between border-b border-hairline-subtle pb-space-sm">
+            <div>
+              <h3 class="font-heading-h3 text-[16px] font-bold text-on-surface">
+                Tren Pencarian Terpopuler
+              </h3>
+              <p class="text-caption text-ink-secondary">
+                Kata kunci & wilayah yang dicari klien di Beranda.
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-[20px] text-amber-500">trending_up</span>
+          </div>
+
+          @if (store.topSearches().length === 0) {
+            <div class="py-6 text-center text-caption text-ink-disabled">
+              Belum ada riwayat pencarian pada periode ini.
+            </div>
+          } @else {
+            <div class="space-y-2">
+              @for (search of store.topSearches(); track search.query + search.location) {
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low border border-hairline-subtle text-caption">
+                  <div class="truncate">
+                    <span class="font-bold text-on-surface">
+                      {{ search.query || 'Semua Keahlian' }}
+                    </span>
+                    @if (search.location) {
+                      <span class="text-ink-secondary text-[11px] block">
+                        Wilayah: {{ search.location }}
+                      </span>
+                    }
+                  </div>
+                  <span class="font-mono-rate font-bold text-[12px] px-2 py-0.5 rounded bg-surface-container-high text-on-surface shrink-0">
+                    {{ search.count }}x
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Sebaran Status Reservasi Booking -->
+        <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-md">
+          <div class="flex items-center justify-between border-b border-hairline-subtle pb-space-sm">
+            <div>
+              <h3 class="font-heading-h3 text-[16px] font-bold text-on-surface">
+                Status Reservasi Booking
+              </h3>
+              <p class="text-caption text-ink-secondary">
+                Agregasi status pemesanan reservasi klien.
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-[20px] text-ink-secondary">pie_chart</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-caption">
+            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
+              <span class="text-[11px] text-ink-secondary uppercase block">Dikonfirmasi</span>
+              <span class="font-mono-rate text-[20px] font-bold text-success">
+                {{ store.bookingStatusBreakdown()['CONFIRMED'] || 0 }}
+              </span>
+            </div>
+            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
+              <span class="text-[11px] text-ink-secondary uppercase block">Menunggu WA</span>
+              <span class="font-mono-rate text-[20px] font-bold text-voltage-orange">
+                {{ store.bookingStatusBreakdown()['PENDING_WA'] || 0 }}
+              </span>
+            </div>
+            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
+              <span class="text-[11px] text-ink-secondary uppercase block">Selesai</span>
+              <span class="font-mono-rate text-[20px] font-bold text-indigo-500">
+                {{ store.bookingStatusBreakdown()['COMPLETED'] || 0 }}
+              </span>
+            </div>
+            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
+              <span class="text-[11px] text-ink-secondary uppercase block">Dibatalkan</span>
+              <span class="font-mono-rate text-[20px] font-bold text-ink-disabled">
+                {{ store.bookingStatusBreakdown()['CANCELLED'] || 0 }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+

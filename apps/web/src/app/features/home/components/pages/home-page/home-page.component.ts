@@ -35,7 +35,8 @@ export class HomePageComponent implements OnInit {
   private readonly documentTitle = inject(Title);
   private readonly metaService = inject(Meta);
 
-  readonly searchQuery = signal<string>('');
+  readonly searchSpecialtyQuery = signal<string>('');
+  readonly searchLocationQuery = signal<string>('');
   readonly selectedCategory = signal<string>('');
 
   ngOnInit(): void {
@@ -44,8 +45,8 @@ export class HomePageComponent implements OnInit {
 
   onHeroSearch(event?: { specialty?: string; location?: string }): void {
     if (event) {
-      const combined = [event.specialty, event.location].filter(Boolean).join(' ').trim();
-      this.searchQuery.set(combined);
+      this.searchSpecialtyQuery.set(event.specialty || '');
+      this.searchLocationQuery.set(event.location || '');
     }
     const featuredSection = document.getElementById('spesialis-unggulan');
     if (featuredSection && typeof featuredSection.scrollIntoView === 'function') {
@@ -55,6 +56,12 @@ export class HomePageComponent implements OnInit {
 
   onCategorySelected(categorySlug: string): void {
     this.selectedCategory.set(categorySlug);
+  }
+
+  onResetAllFilters(): void {
+    this.searchSpecialtyQuery.set('');
+    this.searchLocationQuery.set('');
+    this.selectedCategory.set('');
   }
 
   private configureSeoMeta(): void {

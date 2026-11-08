@@ -12,8 +12,10 @@
 
     <!-- Grid Mitra Pilihan Terverifikasi dari API Backend Riil -->
     <app-home-featured-workers-section
-      [searchQuery]="searchQuery()"
+      [searchSpecialty]="searchSpecialtyQuery()"
+      [searchLocation]="searchLocationQuery()"
       [selectedCategory]="selectedCategory()"
+      (resetAllFilters)="onResetAllFilters()"
     />
 
     <!-- Manifesto Kedaulatan Ekonomi & Komparasi 0% vs Aplikasi Gig Konvensional -->

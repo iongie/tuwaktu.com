@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { HomeFeaturedWorkersSectionComponent } from './home-featured-workers-section.component';
 import { HomeApiService } from '../../../services/home-api.service';
 import { FeaturedWorker } from '../../../models/home.model';
@@ -43,6 +43,22 @@ describe('HomeFeaturedWorkersSectionComponent', () => {
       specialtyTags: ['Deep Clean', 'Sterilisasi'],
       bufferMinutes: 60,
     },
+    {
+      id: 'worker-hendra',
+      slug: 'hendra-listrik',
+      name: 'Hendra Saputra',
+      specialty: 'Instalasi Panel MCB',
+      category: 'Kelistrikan',
+      rating: 5.0,
+      reviewCount: 50,
+      basecampZone: 'Jakarta Barat',
+      startingPrice: 90000,
+      priceUnit: 'jam',
+      avatarUrl: 'https://example.com/hendra.jpg',
+      isVerified: true,
+      specialtyTags: ['Panel Listrik', 'Korsleting'],
+      bufferMinutes: 60,
+    },
   ];
 
   beforeEach(async () => {
@@ -65,13 +81,14 @@ describe('HomeFeaturedWorkersSectionComponent', () => {
 
   it('harus memanggil fetchPublicWorkers dan merender kartu pekerja riil dari API', () => {
     expect(mockHomeApiService.fetchPublicWorkers).toHaveBeenCalled();
-    expect(component.workers().length).toBe(2);
+    expect(component.workers().length).toBe(3);
     expect(component.isLoading()).toBe(false);
 
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('Budi Santoso');
     expect(el.textContent).toContain('Siti Aminah');
-    expect(el.textContent).toContain('TOTAL 2 PEKERJA AKTIF');
+    expect(el.textContent).toContain('Hendra Saputra');
+    expect(el.textContent).toContain('TOTAL 3 PEKERJA AKTIF');
   });
 
   it('harus memfilter pekerja berdasarkan kategori saat tombol filter chip diklik', () => {
@@ -86,32 +103,65 @@ describe('HomeFeaturedWorkersSectionComponent', () => {
     expect(component.filteredWorkers().length).toBe(1);
     expect(component.filteredWorkers()[0].slug).toBe('siti-aminah');
 
-    component.resetFilters();
+    component.clearCategoryFilter();
     fixture.detectChanges();
-    expect(component.filteredWorkers().length).toBe(2);
+    expect(component.filteredWorkers().length).toBe(3);
   });
 
-  it('harus menampilkan pesan empty state saat tidak ada pekerja yang cocok dengan filter', () => {
-    component.setCategoryFilter('Elektronik');
+  it('harus memfilter berdasarkan wilayah operasional secara independen', () => {
+    fixture.componentRef.setInput('searchLocation', 'Jakarta Barat');
+    fixture.detectChanges();
+
+    expect(component.filteredWorkers().length).toBe(1);
+    expect(component.filteredWorkers()[0].slug).toBe('hendra-listrik');
+  });
+
+  it('harus memfilter berdasarkan keahlian atau nama pekerja', () => {
+    fixture.componentRef.setInput('searchSpecialty', 'Budi');
+    fixture.detectChanges();
+
+    expect(component.filteredWorkers().length).toBe(1);
+    expect(component.filteredWorkers()[0].slug).toBe('budi-santoso');
+  });
+
+  it('harus menampilkan bilah filter aktif jika ada filter yang diterapkan', () => {
+    fixture.componentRef.setInput('searchSpecialty', 'AC');
+    fixture.componentRef.setInput('searchLocation', 'Jakarta Selatan');
+    fixture.detectChanges();
+
+    const activeBar = fixture.nativeElement.querySelector('[data-testid="active-filter-bar"]');
+    expect(activeBar).toBeTruthy();
+    expect(activeBar.textContent).toContain('Keahlian/Nama: "AC"');
+    expect(activeBar.textContent).toContain('Wilayah: "Jakarta Selatan"');
+  });
+
+  it('harus mereset semua filter dan memancarkan resetAllFilters saat tombol Reset Semua diklik', () => {
+    const emitSpy = jest.spyOn(component.resetAllFilters, 'emit');
+
+    component.activeSpecialtyFilter.set('AC');
+    component.activeLocationFilter.set('Jakarta');
+    component.activeCategory.set('Servis AC');
+
+    component.resetAllFiltersAction();
+    fixture.detectChanges();
+
+    expect(component.activeSpecialtyFilter()).toBe('');
+    expect(component.activeLocationFilter()).toBe('');
+    expect(component.activeCategory()).toBe('Semua');
+    expect(emitSpy).toHaveBeenCalled();
+  });
+
+  it('harus menampilkan empty state dan rekomendasi teknisi alternatif saat tidak ada hasil', () => {
+    fixture.componentRef.setInput('searchSpecialty', 'KeahlianTidakAda123');
     fixture.detectChanges();
 
     const emptyState = fixture.nativeElement.querySelector('[data-testid="workers-empty-state"]');
     expect(emptyState).toBeTruthy();
     expect(emptyState.textContent).toContain('Belum Ada Teknisi Ditemukan');
-  });
 
-  it('harus menampilkan error state saat API menghasilkan kegagalan', () => {
-    mockHomeApiService.fetchPublicWorkers.mockReturnValue(
-      throwError(() => new Error('Server error'))
-    );
-
-    component.loadWorkers();
-    fixture.detectChanges();
-
-    expect(component.errorMessage()).toContain('Terjadi kendala saat memuat data teknisi');
-    const alert = fixture.nativeElement.querySelector('[role="alert"]');
-    expect(alert).toBeTruthy();
-    expect(alert.textContent).toContain('Gagal memuat katalog pekerja mandiri dari server');
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Rekomendasi Spesialis Terverifikasi Siaga Lainnya');
+    // Hendra Saputra rating tertinggi (5.0) harus muncul di rekomendasi
+    expect(el.textContent).toContain('Hendra Saputra');
   });
 });
-

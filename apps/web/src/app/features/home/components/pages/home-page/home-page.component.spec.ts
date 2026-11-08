@@ -14,6 +14,7 @@ describe('HomePageComponent', () => {
 
   const mockHomeApiService = {
     fetchPublicWorkers: jest.fn().mockReturnValue(of([])),
+    fetchPublicCategories: jest.fn().mockReturnValue(of([])),
   };
 
   beforeEach(async () => {
@@ -63,17 +64,32 @@ describe('HomePageComponent', () => {
     expect(el.querySelector('app-home-footer-section')).toBeTruthy();
   });
 
-  it('harus memproses event onHeroSearch tanpa error', () => {
+  it('harus memproses event onHeroSearch dan memperbarui specialty dan location query', () => {
     const scrollSpy = jest.fn();
     const section = fixture.nativeElement.querySelector('#spesialis-unggulan');
     if (section) {
       section.scrollIntoView = scrollSpy;
     }
 
-    component.onHeroSearch();
+    component.onHeroSearch({ specialty: 'Teknisi AC', location: 'Jakarta Selatan' });
+
+    expect(component.searchSpecialtyQuery()).toBe('Teknisi AC');
+    expect(component.searchLocationQuery()).toBe('Jakarta Selatan');
 
     if (section) {
       expect(scrollSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
     }
+  });
+
+  it('harus mereset seluruh filter saat onResetAllFilters dipanggil', () => {
+    component.searchSpecialtyQuery.set('Kelistrikan');
+    component.searchLocationQuery.set('Jakarta');
+    component.selectedCategory.set('kelistrikan');
+
+    component.onResetAllFilters();
+
+    expect(component.searchSpecialtyQuery()).toBe('');
+    expect(component.searchLocationQuery()).toBe('');
+    expect(component.selectedCategory()).toBe('');
   });
 });

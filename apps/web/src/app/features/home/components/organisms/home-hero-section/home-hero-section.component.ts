@@ -1,18 +1,23 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
+  OnInit,
   output,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { SearchAutoSuggestDropdownComponent } from '../../molecules/search-auto-suggest-dropdown/search-auto-suggest-dropdown.component';
+import { HomeApiService } from '../../../services/home-api.service';
+import { FeaturedWorker } from '../../../models/home.model';
 
 @Component({
   selector: 'app-home-hero-section',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SearchAutoSuggestDropdownComponent],
   template: `
     <!-- Dark Nocturne Theater Canvas Hero (#121212) -->
     <section
@@ -66,13 +71,13 @@ import { Router } from '@angular/router';
 
         <!-- Interactive Booking Search Console -->
         <div
-          class="p-space-lg sm:p-space-xl bg-surface-elevated-dark/80 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl max-w-5xl"
+          class="p-space-lg sm:p-space-xl bg-surface-elevated-dark/80 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl max-w-5xl relative z-30"
         >
           <form (ngSubmit)="handleSearchSubmit()" class="space-y-space-md">
             <div
               class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-center"
             >
-              <!-- Input Keahlian / Spesialisasi -->
+              <!-- Input Keahlian / Spesialisasi dengan Auto-Suggest -->
               <div class="md:col-span-5 relative">
                 <label
                   for="heroSpecialtyInput"
@@ -89,38 +94,61 @@ import { Router } from '@angular/router';
                   <input
                     id="heroSpecialtyInput"
                     type="text"
+                    autocomplete="off"
                     [ngModel]="specialtyQuery()"
-                    (ngModelChange)="specialtyQuery.set($event)"
+                    (ngModelChange)="onSpecialtyQueryChange($event)"
+                    (focus)="onSpecialtyInputFocus()"
+                    (blur)="onSpecialtyInputBlur()"
                     name="specialty"
-                    placeholder="Contoh: AC Inverter, Listrik, Sarah..."
+                    placeholder="Contoh: AC Inverter, Listrik, Budi..."
                     class="w-full h-12 pl-11 pr-4 bg-white/10 hover:bg-white/15 focus:bg-white/20 text-white placeholder:text-white/40 rounded-lg text-body-default transition-all outline-none border border-white/10 focus:border-voltage-orange"
                   />
                 </div>
+
+                <!-- Floating Auto-Suggest Dropdown -->
+                <app-search-auto-suggest-dropdown
+                  [isOpen]="isSuggestOpen()"
+                  [query]="specialtyQuery()"
+                  [workerSuggestions]="filteredWorkerSuggestions()"
+                  [categorySuggestions]="filteredCategorySuggestions()"
+                  (selectWorker)="onSelectWorker($event)"
+                  (selectCategory)="onSelectCategory($event)"
+                  (close)="isSuggestOpen.set(false)"
+                />
               </div>
 
-              <!-- Input Lokasi / Area Pangkalan -->
+              <!-- Dropdown Lokasi / Wilayah Pangkalan Terstandarisasi -->
               <div class="md:col-span-4 relative">
                 <label
-                  for="heroLocationInput"
+                  for="heroLocationSelect"
                   class="block font-micro-uppercase text-caption text-white/60 uppercase mb-1.5"
                 >
                   Wilayah / Pangkalan
                 </label>
                 <div class="relative flex items-center">
                   <span
-                    class="material-symbols-outlined absolute left-3.5 text-white/40 text-[20px]"
+                    class="material-symbols-outlined absolute left-3.5 text-white/40 text-[20px] pointer-events-none"
                   >
                     location_on
                   </span>
-                  <input
-                    id="heroLocationInput"
-                    type="text"
+                  <select
+                    id="heroLocationSelect"
                     [ngModel]="locationQuery()"
                     (ngModelChange)="locationQuery.set($event)"
                     name="location"
-                    placeholder="Area: Tebet, Jagakarsa, BSD..."
-                    class="w-full h-12 pl-11 pr-4 bg-white/10 hover:bg-white/15 focus:bg-white/20 text-white placeholder:text-white/40 rounded-lg text-body-default transition-all outline-none border border-white/10 focus:border-voltage-orange"
-                  />
+                    class="w-full h-12 pl-11 pr-9 bg-white/10 hover:bg-white/15 focus:bg-white/20 text-white rounded-lg text-body-default transition-all outline-none border border-white/10 focus:border-voltage-orange appearance-none cursor-pointer"
+                  >
+                    @for (zone of availableZones(); track zone) {
+                      <option [value]="zone" class="bg-[#1E1E1E] text-white py-1.5">
+                        {{ zone }}
+                      </option>
+                    }
+                  </select>
+                  <span
+                    class="material-symbols-outlined absolute right-3 text-white/40 text-[20px] pointer-events-none"
+                  >
+                    expand_more
+                  </span>
                 </div>
               </div>
 
@@ -194,11 +222,14 @@ import { Router } from '@angular/router';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeHeroSectionComponent {
+export class HomeHeroSectionComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly homeApiService = inject(HomeApiService);
 
   readonly specialtyQuery = signal<string>('');
-  readonly locationQuery = signal<string>('');
+  readonly locationQuery = signal<string>('Semua Wilayah');
+  readonly isSuggestOpen = signal<boolean>(false);
+  readonly workers = signal<FeaturedWorker[]>([]);
 
   readonly searchTrigger = output<{ specialty: string; location: string }>();
 
@@ -240,39 +271,132 @@ export class HomeHeroSectionComponent {
     },
   ];
 
+  readonly availableZones = computed<string[]>(() => {
+    const list = this.workers();
+    const zoneSet = new Set<string>();
+
+    for (const w of list) {
+      if (w.basecampZone && w.basecampZone.trim()) {
+        zoneSet.add(w.basecampZone.trim());
+      }
+    }
+
+    if (zoneSet.size === 0) {
+      return [
+        'Semua Wilayah',
+        'Jakarta Selatan',
+        'Jakarta Pusat',
+        'Jakarta Barat',
+        'Jakarta Timur',
+        'Jakarta Utara',
+        'Tangerang Selatan',
+        'Tangerang',
+        'Depok',
+        'Bekasi',
+        'Bogor',
+      ];
+    }
+
+    return ['Semua Wilayah', ...Array.from(zoneSet).sort()];
+  });
+
+  readonly filteredWorkerSuggestions = computed<FeaturedWorker[]>(() => {
+    const q = this.specialtyQuery().trim().toLowerCase();
+    if (!q) return [];
+
+    return this.workers()
+      .filter((w) => {
+        const nameMatch = w.name.toLowerCase().includes(q);
+        const specMatch = w.specialty.toLowerCase().includes(q);
+        const tagMatch = w.specialtyTags.some((t) => t.toLowerCase().includes(q));
+        return nameMatch || specMatch || tagMatch;
+      })
+      .slice(0, 4);
+  });
+
+  readonly filteredCategorySuggestions = computed<string[]>(() => {
+    const q = this.specialtyQuery().trim().toLowerCase();
+    if (!q) return [];
+
+    const baseCategories = [
+      'Servis AC',
+      'Instalasi Listrik',
+      'Sanitasi Deep Clean',
+      'Elektronik & Audio',
+      'Service Kulkas',
+      'Pipa & Saluran Air',
+    ];
+
+    return baseCategories
+      .filter((cat) => cat.toLowerCase().includes(q))
+      .slice(0, 3);
+  });
+
+  ngOnInit(): void {
+    this.loadWorkers();
+  }
+
+  loadWorkers(): void {
+    this.homeApiService.fetchPublicWorkers().subscribe({
+      next: (items) => {
+        if (Array.isArray(items)) {
+          this.workers.set(items);
+        }
+      },
+      error: () => {
+        // Fallback gracefully jika ada kendala jaringan
+      },
+    });
+  }
+
+  onSpecialtyQueryChange(newQuery: string): void {
+    this.specialtyQuery.set(newQuery);
+    if (newQuery.trim().length >= 1) {
+      this.isSuggestOpen.set(true);
+    }
+  }
+
+  onSpecialtyInputFocus(): void {
+    if (this.specialtyQuery().trim().length >= 1) {
+      this.isSuggestOpen.set(true);
+    }
+  }
+
+  onSpecialtyInputBlur(): void {
+    // Delay penutupan sedikit agar klik pada item popover sempat tereksekusi
+    setTimeout(() => {
+      this.isSuggestOpen.set(false);
+    }, 200);
+  }
+
+  onSelectWorker(worker: FeaturedWorker): void {
+    this.isSuggestOpen.set(false);
+    this.router.navigate(['/' + worker.slug]);
+  }
+
+  onSelectCategory(category: string): void {
+    this.specialtyQuery.set(category);
+    this.isSuggestOpen.set(false);
+    this.handleSearchSubmit();
+  }
+
   applyFilterChip(query: string): void {
     this.specialtyQuery.set(query);
     this.handleSearchSubmit();
   }
 
   handleSearchSubmit(): void {
-    const specialty = this.specialtyQuery().trim().toLowerCase();
-    const location = this.locationQuery().trim();
+    this.isSuggestOpen.set(false);
 
-    // Cek apakah query spesifik mengarah ke salah satu slug pekerja bawaan
-    if (specialty.includes('sarah')) {
-      this.router.navigate(['/sarah-cleaning']);
-      return;
-    }
-    if (specialty.includes('budi')) {
-      this.router.navigate(['/budi-santoso']);
-      return;
-    }
-    if (specialty.includes('hendra')) {
-      this.router.navigate(['/hendra-listrik']);
-      return;
-    }
-    if (specialty.includes('rian')) {
-      this.router.navigate(['/rian-audio']);
-      return;
-    }
+    const specialty = this.specialtyQuery().trim();
+    const locationVal = this.locationQuery();
+    const location = locationVal === 'Semua Wilayah' ? '' : locationVal.trim();
 
     this.searchTrigger.emit({
-      specialty: this.specialtyQuery().trim(),
-      location: location,
+      specialty,
+      location,
     });
 
-    // Scroll ke bagian pekerja unggulan atau katalog
     const targetElement = document.getElementById('spesialis-unggulan');
     if (targetElement && typeof targetElement.scrollIntoView === 'function') {
       targetElement.scrollIntoView({ behavior: 'smooth' });

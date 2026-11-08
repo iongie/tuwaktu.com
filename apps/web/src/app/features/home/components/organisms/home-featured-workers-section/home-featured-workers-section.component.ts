@@ -6,6 +6,7 @@ import {
   inject,
   input,
   OnInit,
+  output,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -56,7 +57,7 @@ import { HomeApiService } from '../../../services/home-api.service';
           </div>
         </div>
 
-        <!-- Quick Filter Chips -->
+        <!-- Quick Filter Chips Kategori -->
         <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-hairline-subtle text-caption">
           <span class="text-ink-disabled font-mono-rate">Kategori:</span>
           @for (cat of categoryFilterOptions; track cat) {
@@ -74,6 +75,79 @@ import { HomeApiService } from '../../../services/home-api.service';
             </button>
           }
         </div>
+
+        <!-- Bilah Status Filter Aktif (Active Filter Bar) -->
+        @if (hasActiveFilters()) {
+          <div
+            class="p-space-md rounded-xl bg-surface-container border border-hairline-subtle flex flex-wrap items-center justify-between gap-3"
+            data-testid="active-filter-bar"
+          >
+            <div class="flex flex-wrap items-center gap-2 text-caption">
+              <span class="font-medium text-ink-secondary">Filter Aktif:</span>
+
+              @if (activeSpecialtyFilter()) {
+                <span
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-voltage-orange/15 text-voltage-orange border border-voltage-orange/30 font-medium"
+                >
+                  <span>Keahlian/Nama: "{{ activeSpecialtyFilter() }}"</span>
+                  <button
+                    type="button"
+                    (click)="clearSpecialtyFilter()"
+                    class="hover:opacity-75 cursor-pointer flex items-center"
+                    aria-label="Hapus filter keahlian"
+                  >
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </span>
+              }
+
+              @if (activeLocationFilter()) {
+                <span
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container border border-outline-variant font-medium"
+                >
+                  <span>Wilayah: "{{ activeLocationFilter() }}"</span>
+                  <button
+                    type="button"
+                    (click)="clearLocationFilter()"
+                    class="hover:opacity-75 cursor-pointer flex items-center"
+                    aria-label="Hapus filter wilayah"
+                  >
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </span>
+              }
+
+              @if (activeCategory() !== 'Semua') {
+                <span
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-on-surface border border-outline-variant font-medium"
+                >
+                  <span>Kategori: "{{ activeCategory() }}"</span>
+                  <button
+                    type="button"
+                    (click)="clearCategoryFilter()"
+                    class="hover:opacity-75 cursor-pointer flex items-center"
+                    aria-label="Hapus filter kategori"
+                  >
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </span>
+              }
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="text-caption font-mono-rate text-ink-secondary">
+                Ditemukan {{ filteredWorkers().length }} teknisi
+              </span>
+              <button
+                type="button"
+                (click)="resetAllFiltersAction()"
+                class="text-caption text-voltage-orange hover:underline font-bold cursor-pointer"
+              >
+                Reset Semua
+              </button>
+            </div>
+          </div>
+        }
 
         <!-- Content Area: Skeleton, Error, Empty, or Worker Grid -->
         @if (isLoading()) {
@@ -130,28 +204,56 @@ import { HomeApiService } from '../../../services/home-api.service';
             </button>
           </div>
         } @else if (filteredWorkers().length === 0) {
-          <!-- Empty State -->
-          <div
-            class="p-space-2xl rounded-2xl bg-surface-container border border-hairline-subtle text-center space-y-space-sm max-w-md mx-auto"
-            data-testid="workers-empty-state"
-          >
-            <span class="material-symbols-outlined text-[40px] text-ink-disabled">
-              search_off
-            </span>
-            <h3 class="font-heading-h3 text-heading-h3 font-bold text-on-surface">
-              Belum Ada Teknisi Ditemukan
-            </h3>
-            <p class="font-body-default text-body-default text-ink-secondary">
-              Tidak ada mitra terverifikasi yang cocok dengan kriteria pencarian Anda.
-            </p>
-            @if (activeCategory() !== 'Semua' || searchQuery()) {
-              <button
-                type="button"
-                (click)="resetFilters()"
-                class="m3-btn-filled px-4 py-2 text-caption font-bold rounded-lg cursor-pointer mt-2"
-              >
-                Tampilkan Semua Teknisi
-              </button>
+          <!-- Empty State yang Terstruktur -->
+          <div class="space-y-space-2xl">
+            <div
+              class="p-space-2xl rounded-2xl bg-surface-container border border-hairline-subtle text-center space-y-space-sm max-w-lg mx-auto"
+              data-testid="workers-empty-state"
+            >
+              <span class="material-symbols-outlined text-[48px] text-ink-disabled">
+                search_off
+              </span>
+              <h3 class="font-heading-h3 text-heading-h3 font-bold text-on-surface">
+                Belum Ada Teknisi Ditemukan
+              </h3>
+              <p class="font-body-default text-body-default text-ink-secondary">
+                Tidak ada mitra terverifikasi yang cocok dengan kriteria pencarian Anda. Coba ubah kata kunci atau pilih opsi 'Semua Wilayah'.
+              </p>
+              <div class="pt-2">
+                <button
+                  type="button"
+                  (click)="resetAllFiltersAction()"
+                  class="m3-btn-filled px-5 py-2.5 text-caption font-bold rounded-lg cursor-pointer inline-flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+                  <span>Tampilkan Semua Teknisi</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Rekomendasi Spesialis Alternatif Berating Tinggi -->
+            @if (topRatedWorkers().length > 0) {
+              <div class="space-y-space-md pt-space-lg border-t border-hairline-subtle">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="font-heading-h3 text-[18px] font-bold text-on-surface">
+                      Rekomendasi Spesialis Terverifikasi Siaga Lainnya
+                    </h3>
+                    <p class="text-caption text-ink-secondary">
+                      Mitra dengan reputasi terbaik yang siap menerima reservasi langsung.
+                    </p>
+                  </div>
+                  <span class="text-caption font-mono-rate text-ink-disabled hidden sm:inline">
+                    PILIHAN TERBAIK
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+                  @for (worker of topRatedWorkers(); track worker.id) {
+                    <app-home-worker-card [worker]="worker" />
+                  }
+                </div>
+              </div>
             }
           </div>
         } @else {
@@ -170,14 +272,19 @@ import { HomeApiService } from '../../../services/home-api.service';
 export class HomeFeaturedWorkersSectionComponent implements OnInit {
   private readonly homeApiService = inject(HomeApiService);
 
-  readonly searchQuery = input<string>('');
+  readonly searchSpecialty = input<string>('');
+  readonly searchLocation = input<string>('');
   readonly selectedCategory = input<string>('');
+
+  readonly resetAllFilters = output<void>();
 
   readonly workers = signal<FeaturedWorker[]>([]);
   readonly isLoading = signal<boolean>(true);
   readonly errorMessage = signal<string>('');
 
   readonly activeCategory = signal<string>('Semua');
+  readonly activeSpecialtyFilter = signal<string>('');
+  readonly activeLocationFilter = signal<string>('');
 
   readonly categoryFilterOptions = [
     'Semua',
@@ -189,9 +296,24 @@ export class HomeFeaturedWorkersSectionComponent implements OnInit {
 
   readonly totalWorkersCount = computed(() => this.workers().length);
 
+  readonly hasActiveFilters = computed(() => {
+    return (
+      Boolean(this.activeSpecialtyFilter()) ||
+      Boolean(this.activeLocationFilter()) ||
+      this.activeCategory() !== 'Semua'
+    );
+  });
+
+  readonly topRatedWorkers = computed<FeaturedWorker[]>(() => {
+    return [...this.workers()]
+      .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
+      .slice(0, 4);
+  });
+
   readonly filteredWorkers = computed(() => {
     let result = this.workers();
 
+    // 1. Filter Kategori
     const category = this.activeCategory();
     if (category !== 'Semua') {
       const lowerCat = category.toLowerCase();
@@ -203,15 +325,24 @@ export class HomeFeaturedWorkersSectionComponent implements OnInit {
       });
     }
 
-    const query = this.searchQuery().trim().toLowerCase();
+    // 2. Filter Wilayah Operasional
+    const loc = this.activeLocationFilter().trim().toLowerCase();
+    if (loc && loc !== 'semua wilayah') {
+      result = result.filter((w) => {
+        return w.basecampZone.toLowerCase().includes(loc);
+      });
+    }
+
+    // 3. Filter Keahlian atau Nama Pekerja
+    const query = this.activeSpecialtyFilter().trim().toLowerCase();
     if (query) {
       result = result.filter((w) => {
         const nameMatch = w.name.toLowerCase().includes(query);
         const slugMatch = w.slug.toLowerCase().includes(query);
-        const zoneMatch = w.basecampZone.toLowerCase().includes(query);
         const specMatch = w.specialty.toLowerCase().includes(query);
+        const catMatch = w.category.toLowerCase().includes(query);
         const tagMatch = w.specialtyTags.some((t) => t.toLowerCase().includes(query));
-        return nameMatch || slugMatch || zoneMatch || specMatch || tagMatch;
+        return nameMatch || slugMatch || specMatch || catMatch || tagMatch;
       });
     }
 
@@ -219,6 +350,15 @@ export class HomeFeaturedWorkersSectionComponent implements OnInit {
   });
 
   constructor() {
+    // Sinkronisasi input external ke state internal
+    effect(() => {
+      this.activeSpecialtyFilter.set(this.searchSpecialty());
+    });
+
+    effect(() => {
+      this.activeLocationFilter.set(this.searchLocation());
+    });
+
     effect(() => {
       const externalCat = this.selectedCategory();
       if (externalCat) {
@@ -260,7 +400,22 @@ export class HomeFeaturedWorkersSectionComponent implements OnInit {
     this.activeCategory.set(cat);
   }
 
-  resetFilters(): void {
+  clearSpecialtyFilter(): void {
+    this.activeSpecialtyFilter.set('');
+  }
+
+  clearLocationFilter(): void {
+    this.activeLocationFilter.set('');
+  }
+
+  clearCategoryFilter(): void {
     this.activeCategory.set('Semua');
+  }
+
+  resetAllFiltersAction(): void {
+    this.activeCategory.set('Semua');
+    this.activeSpecialtyFilter.set('');
+    this.activeLocationFilter.set('');
+    this.resetAllFilters.emit();
   }
 }

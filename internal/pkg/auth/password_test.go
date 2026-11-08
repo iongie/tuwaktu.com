@@ -79,6 +79,18 @@ func TestPassword_HashAndVerifyArgon2id(t *testing.T) {
 		}
 	})
 
+	t.Run("mendukung kompatibilitas backward verifikasi hash bcrypt lama", func(t *testing.T) {
+		// Contoh hash bcrypt untuk password "739184"
+		bcryptHash := "$2a$10$wEeVq3dDkYkFjL/hX46/uOPjT4p1MlhP4kQG0X3lS3P3GkYmK2Kmu"
+		assert.True(t, auth.IsLegacyBcryptHash(bcryptHash))
+
+		// Buat hash bcrypt baru untuk pengetesan
+		rawPIN := "582914"
+		bHash, err := auth.HashPassword(rawPIN)
+		require.NoError(t, err)
+		assert.False(t, auth.IsLegacyBcryptHash(bHash))
+	})
+
 	t.Run("mengembalikan ErrIncompatibleVersion jika versi argon2 berbeda", func(t *testing.T) {
 		incompatible := "$argon2id$v=16$m=65536,t=1,p=4$c2FsdDEyMzQ1Njc4$aGFzaDEyMzQ1Njc4"
 		match, err := auth.VerifyPassword(incompatible, "password")

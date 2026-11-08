@@ -30,6 +30,7 @@ type WorkerRepository interface {
 	GetAccountByID(ctx context.Context, accountID string) (*domain.WorkerAccount, error)
 	RecordFailedLogin(ctx context.Context, accountID string, maxAttempts int, lockDuration time.Duration) (int, *time.Time, error)
 	ResetFailedLogin(ctx context.Context, accountID string) error
+	UpdateAccountPasswordHash(ctx context.Context, accountID string, newHash string) error
 }
 
 type BookingRepository interface {

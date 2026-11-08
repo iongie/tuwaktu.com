@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -113,8 +114,26 @@ func HashPassword(password string) (string, error) {
 		argon2.Version, argonMemory, argonIterations, argonParallelism, b64Salt, b64Hash), nil
 }
 
-// VerifyPassword membandingkan kata sandi plaintext terhadap string hash Argon2id secara constant-time
+// IsLegacyBcryptHash memeriksa apakah string hash merupakan format bcrypt lama ($2a$, $2b$, $2y$)
+func IsLegacyBcryptHash(encodedHash string) bool {
+	return strings.HasPrefix(encodedHash, "$2a$") ||
+		strings.HasPrefix(encodedHash, "$2b$") ||
+		strings.HasPrefix(encodedHash, "$2y$")
+}
+
+// VerifyPassword membandingkan kata sandi plaintext terhadap string hash Argon2id (atau bcrypt lama untuk kompatibilitas migrasi)
 func VerifyPassword(encodedHash, password string) (bool, error) {
+	if IsLegacyBcryptHash(encodedHash) {
+		err := bcrypt.CompareHashAndPassword([]byte(encodedHash), []byte(password))
+		if err == nil {
+			return true, nil
+		}
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return false, nil
+		}
+		return false, fmt.Errorf("verifikasi hash bcrypt: %w", err)
+	}
+
 	parts := strings.Split(encodedHash, "$")
 	if len(parts) != 6 || parts[0] != "" || parts[1] != "argon2id" ||
 		strings.ContainsAny(parts[2], " \t\n\r") || strings.ContainsAny(parts[3], " \t\n\r") {

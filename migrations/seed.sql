@@ -212,7 +212,9 @@ ON CONFLICT (email) DO UPDATE SET
     password_hash = EXCLUDED.password_hash,
     role = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    must_change_password = EXCLUDED.must_change_password;
+    must_change_password = EXCLUDED.must_change_password,
+    failed_login_attempts = 0,
+    locked_until = NULL;
 
 -- Categories / Disciplines Catalog
 INSERT INTO categories (id, slug, name, description, icon, starting_price, price_unit, availability_tag, highlight_tag, is_active, sort_order)

@@ -2,12 +2,15 @@ package service_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 	"tuwaktu.com/internal/domain"
+	"tuwaktu.com/internal/pkg/auth"
 	"tuwaktu.com/internal/repository"
 	"tuwaktu.com/internal/service"
 )
@@ -984,6 +987,47 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 		respByPlusPhone, err := svc.Authenticate(ctx, "+6281200000000", "849205")
 		require.NoError(t, err)
 		assert.Equal(t, domain.RoleAdmin, respByPlusPhone.Session.Role)
+	})
+
+	t.Run("akun dengan hash bcrypt lama berhasil masuk dan otomatis dimigrasikan ke Argon2id", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		pin := "184920"
+		bHashBytes, err := bcrypt.GenerateFromPassword([]byte(pin), bcrypt.DefaultCost)
+		require.NoError(t, err)
+		legacyBcryptHash := string(bHashBytes)
+		accountID := "acc-legacy-bcrypt"
+		workerID := "w-legacy-bcrypt"
+
+		repo.SeedAccount(&domain.WorkerAccount{
+			ID:                 accountID,
+			WorkerID:           &workerID,
+			Email:              "legacy@tuwaktu.com",
+			PhoneNumber:        "6285284185939",
+			PasswordHash:       legacyBcryptHash,
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		})
+		repo.SeedWorker(&domain.Worker{
+			ID:       workerID,
+			Slug:     "gigih-santoso",
+			Name:     "Gigih Santoso",
+			IsActive: true,
+		})
+
+		svc := service.NewWorkerService(repo)
+
+		// 1. Berhasil login dengan PIN yang cocok dengan hash bcrypt
+		resp, err := svc.Authenticate(ctx, "6285284185939", pin)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, "Gigih Santoso", resp.Session.Name)
+
+		// 2. Hash di repo telah di-upgrade secara transparan ke format Argon2id ($argon2id$)
+		updatedAcc, err := repo.GetAccountByID(ctx, accountID)
+		require.NoError(t, err)
+		assert.True(t, strings.HasPrefix(updatedAcc.PasswordHash, "$argon2id$v=19$"))
+		assert.False(t, auth.IsLegacyBcryptHash(updatedAcc.PasswordHash))
 	})
 }
 

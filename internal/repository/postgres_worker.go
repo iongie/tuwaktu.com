@@ -741,6 +741,28 @@ func (r *PostgresWorkerRepository) ResetFailedLogin(ctx context.Context, account
 	return nil
 }
 
+// UpdateAccountPasswordHash memperbarui hash kata sandi akun (misal saat migrasi transparan bcrypt ke Argon2id)
+func (r *PostgresWorkerRepository) UpdateAccountPasswordHash(ctx context.Context, accountID string, newHash string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	accountID = strings.TrimSpace(accountID)
+	newHash = strings.TrimSpace(newHash)
+	if accountID == "" || newHash == "" {
+		return domain.ErrInvalidInput
+	}
+
+	updates := map[string]interface{}{
+		"password_hash": newHash,
+		"updated_at":    time.Now().UTC(),
+	}
+	if err := r.db.WithContext(ctx).Model(&domain.WorkerAccount{}).Where("id = ?", accountID).Updates(updates).Error; err != nil {
+		return fmt.Errorf("memperbarui hash kata sandi akun: %w", err)
+	}
+
+	return nil
+}
+
 // ListPublicWorkers mengambil daftar seluruh mitra aktif untuk halaman beranda / katalog publik
 func (r *PostgresWorkerRepository) ListPublicWorkers(ctx context.Context) ([]domain.Worker, error) {
 	if err := ctx.Err(); err != nil {

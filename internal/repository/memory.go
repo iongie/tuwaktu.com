@@ -729,6 +729,21 @@ func (m *MemoryRepository) ResetFailedLogin(ctx context.Context, accountID strin
 	return nil
 }
 
+func (m *MemoryRepository) UpdateAccountPasswordHash(ctx context.Context, accountID string, newHash string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	accountID = strings.TrimSpace(accountID)
+	acc, ok := m.accounts[accountID]
+	if !ok {
+		return domain.ErrWorkerNotFound
+	}
+
+	acc.PasswordHash = newHash
+	acc.UpdatedAt = time.Now().UTC()
+	return nil
+}
+
 func (m *MemoryRepository) ListPublicWorkers(ctx context.Context) ([]domain.Worker, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

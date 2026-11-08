@@ -880,6 +880,13 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 		_ = s.repo.ResetFailedLogin(ctx, account.ID)
 	}
 
+	// Migrasi transparan: jika akun masih menggunakan hash bcrypt lama, otomatis perbarui ke Argon2id
+	if auth.IsLegacyBcryptHash(account.PasswordHash) {
+		if newArgonHash, hashErr := auth.HashPassword(password); hashErr == nil {
+			_ = s.repo.UpdateAccountPasswordHash(ctx, account.ID, newArgonHash)
+		}
+	}
+
 	workerIDStr := ""
 	workerSlug := ""
 	userName := "Pengguna"

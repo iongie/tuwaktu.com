@@ -30,6 +30,7 @@ import {
   ServiceBookingFormComponent,
 } from '../organisms/service-booking-form/service-booking-form.component';
 import { BookingSuccessModalComponent } from '../organisms/booking-success-modal/booking-success-modal.component';
+import { WorkerPublicReviewsSectionComponent } from '../organisms/worker-public-reviews-section/worker-public-reviews-section.component';
 import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
 
 @Component({
@@ -42,6 +43,7 @@ import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
     TechnicianSearchBarComponent,
     TechnicianProfileHeaderComponent,
     ServiceBookingFormComponent,
+    WorkerPublicReviewsSectionComponent,
     BookingSuccessModalComponent,
     BookingNavAccountMenuComponent,
   ],

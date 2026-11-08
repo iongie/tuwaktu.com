@@ -113,6 +113,29 @@ func (r *PostgresBookingRepository) GetWorkerBySlug(ctx context.Context, slug st
 	return &w, nil
 }
 
+func (r *PostgresBookingRepository) GetBookingByCode(ctx context.Context, bookingCode string) (*domain.Booking, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying booking by code: %w", err)
+	}
+	bookingCode = strings.TrimSpace(bookingCode)
+	if bookingCode == "" {
+		return nil, domain.ErrBookingNotFound
+	}
+	var b domain.Booking
+	err := r.db.WithContext(ctx).
+		Preload("Service").
+		Preload("Worker").
+		Where("booking_code = ?", bookingCode).
+		First(&b).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrBookingNotFound
+		}
+		return nil, fmt.Errorf("querying booking by code: %w", err)
+	}
+	return &b, nil
+}
+
 func (r *PostgresBookingRepository) GetBookingsByWorkerAndDateRange(ctx context.Context, workerID string, startTime, endTime time.Time) ([]domain.Booking, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("querying bookings by worker and date range: %w", err)

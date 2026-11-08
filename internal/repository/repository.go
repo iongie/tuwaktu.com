@@ -40,8 +40,17 @@ type BookingRepository interface {
 	GetServiceByID(ctx context.Context, serviceID string) (*domain.Service, error)
 	GetWorkerByID(ctx context.Context, workerID string) (*domain.Worker, error)
 	GetWorkerBySlug(ctx context.Context, slug string) (*domain.Worker, error)
+	GetBookingByCode(ctx context.Context, bookingCode string) (*domain.Booking, error)
 	GetBookingsByWorkerAndDateRange(ctx context.Context, workerID string, startTime, endTime time.Time) ([]domain.Booking, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error)
+}
+
+type ReviewRepository interface {
+	CreateReviewTx(ctx context.Context, review *domain.Review) error
+	GetReviewByBookingID(ctx context.Context, bookingID string) (*domain.Review, error)
+	GetPublicReviewsByWorkerSlug(ctx context.Context, slug string, limit, offset int) ([]domain.PublicReviewItem, int64, error)
+	GetWorkerDashboardReviews(ctx context.Context, workerID string, limit, offset int) ([]domain.WorkerDashboardReviewItem, int64, error)
+	GetWorkerRatingStats(ctx context.Context, workerID string) (avgRating float64, reviewCount int, err error)
 }
 
 type CategoryRepository interface {

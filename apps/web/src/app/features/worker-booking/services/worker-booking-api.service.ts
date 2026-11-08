@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../../../../environments/environment.model';
-import { TechnicianProfileApiResponse } from '../models/worker-catalog.model';
+import { PublicReviewsApiResponse, TechnicianProfileApiResponse } from '../models/worker-catalog.model';
 import {
   CreateServiceBookingPayload,
   ServiceBookingApiResponse,
@@ -58,5 +58,16 @@ export class WorkerBookingApiService {
       url += `&service_id=${encodeURIComponent(serviceId.trim())}`;
     }
     return this.httpClient.get<AvailableSlotsApiResponse>(url);
+  }
+
+  fetchPublicWorkerReviews(
+    slug: string,
+    limit = 10,
+    offset = 0
+  ): Observable<PublicReviewsApiResponse> {
+    const sanitizedSlug = encodeURIComponent(slug.trim().toLowerCase());
+    return this.httpClient.get<PublicReviewsApiResponse>(
+      `${this.normalizedBaseUrl}/api/public/workers/${sanitizedSlug}/reviews?limit=${limit}&offset=${offset}`
+    );
   }
 }

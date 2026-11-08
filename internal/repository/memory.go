@@ -19,6 +19,7 @@ type MemoryRepository struct {
 	bookings  map[string]*domain.Booking
 	schedules map[string]map[int]*domain.WorkerSchedule
 	accounts  map[string]*domain.WorkerAccount
+	reviews   map[string]*domain.Review
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -28,6 +29,7 @@ func NewMemoryRepository() *MemoryRepository {
 		bookings:  make(map[string]*domain.Booking),
 		schedules: make(map[string]map[int]*domain.WorkerSchedule),
 		accounts:  make(map[string]*domain.WorkerAccount),
+		reviews:   make(map[string]*domain.Review),
 	}
 }
 
@@ -851,6 +853,220 @@ func (m *MemoryRepository) UpdateBookingStatus(ctx context.Context, workerID str
 
 	return &bCopy, nil
 }
+
+func (m *MemoryRepository) GetBookingByCode(ctx context.Context, bookingCode string) (*domain.Booking, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	bookingCode = strings.TrimSpace(bookingCode)
+	if bookingCode == "" {
+		return nil, domain.ErrBookingNotFound
+	}
+
+	for _, b := range m.bookings {
+		if strings.EqualFold(b.BookingCode, bookingCode) {
+			bCopy := *b
+			if bCopy.Service == nil && bCopy.ServiceID != "" {
+				if s, exists := m.services[bCopy.ServiceID]; exists {
+					bCopy.Service = s
+				}
+			}
+			if bCopy.Worker == nil && bCopy.WorkerID != "" {
+				if w, exists := m.workers[bCopy.WorkerID]; exists {
+					bCopy.Worker = w
+				}
+			}
+			return &bCopy, nil
+		}
+	}
+
+	return nil, domain.ErrBookingNotFound
+}
+
+func (m *MemoryRepository) CreateReviewTx(ctx context.Context, review *domain.Review) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for _, rev := range m.reviews {
+		if rev.BookingID == review.BookingID {
+			return domain.ErrBookingAlreadyReviewed
+		}
+	}
+
+	if strings.TrimSpace(review.ID) == "" {
+		review.ID = uuid.New().String()
+	}
+	now := time.Now()
+	review.CreatedAt = now
+	review.UpdatedAt = now
+
+	revCopy := *review
+	m.reviews[review.ID] = &revCopy
+
+	if b, exists := m.bookings[review.BookingID]; exists {
+		b.ReviewedAt = &now
+	}
+
+	// Recalculate worker rating
+	totalScore := 0
+	reviewCount := 0
+	for _, rev := range m.reviews {
+		if rev.WorkerID == review.WorkerID {
+			totalScore += rev.Rating
+			reviewCount++
+		}
+	}
+	if w, exists := m.workers[review.WorkerID]; exists {
+		if reviewCount > 0 {
+			w.Rating = float64(totalScore) / float64(reviewCount)
+		} else {
+			w.Rating = 0
+		}
+		w.ReviewCount = reviewCount
+	}
+
+	return nil
+}
+
+func (m *MemoryRepository) GetReviewByBookingID(ctx context.Context, bookingID string) (*domain.Review, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, rev := range m.reviews {
+		if rev.BookingID == bookingID {
+			cp := *rev
+			return &cp, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *MemoryRepository) GetPublicReviewsByWorkerSlug(ctx context.Context, slug string, limit, offset int) ([]domain.PublicReviewItem, int64, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var workerID string
+	for _, w := range m.workers {
+		if strings.EqualFold(w.Slug, slug) {
+			workerID = w.ID
+			break
+		}
+	}
+	if workerID == "" {
+		return nil, 0, domain.ErrWorkerNotFound
+	}
+
+	var matching []*domain.Review
+	for _, rev := range m.reviews {
+		if rev.WorkerID == workerID {
+			matching = append(matching, rev)
+		}
+	}
+
+	sort.Slice(matching, func(i, j int) bool {
+		return matching[i].CreatedAt.After(matching[j].CreatedAt)
+	})
+
+	total := int64(len(matching))
+	if offset > len(matching) {
+		return []domain.PublicReviewItem{}, total, nil
+	}
+	end := offset + limit
+	if end > len(matching) || limit <= 0 {
+		end = len(matching)
+	}
+
+	var items []domain.PublicReviewItem
+	for _, rev := range matching[offset:end] {
+		svcName := "Layanan"
+		if b, exists := m.bookings[rev.BookingID]; exists {
+			if s, sExists := m.services[b.ServiceID]; sExists {
+				svcName = s.Name
+			}
+		}
+		items = append(items, domain.PublicReviewItem{
+			ID:                rev.ID,
+			ClientDisplayName: domain.FormatClientDisplayName(rev.ClientName, rev.IsAnonymous),
+			Rating:            rev.Rating,
+			Comment:           rev.Comment,
+			ServiceName:       svcName,
+			CreatedAt:         rev.CreatedAt,
+		})
+	}
+
+	return items, total, nil
+}
+
+func (m *MemoryRepository) GetWorkerDashboardReviews(ctx context.Context, workerID string, limit, offset int) ([]domain.WorkerDashboardReviewItem, int64, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var matching []*domain.Review
+	for _, rev := range m.reviews {
+		if rev.WorkerID == workerID {
+			matching = append(matching, rev)
+		}
+	}
+
+	sort.Slice(matching, func(i, j int) bool {
+		return matching[i].CreatedAt.After(matching[j].CreatedAt)
+	})
+
+	total := int64(len(matching))
+	if offset > len(matching) {
+		return []domain.WorkerDashboardReviewItem{}, total, nil
+	}
+	end := offset + limit
+	if end > len(matching) || limit <= 0 {
+		end = len(matching)
+	}
+
+	var items []domain.WorkerDashboardReviewItem
+	for _, rev := range matching[offset:end] {
+		svcName := "Layanan"
+		bCode := ""
+		bDate := rev.CreatedAt
+		if b, exists := m.bookings[rev.BookingID]; exists {
+			bCode = b.BookingCode
+			bDate = b.BookingDate
+			if s, sExists := m.services[b.ServiceID]; sExists {
+				svcName = s.Name
+			}
+		}
+		items = append(items, domain.WorkerDashboardReviewItem{
+			ID:          rev.ID,
+			BookingCode: bCode,
+			ClientName:  rev.ClientName,
+			IsAnonymous: rev.IsAnonymous,
+			Rating:      rev.Rating,
+			Comment:     rev.Comment,
+			ServiceName: svcName,
+			BookingDate: bDate,
+			CreatedAt:   rev.CreatedAt,
+		})
+	}
+
+	return items, total, nil
+}
+
+func (m *MemoryRepository) GetWorkerRatingStats(ctx context.Context, workerID string) (float64, int, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	totalScore := 0
+	count := 0
+	for _, rev := range m.reviews {
+		if rev.WorkerID == workerID {
+			totalScore += rev.Rating
+			count++
+		}
+	}
+	if count == 0 {
+		return 0, 0, nil
+	}
+	return float64(totalScore) / float64(count), count, nil
+}
+
 
 
 

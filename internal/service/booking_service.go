@@ -182,6 +182,7 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 		Notes:       strings.TrimSpace(req.Notes),
 		TotalPrice:  totalPrice,
 		Status:      bookingStatus,
+		ReviewToken: domain.GenerateReviewToken(),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}

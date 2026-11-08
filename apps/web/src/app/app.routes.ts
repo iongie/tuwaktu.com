@@ -98,6 +98,13 @@ export const appRoutes: Route[] = [
             './features/worker-dashboard/components/pages/worker-dashboard-boost/worker-dashboard-boost.component'
           ).then((m) => m.WorkerDashboardBoostComponent),
       },
+      {
+        path: 'ulasan',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/pages/worker-dashboard-reviews/worker-dashboard-reviews.component'
+          ).then((m) => m.WorkerDashboardReviewsComponent),
+      },
     ],
   },
   {
@@ -156,6 +163,13 @@ export const appRoutes: Route[] = [
           ).then((m) => m.AdminCategoriesPageComponent),
       },
     ],
+  },
+  {
+    path: 'review/:bookingCode',
+    loadComponent: () =>
+      import(
+        './features/client-review/components/pages/client-review-page/client-review-page.component'
+      ).then((m) => m.ClientReviewPageComponent),
   },
   {
     path: ':slug',

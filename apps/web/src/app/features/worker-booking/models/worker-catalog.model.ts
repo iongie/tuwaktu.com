@@ -37,3 +37,22 @@ export interface TechnicianProfileApiResponse {
   error: unknown;
 }
 
+export interface PublicReviewItem {
+  readonly id: string;
+  readonly client_display_name: string;
+  readonly rating: number;
+  readonly comment: string;
+  readonly service_name: string;
+  readonly created_at: string;
+}
+
+export interface PublicReviewsApiResponse {
+  readonly success: boolean;
+  readonly message: string;
+  readonly data: {
+    readonly reviews: PublicReviewItem[];
+    readonly total: number;
+  };
+  readonly error: unknown;
+}
+

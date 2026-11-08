@@ -286,9 +286,29 @@ import {
                         >
                           Batal
                         </button>
+                      } @else if (b.status === 'COMPLETED') {
+                        @if (b.reviewed_at) {
+                          <span
+                            class="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-2 py-1 rounded"
+                            title="Pesanan ini telah diberikan ulasan oleh klien"
+                          >
+                            <span class="material-symbols-outlined text-[13px]">verified</span>
+                            Sudah Diulas
+                          </span>
+                        } @else {
+                          <button
+                            type="button"
+                            (click)="openWhatsAppReviewRequest(b)"
+                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] transition-colors cursor-pointer shadow-2xs"
+                            title="Kirim pesan WhatsApp untuk mengajak klien mengisi ulasan"
+                          >
+                            <span class="material-symbols-outlined text-[13px]">chat</span>
+                            Minta Ulasan WA
+                          </button>
+                        }
                       } @else {
                         <span class="text-[11px] text-ink-disabled font-mono italic">
-                          Tuntas
+                          Dibatalkan
                         </span>
                       }
                     </div>
@@ -306,6 +326,26 @@ import {
 export class SummaryRecentTransactionsTableComponent {
   readonly store = inject(WorkerDashboardStore);
   readonly isDownloaded = signal(false);
+
+  openWhatsAppReviewRequest(b: WorkerBookingRecord): void {
+    if (!b.client_phone) return;
+    const digitsOnly = b.client_phone.replace(/\D/g, '');
+    const cleanPhone = digitsOnly.startsWith('0') ? '62' + digitsOnly.substring(1) : digitsOnly;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tuwaktu.com';
+    const reviewUrl = `${origin}/review/${b.booking_code}?token=${b.review_token || ''}`;
+
+    const text = `Halo Kak ${b.client_name}, terima kasih telah mempercayakan pengerjaan ${b.service_name || 'layanan'} kepada saya.
+
+Mohon luangkan waktu 1 menit untuk memberikan ulasan dan rating pada tautan berikut:
+${reviewUrl}
+
+Ulasan Kakak sangat berharga untuk reputasi layanan saya di Tuwaktu. Terima kasih banyak!`;
+
+    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
 
   formatBookingDateTime(b: WorkerBookingRecord): string {
     const raw = b.booking_date;

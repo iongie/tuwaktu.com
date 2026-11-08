@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { WorkerBookingApiService } from './worker-booking-api.service';
 import {
+  PublicReviewItem,
   PublicServiceCatalogItem,
   PublicTechnicianProfile,
 } from '../models/worker-catalog.model';
@@ -21,6 +22,8 @@ export class WorkerBookingStore {
   readonly activeTechnicianProfile = signal<PublicTechnicianProfile | null>(null);
   readonly selectedCatalogService = signal<PublicServiceCatalogItem | null>(null);
   readonly confirmedReservation = signal<ServiceBookingConfirmation | null>(null);
+  readonly publicReviews = signal<PublicReviewItem[]>([]);
+  readonly isReviewsLoading = signal<boolean>(false);
 
   readonly clientCoordinates = signal<{ lat: number; lng: number } | null>(null);
   readonly feeCalculation = signal<FeeCalculationResult | null>(null);
@@ -89,6 +92,7 @@ export class WorkerBookingStore {
         if (this.selectedBookingDate()) {
           this.loadAvailableSlots(this.selectedBookingDate());
         }
+        this.loadPublicReviews(slug);
       },
       error: (err: { status?: number; error?: { message?: string } }) => {
         this.isProfileLoading.set(false);
@@ -111,6 +115,25 @@ export class WorkerBookingStore {
     if (this.selectedBookingDate()) {
       this.loadAvailableSlots(this.selectedBookingDate());
     }
+  }
+
+  loadPublicReviews(slug: string): void {
+    const sanitizedSlug = slug.trim();
+    if (!sanitizedSlug) return;
+
+    this.isReviewsLoading.set(true);
+    this.bookingApi.fetchPublicWorkerReviews(sanitizedSlug).subscribe({
+      next: (res) => {
+        this.isReviewsLoading.set(false);
+        if (res.success && res.data) {
+          this.publicReviews.set(res.data.reviews || []);
+        }
+      },
+      error: () => {
+        this.isReviewsLoading.set(false);
+        this.publicReviews.set([]);
+      },
+    });
   }
 
   setClientCoordinates(coords: { lat: number; lng: number } | null): void {

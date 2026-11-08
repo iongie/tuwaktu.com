@@ -1,6 +1,7 @@
 package domain
 
 import (
+	cryptoRand "crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,10 +28,12 @@ type Booking struct {
 	StartTime   *time.Time `json:"start_time,omitempty" db:"start_time" gorm:"type:timestamptz"`
 	EndTime     *time.Time `json:"end_time,omitempty" db:"end_time" gorm:"type:timestamptz"`
 	Notes       string     `json:"notes" db:"notes" gorm:"type:text;default:''"`
-	TotalPrice  float64   `json:"total_price" db:"total_price" gorm:"type:numeric(12,2);not null"`
-	Status      string    `json:"status" db:"status" gorm:"type:varchar(50);default:'PENDING_WA';index"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
+	TotalPrice  float64    `json:"total_price" db:"total_price" gorm:"type:numeric(12,2);not null"`
+	Status      string     `json:"status" db:"status" gorm:"type:varchar(50);default:'PENDING_WA';index"`
+	ReviewToken string     `json:"review_token,omitempty" db:"review_token" gorm:"type:varchar(64);uniqueIndex"`
+	ReviewedAt  *time.Time `json:"reviewed_at,omitempty" db:"reviewed_at" gorm:"type:timestamptz"`
+	CreatedAt   time.Time  `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
+	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
 	Worker      *Worker   `json:"worker,omitempty" gorm:"foreignKey:WorkerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 	Service     *Service  `json:"service,omitempty" gorm:"foreignKey:ServiceID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 }
@@ -462,6 +465,8 @@ type WorkerBookingItem struct {
 	EndTime         *time.Time `json:"end_time,omitempty"`
 	TotalPrice      float64    `json:"total_price"`
 	Status          string     `json:"status"`
+	ReviewToken     string     `json:"review_token,omitempty"`
+	ReviewedAt      *time.Time `json:"reviewed_at,omitempty"`
 	Notes           string     `json:"notes"`
 	CreatedAt       time.Time  `json:"created_at"`
 }
@@ -498,9 +503,21 @@ func ToWorkerBookingItem(b *Booking) WorkerBookingItem {
 		EndTime:         b.EndTime,
 		TotalPrice:      b.TotalPrice,
 		Status:          b.Status,
+		ReviewToken:     b.ReviewToken,
+		ReviewedAt:      b.ReviewedAt,
 		Notes:           b.Notes,
 		CreatedAt:       b.CreatedAt,
 	}
+}
+
+// GenerateReviewToken produces a secure pseudo-random 32-character hex token
+func GenerateReviewToken() string {
+	bytes := make([]byte, 16)
+	if _, err := cryptoRand.Read(bytes); err != nil {
+		// Fallback to uuid string without hyphens
+		return strings.ReplaceAll(uuid.New().String(), "-", "")
+	}
+	return fmt.Sprintf("%x", bytes)
 }
 
 

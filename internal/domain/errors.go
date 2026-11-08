@@ -22,5 +22,10 @@ var (
 	ErrCategoryNameRequired  = errors.New("nama kategori wajib diisi")
 	ErrBookingNotFound       = errors.New("pesanan booking tidak ditemukan")
 	ErrInvalidBookingStatus  = errors.New("status pemesanan tidak valid: nilai yang diizinkan adalah PENDING_WA, CONFIRMED, COMPLETED, atau CANCELLED")
+	ErrInvalidReviewToken    = errors.New("token tautan ulasan tidak valid atau telah kadaluarsa")
+	ErrBookingNotCompleted   = errors.New("ulasan hanya dapat diberikan untuk pesanan yang telah selesai dikerjakan")
+	ErrBookingAlreadyReviewed = errors.New("pesanan ini sudah pernah diulas sebelumnya")
+	ErrInvalidRating         = errors.New("rating harus bernilai antara 1 sampai 5 bintang")
+	ErrReviewCommentTooShort = errors.New("komentar ulasan minimal harus 5 karakter")
 )
 

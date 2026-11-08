@@ -103,6 +103,19 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 			notes TEXT,
 			total_price REAL,
 			status TEXT,
+			review_token TEXT,
+			reviewed_at DATETIME,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
+		CREATE TABLE reviews (
+			id TEXT PRIMARY KEY,
+			booking_id TEXT UNIQUE,
+			worker_id TEXT,
+			client_name TEXT,
+			is_anonymous BOOLEAN DEFAULT 0,
+			rating INTEGER,
+			comment TEXT,
 			created_at DATETIME,
 			updated_at DATETIME
 		);

@@ -168,6 +168,11 @@ export class WorkerDashboardSidebarComponent {
       icon: 'chat',
     },
     {
+      routePath: '/dashboard/ulasan',
+      label: 'Ulasan & Reputasi',
+      icon: 'reviews',
+    },
+    {
       routePath: '/dashboard/plan',
       label: 'Paket & Langganan',
       icon: 'workspace_premium',

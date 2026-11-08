@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS reviews;
+ALTER TABLE bookings DROP COLUMN IF EXISTS reviewed_at;
+ALTER TABLE bookings DROP COLUMN IF EXISTS review_token;
+

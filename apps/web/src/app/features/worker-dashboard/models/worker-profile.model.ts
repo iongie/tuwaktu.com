@@ -158,6 +158,8 @@ export interface WorkerBookingRecord {
   end_time?: string;
   total_price: number;
   status: WorkerBookingStatus;
+  review_token?: string;
+  reviewed_at?: string;
   notes?: string;
   created_at: string;
 }
@@ -174,6 +176,28 @@ export interface WorkerBookingUpdateApiResponse {
   message: string;
   data: WorkerBookingRecord;
   error?: unknown;
+}
+
+export interface WorkerDashboardReviewRecord {
+  readonly id: string;
+  readonly booking_code: string;
+  readonly client_name: string;
+  readonly is_anonymous: boolean;
+  readonly rating: number;
+  readonly comment: string;
+  readonly service_name: string;
+  readonly booking_date: string;
+  readonly created_at: string;
+}
+
+export interface WorkerReviewsApiResponse {
+  readonly success: boolean;
+  readonly message: string;
+  readonly data: {
+    readonly reviews: WorkerDashboardReviewRecord[];
+    readonly total: number;
+  };
+  readonly error?: unknown;
 }
 
 

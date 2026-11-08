@@ -34,7 +34,7 @@ func setupCategoryTestApp() (*fiber.App, *repository.MemoryCategoryRepository) {
 	authMiddleware := handler.NewAuthMiddleware()
 	catHandler := handler.NewCategoryHandler(catSvc)
 
-	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, catHandler)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, catHandler, nil)
 
 	return app, catRepo
 }

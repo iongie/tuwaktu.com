@@ -158,6 +158,14 @@
             (submitForm)="submitBookingOrder()"
           />
 
+          <!-- Verified Client Reviews Section -->
+          <app-worker-public-reviews-section
+            [reviews]="store.publicReviews()"
+            [rating]="store.activeTechnicianProfile()?.rating ?? 0"
+            [reviewCount]="store.activeTechnicianProfile()?.review_count ?? 0"
+            [isLoading]="store.isReviewsLoading()"
+          />
+
           <!-- Quick Slug Search Bar Bottom Helper -->
           <div class="pt-space-xl">
             <app-technician-search-bar

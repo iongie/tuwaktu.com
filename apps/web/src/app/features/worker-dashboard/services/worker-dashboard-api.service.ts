@@ -18,6 +18,7 @@ import {
   WorkerBookingStatus,
   WorkerBookingsApiResponse,
   WorkerBookingUpdateApiResponse,
+  WorkerReviewsApiResponse,
 } from '../models/worker-profile.model';
 
 @Injectable({
@@ -171,6 +172,18 @@ export class WorkerDashboardApiService {
         worker_id: workerId.trim(),
         status,
       },
+      { withCredentials: true }
+    );
+  }
+
+  fetchWorkerReviews(
+    workerIdOrSlug: string,
+    limit = 20,
+    offset = 0
+  ): Observable<WorkerReviewsApiResponse> {
+    const sanitizedId = encodeURIComponent(workerIdOrSlug.trim());
+    return this.httpClient.get<WorkerReviewsApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/reviews?worker_id=${sanitizedId}&limit=${limit}&offset=${offset}`,
       { withCredentials: true }
     );
   }

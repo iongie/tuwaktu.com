@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -25,14 +26,16 @@ func setupTestApp() (*fiber.App, *repository.MemoryRepository) {
 
 	workerSvc := service.NewWorkerService(repo)
 	bookingSvc := service.NewBookingService(repo)
+	reviewSvc := service.NewReviewService(repo, repo, repo)
 
 	workerHandler := handler.NewWorkerHandler(workerSvc)
 	bookingHandler := handler.NewBookingHandler(bookingSvc)
 	adminHandler := handler.NewAdminHandler(workerSvc)
 	authHandler := handler.NewAuthHandler(workerSvc)
 	authMiddleware := handler.NewAuthMiddleware()
+	reviewHandler := handler.NewReviewHandler(reviewSvc)
 
-	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, nil)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, nil, reviewHandler)
 
 	return app, repo
 }
@@ -1954,5 +1957,150 @@ func TestWorkerHandler_WorkerBookingsEndpoints(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
+
+func TestReviewHandler_Endpoints(t *testing.T) {
+	app, repo := setupTestApp()
+	ctx := context.Background()
+
+	w := &domain.Worker{
+		ID:        "worker-rev-test",
+		Slug:      "hendra-teknisi",
+		Name:      "Hendra Wijaya",
+		Zone:      "Jakarta Selatan",
+		IsActive:  true,
+		Rating:    0,
+		ReviewCount: 0,
+	}
+	repo.SeedWorker(w)
+
+	srv := &domain.Service{
+		ID:       "srv-rev-test",
+		WorkerID: w.ID,
+		Name:     "Bongkar Pasang AC",
+		Price:    250000,
+		IsActive: true,
+	}
+	repo.SeedService(srv)
+
+	token := "token-review-abc-123"
+	bkg := &domain.Booking{
+		ID:          "bkg-rev-01",
+		BookingCode: "BK-REV-TEST-01",
+		WorkerID:    w.ID,
+		ServiceID:   srv.ID,
+		ClientName:  "Rian Ardianto",
+		Status:      "COMPLETED",
+		ReviewToken: token,
+		BookingDate: time.Now().Add(-2 * time.Hour),
+		TotalPrice:  250000,
+	}
+	require.NoError(t, repo.CreateBooking(ctx, bkg))
+
+	t.Run("200 OK - GET /api/public/review-invitations/:bookingCode with valid token", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/public/review-invitations/BK-REV-TEST-01?token="+token, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                          `json:"success"`
+			Message string                        `json:"message"`
+			Data    domain.ReviewInvitationDetail `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+		assert.True(t, res.Success)
+		assert.Equal(t, "BK-REV-TEST-01", res.Data.BookingCode)
+		assert.Equal(t, "Hendra Wijaya", res.Data.WorkerName)
+		assert.Equal(t, "Bongkar Pasang AC", res.Data.ServiceName)
+	})
+
+	t.Run("403 Forbidden - GET /api/public/review-invitations/:bookingCode with invalid token", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/public/review-invitations/BK-REV-TEST-01?token=wrong-token", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("201 Created - POST /api/public/reviews submits valid review", func(t *testing.T) {
+		payload := domain.SubmitReviewRequest{
+			BookingCode: "BK-REV-TEST-01",
+			Token:       token,
+			Rating:      5,
+			Comment:     "Pekerjaan sangat cepat, rapi, dan teknisinya sangat ramah!",
+			IsAnonymous: true,
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/public/reviews", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var res struct {
+			Success bool          `json:"success"`
+			Message string        `json:"message"`
+			Data    domain.Review `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+		assert.True(t, res.Success)
+		assert.Equal(t, 5, res.Data.Rating)
+	})
+
+	t.Run("409 Conflict - POST /api/public/reviews rejected on second submission", func(t *testing.T) {
+		payload := domain.SubmitReviewRequest{
+			BookingCode: "BK-REV-TEST-01",
+			Token:       token,
+			Rating:      4,
+			Comment:     "Ulasan kedua harus gagal",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPost, "/api/public/reviews", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+	})
+
+	t.Run("200 OK - GET /api/public/workers/:slug/reviews returns public reviews", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/public/workers/hendra-teknisi/reviews", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool `json:"success"`
+			Data    struct {
+				Reviews []domain.PublicReviewItem `json:"reviews"`
+				Total   int64                     `json:"total"`
+			} `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+		assert.True(t, res.Success)
+		assert.Equal(t, int64(1), res.Data.Total)
+		assert.Equal(t, "Rian A.", res.Data.Reviews[0].ClientDisplayName)
+	})
+
+	t.Run("200 OK - GET /api/v1/worker/reviews returns worker dashboard reviews", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/worker/reviews?worker_id=worker-rev-test", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool `json:"success"`
+			Data    struct {
+				Reviews []domain.WorkerDashboardReviewItem `json:"reviews"`
+				Total   int64                              `json:"total"`
+			} `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+		assert.True(t, res.Success)
+		assert.Equal(t, int64(1), res.Data.Total)
+		assert.Equal(t, "BK-REV-TEST-01", res.Data.Reviews[0].BookingCode)
+	})
+}
+
 
 

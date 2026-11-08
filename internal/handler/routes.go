@@ -12,6 +12,7 @@ func RegisterRoutes(
 	authHandler *AuthHandler,
 	authMiddleware *AuthMiddleware,
 	categoryHandler *CategoryHandler,
+	reviewHandler *ReviewHandler,
 ) {
 	// Root & health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -45,6 +46,16 @@ func RegisterRoutes(
 	pub.Post("/bookings/create", bookingHandler.CreateWABooking)
 	pub.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	pub.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
+
+	// Review public endpoints
+	if reviewHandler != nil {
+		pub.Get("/review-invitations/:bookingCode", reviewHandler.GetReviewInvitation)
+		pub.Post("/reviews", reviewHandler.SubmitReview)
+		pub.Get("/workers/:slug/reviews", reviewHandler.GetPublicWorkerReviews)
+		pub.Get("/worker/:slug/reviews", reviewHandler.GetPublicWorkerReviews)
+		api.Get("/worker/reviews", reviewHandler.GetWorkerReviews)
+		api.Get("/workers/:id/reviews", reviewHandler.GetWorkerReviews)
+	}
 
 	// Worker profile update endpoints
 	api.Put("/worker/profile", workerHandler.UpdateWorkerProfile)
@@ -185,6 +196,15 @@ func RegisterRoutes(
 	v1.Post("/bookings/create", bookingHandler.CreateWABooking)
 	v1.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	v1.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
+
+	if reviewHandler != nil {
+		v1Pub.Get("/review-invitations/:bookingCode", reviewHandler.GetReviewInvitation)
+		v1Pub.Post("/reviews", reviewHandler.SubmitReview)
+		v1Pub.Get("/workers/:slug/reviews", reviewHandler.GetPublicWorkerReviews)
+		v1Pub.Get("/worker/:slug/reviews", reviewHandler.GetPublicWorkerReviews)
+		v1.Get("/worker/reviews", reviewHandler.GetWorkerReviews)
+		v1.Get("/workers/:id/reviews", reviewHandler.GetWorkerReviews)
+	}
 }
 
 

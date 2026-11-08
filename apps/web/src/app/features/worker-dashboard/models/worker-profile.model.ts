@@ -139,4 +139,42 @@ export interface WorkerServiceDeleteApiResponse {
   error: unknown;
 }
 
+export type WorkerBookingStatus = 'PENDING_WA' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+
+export interface WorkerBookingRecord {
+  id: string;
+  booking_code: string;
+  worker_id: string;
+  service_id: string;
+  service_name: string;
+  duration_minutes: number;
+  client_name: string;
+  client_phone: string;
+  client_email?: string;
+  location: string;
+  zone: string;
+  booking_date: string;
+  start_time?: string;
+  end_time?: string;
+  total_price: number;
+  status: WorkerBookingStatus;
+  notes?: string;
+  created_at: string;
+}
+
+export interface WorkerBookingsApiResponse {
+  success: boolean;
+  message: string;
+  data: WorkerBookingRecord[];
+  error?: unknown;
+}
+
+export interface WorkerBookingUpdateApiResponse {
+  success: boolean;
+  message: string;
+  data: WorkerBookingRecord;
+  error?: unknown;
+}
+
+
 

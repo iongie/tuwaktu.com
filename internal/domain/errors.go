@@ -20,5 +20,7 @@ var (
 	ErrCategoryNotFound      = errors.New("kategori tidak ditemukan")
 	ErrCategorySlugExists    = errors.New("slug kategori sudah digunakan")
 	ErrCategoryNameRequired  = errors.New("nama kategori wajib diisi")
+	ErrBookingNotFound       = errors.New("pesanan booking tidak ditemukan")
+	ErrInvalidBookingStatus  = errors.New("status pemesanan tidak valid: nilai yang diizinkan adalah PENDING_WA, CONFIRMED, COMPLETED, atau CANCELLED")
 )
 

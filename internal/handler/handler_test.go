@@ -1847,3 +1847,102 @@ func TestWorkerHandler_WhatsAppNumber_And_BookingCreate(t *testing.T) {
 	})
 }
 
+func TestWorkerHandler_WorkerBookingsEndpoints(t *testing.T) {
+	app, repo := setupTestApp()
+
+	worker := &domain.Worker{
+		ID:             "worker-bk-test",
+		Slug:           "worker-booking-tester",
+		Name:           "Pak Joko Booking",
+		Zone:           "Jakarta Timur",
+		BasePrice:      80000,
+		IsActive:       true,
+		WhatsAppNumber: "6281234567899",
+	}
+	repo.SeedWorker(worker)
+
+	srv := &domain.Service{
+		ID:              "svc-bk-test",
+		WorkerID:        worker.ID,
+		Name:            "Servis AC Cepat",
+		Price:           85000,
+		DurationMinutes: 60,
+		IsActive:        true,
+	}
+	repo.SeedService(srv)
+
+	booking := &domain.Booking{
+		ID:          "bkg-101",
+		BookingCode: "BK-TEST101",
+		WorkerID:    worker.ID,
+		ServiceID:   srv.ID,
+		ClientName:  "Ibu Ratna",
+		ClientPhone: "081999888777",
+		Location:    "Jl. Melati No. 2",
+		Zone:        "Jakarta Timur",
+		BookingDate: time.Now().Add(24 * time.Hour),
+		TotalPrice:  85000,
+		Status:      "PENDING_WA",
+		CreatedAt:   time.Now().UTC(),
+	}
+	repo.SeedBooking(booking)
+
+	t.Run("200 OK - GET /api/v1/worker/bookings returns worker bookings", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/worker/bookings?worker_id=worker-bk-test", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                       `json:"success"`
+			Message string                     `json:"message"`
+			Data    []domain.WorkerBookingItem `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+		assert.True(t, res.Success)
+		assert.Len(t, res.Data, 1)
+		assert.Equal(t, "BK-TEST101", res.Data[0].BookingCode)
+		assert.Equal(t, "Ibu Ratna", res.Data[0].ClientName)
+		assert.Equal(t, "Servis AC Cepat", res.Data[0].ServiceName)
+		assert.Equal(t, "PENDING_WA", res.Data[0].Status)
+	})
+
+	t.Run("200 OK - PATCH /api/v1/worker/bookings/:bookingId/status updates status to CONFIRMED", func(t *testing.T) {
+		payload := map[string]string{
+			"worker_id": "worker-bk-test",
+			"status":    "CONFIRMED",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/worker/bookings/bkg-101/status", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var res struct {
+			Success bool                     `json:"success"`
+			Message string                   `json:"message"`
+			Data    domain.WorkerBookingItem `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&res))
+		assert.True(t, res.Success)
+		assert.Equal(t, "CONFIRMED", res.Data.Status)
+	})
+
+	t.Run("400 Bad Request - PATCH /api/v1/worker/bookings/:bookingId/status with invalid status", func(t *testing.T) {
+		payload := map[string]string{
+			"worker_id": "worker-bk-test",
+			"status":    "UNKNOWN_STATUS",
+		}
+		bodyBytes, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPatch, "/api/v1/worker/bookings/bkg-101/status", bytes.NewReader(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+

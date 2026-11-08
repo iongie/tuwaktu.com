@@ -15,6 +15,9 @@ import {
   UpdateWorkerServicePayload,
   WorkerServiceItemApiResponse,
   WorkerServiceDeleteApiResponse,
+  WorkerBookingStatus,
+  WorkerBookingsApiResponse,
+  WorkerBookingUpdateApiResponse,
 } from '../models/worker-profile.model';
 
 @Injectable({
@@ -141,6 +144,33 @@ export class WorkerDashboardApiService {
       : '';
     return this.httpClient.delete<WorkerServiceDeleteApiResponse>(
       `${this.normalizedBaseUrl}/api/v1/worker/services/${sanitizedServiceId}${queryString}`,
+      { withCredentials: true }
+    );
+  }
+
+  fetchWorkerBookings(
+    workerIdOrSlug: string,
+    limit = 20
+  ): Observable<WorkerBookingsApiResponse> {
+    const sanitizedId = encodeURIComponent(workerIdOrSlug.trim());
+    return this.httpClient.get<WorkerBookingsApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/bookings?worker_id=${sanitizedId}&limit=${limit}`,
+      { withCredentials: true }
+    );
+  }
+
+  updateBookingStatus(
+    workerId: string,
+    bookingId: string,
+    status: WorkerBookingStatus
+  ): Observable<WorkerBookingUpdateApiResponse> {
+    const sanitizedBookingId = encodeURIComponent(bookingId.trim());
+    return this.httpClient.patch<WorkerBookingUpdateApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/bookings/${sanitizedBookingId}/status`,
+      {
+        worker_id: workerId.trim(),
+        status,
+      },
       { withCredentials: true }
     );
   }

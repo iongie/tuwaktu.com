@@ -809,5 +809,81 @@ func (r *PostgresWorkerRepository) ListPublicWorkers(ctx context.Context) ([]dom
 	return workers, nil
 }
 
+// GetWorkerBookings mengambil daftar pesanan milik pekerja berdasarkan worker_id dengan batasan limit
+func (r *PostgresWorkerRepository) GetWorkerBookings(ctx context.Context, workerID string, limit int) ([]domain.Booking, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	workerID = strings.TrimSpace(workerID)
+	if limit <= 0 {
+		limit = 20
+	} else if limit > 100 {
+		limit = 100
+	}
+
+	var bookings []domain.Booking
+	err := r.db.WithContext(ctx).
+		Preload("Service").
+		Where("worker_id = ?", workerID).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&bookings).Error
+	if err != nil {
+		return nil, fmt.Errorf("mengambil daftar pesanan pekerja: %w", err)
+	}
+
+	if bookings == nil {
+		bookings = []domain.Booking{}
+	}
+
+	return bookings, nil
+}
+
+// UpdateBookingStatus memperbarui status pesanan milik pekerja secara aman
+func (r *PostgresWorkerRepository) UpdateBookingStatus(ctx context.Context, workerID string, bookingID string, status string) (*domain.Booking, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	workerID = strings.TrimSpace(workerID)
+	bookingID = strings.TrimSpace(bookingID)
+	status = strings.ToUpper(strings.TrimSpace(status))
+
+	validStatuses := map[string]bool{
+		"PENDING_WA": true,
+		"CONFIRMED":  true,
+		"COMPLETED":  true,
+		"CANCELLED":  true,
+	}
+	if !validStatuses[status] {
+		return nil, domain.ErrInvalidBookingStatus
+	}
+
+	updates := map[string]interface{}{
+		"status":     status,
+		"updated_at": time.Now().UTC(),
+	}
+
+	res := r.db.WithContext(ctx).
+		Model(&domain.Booking{}).
+		Where("id = ? AND worker_id = ?", bookingID, workerID).
+		Updates(updates)
+	if res.Error != nil {
+		return nil, fmt.Errorf("memperbarui status booking: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return nil, domain.ErrBookingNotFound
+	}
+
+	var updated domain.Booking
+	if err := r.db.WithContext(ctx).Preload("Service").Where("id = ?", bookingID).First(&updated).Error; err != nil {
+		return nil, fmt.Errorf("mengambil data booking setelah pembaruan: %w", err)
+	}
+
+	return &updated, nil
+}
+
+
 
 

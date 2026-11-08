@@ -8,6 +8,8 @@ import {
   WorkerServiceCatalogItem,
   CreateWorkerServicePayload,
   UpdateWorkerServicePayload,
+  WorkerBookingRecord,
+  WorkerBookingStatus,
 } from '../models/worker-profile.model';
 
 export const DEFAULT_WORKER_SERVICES: WorkerServiceCatalogItem[] = [
@@ -275,6 +277,43 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly lastRatesSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
   readonly lastLocationSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
   readonly lastScheduleSyncTimestamp = signal<string>('Hari ini, 14:32 WIB');
+
+  readonly workerBookings = signal<WorkerBookingRecord[]>([]);
+  readonly isBookingsLoading = signal<boolean>(false);
+  readonly bookingsErrorMessage = signal<string | null>(null);
+  readonly bookingFilterStatus = signal<string>('ALL');
+  readonly bookingSearchQuery = signal<string>('');
+  readonly isUpdatingBookingStatus = signal<string | null>(null);
+
+  readonly filteredWorkerBookings = computed(() => {
+    let list = this.workerBookings();
+    const filter = this.bookingFilterStatus();
+    if (filter !== 'ALL') {
+      list = list.filter((b) => b.status === filter);
+    }
+    const q = this.bookingSearchQuery().trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (b) =>
+          (b.client_name || '').toLowerCase().includes(q) ||
+          (b.booking_code || '').toLowerCase().includes(q) ||
+          (b.service_name || '').toLowerCase().includes(q) ||
+          (b.location || '').toLowerCase().includes(q),
+      );
+    }
+    return list;
+  });
+
+  readonly bookingStatusCounts = computed(() => {
+    const list = this.workerBookings();
+    return {
+      ALL: list.length,
+      PENDING_WA: list.filter((b) => b.status === 'PENDING_WA').length,
+      CONFIRMED: list.filter((b) => b.status === 'CONFIRMED').length,
+      COMPLETED: list.filter((b) => b.status === 'COMPLETED').length,
+      CANCELLED: list.filter((b) => b.status === 'CANCELLED').length,
+    };
+  });
 
   readonly activeServicesCount = computed(
     () => this.workerServices().filter((s) => s.status === 'ACTIVE').length,
@@ -1028,6 +1067,7 @@ export class WorkerDashboardStore implements OnDestroy {
             services: response.data.services,
           });
           this.loadWorkerSchedules(response.data.id || sanitizedSlug);
+          this.loadWorkerBookings(response.data.id || sanitizedSlug);
           if (onLoaded) {
             onLoaded();
           }
@@ -1491,6 +1531,74 @@ export class WorkerDashboardStore implements OnDestroy {
       return item;
     });
     this.workerSchedules.set(updated);
+  }
+
+  loadWorkerBookings(workerIdOrSlug?: string): void {
+    const target = (
+      workerIdOrSlug ||
+      this.workerRecordId() ||
+      this.workerSlugIdentifier()
+    ).trim();
+    if (!target) return;
+
+    this.isBookingsLoading.set(true);
+    this.bookingsErrorMessage.set(null);
+
+    this.apiService.fetchWorkerBookings(target, 50).subscribe({
+      next: (res) => {
+        this.workerBookings.set(res.data || []);
+        this.isBookingsLoading.set(false);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.isBookingsLoading.set(false);
+        this.bookingsErrorMessage.set(
+          err.error?.message || 'Gagal memuat riwayat pemesanan pekerja.',
+        );
+      },
+    });
+  }
+
+  setBookingFilterStatus(status: string): void {
+    this.bookingFilterStatus.set(status);
+  }
+
+  setBookingSearchQuery(query: string): void {
+    this.bookingSearchQuery.set(query);
+  }
+
+  updateBookingStatus(
+    bookingId: string,
+    nextStatus: WorkerBookingStatus,
+    onSuccess?: () => void,
+  ): void {
+    const workerId = this.workerRecordId();
+    if (!workerId || !bookingId) return;
+
+    this.isUpdatingBookingStatus.set(bookingId);
+
+    this.apiService.updateBookingStatus(workerId, bookingId, nextStatus).subscribe({
+      next: (res) => {
+        this.isUpdatingBookingStatus.set(null);
+        if (res.data) {
+          const current = this.workerBookings();
+          const idx = current.findIndex((b) => b.id === bookingId);
+          if (idx !== -1) {
+            const updatedList = [...current];
+            updatedList[idx] = res.data;
+            this.workerBookings.set(updatedList);
+          }
+          if (onSuccess) {
+            onSuccess();
+          }
+        }
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.isUpdatingBookingStatus.set(null);
+        this.bookingsErrorMessage.set(
+          err.error?.message || 'Gagal memperbarui status pemesanan.',
+        );
+      },
+    });
   }
 
   toggleScheduleSlot(

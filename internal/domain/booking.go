@@ -379,3 +379,63 @@ type FeeCalculationResponse struct {
 	IsWithinRadius bool    `json:"is_within_radius"`
 }
 
+// WorkerBookingItem represents the detailed projection of a booking order for worker dashboard
+type WorkerBookingItem struct {
+	ID              string     `json:"id"`
+	BookingCode     string     `json:"booking_code"`
+	WorkerID        string     `json:"worker_id"`
+	ServiceID       string     `json:"service_id"`
+	ServiceName     string     `json:"service_name"`
+	DurationMinutes int        `json:"duration_minutes"`
+	ClientName      string     `json:"client_name"`
+	ClientPhone     string     `json:"client_phone"`
+	ClientEmail     string     `json:"client_email"`
+	Location        string     `json:"location"`
+	Zone            string     `json:"zone"`
+	BookingDate     time.Time  `json:"booking_date"`
+	StartTime       *time.Time `json:"start_time,omitempty"`
+	EndTime         *time.Time `json:"end_time,omitempty"`
+	TotalPrice      float64    `json:"total_price"`
+	Status          string     `json:"status"`
+	Notes           string     `json:"notes"`
+	CreatedAt       time.Time  `json:"created_at"`
+}
+
+// UpdateBookingStatusPayload represents the payload to update booking status
+type UpdateBookingStatusPayload struct {
+	Status string `json:"status"`
+}
+
+// ToWorkerBookingItem converts a domain.Booking entity to a WorkerBookingItem DTO
+func ToWorkerBookingItem(b *Booking) WorkerBookingItem {
+	svcName := ""
+	duration := 60
+	if b.Service != nil {
+		svcName = b.Service.Name
+		if b.Service.DurationMinutes > 0 {
+			duration = b.Service.DurationMinutes
+		}
+	}
+	return WorkerBookingItem{
+		ID:              b.ID,
+		BookingCode:     b.BookingCode,
+		WorkerID:        b.WorkerID,
+		ServiceID:       b.ServiceID,
+		ServiceName:     svcName,
+		DurationMinutes: duration,
+		ClientName:      b.ClientName,
+		ClientPhone:     b.ClientPhone,
+		ClientEmail:     b.ClientEmail,
+		Location:        b.Location,
+		Zone:            b.Zone,
+		BookingDate:     b.BookingDate,
+		StartTime:       b.StartTime,
+		EndTime:         b.EndTime,
+		TotalPrice:      b.TotalPrice,
+		Status:          b.Status,
+		Notes:           b.Notes,
+		CreatedAt:       b.CreatedAt,
+	}
+}
+
+

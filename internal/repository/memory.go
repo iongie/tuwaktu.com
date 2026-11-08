@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -777,6 +778,80 @@ func (m *MemoryRepository) ListPublicWorkers(ctx context.Context) ([]domain.Work
 	}
 	return workers, nil
 }
+
+func (m *MemoryRepository) GetWorkerBookings(ctx context.Context, workerID string, limit int) ([]domain.Booking, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	workerID = strings.TrimSpace(workerID)
+	if limit <= 0 {
+		limit = 20
+	}
+
+	var results []domain.Booking
+	for _, b := range m.bookings {
+		if b.WorkerID == workerID {
+			bCopy := *b
+			if bCopy.Service == nil && bCopy.ServiceID != "" {
+				if s, exists := m.services[bCopy.ServiceID]; exists {
+					bCopy.Service = s
+				}
+			}
+			results = append(results, bCopy)
+		}
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].CreatedAt.After(results[j].CreatedAt)
+	})
+
+	if len(results) > limit {
+		results = results[:limit]
+	}
+
+	if results == nil {
+		results = []domain.Booking{}
+	}
+
+	return results, nil
+}
+
+func (m *MemoryRepository) UpdateBookingStatus(ctx context.Context, workerID string, bookingID string, status string) (*domain.Booking, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	workerID = strings.TrimSpace(workerID)
+	bookingID = strings.TrimSpace(bookingID)
+	status = strings.ToUpper(strings.TrimSpace(status))
+
+	validStatuses := map[string]bool{
+		"PENDING_WA": true,
+		"CONFIRMED":  true,
+		"COMPLETED":  true,
+		"CANCELLED":  true,
+	}
+	if !validStatuses[status] {
+		return nil, domain.ErrInvalidBookingStatus
+	}
+
+	b, exists := m.bookings[bookingID]
+	if !exists || b.WorkerID != workerID {
+		return nil, domain.ErrBookingNotFound
+	}
+
+	b.Status = status
+	b.UpdatedAt = time.Now().UTC()
+
+	bCopy := *b
+	if bCopy.Service == nil && bCopy.ServiceID != "" {
+		if s, sExists := m.services[bCopy.ServiceID]; sExists {
+			bCopy.Service = s
+		}
+	}
+
+	return &bCopy, nil
+}
+
 
 
 

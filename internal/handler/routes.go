@@ -80,6 +80,12 @@ func RegisterRoutes(
 	api.Put("/worker/schedules", workerHandler.UpdateWorkerSchedules)
 	api.Put("/workers/:id/schedules", workerHandler.UpdateWorkerSchedules)
 
+	// Worker bookings endpoints
+	api.Get("/worker/bookings", workerHandler.GetWorkerBookings)
+	api.Get("/workers/:id/bookings", workerHandler.GetWorkerBookings)
+	api.Patch("/worker/bookings/:bookingId/status", workerHandler.UpdateWorkerBookingStatus)
+	api.Patch("/workers/:id/bookings/:bookingId/status", workerHandler.UpdateWorkerBookingStatus)
+
 	// Booking calculate-fee endpoint
 	api.Post("/booking/calculate-fee", bookingHandler.CalculateFee)
 	api.Post("/bookings/calculate-fee", bookingHandler.CalculateFee)
@@ -171,6 +177,10 @@ func RegisterRoutes(
 	v1.Get("/workers/:id/schedules", workerHandler.GetWorkerSchedules)
 	v1.Put("/worker/schedules", workerHandler.UpdateWorkerSchedules)
 	v1.Put("/workers/:id/schedules", workerHandler.UpdateWorkerSchedules)
+	v1.Get("/worker/bookings", workerHandler.GetWorkerBookings)
+	v1.Get("/workers/:id/bookings", workerHandler.GetWorkerBookings)
+	v1.Patch("/worker/bookings/:bookingId/status", workerHandler.UpdateWorkerBookingStatus)
+	v1.Patch("/workers/:id/bookings/:bookingId/status", workerHandler.UpdateWorkerBookingStatus)
 	v1.Post("/booking/create", bookingHandler.CreateWABooking)
 	v1.Post("/bookings/create", bookingHandler.CreateWABooking)
 	v1.Post("/booking/calculate-fee", bookingHandler.CalculateFee)

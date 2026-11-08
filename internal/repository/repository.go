@@ -20,6 +20,8 @@ type WorkerRepository interface {
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error)
 	UpdateWorkerSchedules(ctx context.Context, idOrSlug string, schedules []domain.WorkerSchedule) ([]domain.WorkerSchedule, error)
 	ListPublicWorkers(ctx context.Context) ([]domain.Worker, error)
+	GetWorkerBookings(ctx context.Context, workerID string, limit int) ([]domain.Booking, error)
+	UpdateBookingStatus(ctx context.Context, workerID string, bookingID string, status string) (*domain.Booking, error)
 
 	// Manajemen Admin & Otentikasi
 	CreateWorkerWithAccountTx(ctx context.Context, worker *domain.Worker, schedules []domain.WorkerSchedule, account *domain.WorkerAccount) error

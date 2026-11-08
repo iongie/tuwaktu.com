@@ -41,6 +41,8 @@ type WorkerService interface {
 	AddWorkerService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error)
 	UpdateWorkerService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error)
 	DeleteWorkerService(ctx context.Context, idOrSlug string, serviceID string) error
+	GetWorkerBookings(ctx context.Context, idOrSlug string, limit int) ([]domain.WorkerBookingItem, error)
+	UpdateWorkerBookingStatus(ctx context.Context, idOrSlug string, bookingID string, status string) (*domain.WorkerBookingItem, error)
 
 	// Admin & Autentikasi
 	OnboardWorker(ctx context.Context, payload *domain.AdminCreateWorkerPayload) (*domain.AdminWorkerCreatedResponse, error)
@@ -1157,6 +1159,67 @@ func (s *workerService) UpdateWorkerService(ctx context.Context, idOrSlug string
 func (s *workerService) DeleteWorkerService(ctx context.Context, idOrSlug string, serviceID string) error {
 	return s.DeleteService(ctx, idOrSlug, serviceID)
 }
+
+func (s *workerService) GetWorkerBookings(ctx context.Context, idOrSlug string, limit int) ([]domain.WorkerBookingItem, error) {
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, fmt.Errorf("%w: ID atau slug pekerja wajib diisi", domain.ErrInvalidInput)
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	bookings, err := s.repo.GetWorkerBookings(ctx, worker.ID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]domain.WorkerBookingItem, 0, len(bookings))
+	for i := range bookings {
+		items = append(items, domain.ToWorkerBookingItem(&bookings[i]))
+	}
+
+	return items, nil
+}
+
+func (s *workerService) UpdateWorkerBookingStatus(ctx context.Context, idOrSlug string, bookingID string, status string) (*domain.WorkerBookingItem, error) {
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	bookingID = strings.TrimSpace(bookingID)
+	status = strings.ToUpper(strings.TrimSpace(status))
+
+	if idOrSlug == "" {
+		return nil, fmt.Errorf("%w: ID atau slug pekerja wajib diisi", domain.ErrInvalidInput)
+	}
+	if bookingID == "" {
+		return nil, fmt.Errorf("%w: ID booking wajib diisi", domain.ErrInvalidInput)
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	updated, err := s.repo.UpdateBookingStatus(ctx, worker.ID, bookingID, status)
+	if err != nil {
+		return nil, err
+	}
+
+	item := domain.ToWorkerBookingItem(updated)
+	return &item, nil
+}
+
 
 
 

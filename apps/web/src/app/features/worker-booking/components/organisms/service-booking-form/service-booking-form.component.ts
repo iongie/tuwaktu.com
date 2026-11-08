@@ -660,6 +660,27 @@ export interface BookingFormDraft {
 
               <!-- Dispatch Action CTA -->
               <div class="space-y-space-sm pt-space-xs">
+                <!-- Feedback & Error Alerts in Sticky Terminal -->
+                @if (serverErrorMessage()) {
+                  <div role="alert" id="terminalServerErrorBanner" class="p-space-md rounded-lg bg-surface-container-high border border-error/30 text-caption space-y-1">
+                    <div class="flex items-center gap-1.5 text-error font-bold font-body-strong">
+                      <span class="material-symbols-outlined text-[18px]">error</span>
+                      <span>Gagal Menyimpan Pemesanan</span>
+                    </div>
+                    <p class="text-on-surface-variant font-mono-rate leading-snug">{{ serverErrorMessage() }}</p>
+                  </div>
+                }
+
+                @if (hasValidationErrors() && !serverErrorMessage()) {
+                  <div role="alert" id="terminalValidationAlertBanner" class="p-space-md rounded-lg bg-surface-container-high border border-voltage-orange/30 text-caption space-y-1">
+                    <div class="flex items-center gap-1.5 text-voltage-orange font-bold font-body-strong">
+                      <span class="material-symbols-outlined text-[18px]">warning</span>
+                      <span>Periksa Isian Formulir</span>
+                    </div>
+                    <p class="text-ink-secondary leading-snug">Lengkapi nama pemesan atau alamat lokasi di formulir sebelah kiri.</p>
+                  </div>
+                }
+
                 <button
                   type="submit"
                   [disabled]="isSubmitting() || isOutOfRadius() || !hasActiveProfile() || !hasAvailableServices()"
@@ -773,6 +794,8 @@ export class ServiceBookingFormComponent {
   });
 
   readonly hasAvailableServices = computed(() => this.displayServices().length > 0 || !!this.selectedService());
+
+  readonly hasValidationErrors = computed(() => Object.keys(this.validationErrors()).length > 0);
 
   readonly isHourlyService = computed(() => {
     const service = this.selectedService();

@@ -29,6 +29,7 @@ import {
   BookingFormDraft,
   ServiceBookingFormComponent,
 } from '../organisms/service-booking-form/service-booking-form.component';
+import { BookingSuccessModalComponent } from '../organisms/booking-success-modal/booking-success-modal.component';
 import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
 
 @Component({
@@ -41,6 +42,7 @@ import { buildWhatsAppBookingUrl } from '../../utils/whatsapp-message.util';
     TechnicianSearchBarComponent,
     TechnicianProfileHeaderComponent,
     ServiceBookingFormComponent,
+    BookingSuccessModalComponent,
     BookingNavAccountMenuComponent,
   ],
   templateUrl: './worker-booking-page.component.html',
@@ -58,6 +60,7 @@ export class WorkerBookingPageComponent implements OnInit {
   readonly searchTechnicianSlug = signal<string>('budi-santoso');
   readonly clientValidationErrors = signal<Record<string, string>>({});
   readonly whatsappRedirectUrl = signal<string>('');
+  readonly isSuccessModalOpen = signal<boolean>(false);
 
   clientFullName = '';
   clientContactPhone = '';
@@ -173,6 +176,7 @@ export class WorkerBookingPageComponent implements OnInit {
 
   submitBookingOrder(): void {
     if (!this.validateBookingForm()) {
+      this.scrollToFirstValidationError();
       return;
     }
 
@@ -220,13 +224,47 @@ export class WorkerBookingPageComponent implements OnInit {
       });
 
       this.whatsappRedirectUrl.set(waUrl);
-
-      if (typeof window !== 'undefined' && typeof window.open === 'function') {
-        window.open(waUrl, '_blank');
-      }
-
-      this.resetBookingForm();
+      this.isSuccessModalOpen.set(true);
     });
+  }
+
+  handleProceedToWhatsApp(): void {
+    const waUrl = this.whatsappRedirectUrl();
+    if (waUrl && typeof window !== 'undefined' && typeof window.open === 'function') {
+      window.open(waUrl, '_blank');
+    }
+    this.isSuccessModalOpen.set(false);
+    this.store.dismissReservationSuccess();
+    this.resetBookingForm();
+  }
+
+  handleCloseSuccessModal(): void {
+    this.isSuccessModalOpen.set(false);
+    this.store.dismissReservationSuccess();
+    this.resetBookingForm();
+  }
+
+  private scrollToFirstValidationError(): void {
+    if (typeof document === 'undefined') return;
+    const errors = this.clientValidationErrors();
+    let targetId = '';
+    if (errors['client_name']) {
+      targetId = 'clientFullNameInput';
+    } else if (errors['location']) {
+      targetId = 'serviceLocationAddressInput';
+    } else if (errors['service']) {
+      targetId = 'summaryServiceTitle';
+    }
+
+    if (targetId) {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+          el.focus();
+        }
+      }
+    }
   }
 
   dismissConfirmedReservation(): void {

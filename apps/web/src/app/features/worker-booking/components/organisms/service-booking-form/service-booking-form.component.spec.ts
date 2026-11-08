@@ -256,4 +256,23 @@ describe('ServiceBookingFormComponent', () => {
     expect(compiled.textContent).toContain('bebas ongkir');
     expect(compiled.textContent).toContain('Rp 0');
   });
+
+  it('harus menampilkan banner error server di sticky terminal saat serverErrorMessage tersedia', () => {
+    componentRef.setInput('serverErrorMessage', 'Slot waktu telah terisi oleh pesanan lain.');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('#terminalServerErrorBanner');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Gagal Menyimpan Pemesanan');
+    expect(banner.textContent).toContain('Slot waktu telah terisi oleh pesanan lain.');
+  });
+
+  it('harus menampilkan banner peringatan validasi di terminal saat validationErrors terisi', () => {
+    componentRef.setInput('validationErrors', { client_name: 'Nama lengkap klien wajib diisi.' });
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('#terminalValidationAlertBanner');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Periksa Isian Formulir');
+  });
 });

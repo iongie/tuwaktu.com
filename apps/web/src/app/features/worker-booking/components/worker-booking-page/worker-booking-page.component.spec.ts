@@ -228,7 +228,7 @@ it('harus memvalidasi dan menolak submit reservasi jika lokasi di luar radius ja
   expect(component.clientValidationErrors()['service']).toContain('di luar batas jangkauan');
 });
 
-it('harus berhasil submit reservasi ketika form valid dan menyusun URL WhatsApp', () => {
+it('harus berhasil submit reservasi ketika form valid, membuka dialog sukses, dan membuka WhatsApp saat dikonfirmasi', () => {
   const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
   component.clientFullName = 'Bambang';
@@ -241,13 +241,29 @@ it('harus berhasil submit reservasi ketika form valid dan menyusun URL WhatsApp'
   const generatedUrl = component.whatsappRedirectUrl();
   expect(generatedUrl.startsWith('https://wa.me/6281234567890?text=')).toBe(true);
   expect(generatedUrl).toContain('TWK-12345');
-  expect(windowOpenSpy).toHaveBeenCalledWith(generatedUrl, '_blank');
+  expect(component.isSuccessModalOpen()).toBe(true);
 
-  component.dismissConfirmedReservation();
-  expect(component.whatsappRedirectUrl()).toBe('');
+  // window.open belum dipanggil otomatis agar tidak terblokir peramban
+  expect(windowOpenSpy).not.toHaveBeenCalled();
+
+  // Pengguna menekan tombol "Lanjut Buka WhatsApp" di dialog
+  component.handleProceedToWhatsApp();
+  expect(windowOpenSpy).toHaveBeenCalledWith(generatedUrl, '_blank');
+  expect(component.isSuccessModalOpen()).toBe(false);
   expect(component.store.confirmedReservation()).toBeNull();
+  expect(component.clientFullName).toBe('');
 
   windowOpenSpy.mockRestore();
+});
+
+it('harus menutup dialog sukses dan mereset form saat handleCloseSuccessModal dipanggil', () => {
+  component.isSuccessModalOpen.set(true);
+  component.clientFullName = 'Bambang';
+
+  component.handleCloseSuccessModal();
+  expect(component.isSuccessModalOpen()).toBe(false);
+  expect(component.store.confirmedReservation()).toBeNull();
+  expect(component.clientFullName).toBe('');
 });
 
 it('harus mengarahkan tautan navigasi ke rute dashboard/integrasi-whatsapp bukan rute usang', () => {

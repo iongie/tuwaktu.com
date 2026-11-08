@@ -48,17 +48,57 @@ import { HomeApiService } from '../../../services/home-api.service';
           </p>
         </div>
 
-        <!-- 4-Column Bento Grid of Category Cards -->
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg"
-        >
-          @for (category of categories(); track category.id) {
-            <app-home-category-card
-              [category]="category"
-              (selectCategory)="onCategorySelected($event)"
-            />
-          }
-        </div>
+        <!-- Content Area: Skeleton, Empty, or Category Bento Grid -->
+        @if (isLoading()) {
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg"
+            data-testid="categories-loading-skeleton"
+          >
+            @for (sk of [1, 2, 3, 4]; track sk) {
+              <div
+                class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-md animate-pulse rounded-2xl border border-hairline-subtle"
+                aria-hidden="true"
+              >
+                <div class="w-12 h-12 rounded-xl bg-surface-container-high shrink-0"></div>
+                <div class="space-y-2">
+                  <div class="h-5 bg-surface-container-high rounded w-3/4"></div>
+                  <div class="h-3 bg-surface-container rounded w-full"></div>
+                  <div class="h-3 bg-surface-container-low rounded w-4/5"></div>
+                </div>
+                <div class="pt-space-md border-t border-hairline-subtle flex justify-between items-center">
+                  <div class="h-4 bg-surface-container rounded w-20"></div>
+                  <div class="h-6 bg-surface-container-high rounded w-24"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (categories().length === 0) {
+          <div
+            class="p-space-2xl rounded-2xl bg-surface-container border border-hairline-subtle text-center space-y-space-sm max-w-md mx-auto"
+            data-testid="categories-empty-state"
+          >
+            <span class="material-symbols-outlined text-[40px] text-ink-disabled">
+              category
+            </span>
+            <h3 class="font-heading-h3 text-heading-h3 font-bold text-on-surface">
+              Katalog Keahlian Sedang Disiapkan
+            </h3>
+            <p class="font-body-default text-body-default text-ink-secondary">
+              Belum ada kategori keahlian aktif saat ini. Silakan periksa kembali nanti.
+            </p>
+          </div>
+        } @else {
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg"
+          >
+            @for (category of categories(); track category.id) {
+              <app-home-category-card
+                [category]="category"
+                (selectCategory)="onCategorySelected($event)"
+              />
+            }
+          </div>
+        }
       </div>
     </section>
   `,
@@ -69,66 +109,26 @@ export class HomeDisciplinesSectionComponent implements OnInit {
 
   readonly selectCategory = output<string>();
 
-  readonly categories = signal<DisciplineCategory[]>([
-    {
-      id: 'cat-ac',
-      slug: 'ac-pendingin',
-      title: 'Servis & Pasang AC',
-      description:
-        'Pembersihan filter, flushing freon berkala, perbaikan pipa bocor, dan perawatan unit inverter.',
-      icon: 'ac_unit',
-      startingPrice: 75000,
-      priceUnit: 'unit',
-      availabilityTag: 'Tersedia di Katalog',
-      highlightTag: 'Populer',
-    },
-    {
-      id: 'cat-cleaning',
-      slug: 'sanitasi-cleaning',
-      title: 'Sanitasi & Deep Clean',
-      description:
-        'Pembersihan menyeluruh kamar tidur, sofa, kamar mandi berkerak, dan sterilisasi tungau kasur.',
-      icon: 'cleaning_services',
-      startingPrice: 65000,
-      priceUnit: 'jam',
-      availabilityTag: 'Tersedia di Katalog',
-      highlightTag: 'Higienis',
-    },
-    {
-      id: 'cat-listrik',
-      slug: 'instalasi-listrik',
-      title: 'Instalasi Listrik Presisi',
-      description:
-        'Pemeriksaan beban daya, tracing korsleting listrik, perakitan panel MCB, dan instalasi stop kontak.',
-      icon: 'bolt',
-      startingPrice: 80000,
-      priceUnit: 'kunjungan',
-      availabilityTag: 'Tersedia di Katalog',
-      highlightTag: 'Prioritas Aman',
-    },
-    {
-      id: 'cat-elektronik',
-      slug: 'elektronik-audio',
-      title: 'Reparasi Elektronik',
-      description:
-        'Diagnostik mesin cuci digital, kulkas inverter, perbaikan audio speaker, dan instalasi TV dinding.',
-      icon: 'tv',
-      startingPrice: 120000,
-      priceUnit: 'kunjungan',
-      availabilityTag: 'Tersedia di Katalog',
-      highlightTag: 'Spesialis Ahli',
-    },
-  ]);
+  readonly categories = signal<DisciplineCategory[]>([]);
+  readonly isLoading = signal<boolean>(true);
 
   ngOnInit(): void {
-    if (this.homeApiService && typeof this.homeApiService.fetchPublicCategories === 'function') {
+    if (
+      this.homeApiService &&
+      typeof this.homeApiService.fetchPublicCategories === 'function'
+    ) {
       this.homeApiService.fetchPublicCategories().subscribe({
         next: (items) => {
-          if (items && items.length > 0) {
-            this.categories.set(items);
-          }
+          this.categories.set(items || []);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.categories.set([]);
+          this.isLoading.set(false);
         },
       });
+    } else {
+      this.isLoading.set(false);
     }
   }
 

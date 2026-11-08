@@ -51,4 +51,13 @@ describe('HomeDisciplinesSectionComponent', () => {
     component.onCategorySelected('servis-ac');
     expect(emitSpy).toHaveBeenCalledWith('servis-ac');
   });
+
+  it('menampilkan status kosong jika API mengembalikan array kosong', () => {
+    component.categories.set([]);
+    component.isLoading.set(false);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[data-testid="categories-empty-state"]')).toBeTruthy();
+  });
 });

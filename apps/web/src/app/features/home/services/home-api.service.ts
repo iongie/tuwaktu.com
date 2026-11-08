@@ -35,15 +35,15 @@ export class HomeApiService {
 
   fetchPublicCategories(): Observable<DisciplineCategory[]> {
     if (!this.httpClient) {
-      return of(this.getFallbackCategories());
+      return of([]);
     }
 
     return this.httpClient
       .get<PublicCategoriesApiResponse>(`${this.normalizedBaseUrl}/api/v1/public/categories`)
       .pipe(
         map((response) => {
-          if (!response || !response.success || !Array.isArray(response.data) || response.data.length === 0) {
-            return this.getFallbackCategories();
+          if (!response || !response.success || !Array.isArray(response.data)) {
+            return [];
           }
           return response.data.map((item) => ({
             id: item.id,
@@ -58,61 +58,8 @@ export class HomeApiService {
             highlightTag: item.highlight_tag || '',
           }));
         }),
-        catchError(() => of(this.getFallbackCategories()))
+        catchError(() => of([]))
       );
-  }
-
-  getFallbackCategories(): DisciplineCategory[] {
-    return [
-      {
-        id: 'cat-ac',
-        slug: 'ac-pendingin',
-        title: 'Servis & Pasang AC',
-        description:
-          'Pembersihan filter, flushing freon berkala, perbaikan pipa bocor, dan perawatan unit inverter.',
-        icon: 'ac_unit',
-        startingPrice: 75000,
-        priceUnit: 'unit',
-        availabilityTag: 'Tersedia di Katalog',
-        highlightTag: 'Populer',
-      },
-      {
-        id: 'cat-cleaning',
-        slug: 'sanitasi-cleaning',
-        title: 'Sanitasi & Deep Clean',
-        description:
-          'Pembersihan menyeluruh kamar tidur, sofa, kamar mandi berkerak, dan sterilisasi tungau kasur.',
-        icon: 'cleaning_services',
-        startingPrice: 65000,
-        priceUnit: 'jam',
-        availabilityTag: 'Tersedia di Katalog',
-        highlightTag: 'Higienis',
-      },
-      {
-        id: 'cat-listrik',
-        slug: 'instalasi-listrik',
-        title: 'Instalasi Listrik Presisi',
-        description:
-          'Pemeriksaan beban daya, tracing korsleting listrik, perakitan panel MCB, dan instalasi stop kontak.',
-        icon: 'bolt',
-        startingPrice: 80000,
-        priceUnit: 'kunjungan',
-        availabilityTag: 'Tersedia di Katalog',
-        highlightTag: 'Prioritas Aman',
-      },
-      {
-        id: 'cat-elektronik',
-        slug: 'elektronik-audio',
-        title: 'Reparasi Elektronik',
-        description:
-          'Diagnostik mesin cuci digital, kulkas inverter, perbaikan audio speaker, dan instalasi TV dinding.',
-        icon: 'tv',
-        startingPrice: 120000,
-        priceUnit: 'kunjungan',
-        availabilityTag: 'Tersedia di Katalog',
-        highlightTag: 'Spesialis Ahli',
-      },
-    ];
   }
 
   fetchPublicWorkers(): Observable<FeaturedWorker[]> {
@@ -157,7 +104,7 @@ export class HomeApiService {
     }
 
     const startingPrice =
-      profile.base_price > 0 ? profile.base_price : (primaryService?.price || 75000);
+      profile.base_price > 0 ? profile.base_price : (primaryService?.price || 0);
     const priceUnit = profile.rate_type === 'UNIT' ? 'unit' : 'jam';
 
     const specialtyTags: string[] = [];
@@ -169,8 +116,8 @@ export class HomeApiService {
         if (specialtyTags.length >= 3) break;
       }
     }
-    if (specialtyTags.length === 0) {
-      specialtyTags.push(profile.zone || 'Jabodetabek Siaga', 'Terverifikasi');
+    if (specialtyTags.length === 0 && profile.zone) {
+      specialtyTags.push(profile.zone);
     }
 
     return {
@@ -179,13 +126,13 @@ export class HomeApiService {
       name: profile.name,
       specialty,
       category,
-      rating: profile.rating > 0 ? profile.rating : 5.0,
+      rating: profile.rating > 0 ? profile.rating : 0,
       reviewCount: profile.review_count || 0,
       basecampZone: profile.zone || 'Jabodetabek',
       startingPrice,
       priceUnit,
       avatarUrl: profile.avatar_url || '',
-      isVerified: true,
+      isVerified: Boolean(profile.rating > 0 || profile.review_count > 0 || (profile.services && profile.services.length > 0)),
       specialtyTags,
       bufferMinutes: 60,
     };

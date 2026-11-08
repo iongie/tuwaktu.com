@@ -129,10 +129,9 @@ describe('HomeApiService', () => {
     });
   });
 
-  it('harus mengembalikan kategori fallback jika request kategori error', (done) => {
+  it('harus mengembalikan array kosong jika request kategori error', (done) => {
     service.fetchPublicCategories().subscribe((categories) => {
-      expect(categories.length).toBeGreaterThan(0);
-      expect(categories[0].slug).toBe('ac-pendingin');
+      expect(categories).toEqual([]);
       done();
     });
 

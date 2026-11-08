@@ -184,6 +184,7 @@ describe('WorkerDashboardProfileComponent', () => {
       zone: 'Jakarta Barat',
       bio: 'Spesialis Kulkas',
       avatar_url: 'https://example.com/new.jpg',
+      whatsapp_number: '6281234567890',
     });
 
     component.submitProfileUpdate();
@@ -259,6 +260,7 @@ describe('WorkerDashboardProfileComponent', () => {
       slug: 'budi-santoso',
       name: 'Budi Santoso',
       zone: 'Jakarta Selatan',
+      whatsapp_number: '6281234567890',
     });
 
     component.submitProfileUpdate();
@@ -271,6 +273,7 @@ describe('WorkerDashboardProfileComponent', () => {
 
   it('harus menolak submit jika ID pekerja belum tersedia', () => {
     component.workerFullName.set('Budi Santoso');
+    component.workerWhatsAppNumber.set('6281234567890');
     component.workerRecordId.set('');
 
     component.submitProfileUpdate();

@@ -234,11 +234,13 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 		assert.Equal(t, "PENDING", res.Data.Status)
 	})
 
-	t.Run("201 Created - minimal payload (nama klien, lokasi/zona, pilihan layanan)", func(t *testing.T) {
+	t.Run("201 Created - minimal payload (nama klien, lokasi/zona, pilihan layanan, telepon, jadwal)", func(t *testing.T) {
 		payload := map[string]any{
-			"client_name": "Pak Joko",
-			"location":    "Jakarta Selatan",
-			"service_id":  srv.ID,
+			"client_name":  "Pak Joko",
+			"client_phone": "08123456789",
+			"location":     "Jl. Kebon Jeruk No. 5 Jakarta",
+			"service_id":   srv.ID,
+			"booking_date": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
 		}
 
 		bodyBytes, _ := json.Marshal(payload)
@@ -265,8 +267,10 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 	t.Run("201 Created - Indonesian payload aliases", func(t *testing.T) {
 		payload := map[string]any{
 			"nama_klien":      "Ibu Ratna",
-			"lokasi":          "Kebayoran Baru",
+			"telepon":         "08123456789",
+			"lokasi":          "Jl. Kebayoran Baru No. 10 Jakarta",
 			"pilihan_layanan": srv.ID,
+			"tanggal_booking": time.Now().Add(27 * time.Hour).Format(time.RFC3339),
 		}
 
 		bodyBytes, _ := json.Marshal(payload)
@@ -291,8 +295,10 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 	t.Run("201 Created - Indonesian payload with service name as pilihan_layanan", func(t *testing.T) {
 		payload := map[string]any{
 			"nama_klien":      "Pak Bambang",
-			"lokasi":          "Kebayoran Lama",
+			"telepon":         "08123456789",
+			"lokasi":          "Jl. Kebayoran Lama No. 20 Jakarta",
 			"pilihan_layanan": "Daily Cleaning",
+			"tanggal_booking": time.Now().Add(30 * time.Hour).Format(time.RFC3339),
 		}
 
 		bodyBytes, _ := json.Marshal(payload)
@@ -386,7 +392,7 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 			"service_id":   srv.ID,
 			"client_name":  "Budi",
 			"client_phone": "+6281299887766",
-			"location":     "Lokasi",
+			"location":     "Jl. Kebayoran Baru No. 10 Jakarta",
 			"zone":         "Jakarta",
 			"booking_date": futureTime,
 		}
@@ -428,7 +434,7 @@ func TestBookingHandler_CreateBooking(t *testing.T) {
 			"service_id":   otherService.ID, // mismatch!
 			"client_name":  "Budi",
 			"client_phone": "+6281299887766",
-			"location":     "Lokasi",
+			"location":     "Jl. Kebayoran Baru No. 10 Jakarta",
 			"zone":         "Jakarta",
 			"booking_date": futureTime,
 		}
@@ -1349,8 +1355,9 @@ func TestBookingHandler_CalculateFee(t *testing.T) {
 			"worker_id":       worker.ID,
 			"service_id":      srv.ID,
 			"client_name":     "Client Bandung",
-			"location":        "Bandung",
-			"zone":            "Bandung",
+			"client_phone":    "08123456789",
+			"location":        "Jl. Asia Afrika No. 10 Kota Bandung",
+			"zone":            "Kota Bandung Jawa Barat",
 			"tanggal_booking": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
 			"client_lat":      -6.9025000,
 			"client_lng":      107.6186000,
@@ -1377,7 +1384,8 @@ func TestBookingHandler_CalculateFee(t *testing.T) {
 			"worker_id":       worker.ID,
 			"service_id":      srv.ID,
 			"client_name":     "Client Monas",
-			"location":        "Jl. Medan Merdeka",
+			"client_phone":    "08123456789",
+			"location":        "Jl. Medan Merdeka No. 1 Jakarta Pusat",
 			"zone":            "Jakarta Pusat",
 			"tanggal_booking": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
 			"client_lat":      -6.1754000,
@@ -1644,7 +1652,8 @@ func TestBookingHandler_GetAvailableSlots(t *testing.T) {
 			"worker_id":    worker.ID,
 			"service_id":   srv.ID,
 			"client_name":  "Budi Tabrakan",
-			"location":     "Jakarta",
+			"client_phone": "08123456789",
+			"location":     "Jl. Sudirman No. 10 Jakarta",
 			"booking_date": collidingTime,
 		}
 		bodyBytes, _ := json.Marshal(payload)
@@ -1809,7 +1818,8 @@ func TestWorkerHandler_WhatsAppNumber_And_BookingCreate(t *testing.T) {
 			"worker_id":    worker.ID,
 			"service_id":   srv.ID,
 			"client_name":  "Klien Alias",
-			"location":     "Jakarta Selatan",
+			"client_phone": "08123456789",
+			"location":     "Jl. Kebayoran Baru No. 15 Jakarta",
 			"booking_date": futureTime,
 		}
 		bodyBytes, _ := json.Marshal(payload)

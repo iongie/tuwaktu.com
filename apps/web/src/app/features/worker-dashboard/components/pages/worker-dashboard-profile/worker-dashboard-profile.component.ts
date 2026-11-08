@@ -435,26 +435,32 @@ export class WorkerDashboardProfileComponent implements OnInit {
 
     if (!this.workerFullName().trim()) {
       errors['name'] = 'Nama lengkap pekerja wajib diisi.';
+    } else if (this.workerFullName().trim().length < 3) {
+      errors['name'] = 'Nama lengkap pekerja minimal 3 karakter.';
     }
 
     const wa = this.workerWhatsAppNumber().trim();
-    if (wa) {
-      if (!/^[0-9+\s-]+$/.test(wa)) {
+    if (!wa) {
+      errors['whatsapp_number'] = 'Nomor WhatsApp bisnis pekerja wajib diisi.';
+    } else if (!/^[0-9+\s-]+$/.test(wa)) {
+      errors['whatsapp_number'] =
+        'Nomor WhatsApp hanya boleh berisi angka dan tanda plus atau strip.';
+    } else if ((wa.includes('+') && !wa.startsWith('+')) || (wa.match(/\+/g) || []).length > 1) {
+      errors['whatsapp_number'] =
+        'Tanda plus (+) hanya boleh berada di awal nomor telepon sebagai awalan kode negara.';
+    } else {
+      const sanitized = wa.replace(/\D/g, '');
+      if (sanitized.length < 10 || sanitized.length > 16) {
         errors['whatsapp_number'] =
-          'Nomor WhatsApp hanya boleh berisi angka dan tanda plus atau strip.';
-      } else if ((wa.includes('+') && !wa.startsWith('+')) || (wa.match(/\+/g) || []).length > 1) {
+          'Nomor WhatsApp harus terdiri dari 10 hingga 16 digit angka.';
+      } else if (sanitized.startsWith('0')) {
         errors['whatsapp_number'] =
-          'Tanda plus (+) hanya boleh berada di awal nomor telepon sebagai awalan kode negara.';
-      } else {
-        const sanitized = wa.replace(/\D/g, '');
-        if (sanitized.length < 10 || sanitized.length > 16) {
-          errors['whatsapp_number'] =
-            'Nomor WhatsApp harus terdiri dari 10 hingga 16 digit angka.';
-        } else if (sanitized.startsWith('0')) {
-          errors['whatsapp_number'] =
-            'Gunakan format internasional diawali kode negara (contoh: 628123456789, bukan 0812).';
-        }
+          'Gunakan format internasional diawali kode negara (contoh: 628123456789, bukan 0812).';
       }
+    }
+
+    if (this.workerBioDescription().trim().length > 500) {
+      errors['bio'] = 'Deskripsi profil maksimal 500 karakter.';
     }
 
     this.inputValidationErrors.set(errors);

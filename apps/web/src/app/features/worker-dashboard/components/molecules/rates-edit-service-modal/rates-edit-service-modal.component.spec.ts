@@ -69,13 +69,13 @@ describe('RatesEditServiceModalComponent', () => {
     component.submitForm();
 
     expect(savedData).toBeNull();
-    expect(component.validationErrors()['price']).toBe('Nominal tarif harus lebih besar dari Rp 0.');
+    expect(component.validationErrors()['price']).toBe('Nominal tarif minimal Rp 5.000.');
 
     component.servicePrice.set(-5000);
     component.submitForm();
 
     expect(savedData).toBeNull();
-    expect(component.validationErrors()['price']).toBe('Nominal tarif harus lebih besar dari Rp 0.');
+    expect(component.validationErrors()['price']).toBe('Nominal tarif minimal Rp 5.000.');
   });
 
   it('harus menolak submit jika nama layanan kosong atau durasi jam <= 0', () => {
@@ -90,7 +90,7 @@ describe('RatesEditServiceModalComponent', () => {
 
     expect(savedData).toBeNull();
     expect(component.validationErrors()['name']).toBe('Nama layanan wajib diisi.');
-    expect(component.validationErrors()['hours']).toBe('Durasi alokasi jam harus lebih besar dari 0.');
+    expect(component.validationErrors()['hours']).toBe('Durasi alokasi minimal 0.5 jam (30 menit).');
   });
 
   it('harus memancarkan event delete dengan id layanan saat handleDelete dipanggil', () => {

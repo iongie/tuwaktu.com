@@ -132,30 +132,56 @@ func TestCreateBookingRequest_Validate(t *testing.T) {
 
 	t.Run("location provided without zone falls back gracefully", func(t *testing.T) {
 		req := validReq
-		req.Location = "Jl. Thamrin"
+		req.Location = "Jl. Thamrin No. 10 Jakarta"
 		req.Zone = ""
 		parsed, err := req.Validate()
 		require.NoError(t, err)
 		assert.False(t, parsed.IsZero())
-		assert.Equal(t, "Jl. Thamrin", req.Zone)
+		assert.Equal(t, "Jl. Thamrin No. 10 Jakarta", req.Zone)
 	})
 
-	t.Run("zone provided without location falls back gracefully", func(t *testing.T) {
+	t.Run("empty location fails even if zone is provided", func(t *testing.T) {
 		req := validReq
 		req.Location = ""
 		req.Zone = "Jakarta Selatan"
-		parsed, err := req.Validate()
-		require.NoError(t, err)
-		assert.False(t, parsed.IsZero())
-		assert.Equal(t, "Jakarta Selatan", req.Location)
+		_, err := req.Validate()
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
 	})
 
-	t.Run("empty booking date defaults to future date", func(t *testing.T) {
+	t.Run("short location (< 10 chars) fails", func(t *testing.T) {
+		req := validReq
+		req.Location = "Tebet"
+		_, err := req.Validate()
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("empty booking date fails", func(t *testing.T) {
 		req := validReq
 		req.BookingDate = ""
-		parsed, err := req.Validate()
+		_, err := req.Validate()
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("empty client_phone fails", func(t *testing.T) {
+		req := validReq
+		req.ClientPhone = ""
+		_, err := req.Validate()
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("invalid client_phone format fails", func(t *testing.T) {
+		req := validReq
+		req.ClientPhone = "0812abc"
+		_, err := req.Validate()
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("valid client_phone normalizes to 628 format", func(t *testing.T) {
+		req := validReq
+		req.ClientPhone = "0812-3456-7890"
+		_, err := req.Validate()
 		require.NoError(t, err)
-		assert.True(t, parsed.After(time.Now()))
+		assert.Equal(t, "6281234567890", req.ClientPhone)
 	})
 
 	t.Run("past booking date (> 15 min ago) rejected", func(t *testing.T) {
@@ -257,9 +283,10 @@ func TestEntities_UUIDv7BeforeCreate(t *testing.T) {
 
 func TestCreateBookingRequest_ISOAndWIBDateParsing(t *testing.T) {
 	validReq := domain.CreateBookingRequest{
-		ClientName: "Andi",
-		ServiceID:  "srv-1",
-		Location:   "Jakarta",
+		ClientName:  "Andi Pratama",
+		ServiceID:   "srv-1",
+		ClientPhone: "08123456789",
+		Location:    "Jl. Sudirman No. 10 Jakarta",
 	}
 
 	t.Run("parses ISO format without timezone into WIB location", func(t *testing.T) {

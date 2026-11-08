@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -208,30 +209,94 @@ func (r *CreateBookingRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+var indonesianPhonePattern = regexp.MustCompile(`^(\+62|62|0)8[1-9][0-9]{7,11}$`)
+
+// SanitizePhoneNumber removes spaces, dashes, parentheses, dots and non-digit characters except leading '+'
+func SanitizePhoneNumber(phone string) string {
+	phone = strings.TrimSpace(phone)
+	if phone == "" {
+		return ""
+	}
+	var sb strings.Builder
+	for i, r := range phone {
+		if r >= '0' && r <= '9' {
+			sb.WriteRune(r)
+		} else if r == '+' && i == 0 {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
+}
+
+// IsValidIndonesianPhone checks whether a phone number matches standard Indonesian mobile/WA formats
+func IsValidIndonesianPhone(phone string) bool {
+	phone = strings.TrimSpace(phone)
+	if phone == "" {
+		return false
+	}
+	for _, r := range phone {
+		if (r < '0' || r > '9') && r != '+' && r != '-' && r != ' ' && r != '(' && r != ')' && r != '.' {
+			return false
+		}
+	}
+	clean := SanitizePhoneNumber(phone)
+	return indonesianPhonePattern.MatchString(clean)
+}
+
+// NormalizeIndonesianPhone converts a phone number into 628xxxxxxxx format
+func NormalizeIndonesianPhone(phone string) string {
+	clean := SanitizePhoneNumber(phone)
+	if strings.HasPrefix(clean, "+62") {
+		return clean[1:]
+	}
+	if strings.HasPrefix(clean, "08") {
+		return "62" + clean[1:]
+	}
+	return clean
+}
+
 // Validate checks request validity and parses the booking date
 func (r *CreateBookingRequest) Validate() (time.Time, error) {
-	if strings.TrimSpace(r.ClientName) == "" {
+	trimmedName := strings.TrimSpace(r.ClientName)
+	if trimmedName == "" {
 		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) wajib diisi", ErrInvalidInput)
 	}
+	if len([]rune(trimmedName)) < 3 {
+		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) minimal 3 karakter", ErrInvalidInput)
+	}
+	if len([]rune(trimmedName)) > 150 {
+		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) maksimal 150 karakter", ErrInvalidInput)
+	}
+	r.ClientName = trimmedName
+
 	if strings.TrimSpace(r.ServiceID) == "" {
 		return time.Time{}, fmt.Errorf("%w: pilihan layanan (service_id) wajib diisi", ErrInvalidInput)
 	}
-	if strings.TrimSpace(r.Location) == "" && strings.TrimSpace(r.Zone) == "" {
-		return time.Time{}, fmt.Errorf("%w: lokasi atau zona wajib diisi", ErrInvalidInput)
-	}
 
-	if strings.TrimSpace(r.Location) == "" {
-		r.Location = strings.TrimSpace(r.Zone)
+	rawPhone := strings.TrimSpace(r.ClientPhone)
+	if rawPhone == "" {
+		return time.Time{}, fmt.Errorf("%w: nomor WhatsApp klien (client_phone) wajib diisi", ErrInvalidInput)
 	}
+	if !IsValidIndonesianPhone(rawPhone) {
+		return time.Time{}, fmt.Errorf("%w: nomor WhatsApp tidak valid (wajib nomor ponsel Indonesia 10-15 digit diawali 08 atau 628)", ErrInvalidInput)
+	}
+	r.ClientPhone = NormalizeIndonesianPhone(rawPhone)
+
+	trimmedLocation := strings.TrimSpace(r.Location)
+	if trimmedLocation == "" {
+		return time.Time{}, fmt.Errorf("%w: alamat detail lokasi pemesanan (location) wajib diisi", ErrInvalidInput)
+	}
+	if len([]rune(trimmedLocation)) < 10 {
+		return time.Time{}, fmt.Errorf("%w: alamat detail lokasi pemesanan (location) minimal 10 karakter untuk patokan rumah", ErrInvalidInput)
+	}
+	r.Location = trimmedLocation
 	if strings.TrimSpace(r.Zone) == "" {
-		r.Zone = strings.TrimSpace(r.Location)
+		r.Zone = trimmedLocation
 	}
 
 	trimmedDate := strings.TrimSpace(r.BookingDate)
 	if trimmedDate == "" {
-		// Default to tomorrow 10:00 AM UTC
-		defaultDate := time.Now().Add(24 * time.Hour).Truncate(time.Hour)
-		return defaultDate, nil
+		return time.Time{}, fmt.Errorf("%w: jadwal reservasi (booking_date) wajib diisi", ErrInvalidInput)
 	}
 
 	parsedDate, err := parseBookingDate(trimmedDate)

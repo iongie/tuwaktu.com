@@ -106,8 +106,10 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
               id="waNumber"
               name="waNumber"
               type="tel"
+              inputmode="numeric"
               required
               [(ngModel)]="waNumber"
+              (input)="onWaNumberInput($event)"
               placeholder="812-3456-7890"
               class="flex-1 h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate px-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
             />
@@ -389,6 +391,13 @@ export class WorkerRegisterFormComponent implements OnDestroy {
     if (!value.trim()) {
       this.userManuallyEditedSlug = false;
     }
+  }
+
+  onWaNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.replace(/[^0-9]/g, '');
+    input.value = sanitized;
+    this.waNumber = sanitized;
   }
 
   async triggerOtpSend(): Promise<void> {

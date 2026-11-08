@@ -145,20 +145,54 @@ export class WorkerBookingPageComponent implements OnInit {
       errors['service'] = 'Lokasi pemesanan berada di luar batas jangkauan layanan teknisi.';
     }
 
-    if (!this.clientFullName.trim()) {
-      errors['client_name'] = 'Nama lengkap klien wajib diisi.';
+    const trimmedLocation = this.serviceLocationAddress.trim();
+    if (!trimmedLocation) {
+      errors['location'] = 'Alamat detail & patokan rumah wajib diisi.';
+    } else if (trimmedLocation.length < 10) {
+      errors['location'] = 'Alamat detail minimal 10 karakter untuk patokan rumah.';
     }
 
-    if (!this.serviceLocationAddress.trim() && !this.serviceOperationalZone.trim()) {
-      errors['location'] = 'Alamat lokasi atau zona layanan wajib diisi.';
-    }
-
-    if (this.reservationScheduledDate) {
+    if (!this.reservationScheduledDate) {
+      errors['booking_date'] = 'Silakan tentukan jadwal tanggal reservasi.';
+    } else {
       const parsedDate = new Date(this.reservationScheduledDate);
       if (isNaN(parsedDate.getTime())) {
         errors['booking_date'] = 'Format jadwal reservasi tidak valid.';
       } else if (parsedDate.getTime() < Date.now() - 15 * 60 * 1000) {
         errors['booking_date'] = 'Waktu kedatangan harus di masa depan.';
+      }
+    }
+
+    if (!this.store.selectedTimeSlot()) {
+      errors['booking_time_slot'] = 'Silakan pilih slot waktu operasional yang tersedia.';
+    }
+
+    const trimmedName = this.clientFullName.trim();
+    if (!trimmedName) {
+      errors['client_name'] = 'Nama lengkap pemesan wajib diisi.';
+    } else if (trimmedName.length < 3) {
+      errors['client_name'] = 'Nama lengkap pemesan minimal 3 karakter.';
+    } else if (trimmedName.length > 100) {
+      errors['client_name'] = 'Nama lengkap pemesan maksimal 100 karakter.';
+    }
+
+    const trimmedPhone = this.clientContactPhone.trim();
+    if (!trimmedPhone) {
+      errors['client_phone'] = 'Nomor WhatsApp aktif pemesan wajib diisi.';
+    } else {
+      const cleanPhone = trimmedPhone.replace(/[\s-]/g, '');
+      const indonesianPhoneRegex = /^(\+62|62|0)8[1-9][0-9]{7,11}$/;
+      if (!indonesianPhoneRegex.test(cleanPhone)) {
+        errors['client_phone'] =
+          'Nomor WhatsApp tidak valid (wajib nomor ponsel Indonesia 10-15 digit diawali 08 atau 628).';
+      }
+    }
+
+    const trimmedEmail = this.clientEmailAddress.trim();
+    if (trimmedEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        errors['client_email'] = 'Format alamat email tidak valid (contoh: pemesan@email.com).';
       }
     }
 
@@ -168,8 +202,16 @@ export class WorkerBookingPageComponent implements OnInit {
 
   clearClientValidationError(field: string): void {
     const current = { ...this.clientValidationErrors() };
-    if (current[field]) {
-      delete current[field];
+    const fieldMap: Record<string, string> = {
+      clientFullName: 'client_name',
+      clientContactPhone: 'client_phone',
+      clientEmailAddress: 'client_email',
+      serviceLocationAddress: 'location',
+      reservationScheduledDate: 'booking_date',
+    };
+    const targetKey = fieldMap[field] || field;
+    if (current[targetKey]) {
+      delete current[targetKey];
       this.clientValidationErrors.set(current);
     }
   }
@@ -248,12 +290,18 @@ export class WorkerBookingPageComponent implements OnInit {
     if (typeof document === 'undefined') return;
     const errors = this.clientValidationErrors();
     let targetId = '';
-    if (errors['client_name']) {
+    if (errors['service']) {
+      targetId = 'summaryServiceTitle';
+    } else if (errors['booking_date'] || errors['booking_time_slot']) {
+      targetId = 'reservationDateInput';
+    } else if (errors['client_name']) {
       targetId = 'clientFullNameInput';
+    } else if (errors['client_phone']) {
+      targetId = 'clientContactPhoneInput';
+    } else if (errors['client_email']) {
+      targetId = 'clientEmailAddressInput';
     } else if (errors['location']) {
       targetId = 'serviceLocationAddressInput';
-    } else if (errors['service']) {
-      targetId = 'summaryServiceTitle';
     }
 
     if (targetId) {

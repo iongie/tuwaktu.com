@@ -85,15 +85,16 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		assert.Equal(t, "PENDING", res.Status)
 	})
 
-	t.Run("success create booking with minimal payload (nama, lokasi, pilihan layanan)", func(t *testing.T) {
+	t.Run("success create booking with minimal payload (nama, lokasi, pilihan layanan, telepon, jadwal)", func(t *testing.T) {
 		repo, worker, srv := setupRepo()
 		svc := service.NewBookingService(repo)
 
-		// Client only passes client_name, location/zone, and service_id (worker is auto-resolved)
 		req := domain.CreateBookingRequest{
-			ServiceID:  srv.ID,
-			ClientName: "Budi Minimal",
-			Location:   "Jakarta Barat",
+			ServiceID:   srv.ID,
+			ClientName:  "Budi Minimal",
+			ClientPhone: "08123456789",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			BookingDate: futureDate,
 		}
 
 		res, err := svc.CreateBooking(ctx, req)
@@ -105,8 +106,8 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		assert.Equal(t, worker.Name, res.WorkerName)
 		assert.Equal(t, srv.ID, res.ServiceID)
 		assert.Equal(t, "Budi Minimal", res.ClientName)
-		assert.Equal(t, "Jakarta Barat", res.Location)
-		assert.Equal(t, worker.Zone, res.Zone) // fallback to worker's zone
+		assert.Equal(t, "Jl. Kebon Jeruk No. 5 Jakarta", res.Location)
+		assert.Equal(t, "Jl. Kebon Jeruk No. 5 Jakarta", res.Zone) // fallback to location
 		assert.True(t, res.BookingDate.After(time.Now()))
 		assert.Equal(t, srv.Price, res.TotalPrice)
 	})
@@ -116,11 +117,13 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		svc := service.NewBookingService(repo)
 
 		req := domain.CreateBookingRequest{
-			WorkerSlug: worker.Slug,
-			ServiceID:  srv.ID,
-			ClientName: "Dewi Slug",
-			Location:   "Jl. Panjang No. 1",
-			Zone:       "Jakarta Barat",
+			WorkerSlug:  worker.Slug,
+			ServiceID:   srv.ID,
+			ClientName:  "Dewi Slug",
+			ClientPhone: "08123456789",
+			Location:    "Jl. Panjang No. 1 Jakarta",
+			Zone:        "Jakarta Barat",
+			BookingDate: futureDate,
 		}
 
 		res, err := svc.CreateBooking(ctx, req)
@@ -134,9 +137,11 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		svc := service.NewBookingService(repo)
 
 		req := domain.CreateBookingRequest{
-			ServiceID:  srv.Name, // Passing service name "Reparasi Pompa Air"
-			ClientName: "Dewi by Service Name",
-			Location:   "Jakarta Barat",
+			ServiceID:   srv.Name, // Passing service name "Reparasi Pompa Air"
+			ClientName:  "Dewi by Service Name",
+			ClientPhone: "08123456789",
+			Location:    "Jl. Panjang No. 1 Jakarta",
+			BookingDate: futureDate,
 		}
 
 		res, err := svc.CreateBooking(ctx, req)
@@ -165,7 +170,7 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		assert.ErrorIs(t, err, domain.ErrInvalidInput)
 	})
 
-	t.Run("optional client_phone allows empty phone", func(t *testing.T) {
+	t.Run("empty client_phone fails", func(t *testing.T) {
 		repo, worker, srv := setupRepo()
 		svc := service.NewBookingService(repo)
 
@@ -173,15 +178,32 @@ func TestBookingService_CreateBooking(t *testing.T) {
 			WorkerID:    worker.ID,
 			ServiceID:   srv.ID,
 			ClientName:  "Dewi Lestari",
-			ClientPhone: "", // empty phone allowed
+			ClientPhone: "", // empty phone rejected
 			Location:    "Jl. Kebon Jeruk No. 5",
 			Zone:        "Jakarta Barat",
 			BookingDate: futureDate,
 		}
 
-		res, err := svc.CreateBooking(ctx, req)
-		require.NoError(t, err)
-		assert.Equal(t, "Dewi Lestari", res.ClientName)
+		_, err := svc.CreateBooking(ctx, req)
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("invalid client_phone fails", func(t *testing.T) {
+		repo, worker, srv := setupRepo()
+		svc := service.NewBookingService(repo)
+
+		req := domain.CreateBookingRequest{
+			WorkerID:    worker.ID,
+			ServiceID:   srv.ID,
+			ClientName:  "Dewi Lestari",
+			ClientPhone: "0812abc34",
+			Location:    "Jl. Kebon Jeruk No. 5",
+			Zone:        "Jakarta Barat",
+			BookingDate: futureDate,
+		}
+
+		_, err := svc.CreateBooking(ctx, req)
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
 	})
 
 	t.Run("missing both location and zone fails", func(t *testing.T) {
@@ -210,8 +232,8 @@ func TestBookingService_CreateBooking(t *testing.T) {
 			ServiceID:   srv.ID,
 			ClientName:  "Dewi",
 			ClientPhone: "+62899887766",
-			Location:    "Location",
-			Zone:        "Jakarta",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			Zone:        "Jakarta Barat",
 			BookingDate: "invalid-date",
 		}
 		_, err := svc.CreateBooking(ctx, req)
@@ -226,10 +248,10 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		req := domain.CreateBookingRequest{
 			WorkerID:    worker.ID,
 			ServiceID:   srv.ID,
-			ClientName:  "Dewi",
+			ClientName:  "Dewi Lestari",
 			ClientPhone: "+62899887766",
-			Location:    "Location",
-			Zone:        "Jakarta",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			Zone:        "Jakarta Barat",
 			BookingDate: pastDate,
 		}
 		_, err := svc.CreateBooking(ctx, req)
@@ -243,10 +265,10 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		req := domain.CreateBookingRequest{
 			WorkerID:    "non-existent-worker",
 			ServiceID:   srv.ID,
-			ClientName:  "Dewi",
+			ClientName:  "Dewi Lestari",
 			ClientPhone: "+62899887766",
-			Location:    "Location",
-			Zone:        "Jakarta",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			Zone:        "Jakarta Barat",
 			BookingDate: futureDate,
 		}
 		_, err := svc.CreateBooking(ctx, req)
@@ -267,10 +289,10 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		req := domain.CreateBookingRequest{
 			WorkerID:    inactiveWorker.ID,
 			ServiceID:   srv.ID,
-			ClientName:  "Dewi",
+			ClientName:  "Dewi Lestari",
 			ClientPhone: "+62899887766",
-			Location:    "Location",
-			Zone:        "Jakarta",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			Zone:        "Jakarta Barat",
 			BookingDate: futureDate,
 		}
 		_, err := svc.CreateBooking(ctx, req)
@@ -284,10 +306,10 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		req := domain.CreateBookingRequest{
 			WorkerID:    worker.ID,
 			ServiceID:   "non-existent-service",
-			ClientName:  "Dewi",
+			ClientName:  "Dewi Lestari",
 			ClientPhone: "+62899887766",
-			Location:    "Location",
-			Zone:        "Jakarta",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			Zone:        "Jakarta Barat",
 			BookingDate: futureDate,
 		}
 		_, err := svc.CreateBooking(ctx, req)
@@ -316,10 +338,10 @@ func TestBookingService_CreateBooking(t *testing.T) {
 		req := domain.CreateBookingRequest{
 			WorkerID:    worker.ID,
 			ServiceID:   otherService.ID, // mismatch!
-			ClientName:  "Dewi",
+			ClientName:  "Dewi Lestari",
 			ClientPhone: "+62899887766",
-			Location:    "Location",
-			Zone:        "Jakarta",
+			Location:    "Jl. Kebon Jeruk No. 5 Jakarta",
+			Zone:        "Jakarta Barat",
 			BookingDate: futureDate,
 		}
 		_, err := svc.CreateBooking(ctx, req)
@@ -534,7 +556,7 @@ func TestBookingService_CalculateFee(t *testing.T) {
 			ServiceID:   srv.ID,
 			ClientName:  "Pelanggan Bandung",
 			ClientPhone: "+62812345678",
-			Location:    "Bandung",
+			Location:    "Kota Bandung Jawa Barat",
 			Zone:        "Bandung",
 			BookingDate: futureDate,
 			ClientLat:   &farLat,
@@ -555,7 +577,8 @@ func TestBookingService_CalculateFee(t *testing.T) {
 			WorkerID:    worker.ID,
 			ServiceID:   srv.ID,
 			ClientName:  "Wawan",
-			Location:    "Jakarta Selatan",
+			ClientPhone: "+628123456789",
+			Location:    "Jl. Sudirman No. 10 Jakarta",
 			BookingDate: futureDate.Format(time.RFC3339),
 		}
 
@@ -894,7 +917,8 @@ func TestBookingService_TransitBufferAndAvailableSlots(t *testing.T) {
 			WorkerID:    worker.ID,
 			ServiceID:   srv.ID,
 			ClientName:  "Klien Pertama",
-			Location:    "Jakarta",
+			ClientPhone: "+628123456789",
+			Location:    "Jl. Sudirman No. 10 Jakarta",
 			BookingDate: b1Start.Format(time.RFC3339),
 		}
 		res1, err := svc.CreateBooking(ctx, req1)
@@ -907,7 +931,8 @@ func TestBookingService_TransitBufferAndAvailableSlots(t *testing.T) {
 			WorkerID:    worker.ID,
 			ServiceID:   srv.ID,
 			ClientName:  "Klien Kedua (Bentrok Buffer)",
-			Location:    "Jakarta",
+			ClientPhone: "+628123456789",
+			Location:    "Jl. Sudirman No. 10 Jakarta",
 			BookingDate: b2Start.Format(time.RFC3339),
 		}
 		_, err2 := svc.CreateBooking(ctx, req2)
@@ -919,7 +944,8 @@ func TestBookingService_TransitBufferAndAvailableSlots(t *testing.T) {
 			WorkerID:    worker.ID,
 			ServiceID:   srv.ID,
 			ClientName:  "Klien Ketiga (Aman)",
-			Location:    "Jakarta",
+			ClientPhone: "+628123456789",
+			Location:    "Jl. Sudirman No. 10 Jakarta",
 			BookingDate: b3Start.Format(time.RFC3339),
 		}
 		res3, err3 := svc.CreateBooking(ctx, req3)

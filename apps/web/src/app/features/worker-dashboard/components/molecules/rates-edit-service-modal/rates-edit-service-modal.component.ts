@@ -334,18 +334,31 @@ export class RatesEditServiceModalComponent implements OnInit {
 
   submitForm(): void {
     const errors: Record<string, string> = {};
-    if (!this.serviceName().trim()) {
+    const trimmedName = this.serviceName().trim();
+    if (!trimmedName) {
       errors['name'] = 'Nama layanan wajib diisi.';
+    } else if (trimmedName.length < 3) {
+      errors['name'] = 'Nama layanan minimal 3 karakter.';
+    } else if (trimmedName.length > 100) {
+      errors['name'] = 'Nama layanan maksimal 100 karakter.';
     }
 
     const rawPrice = Number(this.servicePrice());
-    if (Number.isNaN(rawPrice) || rawPrice <= 0) {
-      errors['price'] = 'Nominal tarif harus lebih besar dari Rp 0.';
+    if (Number.isNaN(rawPrice) || rawPrice < 5000) {
+      errors['price'] = 'Nominal tarif minimal Rp 5.000.';
+    } else if (rawPrice > 100000000) {
+      errors['price'] = 'Nominal tarif melebihi batas wajar (maksimal Rp 100.000.000).';
     }
 
     const rawHours = Number(this.serviceHours());
-    if (Number.isNaN(rawHours) || rawHours <= 0) {
-      errors['hours'] = 'Durasi alokasi jam harus lebih besar dari 0.';
+    if (Number.isNaN(rawHours) || rawHours < 0.5) {
+      errors['hours'] = 'Durasi alokasi minimal 0.5 jam (30 menit).';
+    } else if (rawHours > 24) {
+      errors['hours'] = 'Durasi alokasi maksimal 24 jam.';
+    }
+
+    if (this.serviceDescription().trim().length > 500) {
+      errors['description'] = 'Deskripsi layanan maksimal 500 karakter.';
     }
 
     this.validationErrors.set(errors);

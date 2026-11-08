@@ -173,7 +173,34 @@ it('harus memvalidasi field nama klien dan menampilkan error jika kosong', () =>
   const isValid = component.validateBookingForm();
   expect(isValid).toBe(false);
   expect(component.clientValidationErrors()['client_name']).toBe(
-    'Nama lengkap klien wajib diisi.'
+    'Nama lengkap pemesan wajib diisi.'
+  );
+});
+
+it('harus memvalidasi nomor telepon dan menampilkan error jika kosong atau tidak valid', () => {
+  component.clientFullName = 'Ahmad Dahlan';
+  component.serviceLocationAddress = 'Jl. Thamrin No. 5 Jakarta';
+  component.clientContactPhone = '';
+  let isValid = component.validateBookingForm();
+  expect(isValid).toBe(false);
+  expect(component.clientValidationErrors()['client_phone']).toBe(
+    'Nomor WhatsApp aktif pemesan wajib diisi.'
+  );
+
+  component.clientContactPhone = '12345';
+  isValid = component.validateBookingForm();
+  expect(isValid).toBe(false);
+  expect(component.clientValidationErrors()['client_phone']).toContain('Nomor WhatsApp tidak valid');
+});
+
+it('harus memvalidasi alamat detail minimal 10 karakter', () => {
+  component.clientFullName = 'Ahmad Dahlan';
+  component.clientContactPhone = '081234567890';
+  component.serviceLocationAddress = 'Tebet';
+  const isValid = component.validateBookingForm();
+  expect(isValid).toBe(false);
+  expect(component.clientValidationErrors()['location']).toBe(
+    'Alamat detail minimal 10 karakter untuk patokan rumah.'
   );
 });
 
@@ -232,8 +259,16 @@ it('harus berhasil submit reservasi ketika form valid, membuka dialog sukses, da
   const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
   component.clientFullName = 'Bambang';
-  component.serviceLocationAddress = 'Jl. Thamrin No. 5';
+  component.clientContactPhone = '081234567890';
+  component.serviceLocationAddress = 'Jl. Thamrin No. 5 Jakarta';
   component.reservationScheduledDate = '2030-01-01T10:00';
+  component.store.selectTimeSlot({
+    name: 'Pagi',
+    start_time: '08:00',
+    end_time: '12:00',
+    slot_type: 'PAGI',
+    available: true,
+  });
 
   component.submitBookingOrder();
   expect(mockApiService.submitServiceBookingReservation).toHaveBeenCalled();

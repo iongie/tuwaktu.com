@@ -650,8 +650,12 @@ export class AuthService {
     if (!data.fullName.trim()) {
       return { isValid: false, error: 'Nama lengkap pekerja atau entitas usaha wajib diisi.' };
     }
-    if (!data.waNumber.trim() || data.waNumber.replace(/[^0-9]/g, '').length < 8) {
-      return { isValid: false, error: 'Nomor WhatsApp bisnis tidak valid (minimal 8 digit).' };
+    if (data.fullName.trim().length < 3) {
+      return { isValid: false, error: 'Nama lengkap pekerja minimal 3 karakter.' };
+    }
+    const cleanWaDigits = data.waNumber.replace(/[^0-9]/g, '');
+    if (!cleanWaDigits || cleanWaDigits.length < 8 || cleanWaDigits.length > 15) {
+      return { isValid: false, error: 'Nomor WhatsApp bisnis tidak valid (panjang 8-15 digit).' };
     }
     if (!data.basecamp.trim()) {
       return { isValid: false, error: 'Basecamp operasional dan titik radius nol wajib diisi.' };

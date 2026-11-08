@@ -359,8 +359,14 @@ export interface BookingFormDraft {
                 (ngModelChange)="onDatePickerChange($event)"
                 name="reservationScheduledDate"
                 class="h-9 px-space-md bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas rounded text-on-surface font-mono-rate text-caption outline-none border border-hairline-subtle"
+                [class.border-error]="validationErrors()['booking_date']"
               />
             </div>
+            @if (validationErrors()['booking_date']) {
+              <p role="alert" class="text-caption text-error font-mono-rate">
+                {{ validationErrors()['booking_date'] }}
+              </p>
+            }
 
             <!-- Time Slots Grid Matrix with Protected Buffer Bands -->
             <div class="space-y-space-sm bg-surface-container-lowest p-space-lg rounded-xl shadow-md">
@@ -473,6 +479,11 @@ export interface BookingFormDraft {
                 </div>
               }
             </div>
+            @if (validationErrors()['booking_time_slot']) {
+              <p role="alert" class="text-caption text-error font-mono-rate">
+                {{ validationErrors()['booking_time_slot'] }}
+              </p>
+            }
           </div>
 
           <!-- SECTION 4: Data Lokasi & Instruksi Pekerja -->
@@ -520,13 +531,43 @@ export interface BookingFormDraft {
                   <input
                     id="clientContactPhoneInput"
                     class="w-full h-11 px-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-mono-rate text-mono-rate outline-none shadow-inner"
+                    [class.border]="validationErrors()['client_phone']"
+                    [class.border-error]="validationErrors()['client_phone']"
                     placeholder="08xxxxxxxxxx"
                     type="tel"
+                    inputmode="numeric"
                     [ngModel]="formDraft().clientContactPhone"
-                    (ngModelChange)="onFieldChange('clientContactPhone', $event)"
+                    (input)="onPhoneInput($event)"
                     name="clientContactPhone"
                   />
+                  @if (validationErrors()['client_phone']) {
+                    <p role="alert" class="text-caption text-error font-mono-rate">
+                      {{ validationErrors()['client_phone'] }}
+                    </p>
+                  }
                 </div>
+              </div>
+
+              <div class="space-y-1">
+                <label for="clientEmailAddressInput" class="font-micro-uppercase text-micro-uppercase uppercase font-bold text-ink-secondary">
+                  Alamat Email (Opsional)
+                </label>
+                <input
+                  id="clientEmailAddressInput"
+                  class="w-full h-11 px-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-body-default text-body-default outline-none shadow-inner"
+                  [class.border]="validationErrors()['client_email']"
+                  [class.border-error]="validationErrors()['client_email']"
+                  placeholder="contoh: pemesan@email.com"
+                  type="email"
+                  [ngModel]="formDraft().clientEmailAddress"
+                  (ngModelChange)="onFieldChange('clientEmailAddress', $event)"
+                  name="clientEmailAddress"
+                />
+                @if (validationErrors()['client_email']) {
+                  <p role="alert" class="text-caption text-error font-mono-rate">
+                    {{ validationErrors()['client_email'] }}
+                  </p>
+                }
               </div>
 
               <div class="space-y-1">
@@ -1011,6 +1052,13 @@ export class ServiceBookingFormComponent {
     const updated = { ...this.formDraft(), [field]: value };
     this.formDraftChange.emit(updated);
     this.clearFieldError.emit(field);
+  }
+
+  onPhoneInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    const sanitized = inputElement.value.replace(/[^0-9+]/g, '');
+    inputElement.value = sanitized;
+    this.onFieldChange('clientContactPhone', sanitized);
   }
 
   onCoordinatesSelected(coords: { lat: number; lng: number }): void {

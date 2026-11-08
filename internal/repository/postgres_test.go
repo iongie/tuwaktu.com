@@ -52,6 +52,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		CREATE TABLE services (
 			id TEXT PRIMARY KEY,
 			worker_id TEXT,
+			category_id TEXT,
 			name TEXT,
 			description TEXT,
 			price REAL,
@@ -1235,6 +1236,11 @@ func TestGormCategoryRepository_CRUD(t *testing.T) {
 	newPrice := 110000.0
 	newName := "Reparasi Pompa Air Otomatis"
 	isActive := false
+
+	// Masukkan worker dan service aktif untuk memverifikasi kalkulasi dinamis starting_price & specialist_count
+	db.Exec(`INSERT INTO workers (id, slug, name, is_active) VALUES ('wrk-cat-1', 'budi-pompa', 'Budi Pompa', true)`)
+	db.Exec(`INSERT INTO services (id, worker_id, category_id, name, price, is_active) VALUES ('srv-cat-1', 'wrk-cat-1', 'cat-101', 'Servis Pompa', 110000, true)`)
+
 	updated, err := repo.Update(ctx, "cat-101", &domain.UpdateCategoryPayload{
 		Name:          &newName,
 		StartingPrice: &newPrice,
@@ -1243,6 +1249,7 @@ func TestGormCategoryRepository_CRUD(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Reparasi Pompa Air Otomatis", updated.Name)
 	assert.Equal(t, 110000.0, updated.StartingPrice)
+	assert.Equal(t, 1, updated.SpecialistCount)
 
 	// Inactive should not appear in public list
 	pubListAfter, err := repo.ListPublicCategories(ctx)

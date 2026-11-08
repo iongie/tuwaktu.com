@@ -51,6 +51,7 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 		CREATE TABLE services (
 			id TEXT PRIMARY KEY,
 			worker_id TEXT,
+			category_id TEXT,
 			name TEXT,
 			description TEXT,
 			price REAL,

@@ -72,6 +72,7 @@ export interface UpdateWorkerSchedulesPayload {
 export interface WorkerServiceCatalogItem {
   id: string;
   code: string;
+  category_id?: string;
   name: string;
   description: string;
   price: number;
@@ -91,6 +92,7 @@ export interface WorkerServiceCatalogItem {
 
 export interface CreateWorkerServicePayload {
   worker_id?: string;
+  category_id?: string;
   name: string;
   description: string;
   price: number;
@@ -102,6 +104,7 @@ export interface CreateWorkerServicePayload {
 
 export interface UpdateWorkerServicePayload {
   worker_id?: string;
+  category_id?: string;
   name?: string;
   description?: string;
   price?: number;
@@ -117,6 +120,7 @@ export interface WorkerServiceItemApiResponse {
   data: {
     id: string;
     worker_id: string;
+    category_id?: string;
     name: string;
     description: string;
     price: number;

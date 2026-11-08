@@ -1049,6 +1049,7 @@ func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payl
 
 	serviceEntity := &domain.Service{
 		WorkerID:        worker.ID,
+		CategoryID:      payload.CategoryID,
 		Name:            name,
 		Description:     strings.TrimSpace(payload.Description),
 		Price:           payload.Price,

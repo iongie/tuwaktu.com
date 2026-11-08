@@ -683,6 +683,7 @@ export class WorkerDashboardStore implements OnDestroy {
     }
 
     const payload: UpdateWorkerServicePayload = {};
+    if (patch.category_id !== undefined) payload.category_id = patch.category_id;
     if (patch.name !== undefined) payload.name = patch.name;
     if (patch.description !== undefined)
       payload.description = patch.description;
@@ -732,6 +733,7 @@ export class WorkerDashboardStore implements OnDestroy {
     }
 
     const payload: CreateWorkerServicePayload = {
+      category_id: item.category_id,
       name: item.name,
       description: item.description,
       price: item.price,

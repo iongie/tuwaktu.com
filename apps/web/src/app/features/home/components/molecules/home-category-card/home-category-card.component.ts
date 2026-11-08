@@ -49,17 +49,30 @@ import { DisciplineCategory } from '../../../models/home.model';
       <div class="mt-space-lg pt-space-md border-t border-hairline-subtle space-y-space-xs">
         <div class="flex items-center justify-between text-caption">
           <span class="text-ink-disabled font-micro-uppercase uppercase">Standar Tarif</span>
-          <span class="font-mono-rate font-bold text-on-surface">
-            {{ formattedStartingPrice() }} / {{ category().priceUnit }}
-          </span>
+          @if (hasActiveServices()) {
+            <span class="font-mono-rate font-bold text-on-surface">
+              Mulai {{ formattedStartingPrice() }} / {{ category().priceUnit }}
+            </span>
+          } @else {
+            <span class="text-caption text-ink-disabled font-medium italic">
+              Belum ada teknisi
+            </span>
+          }
         </div>
 
         <div class="flex items-center justify-between text-caption pt-0.5">
           <span class="text-ink-disabled">Ketersediaan</span>
-          <span class="text-success font-semibold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
-            {{ category().availabilityTag || 'Tersedia di Katalog' }}
-          </span>
+          @if (hasActiveServices()) {
+            <span class="text-success font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+              {{ availabilityLabel() }}
+            </span>
+          } @else {
+            <span class="text-ink-disabled font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+              Belum Tersedia
+            </span>
+          }
         </div>
       </div>
     </article>
@@ -69,6 +82,19 @@ import { DisciplineCategory } from '../../../models/home.model';
 export class HomeCategoryCardComponent {
   readonly category = input.required<DisciplineCategory>();
   readonly selectCategory = output<string>();
+
+  readonly hasActiveServices = computed(() => this.category().startingPrice > 0);
+
+  readonly availabilityLabel = computed(() => {
+    const count = this.category().specialistCount;
+    if (count && count > 0) {
+      return `${count} Teknisi Aktif`;
+    }
+    if (this.category().startingPrice > 0) {
+      return this.category().availabilityTag || 'Tersedia di Katalog';
+    }
+    return 'Belum Tersedia';
+  });
 
   readonly formattedStartingPrice = computed(() => {
     return new Intl.NumberFormat('id-ID', {

@@ -22,6 +22,7 @@ type Category struct {
 	HighlightTag    string    `json:"highlight_tag" db:"highlight_tag" gorm:"type:varchar(100);default:''"`
 	IsActive        bool      `json:"is_active" db:"is_active" gorm:"index;default:true"`
 	SortOrder       int       `json:"sort_order" db:"sort_order" gorm:"index;default:0"`
+	SpecialistCount int       `json:"specialist_count" db:"specialist_count" gorm:"column:specialist_count;->"`
 	CreatedAt       time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
 	UpdatedAt       time.Time `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
 }
@@ -70,7 +71,7 @@ func (c *Category) ToPublic() PublicCategory {
 		PriceUnit:       c.PriceUnit,
 		AvailabilityTag: c.AvailabilityTag,
 		HighlightTag:    c.HighlightTag,
-		SpecialistCount: 0,
+		SpecialistCount: c.SpecialistCount,
 	}
 }
 

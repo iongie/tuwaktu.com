@@ -298,3 +298,66 @@ func TestMigrationRunner_CategoriesMigration000008(t *testing.T) {
 	err = db.QueryRow("SELECT COUNT(*) FROM categories").Scan(&count)
 	require.Error(t, err)
 }
+
+func TestMigrationRunner_LinkServicesToCategories000009(t *testing.T) {
+	// 1. Verifikasi integritas file fisik migrasi 000009
+	realUp009, err := os.ReadFile(filepath.Join("..", "..", "migrations", "000009_link_services_to_categories.up.sql"))
+	require.NoError(t, err)
+	assert.Contains(t, string(realUp009), "category_id UUID REFERENCES categories(id)")
+	assert.Contains(t, string(realUp009), "CREATE INDEX IF NOT EXISTS idx_services_category_id")
+
+	realDown009, err := os.ReadFile(filepath.Join("..", "..", "migrations", "000009_link_services_to_categories.down.sql"))
+	require.NoError(t, err)
+	assert.Contains(t, string(realDown009), "DROP INDEX IF EXISTS idx_services_category_id")
+	assert.Contains(t, string(realDown009), "ALTER TABLE services DROP COLUMN IF EXISTS category_id")
+
+	// 2. Uji eksekusi UP dan DOWN pada migration runner
+	db, tempDir := openTestSQLDB(t)
+	migrationsDir := filepath.Join(tempDir, "migrations")
+	require.NoError(t, os.MkdirAll(migrationsDir, 0755))
+
+	sqliteUpPre := `
+		CREATE TABLE categories (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL
+		);
+		CREATE TABLE services (
+			id TEXT PRIMARY KEY,
+			worker_id TEXT NOT NULL,
+			name TEXT NOT NULL,
+			price REAL NOT NULL
+		);
+		INSERT INTO categories (id, name) VALUES ('11111111-1111-4111-8111-111111111111', 'Servis AC');
+		INSERT INTO services (id, worker_id, name, price) VALUES ('srv-1', 'wrk-1', 'Cuci AC Standar', 75000);
+	`
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000008_create_categories.up.sql"), []byte(sqliteUpPre), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000008_create_categories.down.sql"), []byte("DROP TABLE IF EXISTS services; DROP TABLE IF EXISTS categories;"), 0644))
+
+	sqliteUp009 := `
+		ALTER TABLE services ADD COLUMN category_id TEXT REFERENCES categories(id) ON DELETE SET NULL;
+		CREATE INDEX IF NOT EXISTS idx_services_category_id ON services(category_id);
+		UPDATE services SET category_id = '11111111-1111-4111-8111-111111111111' WHERE LOWER(name) LIKE '%ac%';
+	`
+	sqliteDown009 := `
+		DROP INDEX IF EXISTS idx_services_category_id;
+		ALTER TABLE services DROP COLUMN category_id;
+	`
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000009_link_services_to_categories.up.sql"), []byte(sqliteUp009), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000009_link_services_to_categories.down.sql"), []byte(sqliteDown009), 0644))
+
+	// Jalankan UP
+	require.NoError(t, runUp(db, migrationsDir))
+
+	var categoryID sql.NullString
+	err = db.QueryRow("SELECT category_id FROM services WHERE id = 'srv-1'").Scan(&categoryID)
+	require.NoError(t, err)
+	assert.True(t, categoryID.Valid)
+	assert.Equal(t, "11111111-1111-4111-8111-111111111111", categoryID.String)
+
+	// Jalankan DOWN (revert)
+	require.NoError(t, runDown(db, migrationsDir))
+
+	// Kolom category_id harusnya sudah terhapus
+	err = db.QueryRow("SELECT category_id FROM services WHERE id = 'srv-1'").Scan(&categoryID)
+	require.Error(t, err)
+}

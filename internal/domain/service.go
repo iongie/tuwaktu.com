@@ -13,6 +13,7 @@ import (
 type Service struct {
 	ID              string    `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
 	WorkerID        string    `json:"worker_id" db:"worker_id" gorm:"type:uuid;not null;index"`
+	CategoryID      *string   `json:"category_id" db:"category_id" gorm:"type:uuid;index"`
 	Name            string    `json:"name" db:"name" gorm:"type:varchar(150);not null"`
 	Description     string    `json:"description" db:"description" gorm:"type:text"`
 	Price           float64   `json:"price" db:"price" gorm:"type:numeric(12,2);not null"`
@@ -43,6 +44,7 @@ func (s *Service) BeforeCreate(tx *gorm.DB) error {
 // PublicService represents the public facing service information (name, description, price, duration)
 type PublicService struct {
 	ID              string  `json:"id"`
+	CategoryID      *string `json:"category_id,omitempty"`
 	Name            string  `json:"name"`
 	Description     string  `json:"description"`
 	Price           float64 `json:"price"`
@@ -63,6 +65,7 @@ func (s *Service) ToPublic() PublicService {
 	}
 	return PublicService{
 		ID:              s.ID,
+		CategoryID:      s.CategoryID,
 		Name:            s.Name,
 		Description:     s.Description,
 		Price:           s.Price,
@@ -75,6 +78,7 @@ func (s *Service) ToPublic() PublicService {
 // CreateServicePayload merepresentasikan payload request untuk membuat paket layanan pekerja baru
 type CreateServicePayload struct {
 	WorkerID        string  `json:"worker_id,omitempty"`
+	CategoryID      *string `json:"category_id,omitempty"`
 	Name            string  `json:"name"`
 	Description     string  `json:"description"`
 	Price           float64 `json:"price"`
@@ -87,6 +91,7 @@ type CreateServicePayload struct {
 // UpdateServicePayload merepresentasikan payload request untuk memperbarui paket layanan pekerja
 type UpdateServicePayload struct {
 	WorkerID        string   `json:"worker_id,omitempty"`
+	CategoryID      *string  `json:"category_id,omitempty"`
 	Name            *string  `json:"name,omitempty"`
 	Description     *string  `json:"description,omitempty"`
 	Price           *float64 `json:"price,omitempty"`

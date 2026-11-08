@@ -63,4 +63,30 @@ describe('HomeCategoryCardComponent', () => {
 
     expect(emitSpy).toHaveBeenCalledWith('ac-pendingin');
   });
+
+  it('harus menampilkan status jujur Belum ada teknisi jika startingPrice bernilai 0', () => {
+    fixture.componentRef.setInput('category', {
+      ...mockCategory,
+      startingPrice: 0,
+      specialistCount: 0,
+    });
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Belum ada teknisi');
+    expect(el.textContent).toContain('Belum Tersedia');
+    expect(el.textContent).not.toContain('Rp 0');
+  });
+
+  it('harus menampilkan jumlah spesialis aktif jika specialistCount > 0', () => {
+    fixture.componentRef.setInput('category', {
+      ...mockCategory,
+      startingPrice: 85000,
+      specialistCount: 3,
+    });
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('3 Teknisi Aktif');
+  });
 });

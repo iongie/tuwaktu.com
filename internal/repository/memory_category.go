@@ -14,6 +14,7 @@ import (
 type MemoryCategoryRepository struct {
 	mu         sync.RWMutex
 	categories map[string]*domain.Category
+	workerRepo WorkerRepository
 }
 
 func NewMemoryCategoryRepository() *MemoryCategoryRepository {
@@ -22,6 +23,48 @@ func NewMemoryCategoryRepository() *MemoryCategoryRepository {
 	}
 	repo.seedInitialCategories()
 	return repo
+}
+
+func (m *MemoryCategoryRepository) SetWorkerRepo(repo WorkerRepository) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.workerRepo = repo
+}
+
+func (m *MemoryCategoryRepository) enrichCategory(ctx context.Context, cat *domain.Category) domain.Category {
+	cp := *cat
+	if m.workerRepo == nil {
+		return cp
+	}
+	workers, err := m.workerRepo.ListPublicWorkers(ctx)
+	if err != nil {
+		return cp
+	}
+
+	minPrice := 0.0
+	specialists := make(map[string]struct{})
+	hasMatchingServices := false
+	for _, w := range workers {
+		if !w.IsActive {
+			continue
+		}
+		for _, s := range w.Services {
+			if s.IsActive && s.CategoryID != nil && *s.CategoryID == cat.ID {
+				hasMatchingServices = true
+				specialists[w.ID] = struct{}{}
+				if s.Price > 0 && (minPrice == 0 || s.Price < minPrice) {
+					minPrice = s.Price
+				}
+			}
+		}
+	}
+	if hasMatchingServices {
+		cp.StartingPrice = minPrice
+	} else if len(specialists) == 0 {
+		cp.StartingPrice = 0
+	}
+	cp.SpecialistCount = len(specialists)
+	return cp
 }
 
 func (m *MemoryCategoryRepository) seedInitialCategories() {
@@ -97,13 +140,17 @@ func (m *MemoryCategoryRepository) seedInitialCategories() {
 
 func (m *MemoryCategoryRepository) ListPublicCategories(ctx context.Context) ([]domain.Category, error) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	var result []domain.Category
+	var rawCats []domain.Category
 	for _, c := range m.categories {
 		if c.IsActive {
-			result = append(result, *c)
+			rawCats = append(rawCats, *c)
 		}
+	}
+	m.mu.RUnlock()
+
+	result := make([]domain.Category, 0, len(rawCats))
+	for _, c := range rawCats {
+		result = append(result, m.enrichCategory(ctx, &c))
 	}
 
 	sort.Slice(result, func(i, j int) bool {
@@ -118,11 +165,15 @@ func (m *MemoryCategoryRepository) ListPublicCategories(ctx context.Context) ([]
 
 func (m *MemoryCategoryRepository) ListAdminCategories(ctx context.Context) ([]domain.Category, error) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	var result []domain.Category
+	var rawCats []domain.Category
 	for _, c := range m.categories {
-		result = append(result, *c)
+		rawCats = append(rawCats, *c)
+	}
+	m.mu.RUnlock()
+
+	result := make([]domain.Category, 0, len(rawCats))
+	for _, c := range rawCats {
+		result = append(result, m.enrichCategory(ctx, &c))
 	}
 
 	sort.Slice(result, func(i, j int) bool {
@@ -137,28 +188,37 @@ func (m *MemoryCategoryRepository) ListAdminCategories(ctx context.Context) ([]d
 
 func (m *MemoryCategoryRepository) GetByID(ctx context.Context, id string) (*domain.Category, error) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
 	cat, ok := m.categories[id]
 	if !ok {
+		m.mu.RUnlock()
 		return nil, domain.ErrCategoryNotFound
 	}
 	catCopy := *cat
-	return &catCopy, nil
+	m.mu.RUnlock()
+
+	enriched := m.enrichCategory(ctx, &catCopy)
+	return &enriched, nil
 }
 
 func (m *MemoryCategoryRepository) GetBySlug(ctx context.Context, slug string) (*domain.Category, error) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
 	cleanSlug := strings.ToLower(strings.TrimSpace(slug))
+	var found *domain.Category
 	for _, cat := range m.categories {
 		if strings.EqualFold(cat.Slug, cleanSlug) {
 			catCopy := *cat
-			return &catCopy, nil
+			found = &catCopy
+			break
 		}
 	}
-	return nil, domain.ErrCategoryNotFound
+	m.mu.RUnlock()
+
+	if found == nil {
+		return nil, domain.ErrCategoryNotFound
+	}
+
+	enriched := m.enrichCategory(ctx, found)
+	return &enriched, nil
 }
 
 func (m *MemoryCategoryRepository) Create(ctx context.Context, category *domain.Category) (*domain.Category, error) {

@@ -84,6 +84,7 @@
   @if (isEditModalOpen()) {
     <app-rates-edit-service-modal
       [serviceItem]="selectedServiceToEdit()"
+      [availableCategories]="categoriesList()"
       (dismissModal)="closeEditModal()"
       (save)="handleServiceSaved($event)"
       (delete)="handleServiceDeleted($event)"

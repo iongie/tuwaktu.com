@@ -88,6 +88,22 @@ func (r *PostgresWorkerRepository) GetServicesByWorkerID(ctx context.Context, wo
 	return services, nil
 }
 
+func (r *PostgresWorkerRepository) syncWorkerBasePrice(ctx context.Context, workerID string) {
+	var minPrice struct {
+		Price *float64 `gorm:"column:min_price"`
+	}
+	err := r.db.WithContext(ctx).
+		Raw("SELECT MIN(price) AS min_price FROM services WHERE worker_id = ? AND is_active = true", workerID).
+		Scan(&minPrice).Error
+	if err == nil {
+		newBase := 0.0
+		if minPrice.Price != nil {
+			newBase = *minPrice.Price
+		}
+		_ = r.db.WithContext(ctx).Model(&domain.Worker{}).Where("id = ?", workerID).Update("base_price", newBase)
+	}
+}
+
 func (r *PostgresWorkerRepository) CreateService(ctx context.Context, service *domain.Service) (*domain.Service, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("creating service: %w", err)
@@ -109,6 +125,7 @@ func (r *PostgresWorkerRepository) CreateService(ctx context.Context, service *d
 	if err := r.db.WithContext(ctx).Create(service).Error; err != nil {
 		return nil, fmt.Errorf("saving service to database: %w", err)
 	}
+	r.syncWorkerBasePrice(ctx, service.WorkerID)
 	return service, nil
 }
 
@@ -138,6 +155,10 @@ func (r *PostgresWorkerRepository) UpdateService(ctx context.Context, workerID s
 
 	updates := map[string]interface{}{
 		"updated_at": time.Now(),
+	}
+	if update.CategoryID != nil {
+		existing.CategoryID = update.CategoryID
+		updates["category_id"] = existing.CategoryID
 	}
 	if update.Name != nil {
 		existing.Name = strings.TrimSpace(*update.Name)
@@ -172,6 +193,7 @@ func (r *PostgresWorkerRepository) UpdateService(ctx context.Context, workerID s
 		return nil, fmt.Errorf("updating service record: %w", err)
 	}
 
+	r.syncWorkerBasePrice(ctx, workerID)
 	return &existing, nil
 }
 
@@ -195,6 +217,7 @@ func (r *PostgresWorkerRepository) DeleteService(ctx context.Context, workerID s
 	if res.RowsAffected == 0 {
 		return domain.ErrServiceNotFound
 	}
+	r.syncWorkerBasePrice(ctx, workerID)
 	return nil
 }
 
@@ -496,7 +519,7 @@ func (r *PostgresWorkerRepository) GetAdminWorkerList(ctx context.Context) ([]do
 			COALESCE(w.name, '') as name,
 			COALESCE(w.bio, '') as bio,
 			COALESCE(w.zone, '') as zone,
-			COALESCE(w.base_price, 0) as base_price,
+			COALESCE((SELECT MIN(s.price) FROM services s WHERE s.worker_id = w.id AND s.is_active = true), w.base_price, 0) as base_price,
 			COALESCE(w.rate_type, 'HOURLY') as rate_type,
 			COALESCE(w.avatar_url, '') as avatar_url,
 			COALESCE(w.rating, 0) as rating,

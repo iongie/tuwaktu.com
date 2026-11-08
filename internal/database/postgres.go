@@ -179,10 +179,14 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		},
 	}
 
+	catAC := "11111111-1111-4111-8111-111111111111"
+	catCleaning := "22222222-2222-4222-8222-222222222222"
+
 	seedServices := []domain.Service{
 		{
 			ID:              "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
 			WorkerID:        "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+			CategoryID:      &catAC,
 			Name:            "Cuci AC Standar 0.5 - 1 PK",
 			Description:     "Pembersihan filter, evaporator, dan cek tekanan freon AC.",
 			Price:           75000.00,
@@ -194,6 +198,7 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		{
 			ID:              "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
 			WorkerID:        "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+			CategoryID:      &catAC,
 			Name:            "Isi / Tambah Freon R32 / R410A",
 			Description:     "Pengisian freon berkualitas untuk pendinginan optimal.",
 			Price:           150000.00,
@@ -205,6 +210,7 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		{
 			ID:              "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
 			WorkerID:        "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+			CategoryID:      &catAC,
 			Name:            "Bongkar Pasang AC",
 			Description:     "Layanan instalasi unit AC baru atau relokasi unit lama.",
 			Price:           300000.00,
@@ -216,6 +222,7 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		{
 			ID:              "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
 			WorkerID:        "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+			CategoryID:      &catCleaning,
 			Name:            "Daily Cleaning (2 Jam)",
 			Description:     "Menyapu, mengepel, membersihkan debu, dan merapikan kamar.",
 			Price:           120000.00,
@@ -227,6 +234,7 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		{
 			ID:              "a7b8c9d0-e1f2-4a3b-8c9d-6e7f8a9b0c1d",
 			WorkerID:        "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+			CategoryID:      &catCleaning,
 			Name:            "Deep Cleaning Kamar Mandi",
 			Description:     "Pembersihan kerak keramik, sanitair, dan desinfeksi menyeluruh.",
 			Price:           175000.00,

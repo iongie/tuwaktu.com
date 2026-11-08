@@ -67,6 +67,28 @@ import { WorkerServiceCatalogItem } from '../../../models/worker-profile.model';
             }
           </div>
 
+          <!-- Kategori Spesialisasi -->
+          <div class="space-y-1.5">
+            <label for="serviceCategorySelect" class="block text-xs font-bold text-on-surface">
+              Kategori Spesialisasi Keahlian
+            </label>
+            <select
+              id="serviceCategorySelect"
+              name="serviceCategoryId"
+              [ngModel]="serviceCategoryId()"
+              (ngModelChange)="serviceCategoryId.set($event)"
+              class="w-full px-3.5 py-2.5 bg-surface-container-low border border-hairline-light rounded-lg text-sm text-on-surface min-h-[44px] focus:bg-white focus:outline-none focus:ring-2 focus:ring-voltage-orange cursor-pointer"
+            >
+              <option value="">-- Pilih Cabang Keahlian (Opsional) --</option>
+              @for (cat of availableCategories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            <p class="text-[11px] text-ink-secondary">
+              Menghubungkan layanan ini dengan kartu kategori di halaman beranda.
+            </p>
+          </div>
+
           <!-- Skema Penagihan -->
           <div class="space-y-2">
             <span class="block text-xs font-bold text-on-surface">
@@ -278,12 +300,14 @@ import { WorkerServiceCatalogItem } from '../../../models/worker-profile.model';
 })
 export class RatesEditServiceModalComponent implements OnInit {
   readonly serviceItem = input<WorkerServiceCatalogItem | null>(null);
+  readonly availableCategories = input<{ id: string; name: string }[]>([]);
 
   readonly dismissModal = output<void>();
   readonly save = output<WorkerServiceCatalogItem>();
   readonly delete = output<string>();
 
   readonly serviceName = signal<string>('');
+  readonly serviceCategoryId = signal<string>('');
   readonly servicePrice = signal<number>(65000);
   readonly rateType = signal<'HOURLY' | 'UNIT'>('HOURLY');
   readonly serviceHours = signal<number>(2.0);
@@ -296,6 +320,7 @@ export class RatesEditServiceModalComponent implements OnInit {
     const existing = this.serviceItem();
     if (existing) {
       this.serviceName.set(existing.name);
+      this.serviceCategoryId.set(existing.category_id || '');
       this.servicePrice.set(existing.price);
       this.rateType.set(existing.rate_type);
       this.serviceHours.set(
@@ -335,6 +360,7 @@ export class RatesEditServiceModalComponent implements OnInit {
       code: existing
         ? existing.code
         : (isHourly ? 'SRV' : 'PKG') + '-' + Math.floor(100 + Math.random() * 900),
+      category_id: this.serviceCategoryId() || undefined,
       name: this.serviceName().trim(),
       description: this.serviceDescription().trim(),
       price: rawPrice,

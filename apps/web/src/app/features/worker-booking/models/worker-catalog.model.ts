@@ -1,5 +1,6 @@
 export interface PublicServiceCatalogItem {
   id: string;
+  category_id?: string;
   name: string;
   description: string;
   price: number;

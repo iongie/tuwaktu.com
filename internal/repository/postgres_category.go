@@ -21,11 +21,20 @@ func NewGormCategoryRepository(db *gorm.DB) *GormCategoryRepository {
 
 func (r *GormCategoryRepository) ListPublicCategories(ctx context.Context) ([]domain.Category, error) {
 	var categories []domain.Category
-	err := r.db.WithContext(ctx).
-		Where("is_active = ?", true).
-		Order("sort_order ASC, name ASC").
-		Find(&categories).Error
-	if err != nil {
+	query := `
+		SELECT 
+			c.id, c.slug, c.name, c.description, c.icon,
+			COALESCE(MIN(CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.price ELSE NULL END), 0) AS starting_price,
+			c.price_unit, c.availability_tag, c.highlight_tag, c.is_active, c.sort_order, c.created_at, c.updated_at,
+			COUNT(DISTINCT CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.worker_id ELSE NULL END) AS specialist_count
+		FROM categories c
+		LEFT JOIN services s ON s.category_id = c.id
+		LEFT JOIN workers w ON w.id = s.worker_id
+		WHERE c.is_active = ?
+		GROUP BY c.id
+		ORDER BY c.sort_order ASC, c.name ASC
+	`
+	if err := r.db.WithContext(ctx).Raw(query, true).Scan(&categories).Error; err != nil {
 		return nil, err
 	}
 	return categories, nil
@@ -33,10 +42,19 @@ func (r *GormCategoryRepository) ListPublicCategories(ctx context.Context) ([]do
 
 func (r *GormCategoryRepository) ListAdminCategories(ctx context.Context) ([]domain.Category, error) {
 	var categories []domain.Category
-	err := r.db.WithContext(ctx).
-		Order("sort_order ASC, created_at DESC").
-		Find(&categories).Error
-	if err != nil {
+	query := `
+		SELECT 
+			c.id, c.slug, c.name, c.description, c.icon,
+			COALESCE(MIN(CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.price ELSE NULL END), 0) AS starting_price,
+			c.price_unit, c.availability_tag, c.highlight_tag, c.is_active, c.sort_order, c.created_at, c.updated_at,
+			COUNT(DISTINCT CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.worker_id ELSE NULL END) AS specialist_count
+		FROM categories c
+		LEFT JOIN services s ON s.category_id = c.id
+		LEFT JOIN workers w ON w.id = s.worker_id
+		GROUP BY c.id
+		ORDER BY c.sort_order ASC, c.created_at DESC
+	`
+	if err := r.db.WithContext(ctx).Raw(query).Scan(&categories).Error; err != nil {
 		return nil, err
 	}
 	return categories, nil
@@ -53,14 +71,29 @@ func (r *GormCategoryRepository) GetByID(ctx context.Context, id string) (*domai
 	}
 
 	var category domain.Category
-	err := r.db.WithContext(ctx).Where("id = ?", cleanID).First(&category).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) ||
-			strings.Contains(err.Error(), "invalid input syntax for type uuid") ||
-			strings.Contains(err.Error(), "22P02") {
+	query := `
+		SELECT 
+			c.id, c.slug, c.name, c.description, c.icon,
+			COALESCE(MIN(CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.price ELSE NULL END), 0) AS starting_price,
+			c.price_unit, c.availability_tag, c.highlight_tag, c.is_active, c.sort_order, c.created_at, c.updated_at,
+			COUNT(DISTINCT CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.worker_id ELSE NULL END) AS specialist_count
+		FROM categories c
+		LEFT JOIN services s ON s.category_id = c.id
+		LEFT JOIN workers w ON w.id = s.worker_id
+		WHERE c.id = ?
+		GROUP BY c.id
+	`
+	res := r.db.WithContext(ctx).Raw(query, cleanID).Scan(&category)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) ||
+			strings.Contains(res.Error.Error(), "invalid input syntax for type uuid") ||
+			strings.Contains(res.Error.Error(), "22P02") {
 			return nil, domain.ErrCategoryNotFound
 		}
-		return nil, err
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 || category.ID == "" {
+		return nil, domain.ErrCategoryNotFound
 	}
 	return &category, nil
 }
@@ -72,12 +105,27 @@ func (r *GormCategoryRepository) GetBySlug(ctx context.Context, slug string) (*d
 	}
 
 	var category domain.Category
-	err := r.db.WithContext(ctx).Where("LOWER(slug) = ?", cleanSlug).First(&category).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	query := `
+		SELECT 
+			c.id, c.slug, c.name, c.description, c.icon,
+			COALESCE(MIN(CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.price ELSE NULL END), 0) AS starting_price,
+			c.price_unit, c.availability_tag, c.highlight_tag, c.is_active, c.sort_order, c.created_at, c.updated_at,
+			COUNT(DISTINCT CASE WHEN s.is_active IS TRUE AND w.is_active IS TRUE THEN s.worker_id ELSE NULL END) AS specialist_count
+		FROM categories c
+		LEFT JOIN services s ON s.category_id = c.id
+		LEFT JOIN workers w ON w.id = s.worker_id
+		WHERE LOWER(c.slug) = ?
+		GROUP BY c.id
+	`
+	res := r.db.WithContext(ctx).Raw(query, cleanSlug).Scan(&category)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrCategoryNotFound
 		}
-		return nil, err
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 || category.ID == "" {
+		return nil, domain.ErrCategoryNotFound
 	}
 	return &category, nil
 }

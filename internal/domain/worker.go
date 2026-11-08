@@ -79,6 +79,22 @@ type PublicWorkerProfile struct {
 	Services       []PublicService `json:"services"`
 }
 
+// EffectiveBasePrice menghitung tarif dasar terendah dari katalog layanan aktif pekerja
+func (w *Worker) EffectiveBasePrice() float64 {
+	minPrice := 0.0
+	for _, s := range w.Services {
+		if s.IsActive && s.Price > 0 {
+			if minPrice == 0 || s.Price < minPrice {
+				minPrice = s.Price
+			}
+		}
+	}
+	if minPrice > 0 {
+		return minPrice
+	}
+	return w.BasePrice
+}
+
 // ToPublic creates a PublicWorkerProfile ensuring no sensitive data is leaked
 func (w *Worker) ToPublic(services []PublicService) PublicWorkerProfile {
 	if services == nil {
@@ -96,6 +112,23 @@ func (w *Worker) ToPublic(services []PublicService) PublicWorkerProfile {
 	if freeRadius < 0 {
 		freeRadius = 3.0
 	}
+	basePrice := w.BasePrice
+	if basePrice == 0 {
+		if len(services) > 0 {
+			minPrice := 0.0
+			for _, s := range services {
+				if s.Price > 0 && (minPrice == 0 || s.Price < minPrice) {
+					minPrice = s.Price
+				}
+			}
+			if minPrice > 0 {
+				basePrice = minPrice
+			}
+		} else if len(w.Services) > 0 {
+			basePrice = w.EffectiveBasePrice()
+		}
+	}
+
 	return PublicWorkerProfile{
 		ID:             w.ID,
 		Slug:           w.Slug,
@@ -105,7 +138,7 @@ func (w *Worker) ToPublic(services []PublicService) PublicWorkerProfile {
 		Rating:         w.Rating,
 		ReviewCount:    w.ReviewCount,
 		Zone:           w.Zone,
-		BasePrice:      w.BasePrice,
+		BasePrice:      basePrice,
 		RateType:       rateType,
 		Lat:            w.Lat,
 		Lng:            w.Lng,

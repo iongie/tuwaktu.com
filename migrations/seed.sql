@@ -37,10 +37,11 @@ INSERT INTO workers (
 
 -- Services for Worker 1
 INSERT INTO services (
-    id, worker_id, name, description, price, base_price, rate_type, duration_minutes, is_active
+    id, worker_id, category_id, name, description, price, base_price, rate_type, duration_minutes, is_active
 ) VALUES (
     'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
     'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+    '11111111-1111-4111-8111-111111111111',
     'Cuci AC Standar 0.5 - 1 PK',
     'Pembersihan filter, evaporator, dan cek tekanan freon AC.',
     75000.00,
@@ -52,6 +53,7 @@ INSERT INTO services (
 (
     'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
     'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+    '11111111-1111-4111-8111-111111111111',
     'Isi / Tambah Freon R32 / R410A',
     'Pengisian freon berkualitas untuk pendinginan optimal.',
     150000.00,
@@ -63,6 +65,7 @@ INSERT INTO services (
 (
     'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a',
     'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+    '11111111-1111-4111-8111-111111111111',
     'Bongkar Pasang AC',
     'Layanan instalasi unit AC baru atau relokasi unit lama.',
     300000.00,
@@ -71,6 +74,7 @@ INSERT INTO services (
     120,
     TRUE
 ) ON CONFLICT (id) DO UPDATE SET
+    category_id = EXCLUDED.category_id,
     base_price = EXCLUDED.base_price,
     rate_type = EXCLUDED.rate_type;
 
@@ -113,10 +117,11 @@ INSERT INTO workers (
 
 -- Services for Worker 2
 INSERT INTO services (
-    id, worker_id, name, description, price, base_price, rate_type, duration_minutes, is_active
+    id, worker_id, category_id, name, description, price, base_price, rate_type, duration_minutes, is_active
 ) VALUES (
     'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c',
     'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
+    '22222222-2222-4222-8222-222222222222',
     'Daily Cleaning (2 Jam)',
     'Menyapu, mengepel, membersihkan debu, dan merapikan kamar.',
     120000.00,
@@ -128,6 +133,7 @@ INSERT INTO services (
 (
     'a7b8c9d0-e1f2-4a3b-8c9d-6e7f8a9b0c1d',
     'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
+    '22222222-2222-4222-8222-222222222222',
     'Deep Cleaning Kamar Mandi',
     'Pembersihan kerak keramik, sanitair, dan desinfeksi menyeluruh.',
     175000.00,
@@ -136,6 +142,7 @@ INSERT INTO services (
     90,
     TRUE
 ) ON CONFLICT (id) DO UPDATE SET
+    category_id = EXCLUDED.category_id,
     base_price = EXCLUDED.base_price,
     rate_type = EXCLUDED.rate_type;
 

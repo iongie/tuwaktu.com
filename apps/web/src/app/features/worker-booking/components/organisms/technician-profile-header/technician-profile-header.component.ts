@@ -72,7 +72,12 @@ import { AuthService } from '../../../../auth/services/auth.service';
                   @if (formattedRate(); as rateText) {
                     <span class="text-ink-disabled">•</span>
                     <span class="flex items-center gap-1">
-                      Tarif Dasar: <strong class="font-body-strong text-voltage-orange">{{ rateText }}</strong>
+                      Tarif Mulai: <strong class="font-body-strong text-voltage-orange">{{ rateText }}</strong>
+                    </span>
+                  } @else {
+                    <span class="text-ink-disabled">•</span>
+                    <span class="flex items-center gap-1 text-ink-disabled">
+                      <strong class="font-body-strong text-ink-disabled italic">Belum Menentukan Layanan</strong>
                     </span>
                   }
                 </div>

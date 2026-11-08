@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { WorkerServiceCatalogItem } from '../../../models/worker-profile.model';
+import { HomeApiService } from '../../../../home/services/home-api.service';
 import { WorkerServiceCatalogPanelComponent } from '../../organisms/worker-service-catalog-panel/worker-service-catalog-panel.component';
 import { WorkerRatesGuidelinesSidebarComponent } from '../../organisms/worker-rates-guidelines-sidebar/worker-rates-guidelines-sidebar.component';
 import { RatesFilterTabsComponent } from '../../molecules/rates-filter-tabs/rates-filter-tabs.component';
@@ -24,10 +25,26 @@ import { RatesEditServiceModalComponent } from '../../molecules/rates-edit-servi
 })
 export class WorkerDashboardRatesComponent {
   readonly store = inject(WorkerDashboardStore);
+  private readonly homeApi = inject(HomeApiService, { optional: true });
 
   readonly isSimulationModalOpen = signal<boolean>(false);
   readonly isEditModalOpen = signal<boolean>(false);
   readonly selectedServiceToEdit = signal<WorkerServiceCatalogItem | null>(null);
+
+  readonly categoriesList = signal<{ id: string; name: string }[]>([
+    { id: '11111111-1111-4111-8111-111111111111', name: 'Servis & Pasang AC' },
+    { id: '22222222-2222-4222-8222-222222222222', name: 'Sanitasi & Deep Clean' },
+    { id: '33333333-3333-4333-8333-333333333333', name: 'Instalasi Listrik Presisi' },
+    { id: '44444444-4444-4444-8444-444444444444', name: 'Reparasi Elektronik' },
+  ]);
+
+  constructor() {
+    this.homeApi?.fetchPublicCategories().subscribe((cats) => {
+      if (cats && cats.length > 0) {
+        this.categoriesList.set(cats.map((c) => ({ id: c.id, name: c.title })));
+      }
+    });
+  }
 
   openSimulationModal(): void {
     this.isSimulationModalOpen.set(true);

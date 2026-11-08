@@ -111,7 +111,22 @@ func (m *MemoryRepository) CreateService(ctx context.Context, service *domain.Se
 	service.UpdatedAt = now
 	cp := *service
 	m.services[service.ID] = &cp
+	m.syncWorkerBasePrice(service.WorkerID)
 	return &cp, nil
+}
+
+func (m *MemoryRepository) syncWorkerBasePrice(workerID string) {
+	minPrice := 0.0
+	for _, s := range m.services {
+		if s.WorkerID == workerID && s.IsActive && s.Price > 0 {
+			if minPrice == 0 || s.Price < minPrice {
+				minPrice = s.Price
+			}
+		}
+	}
+	if w, exists := m.workers[workerID]; exists {
+		w.BasePrice = minPrice
+	}
 }
 
 func (m *MemoryRepository) UpdateService(ctx context.Context, workerID string, serviceID string, update *domain.UpdateServicePayload) (*domain.Service, error) {
@@ -132,6 +147,9 @@ func (m *MemoryRepository) UpdateService(ctx context.Context, workerID string, s
 		return nil, domain.ErrServiceNotFound
 	}
 
+	if update.CategoryID != nil {
+		existing.CategoryID = update.CategoryID
+	}
 	if update.Name != nil {
 		existing.Name = strings.TrimSpace(*update.Name)
 	}
@@ -154,6 +172,7 @@ func (m *MemoryRepository) UpdateService(ctx context.Context, workerID string, s
 		existing.IsActive = *update.IsActive
 	}
 	existing.UpdatedAt = time.Now()
+	m.syncWorkerBasePrice(workerID)
 	cp := *existing
 	return &cp, nil
 }
@@ -175,6 +194,7 @@ func (m *MemoryRepository) DeleteService(ctx context.Context, workerID string, s
 
 	existing.IsActive = false
 	existing.UpdatedAt = time.Now()
+	m.syncWorkerBasePrice(workerID)
 	return nil
 }
 

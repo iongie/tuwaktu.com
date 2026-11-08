@@ -11,6 +11,7 @@ func RegisterRoutes(
 	adminHandler *AdminHandler,
 	authHandler *AuthHandler,
 	authMiddleware *AuthMiddleware,
+	categoryHandler *CategoryHandler,
 ) {
 	// Root & health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -24,6 +25,12 @@ func RegisterRoutes(
 	// Public API group (backward compatible)
 	api := app.Group("/api")
 	pub := api.Group("/public")
+
+	// Categories public endpoint
+	if categoryHandler != nil {
+		api.Get("/categories", categoryHandler.ListPublicCategories)
+		pub.Get("/categories", categoryHandler.ListPublicCategories)
+	}
 
 	// Workers endpoint
 	pub.Get("/workers", workerHandler.ListPublicWorkers)
@@ -105,12 +112,33 @@ func RegisterRoutes(
 		adminGroup.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
 		adminGroup.Get("/stats", adminHandler.GetStats)
 
+		if categoryHandler != nil {
+			adminGroup.Get("/categories", categoryHandler.ListCategories)
+			adminGroup.Post("/categories", categoryHandler.CreateCategory)
+			adminGroup.Get("/categories/:id", categoryHandler.GetCategory)
+			adminGroup.Put("/categories/:id", categoryHandler.UpdateCategory)
+			adminGroup.Delete("/categories/:id", categoryHandler.DeleteCategory)
+		}
+
 		// Backward compatible /api/admin
 		legacyAdmin := api.Group("/admin", authMiddleware.RequireAuth, authMiddleware.RequireAdmin)
 		legacyAdmin.Post("/workers", adminHandler.CreateWorker)
 		legacyAdmin.Get("/workers", adminHandler.GetWorkers)
 		legacyAdmin.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
 		legacyAdmin.Get("/stats", adminHandler.GetStats)
+
+		if categoryHandler != nil {
+			legacyAdmin.Get("/categories", categoryHandler.ListCategories)
+			legacyAdmin.Post("/categories", categoryHandler.CreateCategory)
+			legacyAdmin.Get("/categories/:id", categoryHandler.GetCategory)
+			legacyAdmin.Put("/categories/:id", categoryHandler.UpdateCategory)
+			legacyAdmin.Delete("/categories/:id", categoryHandler.DeleteCategory)
+		}
+	}
+
+	if categoryHandler != nil {
+		v1.Get("/categories", categoryHandler.ListPublicCategories)
+		v1Pub.Get("/categories", categoryHandler.ListPublicCategories)
 	}
 
 	v1Pub.Get("/workers", workerHandler.ListPublicWorkers)

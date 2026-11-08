@@ -3,7 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
 import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
+  DisciplineCategory,
   FeaturedWorker,
+  PublicCategoriesApiResponse,
   PublicWorkerProfile,
   PublicWorkersApiResponse,
 } from '../models/home.model';
@@ -29,6 +31,88 @@ export class HomeApiService {
 
   private get normalizedBaseUrl(): string {
     return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
+  }
+
+  fetchPublicCategories(): Observable<DisciplineCategory[]> {
+    if (!this.httpClient) {
+      return of(this.getFallbackCategories());
+    }
+
+    return this.httpClient
+      .get<PublicCategoriesApiResponse>(`${this.normalizedBaseUrl}/api/v1/public/categories`)
+      .pipe(
+        map((response) => {
+          if (!response || !response.success || !Array.isArray(response.data) || response.data.length === 0) {
+            return this.getFallbackCategories();
+          }
+          return response.data.map((item) => ({
+            id: item.id,
+            slug: item.slug,
+            title: item.title || item.name,
+            description: item.description,
+            icon: item.icon || 'build',
+            startingPrice: Number(item.starting_price) || 0,
+            priceUnit: item.price_unit || 'kunjungan',
+            availabilityTag: item.availability_tag || 'Tersedia di Katalog',
+            specialistCount: item.specialist_count,
+            highlightTag: item.highlight_tag || '',
+          }));
+        }),
+        catchError(() => of(this.getFallbackCategories()))
+      );
+  }
+
+  getFallbackCategories(): DisciplineCategory[] {
+    return [
+      {
+        id: 'cat-ac',
+        slug: 'ac-pendingin',
+        title: 'Servis & Pasang AC',
+        description:
+          'Pembersihan filter, flushing freon berkala, perbaikan pipa bocor, dan perawatan unit inverter.',
+        icon: 'ac_unit',
+        startingPrice: 75000,
+        priceUnit: 'unit',
+        availabilityTag: 'Tersedia di Katalog',
+        highlightTag: 'Populer',
+      },
+      {
+        id: 'cat-cleaning',
+        slug: 'sanitasi-cleaning',
+        title: 'Sanitasi & Deep Clean',
+        description:
+          'Pembersihan menyeluruh kamar tidur, sofa, kamar mandi berkerak, dan sterilisasi tungau kasur.',
+        icon: 'cleaning_services',
+        startingPrice: 65000,
+        priceUnit: 'jam',
+        availabilityTag: 'Tersedia di Katalog',
+        highlightTag: 'Higienis',
+      },
+      {
+        id: 'cat-listrik',
+        slug: 'instalasi-listrik',
+        title: 'Instalasi Listrik Presisi',
+        description:
+          'Pemeriksaan beban daya, tracing korsleting listrik, perakitan panel MCB, dan instalasi stop kontak.',
+        icon: 'bolt',
+        startingPrice: 80000,
+        priceUnit: 'kunjungan',
+        availabilityTag: 'Tersedia di Katalog',
+        highlightTag: 'Prioritas Aman',
+      },
+      {
+        id: 'cat-elektronik',
+        slug: 'elektronik-audio',
+        title: 'Reparasi Elektronik',
+        description:
+          'Diagnostik mesin cuci digital, kulkas inverter, perbaikan audio speaker, dan instalasi TV dinding.',
+        icon: 'tv',
+        startingPrice: 120000,
+        priceUnit: 'kunjungan',
+        availabilityTag: 'Tersedia di Katalog',
+        highlightTag: 'Spesialis Ahli',
+      },
+    ];
   }
 
   fetchPublicWorkers(): Observable<FeaturedWorker[]> {

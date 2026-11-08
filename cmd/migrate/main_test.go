@@ -237,3 +237,64 @@ func TestMigrationRunner_LockoutMigration000007AndSeed(t *testing.T) {
 	assert.Equal(t, 0, attempts)
 	assert.False(t, lockedUntil.Valid)
 }
+
+func TestMigrationRunner_CategoriesMigration000008(t *testing.T) {
+	// 1. Verifikasi integritas file migrasi 000008 fisik
+	realUp008, err := os.ReadFile(filepath.Join("..", "..", "migrations", "000008_create_categories.up.sql"))
+	require.NoError(t, err)
+	assert.Contains(t, string(realUp008), "CREATE TABLE IF NOT EXISTS categories")
+	assert.Contains(t, string(realUp008), "slug")
+	assert.Contains(t, string(realUp008), "starting_price")
+	assert.Contains(t, string(realUp008), "is_active")
+	assert.Contains(t, string(realUp008), "sort_order")
+
+	realDown008, err := os.ReadFile(filepath.Join("..", "..", "migrations", "000008_create_categories.down.sql"))
+	require.NoError(t, err)
+	assert.Contains(t, string(realDown008), "DROP TABLE IF EXISTS categories")
+
+	// 2. Uji eksekusi UP dan DOWN pada migration runner
+	db, tempDir := openTestSQLDB(t)
+	migrationsDir := filepath.Join(tempDir, "migrations")
+	require.NoError(t, os.MkdirAll(migrationsDir, 0755))
+
+	sqliteUp008 := `
+		CREATE TABLE categories (
+			id TEXT PRIMARY KEY,
+			slug TEXT UNIQUE NOT NULL,
+			name TEXT NOT NULL,
+			description TEXT,
+			icon TEXT DEFAULT 'build',
+			starting_price REAL DEFAULT 0.00,
+			price_unit TEXT DEFAULT 'kunjungan',
+			availability_tag TEXT DEFAULT 'Tersedia di Katalog',
+			highlight_tag TEXT DEFAULT '',
+			is_active BOOLEAN DEFAULT 1,
+			sort_order INTEGER DEFAULT 0,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
+		INSERT INTO categories (id, slug, name, description, icon, starting_price, price_unit, availability_tag, highlight_tag, is_active, sort_order)
+		VALUES 
+			('11111111-1111-4111-8111-111111111111', 'ac-pendingin', 'Servis & Pasang AC', 'Perawatan AC', 'ac_unit', 75000.00, 'unit', 'Tersedia di Katalog', 'Populer', 1, 1),
+			('22222222-2222-4222-8222-222222222222', 'sanitasi-cleaning', 'Sanitasi & Deep Clean', 'Pembersihan kasur', 'cleaning_services', 65000.00, 'jam', 'Tersedia di Katalog', 'Higienis', 1, 2);
+	`
+	sqliteDown008 := `DROP TABLE IF EXISTS categories;`
+
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000008_create_categories.up.sql"), []byte(sqliteUp008), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "000008_create_categories.down.sql"), []byte(sqliteDown008), 0644))
+
+	// Jalankan UP
+	require.NoError(t, runUp(db, migrationsDir))
+
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM categories").Scan(&count)
+	require.NoError(t, err)
+	assert.Equal(t, 2, count)
+
+	// Jalankan DOWN (revert)
+	require.NoError(t, runDown(db, migrationsDir))
+
+	// Verifikasi tabel telah terhapus
+	err = db.QueryRow("SELECT COUNT(*) FROM categories").Scan(&count)
+	require.Error(t, err)
+}

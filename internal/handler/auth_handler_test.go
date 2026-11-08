@@ -23,7 +23,7 @@ func setupAuthTestApp(repo repository.WorkerRepository) *fiber.App {
 	authHandler := handler.NewAuthHandler(workerSvc)
 	authMiddleware := handler.NewAuthMiddleware()
 
-	handler.RegisterRoutes(app, nil, nil, nil, authHandler, authMiddleware)
+	handler.RegisterRoutes(app, nil, nil, nil, authHandler, authMiddleware, nil)
 	return app
 }
 

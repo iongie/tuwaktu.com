@@ -17,5 +17,8 @@ var (
 	ErrInvalidScheduleDay    = errors.New("hari jadwal kerja tidak valid (harus bernilai antara 0 sampai 6)")
 	ErrAccountLocked         = errors.New("akun terkunci sementara karena terlalu banyak percobaan masuk yang gagal")
 	ErrWeakPIN               = errors.New("kombinasi PIN terlalu lemah: dilarang menggunakan angka berurutan atau berulang")
+	ErrCategoryNotFound      = errors.New("kategori tidak ditemukan")
+	ErrCategorySlugExists    = errors.New("slug kategori sudah digunakan")
+	ErrCategoryNameRequired  = errors.New("nama kategori wajib diisi")
 )
 

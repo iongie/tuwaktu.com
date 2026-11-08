@@ -148,6 +148,13 @@ export const appRoutes: Route[] = [
             './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
           ).then((m) => m.AdminWorkersPageComponent),
       },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-categories-page/admin-categories-page.component'
+          ).then((m) => m.AdminCategoriesPageComponent),
+      },
     ],
   },
   {

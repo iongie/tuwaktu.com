@@ -105,6 +105,21 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 			created_at DATETIME,
 			updated_at DATETIME
 		);
+		CREATE TABLE categories (
+			id TEXT PRIMARY KEY,
+			slug TEXT UNIQUE,
+			name TEXT,
+			description TEXT,
+			icon TEXT,
+			starting_price REAL,
+			price_unit TEXT,
+			availability_tag TEXT,
+			highlight_tag TEXT,
+			is_active BOOLEAN,
+			sort_order INTEGER,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
 	`).Error
 	require.NoError(t, err)
 
@@ -127,6 +142,11 @@ func TestSeedIfEmptyAndSeedData(t *testing.T) {
 	err = db.Model(&domain.Service{}).Count(&serviceCount).Error
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), serviceCount)
+
+	var categoryCount int64
+	err = db.Model(&domain.Category{}).Count(&categoryCount).Error
+	require.NoError(t, err)
+	assert.Equal(t, int64(4), categoryCount)
 
 	// Verify specific worker data
 	var budi domain.Worker

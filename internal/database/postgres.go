@@ -316,5 +316,66 @@ func SeedData(ctx context.Context, db *gorm.DB) error {
 		}
 	}
 
+	seedCategories := []domain.Category{
+		{
+			ID:              "11111111-1111-4111-8111-111111111111",
+			Slug:            "ac-pendingin",
+			Name:            "Servis & Pasang AC",
+			Description:     "Pembersihan filter, flushing freon berkala, perbaikan pipa bocor, dan perawatan unit inverter.",
+			Icon:            "ac_unit",
+			StartingPrice:   75000.00,
+			PriceUnit:       "unit",
+			AvailabilityTag: "Tersedia di Katalog",
+			HighlightTag:    "Populer",
+			IsActive:        true,
+			SortOrder:       1,
+		},
+		{
+			ID:              "22222222-2222-4222-8222-222222222222",
+			Slug:            "sanitasi-cleaning",
+			Name:            "Sanitasi & Deep Clean",
+			Description:     "Pembersihan menyeluruh kamar tidur, sofa, kamar mandi berkerak, dan sterilisasi tungau kasur.",
+			Icon:            "cleaning_services",
+			StartingPrice:   65000.00,
+			PriceUnit:       "jam",
+			AvailabilityTag: "Tersedia di Katalog",
+			HighlightTag:    "Higienis",
+			IsActive:        true,
+			SortOrder:       2,
+		},
+		{
+			ID:              "33333333-3333-4333-8333-333333333333",
+			Slug:            "instalasi-listrik",
+			Name:            "Instalasi Listrik Presisi",
+			Description:     "Pemeriksaan beban daya, tracing korsleting listrik, perakitan panel MCB, dan instalasi stop kontak.",
+			Icon:            "bolt",
+			StartingPrice:   80000.00,
+			PriceUnit:       "kunjungan",
+			AvailabilityTag: "Tersedia di Katalog",
+			HighlightTag:    "Prioritas Aman",
+			IsActive:        true,
+			SortOrder:       3,
+		},
+		{
+			ID:              "44444444-4444-4444-8444-444444444444",
+			Slug:            "elektronik-audio",
+			Name:            "Reparasi Elektronik",
+			Description:     "Diagnostik mesin cuci digital, kulkas inverter, perbaikan audio speaker, dan instalasi TV dinding.",
+			Icon:            "tv",
+			StartingPrice:   120000.00,
+			PriceUnit:       "kunjungan",
+			AvailabilityTag: "Tersedia di Katalog",
+			HighlightTag:    "Spesialis Ahli",
+			IsActive:        true,
+			SortOrder:       4,
+		},
+	}
+
+	for _, c := range seedCategories {
+		if err := dbWithCtx.Clauses(clause.OnConflict{DoNothing: true}).Create(&c).Error; err != nil {
+			return fmt.Errorf("seeding category %s: %w", c.Slug, err)
+		}
+	}
+
 	return nil
 }

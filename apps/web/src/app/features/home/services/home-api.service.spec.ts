@@ -95,5 +95,49 @@ describe('HomeApiService', () => {
     const req = httpMock.expectOne('http://localhost:3000/api/v1/public/workers');
     req.error(new ProgressEvent('Network error'));
   });
+
+  it('harus memanggil GET /api/v1/public/categories dan memetakan DisciplineCategory', (done) => {
+    service.fetchPublicCategories().subscribe((categories) => {
+      expect(categories.length).toBe(1);
+      const cat = categories[0];
+      expect(cat.id).toBe('cat-1');
+      expect(cat.slug).toBe('ac-pendingin');
+      expect(cat.title).toBe('Servis & Pasang AC');
+      expect(cat.startingPrice).toBe(75000);
+      expect(cat.priceUnit).toBe('unit');
+      done();
+    });
+
+    const req = httpMock.expectOne('http://localhost:3000/api/v1/public/categories');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      success: true,
+      message: 'Daftar kategori berhasil diambil',
+      data: [
+        {
+          id: 'cat-1',
+          slug: 'ac-pendingin',
+          name: 'Servis & Pasang AC',
+          description: 'Layanan AC',
+          icon: 'ac_unit',
+          starting_price: 75000,
+          price_unit: 'unit',
+          availability_tag: 'Tersedia di Katalog',
+          highlight_tag: 'Populer',
+        },
+      ],
+    });
+  });
+
+  it('harus mengembalikan kategori fallback jika request kategori error', (done) => {
+    service.fetchPublicCategories().subscribe((categories) => {
+      expect(categories.length).toBeGreaterThan(0);
+      expect(categories[0].slug).toBe('ac-pendingin');
+      done();
+    });
+
+    const req = httpMock.expectOne('http://localhost:3000/api/v1/public/categories');
+    req.error(new ProgressEvent('Network error'));
+  });
 });
 

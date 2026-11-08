@@ -1,0 +1,230 @@
+<main class="min-h-screen bg-surface-container-lowest text-on-surface">
+  <!-- Top Navigation Bar Admin -->
+  <header class="sticky top-0 w-full z-50 bg-body-canvas/95 backdrop-blur-md border-b border-hairline-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between gap-gutter">
+      <div class="flex items-center gap-space-xl">
+        <a routerLink="/" class="flex items-center gap-space-sm cursor-pointer">
+          <span class="font-heading-h3 text-heading-h3 font-bold tracking-tight text-ink-on-light uppercase">TUWAKTU</span>
+          <span class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded">MANDIRI</span>
+        </a>
+
+        <div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 bg-surface-warm-promo text-promo-ink rounded">
+          <span class="material-symbols-outlined text-[14px] text-promo-ink">admin_panel_settings</span>
+          <span class="font-caption text-caption font-semibold uppercase tracking-wider">Panel Admin</span>
+        </div>
+
+        <nav aria-label="Navigasi Panel Admin" class="hidden md:flex items-center gap-space-xs">
+          <a
+            routerLink="/admin/workers"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Kelola Mitra
+          </a>
+          <a
+            routerLink="/admin/categories"
+            class="px-space-md py-1.5 bg-surface-highlight text-on-surface font-semibold font-button-label text-button-label rounded cursor-pointer"
+          >
+            Katalog Keahlian
+          </a>
+          <a
+            routerLink="/dashboard"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Dashboard Teknisi
+          </a>
+          <a
+            routerLink="/"
+            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
+          >
+            Jelajah Pekerja
+          </a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-space-md relative">
+        <a
+          routerLink="/"
+          class="hidden sm:inline-flex items-center gap-space-xs px-space-md h-9 rounded bg-surface-highlight text-ink-on-light border border-hairline-light hover:bg-surface-container-high transition-colors font-button-label text-button-label cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px]">visibility</span>
+          <span>Lihat Web Publik</span>
+        </a>
+
+        <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
+
+        <app-booking-nav-account-menu />
+
+        <button
+          type="button"
+          class="sr-only"
+          (click)="isLogoutModalOpen.set(true)"
+          data-testid="admin-logout-btn"
+        >
+          Keluar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Konten Utama -->
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <!-- Banner Feedback Sukses -->
+    @if (store.feedbackMessage()) {
+      <div
+        role="status"
+        class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-sm flex items-center justify-between gap-4 transition-all shadow-xs"
+        data-testid="category-feedback-banner"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+          </div>
+          <span class="font-medium">{{ store.feedbackMessage() }}</span>
+        </div>
+        <button
+          type="button"
+          class="min-w-[44px] min-h-[44px] flex items-center justify-center text-emerald-700 hover:text-emerald-900 cursor-pointer rounded-xl hover:bg-emerald-500/10 transition"
+          (click)="store.clearFeedback()"
+          aria-label="Tutup notifikasi sukses"
+        >
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+    }
+
+    <!-- Banner Notifikasi Error -->
+    @if (store.errorMessage()) {
+      <div
+        role="alert"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 text-sm flex items-center justify-between gap-4 transition-all shadow-xs"
+        data-testid="category-error-banner"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-base">warning</span>
+          </div>
+          <div>
+            <div class="font-bold text-rose-950 dark:text-rose-100">Kendala Operasi Kategori</div>
+            <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5">{{ store.errorMessage() }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            class="min-h-[44px] px-3.5 py-1.5 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+            (click)="store.loadCategories()"
+            aria-label="Coba lagi memuat data kategori"
+            data-testid="category-retry-btn"
+          >
+            <span>Coba Lagi</span>
+          </button>
+          <button
+            type="button"
+            class="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-700 hover:text-rose-900 cursor-pointer rounded-xl hover:bg-rose-500/10 transition-colors"
+            (click)="store.clearError()"
+            aria-label="Tutup notifikasi error"
+          >
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Header Judul & Tombol Tambah Kategori -->
+    <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">
+          Katalog Keahlian Teknisi
+        </h1>
+        <p class="text-sm text-on-surface-variant mt-1">
+          Kelola kategori spesialisasi kerja, tarif awal standar, dan parameter visibilitas pada halaman beranda publik.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-on-primary font-bold text-sm hover:opacity-95 shadow-xs hover:shadow transition-all cursor-pointer shrink-0"
+        (click)="handleAddCategory()"
+        data-testid="add-category-btn"
+      >
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span>Tambah Kategori Baru</span>
+      </button>
+    </section>
+
+    <!-- Bento Grid Kartu Metrik Ringkasan Kategori -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-label="Metrik Ringkasan Kategori">
+      <!-- Total Kategori -->
+      <div class="p-5 rounded-2xl bg-surface border border-hairline-subtle shadow-xs space-y-2">
+        <div class="flex items-center justify-between text-on-surface-variant">
+          <span class="text-xs font-semibold uppercase tracking-wider">Total Kategori</span>
+          <span class="material-symbols-outlined text-xl text-primary">category</span>
+        </div>
+        <div class="text-3xl font-extrabold tracking-tight text-on-surface font-mono" data-testid="metric-total-categories">
+          {{ store.totalCount() }}
+        </div>
+        <p class="text-xs text-on-surface-variant">Seluruh spesialisasi terdaftar</p>
+      </div>
+
+      <!-- Kategori Aktif -->
+      <div class="p-5 rounded-2xl bg-surface border border-hairline-subtle shadow-xs space-y-2">
+        <div class="flex items-center justify-between text-on-surface-variant">
+          <span class="text-xs font-semibold uppercase tracking-wider">Aktif di Publik</span>
+          <span class="material-symbols-outlined text-xl text-emerald-600">visibility</span>
+        </div>
+        <div class="text-3xl font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400 font-mono" data-testid="metric-active-categories">
+          {{ store.activeCount() }}
+        </div>
+        <p class="text-xs text-on-surface-variant">Tampil di beranda &amp; pencarian</p>
+      </div>
+
+      <!-- Kategori Nonaktif -->
+      <div class="p-5 rounded-2xl bg-surface border border-hairline-subtle shadow-xs space-y-2">
+        <div class="flex items-center justify-between text-on-surface-variant">
+          <span class="text-xs font-semibold uppercase tracking-wider">Nonaktif</span>
+          <span class="material-symbols-outlined text-xl text-on-surface-variant">visibility_off</span>
+        </div>
+        <div class="text-3xl font-extrabold tracking-tight text-on-surface-variant font-mono" data-testid="metric-inactive-categories">
+          {{ store.inactiveCount() }}
+        </div>
+        <p class="text-xs text-on-surface-variant">Disembunyikan dari publik</p>
+      </div>
+    </section>
+
+    <!-- Bilah Filter & Pencarian Kategori (Molekul M3 Mandiri) -->
+    <app-admin-category-filter-bar
+      [searchQuery]="store.searchQuery()"
+      [currentFilter]="store.statusFilter()"
+      [totalCount]="store.totalCount()"
+      [activeCount]="store.activeCount()"
+      [inactiveCount]="store.inactiveCount()"
+      (searchChange)="store.setSearchQuery($event)"
+      (filterChange)="store.setStatusFilter($event)"
+    />
+
+    <!-- Tabel Organisme Kategori -->
+    <app-admin-categories-table
+      [categories]="store.filteredCategories()"
+      (addCategoryClick)="handleAddCategory()"
+      (editCategory)="handleEditCategory($event)"
+      (toggleStatus)="handleToggleStatus($event)"
+      (deleteCategory)="handleDeleteCategory($event)"
+    />
+  </div>
+
+  <!-- Modal Tambah / Edit Kategori -->
+  <app-admin-category-modal
+    [isOpen]="store.isModalOpen()"
+    [category]="store.editingCategory()"
+    [isSubmitting]="store.isSubmitting()"
+    (close)="store.closeModal()"
+    (save)="handleSaveCategory($event)"
+  />
+
+  <!-- Modal Konfirmasi Keluar -->
+  <app-logout-confirm-modal
+    [isOpen]="isLogoutModalOpen()"
+    (confirm)="handleLogoutConfirm()"
+    (cancel)="isLogoutModalOpen.set(false)"
+  />
+</main>

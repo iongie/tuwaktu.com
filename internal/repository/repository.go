@@ -41,3 +41,14 @@ type BookingRepository interface {
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error)
 }
 
+type CategoryRepository interface {
+	ListPublicCategories(ctx context.Context) ([]domain.Category, error)
+	ListAdminCategories(ctx context.Context) ([]domain.Category, error)
+	GetByID(ctx context.Context, id string) (*domain.Category, error)
+	GetBySlug(ctx context.Context, slug string) (*domain.Category, error)
+	Create(ctx context.Context, category *domain.Category) (*domain.Category, error)
+	Update(ctx context.Context, id string, payload *domain.UpdateCategoryPayload) (*domain.Category, error)
+	Delete(ctx context.Context, id string) error
+}
+
+

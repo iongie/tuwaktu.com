@@ -32,7 +32,7 @@ func setupTestApp() (*fiber.App, *repository.MemoryRepository) {
 	authHandler := handler.NewAuthHandler(workerSvc)
 	authMiddleware := handler.NewAuthMiddleware()
 
-	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, nil)
 
 	return app, repo
 }

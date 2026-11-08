@@ -36,7 +36,7 @@ func setupWorkerServiceTestApp(repo repository.WorkerRepository) (*fiber.App, *d
 		memRepo.SeedWorker(worker)
 	}
 
-	handler.RegisterRoutes(app, workerHandler, bookingHandler, nil, authHandler, authMiddleware)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, nil, authHandler, authMiddleware, nil)
 	return app, worker
 }
 

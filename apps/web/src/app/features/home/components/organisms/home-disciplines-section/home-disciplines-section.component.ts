@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HomeCategoryCardComponent } from '../../molecules/home-category-card/home-category-card.component';
 import { DisciplineCategory } from '../../../models/home.model';
+import { HomeApiService } from '../../../services/home-api.service';
 
 @Component({
   selector: 'app-home-disciplines-section',
@@ -44,7 +52,7 @@ import { DisciplineCategory } from '../../../models/home.model';
         <div
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg"
         >
-          @for (category of categories; track category.id) {
+          @for (category of categories(); track category.id) {
             <app-home-category-card
               [category]="category"
               (selectCategory)="onCategorySelected($event)"
@@ -56,10 +64,12 @@ import { DisciplineCategory } from '../../../models/home.model';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeDisciplinesSectionComponent {
+export class HomeDisciplinesSectionComponent implements OnInit {
+  private readonly homeApiService = inject(HomeApiService, { optional: true });
+
   readonly selectCategory = output<string>();
 
-  readonly categories: DisciplineCategory[] = [
+  readonly categories = signal<DisciplineCategory[]>([
     {
       id: 'cat-ac',
       slug: 'ac-pendingin',
@@ -108,7 +118,19 @@ export class HomeDisciplinesSectionComponent {
       availabilityTag: 'Tersedia di Katalog',
       highlightTag: 'Spesialis Ahli',
     },
-  ];
+  ]);
+
+  ngOnInit(): void {
+    if (this.homeApiService && typeof this.homeApiService.fetchPublicCategories === 'function') {
+      this.homeApiService.fetchPublicCategories().subscribe({
+        next: (items) => {
+          if (items && items.length > 0) {
+            this.categories.set(items);
+          }
+        },
+      });
+    }
+  }
 
   onCategorySelected(categorySlug: string): void {
     this.selectCategory.emit(categorySlug);

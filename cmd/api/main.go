@@ -32,6 +32,7 @@ func main() {
 
 	var workerRepo repository.WorkerRepository
 	var bookingRepo repository.BookingRepository
+	var categoryRepo repository.CategoryRepository
 
 	gormDB, err := database.NewGormDBWithConfig(cfg)
 	if err != nil {
@@ -45,6 +46,7 @@ func main() {
 		seedMemoryRepository(memRepo)
 		workerRepo = memRepo
 		bookingRepo = memRepo
+		categoryRepo = repository.NewMemoryCategoryRepository()
 	} else {
 		sqlDB, _ := gormDB.DB()
 		if sqlDB != nil {
@@ -68,11 +70,13 @@ func main() {
 
 		workerRepo = repository.NewGormWorkerRepository(gormDB)
 		bookingRepo = repository.NewGormBookingRepository(gormDB)
+		categoryRepo = repository.NewGormCategoryRepository(gormDB)
 	}
 
 	// Initialize Services
 	workerSvc := service.NewWorkerService(workerRepo)
 	bookingSvc := service.NewBookingService(bookingRepo)
+	categorySvc := service.NewCategoryService(categoryRepo)
 
 	// Initialize Handlers
 	workerHandler := handler.NewWorkerHandler(workerSvc)
@@ -80,6 +84,7 @@ func main() {
 	adminHandler := handler.NewAdminHandler(workerSvc)
 	authHandler := handler.NewAuthHandler(workerSvc, cfg)
 	authMiddleware := handler.NewAuthMiddleware()
+	categoryHandler := handler.NewCategoryHandler(categorySvc)
 
 	// Initialize Fiber App with environment-aware settings
 	app := fiber.New(fiber.Config{
@@ -137,7 +142,7 @@ func main() {
 	app.Use(cors.New(corsConfig))
 
 	// Register Routes
-	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware)
+	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, categoryHandler)
 
 	// Channel to listen for shutdown signals
 	quit := make(chan os.Signal, 1)

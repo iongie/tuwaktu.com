@@ -84,6 +84,9 @@ describe('appRoutes', () => {
 
     const workersChild = children.find((c) => c.path === 'workers');
     expect(workersChild?.loadComponent).toBeDefined();
+
+    const categoriesChild = children.find((c) => c.path === 'categories');
+    expect(categoriesChild?.loadComponent).toBeDefined();
   });
 
   describe('Router Navigation Redirections', () => {

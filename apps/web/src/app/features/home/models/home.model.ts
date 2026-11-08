@@ -65,6 +65,27 @@ export interface DisciplineCategory {
   highlightTag: string;
 }
 
+export interface PublicCategoryApiItem {
+  id: string;
+  slug: string;
+  name: string;
+  title?: string;
+  description: string;
+  icon: string;
+  starting_price: number;
+  price_unit: string;
+  availability_tag: string;
+  highlight_tag: string;
+  specialist_count?: number;
+}
+
+export interface PublicCategoriesApiResponse {
+  success: boolean;
+  message: string;
+  data: PublicCategoryApiItem[];
+  error?: string | null;
+}
+
 export interface FaqItem {
   id: string;
   question: string;

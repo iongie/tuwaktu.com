@@ -490,8 +490,8 @@ func (r *PostgresWorkerRepository) GetAdminWorkerList(ctx context.Context) ([]do
 	items := make([]domain.AdminWorkerListItem, 0)
 	query := `
 		SELECT 
-			wa.id as account_id,
-			COALESCE(w.id, '') as worker_id,
+			CAST(wa.id AS TEXT) as account_id,
+			COALESCE(CAST(w.id AS TEXT), '') as worker_id,
 			COALESCE(w.slug, '') as slug,
 			COALESCE(w.name, '') as name,
 			COALESCE(w.bio, '') as bio,

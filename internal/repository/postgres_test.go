@@ -106,6 +106,21 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			created_at DATETIME,
 			updated_at DATETIME
 		);
+		CREATE TABLE categories (
+			id TEXT PRIMARY KEY,
+			slug TEXT UNIQUE,
+			name TEXT,
+			description TEXT,
+			icon TEXT DEFAULT 'build',
+			starting_price REAL DEFAULT 0.00,
+			price_unit TEXT DEFAULT 'kunjungan',
+			availability_tag TEXT DEFAULT 'Tersedia di Katalog',
+			highlight_tag TEXT DEFAULT '',
+			is_active BOOLEAN DEFAULT 1,
+			sort_order INTEGER DEFAULT 0,
+			created_at DATETIME,
+			updated_at DATETIME
+		);
 	`).Error
 	require.NoError(t, err)
 
@@ -1048,6 +1063,94 @@ func TestPostgresWorkerRepository_RecordAndResetFailedLogin(t *testing.T) {
 	})
 }
 
+func TestPostgresWorkerRepository_GetAdminWorkerList(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("berhasil mengambil daftar pekerja untuk admin dan menangani worker_id null dengan aman", func(t *testing.T) {
+		db := setupTestDB(t)
+		repo := repository.NewPostgresWorkerRepository(db)
+
+		// 1. Akun admin (tidak boleh muncul di GetAdminWorkerList karena WHERE wa.role = 'WORKER')
+		adminAcc := &domain.WorkerAccount{
+			ID:                 "acc-admin-01",
+			Email:              "admin@tuwaktu.com",
+			PhoneNumber:        "6281200000000",
+			PasswordHash:       "hash",
+			Role:               domain.RoleAdmin,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		}
+		require.NoError(t, db.Create(adminAcc).Error)
+
+		// 2. Akun worker dengan worker linked
+		workerID := "w-admin-list-1"
+		w := &domain.Worker{
+			ID:             workerID,
+			Slug:           "agus-ac",
+			Name:           "Agus AC",
+			Bio:            "Spesialis AC",
+			Zone:           "Jakarta Selatan",
+			BasePrice:      75000,
+			RateType:       "HOURLY",
+			AvatarURL:      "https://example.com/agus.jpg",
+			Rating:         4.8,
+			ReviewCount:    10,
+			PhoneNumber:    "6281233445566",
+			WhatsAppNumber: "6281233445566",
+			IsActive:       true,
+		}
+		require.NoError(t, db.Create(w).Error)
+
+		workerAcc := &domain.WorkerAccount{
+			ID:                 "acc-worker-01",
+			WorkerID:           &workerID,
+			Email:              "agus@tuwaktu.com",
+			PhoneNumber:        "6281233445566",
+			PasswordHash:       "hash",
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: false,
+		}
+		require.NoError(t, db.Create(workerAcc).Error)
+
+		// 3. Akun worker tanpa worker linked (worker_id nil)
+		unlinkedWorkerAcc := &domain.WorkerAccount{
+			ID:                 "acc-worker-02",
+			WorkerID:           nil,
+			Email:              "baru@tuwaktu.com",
+			PhoneNumber:        "6281999888777",
+			PasswordHash:       "hash",
+			Role:               domain.RoleWorker,
+			AccountStatus:      domain.AccountStatusActive,
+			MustChangePassword: true,
+		}
+		require.NoError(t, db.Create(unlinkedWorkerAcc).Error)
+
+		items, err := repo.GetAdminWorkerList(ctx)
+		require.NoError(t, err)
+		assert.Len(t, items, 2)
+
+		// Verifikasi linked worker
+		var foundLinked, foundUnlinked bool
+		for _, it := range items {
+			if it.AccountID == "acc-worker-01" {
+				foundLinked = true
+				assert.Equal(t, workerID, it.WorkerID)
+				assert.Equal(t, "agus-ac", it.Slug)
+				assert.Equal(t, "Agus AC", it.Name)
+			}
+			if it.AccountID == "acc-worker-02" {
+				foundUnlinked = true
+				assert.Equal(t, "", it.WorkerID)
+				assert.Equal(t, "", it.Slug)
+				assert.Equal(t, "", it.Name)
+			}
+		}
+		assert.True(t, foundLinked)
+		assert.True(t, foundUnlinked)
+	})
+}
+
 
 
 func TestPostgresWorkerRepository_RealPostgresIntegration(t *testing.T) {
@@ -1072,4 +1175,84 @@ func TestPostgresWorkerRepository_RealPostgresIntegration(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "Budi Santoso", profUpdated.Name)
+}
+
+func TestGormCategoryRepository_CRUD(t *testing.T) {
+	db := setupTestDB(t)
+	repo := repository.NewGormCategoryRepository(db)
+	ctx := context.Background()
+
+	cat := &domain.Category{
+		ID:              "cat-101",
+		Slug:            "servis-pompa-air",
+		Name:            "Servis Pompa Air",
+		Description:     "Pengecekan gulungan dinamo dan penggantian pressure switch.",
+		Icon:            "water_drop",
+		StartingPrice:   95000,
+		PriceUnit:       "unit",
+		AvailabilityTag: "Tersedia di Katalog",
+		HighlightTag:    "Andalan Rumah",
+		IsActive:        true,
+		SortOrder:       1,
+	}
+
+	// 1. Create
+	created, err := repo.Create(ctx, cat)
+	require.NoError(t, err)
+	assert.Equal(t, "cat-101", created.ID)
+
+	// 2. GetByID & GetBySlug
+	byID, err := repo.GetByID(ctx, "cat-101")
+	require.NoError(t, err)
+	assert.Equal(t, "Servis Pompa Air", byID.Name)
+
+	bySlug, err := repo.GetBySlug(ctx, "servis-pompa-air")
+	require.NoError(t, err)
+	assert.Equal(t, "cat-101", bySlug.ID)
+
+	// Case-insensitive slug check
+	byUpperSlug, err := repo.GetBySlug(ctx, "SERVIS-POMPA-AIR")
+	require.NoError(t, err)
+	assert.Equal(t, "cat-101", byUpperSlug.ID)
+
+	// Invalid & empty ID check
+	_, err = repo.GetByID(ctx, "")
+	assert.ErrorIs(t, err, domain.ErrCategoryNotFound)
+
+	_, err = repo.GetBySlug(ctx, "   ")
+	assert.ErrorIs(t, err, domain.ErrCategoryNotFound)
+
+	// 3. ListPublic & ListAdmin
+	pubList, err := repo.ListPublicCategories(ctx)
+	require.NoError(t, err)
+	assert.Len(t, pubList, 1)
+
+	adminList, err := repo.ListAdminCategories(ctx)
+	require.NoError(t, err)
+	assert.Len(t, adminList, 1)
+
+	// 4. Update
+	newPrice := 110000.0
+	newName := "Reparasi Pompa Air Otomatis"
+	isActive := false
+	updated, err := repo.Update(ctx, "cat-101", &domain.UpdateCategoryPayload{
+		Name:          &newName,
+		StartingPrice: &newPrice,
+		IsActive:      &isActive,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Reparasi Pompa Air Otomatis", updated.Name)
+	assert.Equal(t, 110000.0, updated.StartingPrice)
+
+	// Inactive should not appear in public list
+	pubListAfter, err := repo.ListPublicCategories(ctx)
+	require.NoError(t, err)
+	assert.Len(t, pubListAfter, 0)
+
+	// 5. Delete
+	err = repo.Delete(ctx, "cat-101")
+	require.NoError(t, err)
+
+	_, err = repo.GetByID(ctx, "cat-101")
+	assert.ErrorIs(t, err, domain.ErrCategoryNotFound)
 }

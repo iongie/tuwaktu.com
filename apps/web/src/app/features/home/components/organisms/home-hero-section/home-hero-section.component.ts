@@ -139,7 +139,10 @@ import { FeaturedWorker } from '../../../models/home.model';
                     class="w-full h-12 pl-11 pr-9 bg-white/10 hover:bg-white/15 focus:bg-white/20 text-white rounded-lg text-body-default transition-all outline-none border border-white/10 focus:border-voltage-orange appearance-none cursor-pointer"
                   >
                     @for (zone of availableZones(); track zone) {
-                      <option [value]="zone" class="bg-[#1E1E1E] text-white py-1.5">
+                      <option
+                        [value]="zone"
+                        class="bg-[#1E1E1E] text-white py-1.5"
+                      >
                         {{ zone }}
                       </option>
                     }
@@ -308,7 +311,9 @@ export class HomeHeroSectionComponent implements OnInit {
       .filter((w) => {
         const nameMatch = w.name.toLowerCase().includes(q);
         const specMatch = w.specialty.toLowerCase().includes(q);
-        const tagMatch = w.specialtyTags.some((t) => t.toLowerCase().includes(q));
+        const tagMatch = w.specialtyTags.some((t) =>
+          t.toLowerCase().includes(q),
+        );
         return nameMatch || specMatch || tagMatch;
       })
       .slice(0, 4);

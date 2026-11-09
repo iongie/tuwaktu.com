@@ -570,6 +570,25 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 	}, nil
 }
 
+// normalizeAdminWhatsAppNumber membersihkan dan menormalisasi nomor WhatsApp Admin ke format internasional 628...
+func normalizeAdminWhatsAppNumber(raw string) string {
+	digits := sanitize.SanitizeDigitsOnly(raw, 20)
+	if digits == "" {
+		return "6281234567890"
+	}
+	if strings.HasPrefix(digits, "08") {
+		digits = "62" + digits[1:]
+	} else if strings.HasPrefix(digits, "8") {
+		digits = "62" + digits
+	} else if strings.HasPrefix(digits, "6208") {
+		digits = "62" + digits[3:]
+	}
+	if len(digits) < 9 || len(digits) > 16 || !strings.HasPrefix(digits, "628") {
+		return "6281234567890"
+	}
+	return digits
+}
+
 func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthRegisterResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -766,10 +785,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		return nil, fmt.Errorf("menyimpan token aktivasi pendaftaran: %w", err)
 	}
 
-	adminWA := strings.TrimSpace(os.Getenv("ADMIN_WHATSAPP_NUMBER"))
-	if adminWA == "" {
-		adminWA = "6281234567890"
-	}
+	adminWA := normalizeAdminWhatsAppNumber(os.Getenv("ADMIN_WHATSAPP_NUMBER"))
 	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("APP_BASE_URL")), "/")
 	if baseURL == "" {
 		baseURL = "http://localhost:3000"
@@ -792,6 +808,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		activationURL,
 	)
 	whatsappShareURL := fmt.Sprintf("https://wa.me/%s?text=%s", adminWA, url.QueryEscape(waMessage))
+	whatsappWebURL := fmt.Sprintf("https://web.whatsapp.com/send?phone=%s&text=%s", adminWA, url.QueryEscape(waMessage))
 
 	return &domain.AuthRegisterResponse{
 		WorkerID:            newWorker.ID,
@@ -801,6 +818,8 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		AdminWhatsAppNumber: adminWA,
 		ActivationURL:       activationURL,
 		WhatsAppShareURL:    whatsappShareURL,
+		WhatsAppWebURL:      whatsappWebURL,
+		WhatsAppMessage:     waMessage,
 		ExpiresInMinutes:    15,
 	}, nil
 }

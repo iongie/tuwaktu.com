@@ -72,8 +72,15 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
               <span class="font-bold text-ink-on-light">{{ result.name }}</span>
             </div>
             <div class="flex justify-between items-center text-sm pb-2 border-b border-hairline-subtle/20">
-              <span class="text-ink-secondary">Nomor WhatsApp</span>
+              <span class="text-ink-secondary">Nomor WhatsApp Mitra</span>
               <span class="font-mono font-semibold text-ink-on-light">{{ result.whatsapp_number }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm pb-2 border-b border-hairline-subtle/20">
+              <span class="text-ink-secondary">Tujuan WhatsApp Admin</span>
+              <div class="flex items-center gap-1.5 font-mono font-bold text-ink-on-light">
+                <span class="material-symbols-outlined text-whatsapp-green text-[16px]">verified</span>
+                <span>{{ formatAdminPhone(result.admin_whatsapp_number) }}</span>
+              </div>
             </div>
             <div class="flex justify-between items-center text-sm">
               <span class="text-ink-secondary">Alamat Profil Publik</span>
@@ -92,6 +99,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
           </div>
 
           <div class="flex flex-col gap-3 pt-2">
+            <!-- Tombol Utama: Aplikasi WhatsApp -->
             <a
               [href]="result.whatsapp_share_url"
               target="_blank"
@@ -99,8 +107,34 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
               class="w-full h-12 bg-whatsapp-green hover:bg-emerald-600 text-white font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer min-h-[48px] text-decoration-none no-underline"
             >
               <span class="material-symbols-outlined text-[20px]">chat</span>
-              <span>Kirim Pesan Aktivasi ke WhatsApp Admin</span>
+              <span>Buka Aplikasi WhatsApp</span>
             </a>
+
+            <!-- Tombol Alternatif Desktop: WhatsApp Web Langsung -->
+            <a
+              [href]="result.whatsapp_web_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full h-11 bg-surface-container-high hover:bg-surface-container-highest text-ink-on-light border border-hairline-subtle/60 font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer min-h-[44px] text-decoration-none no-underline"
+            >
+              <span class="material-symbols-outlined text-[20px] text-accent-link">laptop_mac</span>
+              <span>Buka via WhatsApp Web (Desktop)</span>
+            </a>
+
+            <!-- Tombol Opsi Manual: Salin Pesan Aktivasi -->
+            <button
+              type="button"
+              (click)="copyMessageToClipboard(result.whatsapp_message)"
+              class="w-full h-11 bg-body-canvas hover:bg-surface-container-low text-ink-on-light border border-hairline-subtle/60 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold transition-all cursor-pointer min-h-[44px]"
+            >
+              @if (copyStatus() === 'copied') {
+                <span class="material-symbols-outlined text-whatsapp-green text-[18px]">check_circle</span>
+                <span class="text-emerald-700 font-bold">Teks Pesan Berhasil Disalin!</span>
+              } @else {
+                <span class="material-symbols-outlined text-ink-secondary text-[18px]">content_copy</span>
+                <span>Salin Teks Pesan Aktivasi</span>
+              }
+            </button>
 
             <div class="flex items-center justify-center gap-1 text-sm pt-2">
               <span class="font-body-default text-body-default text-ink-secondary">
@@ -389,10 +423,55 @@ export class WorkerRegisterFormComponent implements OnDestroy {
   readonly altchaVerified = signal<boolean>(false);
   readonly altchaResetTick = signal<number>(0);
   readonly registrationResult = signal<AuthRegisterResponse | null>(null);
+  readonly copyStatus = signal<'idle' | 'copied' | 'error'>('idle');
+  private copyResetTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly slugValidation = computed(() => {
     return this.authService.validateSlug(this.customSlug);
   });
+
+  formatAdminPhone(raw: string | undefined): string {
+    if (!raw) return '+62 812-3456-7890';
+    const clean = raw.replace(/[^0-9]/g, '');
+    if (clean.startsWith('62')) {
+      const rest = clean.slice(2);
+      if (rest.length >= 8) {
+        return `+62 ${rest.slice(0, 3)}-${rest.slice(3, 7)}-${rest.slice(7)}`;
+      }
+      return `+62 ${rest}`;
+    }
+    return raw;
+  }
+
+  async copyMessageToClipboard(message: string): Promise<void> {
+    if (!message) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(message);
+      } else if (typeof document !== 'undefined') {
+        const textArea = document.createElement('textarea');
+        textArea.value = message;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      this.copyStatus.set('copied');
+    } catch {
+      this.copyStatus.set('error');
+    }
+
+    if (this.copyResetTimeoutId !== null) {
+      clearTimeout(this.copyResetTimeoutId);
+    }
+    this.copyResetTimeoutId = setTimeout(() => {
+      this.copyStatus.set('idle');
+      this.copyResetTimeoutId = null;
+    }, 3000);
+  }
 
   onAltchaVerified(payload: string): void {
     this.altchaPayload.set(payload);
@@ -406,6 +485,10 @@ export class WorkerRegisterFormComponent implements OnDestroy {
     if (this.redirectTimeoutId !== null) {
       clearTimeout(this.redirectTimeoutId);
       this.redirectTimeoutId = null;
+    }
+    if (this.copyResetTimeoutId !== null) {
+      clearTimeout(this.copyResetTimeoutId);
+      this.copyResetTimeoutId = null;
     }
   }
 

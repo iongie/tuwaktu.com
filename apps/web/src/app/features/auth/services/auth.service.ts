@@ -395,6 +395,8 @@ export class AuthService {
         admin_whatsapp_number: '6281234567890',
         activation_url: `http://localhost:3000/api/admin/workers/activate?token=mock_token`,
         whatsapp_share_url: `https://wa.me/6281234567890?text=Halo%20Admin%20Tuwaktu`,
+        whatsapp_web_url: `https://web.whatsapp.com/send?phone=6281234567890&text=Halo%20Admin%20Tuwaktu`,
+        whatsapp_message: `Halo Admin Tuwaktu, saya ${formData.fullName.trim()} baru saja mendaftar.`,
         expires_in_minutes: 15,
       };
 

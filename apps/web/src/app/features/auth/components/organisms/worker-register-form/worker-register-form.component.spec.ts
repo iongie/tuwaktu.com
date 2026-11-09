@@ -109,6 +109,8 @@ describe('WorkerRegisterFormComponent', () => {
           admin_whatsapp_number: '6281234567890',
           activation_url: 'http://localhost:3000/api/admin/workers/activate?token=abc',
           whatsapp_share_url: 'https://wa.me/6281234567890?text=halo',
+          whatsapp_web_url: 'https://web.whatsapp.com/send?phone=6281234567890&text=halo',
+          whatsapp_message: 'Halo Admin Tuwaktu, saya Budi Santoso.',
           expires_in_minutes: 15,
         },
       })
@@ -135,6 +137,22 @@ describe('WorkerRegisterFormComponent', () => {
 
     const successCard = fixture.nativeElement.querySelector('#workerRegistrationSuccessCard');
     expect(successCard).toBeTruthy();
+  });
+
+  it('harus memformat nomor WhatsApp Admin dengan benar untuk tampilan visual', () => {
+    expect(component.formatAdminPhone('6285290040210')).toBe('+62 852-9004-0210');
+    expect(component.formatAdminPhone('')).toBe('+62 812-3456-7890');
+  });
+
+  it('harus mengupdate status copyStatus saat menyalin pesan', async () => {
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: jest.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    await component.copyMessageToClipboard('Pesan tes aktivasi');
+    expect(component.copyStatus()).toBe('copied');
   });
 
   it('harus menampilkan formError saat authService.register mengembalikan error', () => {

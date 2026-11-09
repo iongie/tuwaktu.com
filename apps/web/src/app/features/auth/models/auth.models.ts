@@ -74,6 +74,8 @@ export interface AuthRegisterResponse {
   readonly admin_whatsapp_number: string;
   readonly activation_url: string;
   readonly whatsapp_share_url: string;
+  readonly whatsapp_web_url: string;
+  readonly whatsapp_message: string;
   readonly expires_in_minutes: number;
 }
 

@@ -310,6 +310,8 @@ type AuthRegisterResponse struct {
 	AdminWhatsAppNumber string `json:"admin_whatsapp_number"`
 	ActivationURL       string `json:"activation_url"`
 	WhatsAppShareURL    string `json:"whatsapp_share_url"`
+	WhatsAppWebURL      string `json:"whatsapp_web_url"`
+	WhatsAppMessage     string `json:"whatsapp_message"`
 	ExpiresInMinutes    int    `json:"expires_in_minutes"`
 }
 

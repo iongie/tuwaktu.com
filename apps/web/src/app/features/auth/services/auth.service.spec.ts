@@ -359,6 +359,8 @@ describe('AuthService', () => {
           admin_whatsapp_number: '6281234567890',
           activation_url: 'http://localhost:3000/api/admin/workers/activate?token=abc',
           whatsapp_share_url: 'https://wa.me/6281234567890?text=halo',
+          whatsapp_web_url: 'https://web.whatsapp.com/send?phone=6281234567890&text=halo',
+          whatsapp_message: 'Halo Admin Tuwaktu',
           expires_in_minutes: 15,
         },
       });

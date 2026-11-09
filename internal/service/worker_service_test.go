@@ -683,6 +683,10 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		assert.NotEmpty(t, resp.WhatsAppShareURL)
 		assert.Equal(t, 15, resp.ExpiresInMinutes)
 		assert.Contains(t, resp.WhatsAppShareURL, "wa.me/")
+		assert.NotEmpty(t, resp.WhatsAppWebURL)
+		assert.Contains(t, resp.WhatsAppWebURL, "web.whatsapp.com/send?phone=")
+		assert.NotEmpty(t, resp.WhatsAppMessage)
+		assert.Contains(t, resp.WhatsAppMessage, "Halo Admin Tuwaktu")
 
 		// Verifikasi worker tersimpan di repo dengan status awal IsActive = false (pending)
 		w, err := repo.GetBySlug(ctx, "budi-ac-jakarta")
@@ -721,6 +725,41 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		_, errWrong := svc.Authenticate(ctx, "6281234567890", "999999")
 		require.Error(t, errWrong)
 		assert.Contains(t, errWrong.Error(), "kata sandi yang Anda masukkan tidak sesuai")
+	})
+
+	t.Run("berhasil menormalisasi nomor Admin WhatsApp dari berbagai format lingkungan", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		// Uji format lokal 08...
+		t.Setenv("ADMIN_WHATSAPP_NUMBER", "085290040210")
+		payload1 := &domain.AuthRegisterPayload{
+			Name:           "Mitra Satu",
+			WhatsAppNumber: "6281234567891",
+			Zone:           "Tangerang",
+			Slug:           "mitra-satu",
+			PIN:            "482915",
+		}
+		resp1, err1 := svc.RegisterWorker(ctx, payload1)
+		require.NoError(t, err1)
+		assert.Equal(t, "6285290040210", resp1.AdminWhatsAppNumber)
+		assert.Contains(t, resp1.WhatsAppShareURL, "wa.me/6285290040210")
+		assert.Contains(t, resp1.WhatsAppWebURL, "web.whatsapp.com/send?phone=6285290040210")
+
+		// Uji format bersimbol +62 852-9004-0210
+		t.Setenv("ADMIN_WHATSAPP_NUMBER", "+62 852-9004-0210")
+		payload2 := &domain.AuthRegisterPayload{
+			Name:           "Mitra Dua",
+			WhatsAppNumber: "6281234567892",
+			Zone:           "Bekasi",
+			Slug:           "mitra-dua",
+			PIN:            "482915",
+		}
+		resp2, err2 := svc.RegisterWorker(ctx, payload2)
+		require.NoError(t, err2)
+		assert.Equal(t, "6285290040210", resp2.AdminWhatsAppNumber)
+		assert.Contains(t, resp2.WhatsAppShareURL, "wa.me/6285290040210")
+		assert.Contains(t, resp2.WhatsAppWebURL, "web.whatsapp.com/send?phone=6285290040210")
 	})
 
 	t.Run("gagal jika menggunakan PIN lemah yang sekuensial atau repetitif", func(t *testing.T) {

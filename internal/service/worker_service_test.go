@@ -1303,4 +1303,226 @@ func TestWorkerService_CatalogServicesCRUD(t *testing.T) {
 	})
 }
 
+func TestWorkerService_CredentialReset(t *testing.T) {
+	ctx := context.Background()
+
+	setupWorkerWithAccount := func(t *testing.T) (*repository.MemoryRepository, service.WorkerService, *domain.Worker, *domain.WorkerAccount) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		workerID := "worker-reset-1"
+		worker := &domain.Worker{
+			ID:             workerID,
+			Slug:           "budi-teknisi",
+			Name:           "Budi Santoso",
+			PhoneNumber:    "6281234567890",
+			WhatsAppNumber: "6281234567890",
+			IsActive:       true,
+		}
+		repo.SeedWorker(worker)
+
+		initialHash, err := auth.HashPassword("123987")
+		require.NoError(t, err)
+
+		account := &domain.WorkerAccount{
+			ID:           "acc-reset-1",
+			WorkerID:     &workerID,
+			PhoneNumber:  "6281234567890",
+			PasswordHash: initialHash,
+			Role:         domain.RoleWorker,
+		}
+		repo.SeedAccount(account)
+
+		return repo, svc, worker, account
+	}
+
+	t.Run("berhasil mengajukan reset PIN dan menghasilkan tautan WhatsApp admin", func(t *testing.T) {
+		_, svc, worker, _ := setupWorkerWithAccount(t)
+
+		res, err := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: worker.WhatsAppNumber,
+			RequestType: domain.ResetTypePIN,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, worker.Name, res.WorkerName)
+		assert.Equal(t, worker.WhatsAppNumber, res.PhoneNumber)
+		assert.Contains(t, res.WhatsAppMessage, "Reset PIN Keamanan")
+		assert.Contains(t, res.WhatsAppShareURL, "wa.me")
+	})
+
+	t.Run("gagal mengajukan reset jika akun tidak ditemukan", func(t *testing.T) {
+		_, svc, _, _ := setupWorkerWithAccount(t)
+
+		_, err := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: "628999999999",
+			RequestType: domain.ResetTypePIN,
+		})
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domain.ErrWorkerNotFound)
+	})
+
+	t.Run("gagal mengajukan reset kedua kali saat permohonan pertama masih aktif (cooldown)", func(t *testing.T) {
+		_, svc, worker, _ := setupWorkerWithAccount(t)
+
+		_, err := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: worker.WhatsAppNumber,
+			RequestType: domain.ResetTypePIN,
+		})
+		require.NoError(t, err)
+
+		_, err2 := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: worker.WhatsAppNumber,
+			RequestType: domain.ResetTypePIN,
+		})
+		require.Error(t, err2)
+		assert.Contains(t, err2.Error(), "masih aktif dan belum kedaluwarsa")
+	})
+
+	t.Run("alur lengkap: permohonan -> verifikasi admin -> persetujuan admin -> eksekusi reset PIN baru", func(t *testing.T) {
+		_, svc, worker, account := setupWorkerWithAccount(t)
+
+		// 1. Pengajuan oleh mitra
+		reqRes, err := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: worker.WhatsAppNumber,
+			RequestType: domain.ResetTypePIN,
+		})
+		require.NoError(t, err)
+
+		// Ekstrak raw token dari pesan WhatsApp admin
+		msg := reqRes.WhatsAppMessage
+		tokenIdx := strings.Index(msg, "token=")
+		require.True(t, tokenIdx != -1)
+		rawTier1Token := strings.TrimSpace(msg[tokenIdx+len("token="):])
+		endIdx := strings.IndexAny(rawTier1Token, " \n\r\t")
+		if endIdx != -1 {
+			rawTier1Token = rawTier1Token[:endIdx]
+		}
+
+		// 2. Admin membuka tautan verifikasi
+		view, err := svc.VerifyResetRequestByAdmin(ctx, rawTier1Token)
+		require.NoError(t, err)
+		assert.Equal(t, worker.Name, view.WorkerName)
+		assert.Equal(t, worker.WhatsAppNumber, view.WorkerPhone)
+		assert.False(t, view.IsApproved)
+
+		// 3. Admin menyetujui permohonan
+		approveRes, err := svc.ApproveCredentialReset(ctx, "admin-1", rawTier1Token)
+		require.NoError(t, err)
+		assert.Contains(t, approveRes.WhatsAppMessage, "telah disetujui")
+
+		// Ekstrak tier-2 execution token
+		execIdx := strings.Index(approveRes.ExecutionURL, "token=")
+		require.True(t, execIdx != -1)
+		rawTier2Token := approveRes.ExecutionURL[execIdx+len("token="):]
+
+		// 4. Mitra mengeksekusi reset PIN baru
+		newPIN := "852963"
+		err = svc.ExecuteCredentialReset(ctx, &domain.ExecuteCredentialResetPayload{
+			ExecutionToken: rawTier2Token,
+			PhoneNumber:    worker.WhatsAppNumber,
+			NewPIN:         newPIN,
+		})
+		require.NoError(t, err)
+
+		// 5. Verifikasi PIN lama tidak berlaku dan PIN baru sukses untuk login
+		_, errOld := svc.Authenticate(ctx, worker.WhatsAppNumber, "123987")
+		require.Error(t, errOld)
+
+		loginRes, errNew := svc.Authenticate(ctx, worker.WhatsAppNumber, newPIN)
+		require.NoError(t, errNew)
+		assert.Equal(t, account.ID, loginRes.Session.ID)
+
+		// 6. Token tier-2 tidak dapat digunakan kembali (single-use)
+		errReuse := svc.ExecuteCredentialReset(ctx, &domain.ExecuteCredentialResetPayload{
+			ExecutionToken: rawTier2Token,
+			PhoneNumber:    worker.WhatsAppNumber,
+			NewPIN:         "741852",
+		})
+		require.Error(t, errReuse)
+		assert.Contains(t, errReuse.Error(), "sudah pernah digunakan")
+	})
+
+	t.Run("alur ganti nomor WhatsApp: memperbarui nomor pada akun dan profil", func(t *testing.T) {
+		repo, svc, worker, _ := setupWorkerWithAccount(t)
+
+		// 1. Pengajuan ganti nomor
+		reqRes, err := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: worker.WhatsAppNumber,
+			RequestType: domain.ResetTypePhone,
+		})
+		require.NoError(t, err)
+
+		tokenIdx := strings.Index(reqRes.WhatsAppMessage, "token=")
+		rawTier1Token := reqRes.WhatsAppMessage[tokenIdx+len("token="):]
+		endIdx := strings.IndexAny(rawTier1Token, " \n\r\t")
+		if endIdx != -1 {
+			rawTier1Token = rawTier1Token[:endIdx]
+		}
+
+		// 2. Persetujuan admin
+		approveRes, err := svc.ApproveCredentialReset(ctx, "admin-1", rawTier1Token)
+		require.NoError(t, err)
+
+		execIdx := strings.Index(approveRes.ExecutionURL, "token=")
+		rawTier2Token := approveRes.ExecutionURL[execIdx+len("token="):]
+
+		// 3. Eksekusi dengan nomor WhatsApp baru
+		newPhone := "6285678901234"
+		newPIN := "963852"
+		err = svc.ExecuteCredentialReset(ctx, &domain.ExecuteCredentialResetPayload{
+			ExecutionToken: rawTier2Token,
+			PhoneNumber:    worker.WhatsAppNumber,
+			NewPhoneNumber: newPhone,
+			NewPIN:         newPIN,
+		})
+		require.NoError(t, err)
+
+		// 4. Verifikasi akun dan profil terbarui
+		accUpdated, err := repo.GetAccountByEmailOrPhone(ctx, newPhone)
+		require.NoError(t, err)
+		assert.Equal(t, newPhone, accUpdated.PhoneNumber)
+
+		wUpdated, err := repo.GetByID(ctx, worker.ID)
+		require.NoError(t, err)
+		assert.Equal(t, newPhone, wUpdated.WhatsAppNumber)
+
+		// Login dengan nomor baru dan PIN baru
+		loginRes, err := svc.Authenticate(ctx, newPhone, newPIN)
+		require.NoError(t, err)
+		assert.Equal(t, accUpdated.ID, loginRes.Session.ID)
+	})
+
+	t.Run("gagal eksekusi jika PIN baru lemah atau urutan angka berulang", func(t *testing.T) {
+		_, svc, worker, _ := setupWorkerWithAccount(t)
+
+		reqRes, err := svc.RequestCredentialReset(ctx, &domain.CredentialResetRequestPayload{
+			PhoneNumber: worker.WhatsAppNumber,
+			RequestType: domain.ResetTypePIN,
+		})
+		require.NoError(t, err)
+
+		tokenIdx := strings.Index(reqRes.WhatsAppMessage, "token=")
+		rawTier1Token := reqRes.WhatsAppMessage[tokenIdx+len("token="):]
+		endIdx := strings.IndexAny(rawTier1Token, " \n\r\t")
+		if endIdx != -1 {
+			rawTier1Token = rawTier1Token[:endIdx]
+		}
+
+		approveRes, err := svc.ApproveCredentialReset(ctx, "admin-1", rawTier1Token)
+		require.NoError(t, err)
+
+		execIdx := strings.Index(approveRes.ExecutionURL, "token=")
+		rawTier2Token := approveRes.ExecutionURL[execIdx+len("token="):]
+
+		// Coba PIN 123456
+		errWeak := svc.ExecuteCredentialReset(ctx, &domain.ExecuteCredentialResetPayload{
+			ExecutionToken: rawTier2Token,
+			PhoneNumber:    worker.WhatsAppNumber,
+			NewPIN:         "123456",
+		})
+		require.Error(t, errWeak)
+		assert.Contains(t, errWeak.Error(), "PIN terlalu lemah")
+	})
+}
+
 

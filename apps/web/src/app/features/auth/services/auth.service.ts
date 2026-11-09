@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, finalize, map, Observable, of, shareReplay } from 'rxjs';
 import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
+  AdminApproveResetResponse,
+  AdminResetApprovalView,
   AltchaChallenge,
   AuthLoginResult,
   AuthRegisterResponse,
@@ -10,6 +12,9 @@ import {
   AuthUserSession,
   BackendLoginData,
   BackendUserSession,
+  CredentialResetRequestPayload,
+  CredentialResetRequestResponse,
+  ExecuteCredentialResetPayload,
   INITIAL_SPECIALTY_OPTIONS,
   LoginFormData,
   MagicLinkStatus,
@@ -730,5 +735,189 @@ export class AuthService {
     }
 
     return { isValid: true };
+  }
+
+  requestCredentialReset(payload: CredentialResetRequestPayload): Observable<{
+    success: boolean;
+    message?: string;
+    data?: CredentialResetRequestResponse;
+    error?: string;
+  }> {
+    if (!this.httpClient) {
+      return of({
+        success: true,
+        message: 'Permohonan reset kredensial berhasil dibuat (mock).',
+        data: {
+          worker_name: 'Mitra Tuwaktu',
+          phone_number: payload.phone_number,
+          admin_whatsapp_number: '6281234567890',
+          whatsapp_share_url: 'https://wa.me/6281234567890',
+          whatsapp_web_url: 'https://web.whatsapp.com/send?phone=6281234567890',
+          whatsapp_message: 'Halo Admin Tuwaktu',
+          expires_in_minutes: 15,
+        },
+      });
+    }
+
+    return this.httpClient
+      .post<{ success: boolean; message: string; data: CredentialResetRequestResponse }>(
+        `${this.normalizedBaseUrl}/api/v1/auth/credential-reset-request`,
+        payload,
+        { withCredentials: true }
+      )
+      .pipe(
+        map((resp) => ({
+          success: resp?.success ?? true,
+          message: resp?.message,
+          data: resp?.data,
+        })),
+        catchError((err: unknown) => {
+          const httpErr = err as { message?: string; error?: { message?: string } | string };
+          let errorMessage =
+            (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+            (typeof httpErr?.error === 'string' && httpErr.error) ||
+            'Gagal mengajukan permohonan reset. Silakan coba beberapa saat lagi.';
+          if (typeof errorMessage === 'string') {
+            errorMessage = errorMessage.replace(/^data masukan tidak valid:\s*/i, '');
+          }
+          return of({ success: false, error: errorMessage });
+        })
+      );
+  }
+
+  verifyResetRequestByAdmin(rawToken: string): Observable<{
+    success: boolean;
+    message?: string;
+    data?: AdminResetApprovalView;
+    error?: string;
+  }> {
+    if (!this.httpClient) {
+      return of({
+        success: true,
+        message: 'Data permohonan reset berhasil diverifikasi (mock).',
+        data: {
+          request_id: 'mock-req-1',
+          worker_id: 'mock-wrk-1',
+          worker_name: 'Mitra Tuwaktu',
+          worker_phone: '6281234567890',
+          request_type: 'RESET_PIN',
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+          is_approved: false,
+        },
+      });
+    }
+
+    return this.httpClient
+      .get<{ success: boolean; message: string; data: AdminResetApprovalView }>(
+        `${this.normalizedBaseUrl}/api/v1/admin/credential-reset/verify`,
+        {
+          params: { token: rawToken },
+          withCredentials: true,
+        }
+      )
+      .pipe(
+        map((resp) => ({
+          success: resp?.success ?? true,
+          message: resp?.message,
+          data: resp?.data,
+        })),
+        catchError((err: unknown) => {
+          const httpErr = err as { message?: string; error?: { message?: string } | string };
+          let errorMessage =
+            (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+            (typeof httpErr?.error === 'string' && httpErr.error) ||
+            'Tautan permohonan reset tidak valid atau telah kedaluwarsa.';
+          if (typeof errorMessage === 'string') {
+            errorMessage = errorMessage.replace(/^data masukan tidak valid:\s*/i, '');
+          }
+          return of({ success: false, error: errorMessage });
+        })
+      );
+  }
+
+  approveCredentialReset(rawToken: string): Observable<{
+    success: boolean;
+    message?: string;
+    data?: AdminApproveResetResponse;
+    error?: string;
+  }> {
+    if (!this.httpClient) {
+      return of({
+        success: true,
+        message: 'Permohonan reset berhasil disetujui (mock).',
+        data: {
+          worker_name: 'Mitra Tuwaktu',
+          worker_whatsapp_number: '6281234567890',
+          whatsapp_share_url: 'https://wa.me/6281234567890',
+          whatsapp_web_url: 'https://web.whatsapp.com/send?phone=6281234567890',
+          whatsapp_message: 'Halo Mitra Tuwaktu',
+          execution_url: 'http://localhost:4200/reset-credential?token=mock_exec',
+          expires_in_minutes: 10,
+        },
+      });
+    }
+
+    return this.httpClient
+      .post<{ success: boolean; message: string; data: AdminApproveResetResponse }>(
+        `${this.normalizedBaseUrl}/api/v1/admin/credential-reset/approve`,
+        { request_token: rawToken },
+        { withCredentials: true }
+      )
+      .pipe(
+        map((resp) => ({
+          success: resp?.success ?? true,
+          message: resp?.message,
+          data: resp?.data,
+        })),
+        catchError((err: unknown) => {
+          const httpErr = err as { message?: string; error?: { message?: string } | string };
+          let errorMessage =
+            (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+            (typeof httpErr?.error === 'string' && httpErr.error) ||
+            'Gagal menyetujui permohonan reset.';
+          if (typeof errorMessage === 'string') {
+            errorMessage = errorMessage.replace(/^data masukan tidak valid:\s*/i, '');
+          }
+          return of({ success: false, error: errorMessage });
+        })
+      );
+  }
+
+  executeCredentialReset(payload: ExecuteCredentialResetPayload): Observable<{
+    success: boolean;
+    message?: string;
+    error?: string;
+  }> {
+    if (!this.httpClient) {
+      return of({
+        success: true,
+        message: 'Kredensial akun berhasil diperbarui (mock).',
+      });
+    }
+
+    return this.httpClient
+      .post<{ success: boolean; message: string }>(
+        `${this.normalizedBaseUrl}/api/v1/auth/credential-reset/execute`,
+        payload,
+        { withCredentials: true }
+      )
+      .pipe(
+        map((resp) => ({
+          success: resp?.success ?? true,
+          message: resp?.message || 'Kredensial akun berhasil diperbarui. Silakan masuk menggunakan PIN baru Anda.',
+        })),
+        catchError((err: unknown) => {
+          const httpErr = err as { message?: string; error?: { message?: string } | string };
+          let errorMessage =
+            (typeof httpErr?.error === 'object' && httpErr?.error?.message) ||
+            (typeof httpErr?.error === 'string' && httpErr.error) ||
+            'Gagal memperbarui kredensial akun.';
+          if (typeof errorMessage === 'string') {
+            errorMessage = errorMessage.replace(/^data masukan tidak valid:\s*/i, '');
+          }
+          return of({ success: false, error: errorMessage });
+        })
+      );
   }
 }

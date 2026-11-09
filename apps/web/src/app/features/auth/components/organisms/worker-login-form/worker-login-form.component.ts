@@ -13,8 +13,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filterNumericInput, sanitizePlainText } from '../../../../../core/utils/sanitize.utils';
 import { AuthService } from '../../../services/auth.service';
-import { AuthMethod, LoginFormData } from '../../../models/auth.models';
+import { AuthMethod, CredentialResetType, LoginFormData } from '../../../models/auth.models';
 import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-field/altcha-captcha-field.component';
+import { CredentialResetModalComponent } from '../../molecules/credential-reset-modal/credential-reset-modal.component';
 import {
   isAdminUrl,
   normalizeAdminUrl,
@@ -28,7 +29,13 @@ import {
 @Component({
   selector: 'app-worker-login-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AltchaCaptchaFieldComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    AltchaCaptchaFieldComponent,
+    CredentialResetModalComponent,
+  ],
   template: `
     <div class="flex flex-col gap-6 max-w-xl mx-auto w-full">
       <div class="flex flex-col gap-1.5">
@@ -154,7 +161,7 @@ import {
             </label>
             <button
               type="button"
-              (click)="showResetInfo()"
+              (click)="showResetInfo('RESET_PIN')"
               class="font-caption text-caption text-accent-link hover:underline cursor-pointer min-h-[44px] inline-flex items-center bg-transparent border-0 p-0"
             >
               Lupa PIN Keamanan?
@@ -220,7 +227,7 @@ import {
         >
           <button
             type="button"
-            (click)="showResetInfo()"
+            (click)="showResetInfo('CHANGE_PHONE')"
             class="hover:text-ink-on-light transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-0 py-2 min-h-[44px] text-left"
           >
             <span class="material-symbols-outlined text-[14px]">phonelink_setup</span>
@@ -269,6 +276,13 @@ import {
           jaringan pelacak iklan pihak ketiga mana pun.
         </p>
       </div>
+
+      <app-credential-reset-modal
+        [isOpen]="isResetModalOpen()"
+        [initialType]="resetModalType()"
+        [initialPhone]="waNumber"
+        (closed)="isResetModalOpen.set(false)"
+      />
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -280,6 +294,8 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
   private redirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private routeSubscription: Subscription | null = null;
 
+  readonly isResetModalOpen = signal<boolean>(false);
+  readonly resetModalType = signal<CredentialResetType>('RESET_PIN');
   readonly activeMethod = signal<AuthMethod>('wa');
   readonly showPin = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
@@ -359,10 +375,9 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
     this.securityPin = filterNumericInput(event, 6);
   }
 
-  showResetInfo(): void {
-    this.loginError.set(
-      'Untuk mereset nomor atau PIN keamanan, silakan hubungi tim dukungan Tuwaktu dengan bukti kepemilikan nomor WhatsApp.',
-    );
+  showResetInfo(type: CredentialResetType = 'RESET_PIN'): void {
+    this.resetModalType.set(type);
+    this.isResetModalOpen.set(true);
   }
 
   handleLoginSubmit(): void {

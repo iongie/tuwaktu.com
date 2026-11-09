@@ -142,6 +142,17 @@ export const appRoutes: Route[] = [
     redirectTo: 'login',
   },
   {
+    path: 'reset-credential',
+    loadComponent: () =>
+      import(
+        './features/auth/components/pages/worker-credential-reset-page/worker-credential-reset-page.component'
+      ).then((m) => m.WorkerCredentialResetPageComponent),
+  },
+  {
+    path: 'reset-pin',
+    redirectTo: 'reset-credential',
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     canActivateChild: [adminGuard],
@@ -187,6 +198,13 @@ export const appRoutes: Route[] = [
       {
         path: 'kategori',
         redirectTo: 'categories',
+      },
+      {
+        path: 'requests/reset',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-credential-reset-approval-page/admin-credential-reset-approval-page.component'
+          ).then((m) => m.AdminCredentialResetApprovalPageComponent),
       },
     ],
   },

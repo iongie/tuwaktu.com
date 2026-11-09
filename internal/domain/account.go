@@ -316,3 +316,101 @@ type AuthRegisterResponse struct {
 	ExpiresInMinutes    int    `json:"expires_in_minutes"`
 }
 
+const (
+	ResetTypePIN   = "RESET_PIN"
+	ResetTypePhone = "CHANGE_PHONE"
+)
+
+// WorkerCredentialResetToken merepresentasikan entitas permohonan dan eksekusi reset kredensial (PIN/Nomor)
+type WorkerCredentialResetToken struct {
+	ID                 string     `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
+	AccountID          string     `json:"account_id" db:"account_id" gorm:"type:uuid;not null;index"`
+	WorkerID           *string    `json:"worker_id,omitempty" db:"worker_id" gorm:"type:uuid;index"`
+	RequestType        string     `json:"request_type" db:"request_type" gorm:"type:varchar(30);not null;default:'RESET_PIN'"`
+	PhoneNumber        string     `json:"phone_number" db:"phone_number" gorm:"type:varchar(30);not null;index"`
+	RequestTokenHash   string     `json:"request_token_hash" db:"request_token_hash" gorm:"type:varchar(64);not null;uniqueIndex"`
+	RequestExpiresAt   time.Time  `json:"request_expires_at" db:"request_expires_at" gorm:"type:timestamptz;not null"`
+	IsApproved         bool       `json:"is_approved" db:"is_approved" gorm:"type:boolean;not null;default:false"`
+	ApprovedAt         *time.Time `json:"approved_at,omitempty" db:"approved_at" gorm:"type:timestamptz"`
+	ApprovedByAdminID  *string    `json:"approved_by_admin_id,omitempty" db:"approved_by_admin_id" gorm:"type:uuid"`
+	ExecutionTokenHash *string    `json:"execution_token_hash,omitempty" db:"execution_token_hash" gorm:"type:varchar(64);uniqueIndex"`
+	ExecutionExpiresAt *time.Time `json:"execution_expires_at,omitempty" db:"execution_expires_at" gorm:"type:timestamptz"`
+	IsUsed             bool       `json:"is_used" db:"is_used" gorm:"type:boolean;not null;default:false"`
+	UsedAt             *time.Time `json:"used_at,omitempty" db:"used_at" gorm:"type:timestamptz"`
+	CreatedAt          time.Time  `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
+
+	Account *WorkerAccount `json:"account,omitempty" gorm:"foreignKey:AccountID"`
+	Worker  *Worker        `json:"worker,omitempty" gorm:"foreignKey:WorkerID"`
+}
+
+func (WorkerCredentialResetToken) TableName() string {
+	return "worker_credential_reset_tokens"
+}
+
+func (t *WorkerCredentialResetToken) BeforeCreate(tx *gorm.DB) error {
+	if strings.TrimSpace(t.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for worker_credential_reset_token: %w", err)
+		}
+		t.ID = id.String()
+	}
+	return nil
+}
+
+// CredentialResetRequestPayload payload pengajuan reset PIN atau ganti nomor WhatsApp
+type CredentialResetRequestPayload struct {
+	PhoneNumber   string `json:"phone_number"`
+	RequestType   string `json:"request_type"` // RESET_PIN atau CHANGE_PHONE
+	AltchaPayload string `json:"altcha_payload"`
+}
+
+// CredentialResetRequestResponse respons pengajuan reset kredensial untuk WhatsApp admin
+type CredentialResetRequestResponse struct {
+	WorkerName          string `json:"worker_name"`
+	PhoneNumber         string `json:"phone_number"`
+	AdminWhatsAppNumber string `json:"admin_whatsapp_number"`
+	WhatsAppShareURL    string `json:"whatsapp_share_url"`
+	WhatsAppWebURL      string `json:"whatsapp_web_url"`
+	WhatsAppMessage     string `json:"whatsapp_message"`
+	ExpiresInMinutes    int    `json:"expires_in_minutes"`
+}
+
+// AdminResetApprovalView data pratinjau verifikasi permohonan untuk Admin
+type AdminResetApprovalView struct {
+	RequestID   string    `json:"request_id"`
+	WorkerID    string    `json:"worker_id"`
+	WorkerName  string    `json:"worker_name"`
+	WorkerPhone string    `json:"worker_phone"`
+	RequestType string    `json:"request_type"`
+	CreatedAt   time.Time `json:"created_at"`
+	ExpiresAt   time.Time `json:"expires_at"`
+	IsApproved  bool      `json:"is_approved"`
+}
+
+// AdminApproveResetPayload payload persetujuan permohonan oleh Admin
+type AdminApproveResetPayload struct {
+	RequestToken string `json:"request_token"`
+}
+
+// AdminApproveResetResponse respons hasil persetujuan yang berisi tautan eksekusi untuk mitra
+type AdminApproveResetResponse struct {
+	WorkerName          string `json:"worker_name"`
+	WorkerWhatsAppNumber string `json:"worker_whatsapp_number"`
+	WhatsAppShareURL    string `json:"whatsapp_share_url"`
+	WhatsAppWebURL      string `json:"whatsapp_web_url"`
+	WhatsAppMessage     string `json:"whatsapp_message"`
+	ExecutionURL        string `json:"execution_url"`
+	ExpiresInMinutes    int    `json:"expires_in_minutes"`
+}
+
+// ExecuteCredentialResetPayload payload eksekusi pembaruan PIN atau nomor WhatsApp baru oleh mitra
+type ExecuteCredentialResetPayload struct {
+	ExecutionToken string `json:"execution_token"`
+	PhoneNumber    string `json:"phone_number"`
+	NewPIN         string `json:"new_pin"`
+	NewPhoneNumber string `json:"new_phone_number,omitempty"`
+	AltchaPayload  string `json:"altcha_payload"`
+}
+
+

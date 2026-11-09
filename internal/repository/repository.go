@@ -38,6 +38,14 @@ type WorkerRepository interface {
 	CreateActivationToken(ctx context.Context, token *domain.WorkerActivationToken) error
 	GetActivationTokenByHash(ctx context.Context, tokenHash string) (*domain.WorkerActivationToken, error)
 	MarkActivationTokenUsed(ctx context.Context, tokenID string, workerID string) error
+
+	// Token Reset Kredensial (PIN / WhatsApp) Dua Tingkat
+	CreateCredentialResetToken(ctx context.Context, token *domain.WorkerCredentialResetToken) error
+	GetActiveResetTokenByPhone(ctx context.Context, phone string, now time.Time) (*domain.WorkerCredentialResetToken, error)
+	GetResetTokenByRequestHash(ctx context.Context, hash string) (*domain.WorkerCredentialResetToken, error)
+	ApproveResetToken(ctx context.Context, id string, adminID string, executionHash string, executionExpiresAt time.Time) error
+	GetResetTokenByExecutionHash(ctx context.Context, hash string) (*domain.WorkerCredentialResetToken, error)
+	MarkResetTokenUsed(ctx context.Context, id string, accountID string, newPasswordHash string, newPhone string) error
 }
 
 type BookingRepository interface {

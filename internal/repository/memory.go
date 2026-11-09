@@ -22,6 +22,7 @@ type MemoryRepository struct {
 	reviews          map[string]*domain.Review
 	events           []*domain.AnalyticsEvent
 	activationTokens map[string]*domain.WorkerActivationToken
+	resetTokens      map[string]*domain.WorkerCredentialResetToken
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -34,6 +35,7 @@ func NewMemoryRepository() *MemoryRepository {
 		reviews:          make(map[string]*domain.Review),
 		events:           make([]*domain.AnalyticsEvent, 0),
 		activationTokens: make(map[string]*domain.WorkerActivationToken),
+		resetTokens:      make(map[string]*domain.WorkerCredentialResetToken),
 	}
 }
 
@@ -1306,6 +1308,121 @@ func (m *MemoryRepository) MarkActivationTokenUsed(ctx context.Context, tokenID 
 	for _, acc := range m.accounts {
 		if acc.WorkerID != nil && *acc.WorkerID == workerID {
 			acc.AccountStatus = domain.AccountStatusActive
+		}
+	}
+
+	return nil
+}
+
+// CreateCredentialResetToken menyimpan permohonan reset ke in-memory store
+func (m *MemoryRepository) CreateCredentialResetToken(ctx context.Context, token *domain.WorkerCredentialResetToken) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if token.ID == "" {
+		token.ID = uuid.NewString()
+	}
+	m.resetTokens[token.ID] = token
+	return nil
+}
+
+// GetActiveResetTokenByPhone mencari token permohonan reset aktif di in-memory store
+func (m *MemoryRepository) GetActiveResetTokenByPhone(ctx context.Context, phone string, now time.Time) (*domain.WorkerCredentialResetToken, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, t := range m.resetTokens {
+		if t.PhoneNumber == phone && t.RequestExpiresAt.After(now) && !t.IsApproved && !t.IsUsed {
+			return t, nil
+		}
+	}
+	return nil, nil
+}
+
+// GetResetTokenByRequestHash mencari permohonan reset berdasarkan request_token_hash
+func (m *MemoryRepository) GetResetTokenByRequestHash(ctx context.Context, hash string) (*domain.WorkerCredentialResetToken, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, t := range m.resetTokens {
+		if t.RequestTokenHash == hash {
+			if t.WorkerID != nil {
+				t.Worker = m.workers[*t.WorkerID]
+			}
+			t.Account = m.accounts[t.AccountID]
+			return t, nil
+		}
+	}
+	return nil, domain.ErrWorkerNotFound
+}
+
+// ApproveResetToken memperbarui status token permohonan menjadi disetujui di in-memory store
+func (m *MemoryRepository) ApproveResetToken(ctx context.Context, id string, adminID string, executionHash string, executionExpiresAt time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	t, ok := m.resetTokens[id]
+	if !ok || t.IsApproved {
+		return fmt.Errorf("permohonan reset tidak ditemukan atau sudah pernah disetujui")
+	}
+
+	now := time.Now().UTC()
+	t.IsApproved = true
+	t.ApprovedAt = &now
+	t.ApprovedByAdminID = &adminID
+	t.ExecutionTokenHash = &executionHash
+	t.ExecutionExpiresAt = &executionExpiresAt
+	return nil
+}
+
+// GetResetTokenByExecutionHash mencari token reset berdasarkan execution_token_hash
+func (m *MemoryRepository) GetResetTokenByExecutionHash(ctx context.Context, hash string) (*domain.WorkerCredentialResetToken, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, t := range m.resetTokens {
+		if t.ExecutionTokenHash != nil && *t.ExecutionTokenHash == hash {
+			if t.WorkerID != nil {
+				t.Worker = m.workers[*t.WorkerID]
+			}
+			t.Account = m.accounts[t.AccountID]
+			return t, nil
+		}
+	}
+	return nil, domain.ErrWorkerNotFound
+}
+
+// MarkResetTokenUsed menandai token reset telah digunakan dan memperbarui kredensial akun
+func (m *MemoryRepository) MarkResetTokenUsed(ctx context.Context, id string, accountID string, newPasswordHash string, newPhone string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	t, ok := m.resetTokens[id]
+	if !ok || t.IsUsed {
+		return fmt.Errorf("token reset sudah pernah digunakan atau tidak valid")
+	}
+
+	now := time.Now().UTC()
+	t.IsUsed = true
+	t.UsedAt = &now
+
+	acc, ok := m.accounts[accountID]
+	if !ok {
+		return domain.ErrWorkerNotFound
+	}
+	acc.PasswordHash = newPasswordHash
+	acc.FailedLoginAttempts = 0
+	acc.LockedUntil = nil
+	acc.UpdatedAt = now
+
+	if strings.TrimSpace(newPhone) != "" {
+		cleanPhone := strings.TrimSpace(newPhone)
+		acc.PhoneNumber = cleanPhone
+		if acc.WorkerID != nil {
+			if w, ok := m.workers[*acc.WorkerID]; ok {
+				w.WhatsAppNumber = cleanPhone
+				w.UpdatedAt = now
+			}
 		}
 	}
 

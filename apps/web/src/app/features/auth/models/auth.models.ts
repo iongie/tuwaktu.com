@@ -112,3 +112,50 @@ export const INITIAL_SPECIALTY_OPTIONS: readonly SpecialtyOption[] = [
   { id: 'electronics', label: 'Servis Elektronik Presisi' },
   { id: 'landscape', label: 'Perawatan Taman & Landscape Urban', colSpan: true },
 ];
+
+export type CredentialResetType = 'RESET_PIN' | 'CHANGE_PHONE';
+
+export interface CredentialResetRequestPayload {
+  readonly phone_number: string;
+  readonly request_type: CredentialResetType;
+  readonly altcha_payload?: string;
+}
+
+export interface CredentialResetRequestResponse {
+  readonly worker_name: string;
+  readonly phone_number: string;
+  readonly admin_whatsapp_number: string;
+  readonly whatsapp_share_url: string;
+  readonly whatsapp_web_url: string;
+  readonly whatsapp_message: string;
+  readonly expires_in_minutes: number;
+}
+
+export interface AdminResetApprovalView {
+  readonly request_id: string;
+  readonly worker_id: string;
+  readonly worker_name: string;
+  readonly worker_phone: string;
+  readonly request_type: CredentialResetType;
+  readonly created_at: string;
+  readonly expires_at: string;
+  readonly is_approved: boolean;
+}
+
+export interface AdminApproveResetResponse {
+  readonly worker_name: string;
+  readonly worker_whatsapp_number: string;
+  readonly whatsapp_share_url: string;
+  readonly whatsapp_web_url: string;
+  readonly whatsapp_message: string;
+  readonly execution_url: string;
+  readonly expires_in_minutes: number;
+}
+
+export interface ExecuteCredentialResetPayload {
+  readonly execution_token: string;
+  readonly phone_number: string;
+  readonly new_pin: string;
+  readonly new_phone_number?: string;
+  readonly altcha_payload?: string;
+}

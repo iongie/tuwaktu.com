@@ -942,6 +942,144 @@ func (r *PostgresWorkerRepository) MarkActivationTokenUsed(ctx context.Context, 
 	return tx.Commit().Error
 }
 
+// CreateCredentialResetToken menyimpan permohonan token reset kredensial ke database
+func (r *PostgresWorkerRepository) CreateCredentialResetToken(ctx context.Context, token *domain.WorkerCredentialResetToken) error {
+	return r.db.WithContext(ctx).Create(token).Error
+}
+
+// GetActiveResetTokenByPhone mencari token permohonan reset yang masih aktif (belum expired dan belum approved/used) untuk nomor WA
+func (r *PostgresWorkerRepository) GetActiveResetTokenByPhone(ctx context.Context, phone string, now time.Time) (*domain.WorkerCredentialResetToken, error) {
+	var token domain.WorkerCredentialResetToken
+	err := r.db.WithContext(ctx).
+		Where("phone_number = ? AND request_expires_at > ? AND is_approved = false AND is_used = false", phone, now).
+		Order("created_at DESC").
+		First(&token).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("mencari token reset aktif: %w", err)
+	}
+	return &token, nil
+}
+
+// GetResetTokenByRequestHash mencari permohonan token reset berdasarkan request_token_hash
+func (r *PostgresWorkerRepository) GetResetTokenByRequestHash(ctx context.Context, hash string) (*domain.WorkerCredentialResetToken, error) {
+	var token domain.WorkerCredentialResetToken
+	err := r.db.WithContext(ctx).
+		Preload("Worker").
+		Preload("Account").
+		Where("request_token_hash = ?", hash).
+		First(&token).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrWorkerNotFound
+		}
+		return nil, fmt.Errorf("mencari token permohonan reset: %w", err)
+	}
+	return &token, nil
+}
+
+// ApproveResetToken memperbarui status token permohonan menjadi disetujui dan menyimpan token eksekusi
+func (r *PostgresWorkerRepository) ApproveResetToken(ctx context.Context, id string, adminID string, executionHash string, executionExpiresAt time.Time) error {
+	now := time.Now().UTC()
+	updates := map[string]interface{}{
+		"is_approved":          true,
+		"approved_at":          now,
+		"approved_by_admin_id": adminID,
+		"execution_token_hash": executionHash,
+		"execution_expires_at": executionExpiresAt,
+	}
+	res := r.db.WithContext(ctx).Model(&domain.WorkerCredentialResetToken{}).
+		Where("id = ? AND is_approved = false", id).
+		Updates(updates)
+	if res.Error != nil {
+		return fmt.Errorf("menyetujui permohonan reset token: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return fmt.Errorf("permohonan reset tidak ditemukan atau sudah pernah disetujui")
+	}
+	return nil
+}
+
+// GetResetTokenByExecutionHash mencari permohonan token reset berdasarkan execution_token_hash
+func (r *PostgresWorkerRepository) GetResetTokenByExecutionHash(ctx context.Context, hash string) (*domain.WorkerCredentialResetToken, error) {
+	var token domain.WorkerCredentialResetToken
+	err := r.db.WithContext(ctx).
+		Preload("Worker").
+		Preload("Account").
+		Where("execution_token_hash = ?", hash).
+		First(&token).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrWorkerNotFound
+		}
+		return nil, fmt.Errorf("mencari token eksekusi reset: %w", err)
+	}
+	return &token, nil
+}
+
+// MarkResetTokenUsed menandai token reset telah digunakan dan memperbarui kredensial akun secara transaksional
+func (r *PostgresWorkerRepository) MarkResetTokenUsed(ctx context.Context, id string, accountID string, newPasswordHash string, newPhone string) error {
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("memulai transaksi reset kredensial: %w", tx.Error)
+	}
+	now := time.Now().UTC()
+
+	// 1. Update status token
+	resToken := tx.Model(&domain.WorkerCredentialResetToken{}).
+		Where("id = ? AND is_used = false", id).
+		Updates(map[string]interface{}{
+			"is_used": true,
+			"used_at": now,
+		})
+	if resToken.Error != nil {
+		tx.Rollback()
+		return fmt.Errorf("memperbarui status token reset: %w", resToken.Error)
+	}
+	if resToken.RowsAffected == 0 {
+		tx.Rollback()
+		return fmt.Errorf("token reset sudah pernah digunakan atau tidak valid")
+	}
+
+	// 2. Update kredensial pada worker_accounts
+	accountUpdates := map[string]interface{}{
+		"password_hash":         newPasswordHash,
+		"failed_login_attempts": 0,
+		"locked_until":          nil,
+		"updated_at":            now,
+	}
+	if strings.TrimSpace(newPhone) != "" {
+		accountUpdates["phone_number"] = strings.TrimSpace(newPhone)
+	}
+
+	if err := tx.Model(&domain.WorkerAccount{}).Where("id = ?", accountID).Updates(accountUpdates).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("memperbarui kredensial akun: %w", err)
+	}
+
+	// 3. Jika nomor WhatsApp diubah, perbarui juga entitas Worker terkait
+	if strings.TrimSpace(newPhone) != "" {
+		var account domain.WorkerAccount
+		if err := tx.Select("worker_id").Where("id = ?", accountID).First(&account).Error; err == nil && account.WorkerID != nil {
+			if err := tx.Model(&domain.Worker{}).Where("id = ?", *account.WorkerID).Updates(map[string]interface{}{
+				"whatsapp_number": strings.TrimSpace(newPhone),
+				"updated_at":      now,
+			}).Error; err != nil {
+				tx.Rollback()
+				return fmt.Errorf("memperbarui nomor WhatsApp profil mitra: %w", err)
+			}
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("menyelesaikan transaksi reset kredensial: %w", err)
+	}
+	return nil
+}
+
+
 
 
 

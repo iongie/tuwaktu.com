@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -477,5 +478,178 @@ func TestAuthHandler_ActivateWorker(t *testing.T) {
 		var buf bytes.Buffer
 		_, _ = buf.ReadFrom(resp.Body)
 		assert.Contains(t, buf.String(), "Tautan Aktivasi Tidak Lengkap")
+	})
+}
+
+func setupFullAuthTestApp(repo repository.WorkerRepository) (*fiber.App, string) {
+	app := fiber.New()
+	workerSvc := service.NewWorkerService(repo)
+	authHandler := handler.NewAuthHandler(workerSvc)
+	authMiddleware := handler.NewAuthMiddleware()
+	adminHandler := handler.NewAdminHandler(workerSvc)
+
+	handler.RegisterRoutes(app, nil, nil, adminHandler, authHandler, authMiddleware, nil, nil, nil)
+
+	adminToken, _ := auth.GenerateToken("admin-acc-1", "", "admin@tuwaktu.com", domain.RoleAdmin, domain.AccountStatusActive, time.Hour)
+	return app, adminToken
+}
+
+func TestAuthHandler_CredentialResetFlow(t *testing.T) {
+	newAltcha := func(t *testing.T) string {
+		t.Helper()
+		p, err := auth.GenerateValidAltchaPayload()
+		require.NoError(t, err)
+		return p
+	}
+
+	setupWorker := func(t *testing.T) (repository.WorkerRepository, *fiber.App, string, *domain.Worker, *domain.WorkerAccount) {
+		repo := repository.NewMemoryRepository()
+		app, adminToken := setupFullAuthTestApp(repo)
+
+		workerID := "worker-test-reset-1"
+		worker := &domain.Worker{
+			ID:             workerID,
+			Slug:           "ahmad-teknisi",
+			Name:           "Ahmad Teknisi",
+			PhoneNumber:    "6281234567890",
+			WhatsAppNumber: "6281234567890",
+			IsActive:       true,
+		}
+		repo.SeedWorker(worker)
+
+		initialHash, err := auth.HashPassword("123987")
+		require.NoError(t, err)
+
+		account := &domain.WorkerAccount{
+			ID:           "acc-test-reset-1",
+			WorkerID:     &workerID,
+			PhoneNumber:  "6281234567890",
+			PasswordHash: initialHash,
+			Role:         domain.RoleWorker,
+		}
+		repo.SeedAccount(account)
+
+		return repo, app, adminToken, worker, account
+	}
+
+	t.Run("alur lengkap pengajuan -> verifikasi admin -> persetujuan admin -> eksekusi reset PIN baru via HTTP", func(t *testing.T) {
+		_, app, adminToken, worker, _ := setupWorker(t)
+
+		// 1. Pengajuan reset PIN
+		reqPayload := map[string]interface{}{
+			"phone_number":    worker.WhatsAppNumber,
+			"request_type":    "RESET_PIN",
+			"altcha_payload":  newAltcha(t),
+		}
+		reqBytes, _ := json.Marshal(reqPayload)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/credential-reset-request", bytes.NewReader(reqBytes))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		var reqRes struct {
+			Success bool                                  `json:"success"`
+			Message string                                `json:"message"`
+			Data    domain.CredentialResetRequestResponse `json:"data"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&reqRes)
+		require.NoError(t, err)
+		assert.True(t, reqRes.Success)
+		assert.Contains(t, reqRes.Message, "Permohonan reset kredensial berhasil dibuat")
+
+		// Ekstrak token Tier-1
+		tokenIdx := strings.Index(reqRes.Data.WhatsAppMessage, "token=")
+		require.True(t, tokenIdx != -1)
+		rawTier1Token := reqRes.Data.WhatsAppMessage[tokenIdx+len("token="):]
+		endIdx := strings.IndexAny(rawTier1Token, " \n\r\t")
+		if endIdx != -1 {
+			rawTier1Token = rawTier1Token[:endIdx]
+		}
+
+		// 2. Verifikasi oleh admin via GET /api/v1/admin/credential-reset/verify
+		verifyReq := httptest.NewRequest(http.MethodGet, "/api/v1/admin/credential-reset/verify?token="+rawTier1Token, nil)
+		verifyReq.Header.Set("Authorization", "Bearer "+adminToken)
+		verifyResp, err := app.Test(verifyReq)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, verifyResp.StatusCode)
+
+		var verifyRes struct {
+			Success bool                          `json:"success"`
+			Data    domain.AdminResetApprovalView `json:"data"`
+		}
+		err = json.NewDecoder(verifyResp.Body).Decode(&verifyRes)
+		require.NoError(t, err)
+		assert.True(t, verifyRes.Success)
+		assert.Equal(t, worker.Name, verifyRes.Data.WorkerName)
+
+		// 3. Persetujuan oleh admin via POST /api/v1/admin/credential-reset/approve
+		approvePayload := map[string]interface{}{
+			"request_token": rawTier1Token,
+		}
+		approveBytes, _ := json.Marshal(approvePayload)
+		approveReq := httptest.NewRequest(http.MethodPost, "/api/v1/admin/credential-reset/approve", bytes.NewReader(approveBytes))
+		approveReq.Header.Set("Content-Type", "application/json")
+		approveReq.Header.Set("Authorization", "Bearer "+adminToken)
+		approveResp, err := app.Test(approveReq)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, approveResp.StatusCode)
+
+		var approveRes struct {
+			Success bool                             `json:"success"`
+			Data    domain.AdminApproveResetResponse `json:"data"`
+		}
+		err = json.NewDecoder(approveResp.Body).Decode(&approveRes)
+		require.NoError(t, err)
+		assert.True(t, approveRes.Success)
+
+		// Ekstrak token Tier-2
+		execIdx := strings.Index(approveRes.Data.ExecutionURL, "token=")
+		require.True(t, execIdx != -1)
+		rawTier2Token := approveRes.Data.ExecutionURL[execIdx+len("token="):]
+
+		// 4. Eksekusi reset PIN baru via POST /api/v1/auth/credential-reset/execute
+		newPIN := "852963"
+		execPayload := map[string]interface{}{
+			"execution_token": rawTier2Token,
+			"phone_number":    worker.WhatsAppNumber,
+			"new_pin":         newPIN,
+			"altcha_payload":  newAltcha(t),
+		}
+		execBytes, _ := json.Marshal(execPayload)
+		execReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/credential-reset/execute", bytes.NewReader(execBytes))
+		execReq.Header.Set("Content-Type", "application/json")
+		execResp, err := app.Test(execReq)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, execResp.StatusCode)
+
+		// 5. Coba login dengan PIN baru
+		loginPayload := map[string]interface{}{
+			"identifier":     worker.WhatsAppNumber,
+			"password":       newPIN,
+			"altcha_payload": newAltcha(t),
+		}
+		loginBytes, _ := json.Marshal(loginPayload)
+		loginReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(loginBytes))
+		loginReq.Header.Set("Content-Type", "application/json")
+		loginResp, err := app.Test(loginReq)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, loginResp.StatusCode)
+	})
+
+	t.Run("gagal eksekusi jika captcha Altcha tidak disertakan", func(t *testing.T) {
+		_, app, _, worker, _ := setupWorker(t)
+
+		execPayload := map[string]interface{}{
+			"execution_token": "some-token",
+			"phone_number":    worker.WhatsAppNumber,
+			"new_pin":         "852963",
+		}
+		execBytes, _ := json.Marshal(execPayload)
+		execReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/credential-reset/execute", bytes.NewReader(execBytes))
+		execReq.Header.Set("Content-Type", "application/json")
+		execResp, err := app.Test(execReq)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, execResp.StatusCode)
 	})
 }

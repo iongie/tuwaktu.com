@@ -388,3 +388,111 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusOK, "Sesi otentikasi aktif berhasil diambil", session)
 }
 
+// RequestCredentialReset menangani pengajuan reset PIN atau ganti nomor WhatsApp oleh mitra
+// POST /api/v1/auth/credential-reset-request
+func (h *AuthHandler) RequestCredentialReset(c *fiber.Ctx) error {
+	var payload domain.CredentialResetRequestPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format payload permohonan reset tidak valid", err.Error())
+	}
+
+	if err := auth.VerifyAltchaPayload(payload.AltchaPayload); err != nil {
+		if errors.Is(err, auth.ErrAltchaRequired) {
+			return ErrorResponse(c, fiber.StatusBadRequest, "Verifikasi keamanan captcha wajib diselesaikan", "ALTCHA_REQUIRED")
+		}
+		return ErrorResponse(c, fiber.StatusBadRequest, "Verifikasi keamanan captcha tidak valid atau telah kedaluwarsa", "ALTCHA_INVALID")
+	}
+
+	result, err := h.workerSvc.RequestCredentialReset(c.Context(), &payload)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Akun mitra dengan nomor WhatsApp tersebut tidak ditemukan", "ACCOUNT_NOT_FOUND")
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			errMsg := err.Error()
+			errMsg = strings.TrimPrefix(errMsg, domain.ErrInvalidInput.Error()+": ")
+			return ErrorResponse(c, fiber.StatusBadRequest, errMsg, "INVALID_INPUT")
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memproses permohonan reset: "+err.Error(), "INTERNAL_ERROR")
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Permohonan reset kredensial berhasil dibuat", result)
+}
+
+// VerifyResetRequestByAdmin memverifikasi token permohonan reset untuk pratinjau Admin
+// GET /api/v1/admin/credential-reset/verify?token=...
+func (h *AuthHandler) VerifyResetRequestByAdmin(c *fiber.Ctx) error {
+	rawToken := strings.TrimSpace(c.Query("token"))
+	if rawToken == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Parameter token permohonan reset wajib disertakan", "MISSING_TOKEN")
+	}
+
+	view, err := h.workerSvc.VerifyResetRequestByAdmin(c.Context(), rawToken)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidInput) {
+			errMsg := err.Error()
+			errMsg = strings.TrimPrefix(errMsg, domain.ErrInvalidInput.Error()+": ")
+			return ErrorResponse(c, fiber.StatusBadRequest, errMsg, "INVALID_INPUT")
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memverifikasi permohonan reset: "+err.Error(), "INTERNAL_ERROR")
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Data permohonan reset berhasil diverifikasi", view)
+}
+
+// ApproveCredentialReset memproses persetujuan permohonan reset oleh Admin dan menerbitkan token eksekusi
+// POST /api/v1/admin/credential-reset/approve
+func (h *AuthHandler) ApproveCredentialReset(c *fiber.Ctx) error {
+	adminAccountID, _ := c.Locals("accountID").(string)
+
+	var payload domain.AdminApproveResetPayload
+	_ = c.BodyParser(&payload)
+
+	rawToken := strings.TrimSpace(payload.RequestToken)
+	if rawToken == "" {
+		rawToken = strings.TrimSpace(c.Query("token"))
+	}
+	if rawToken == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Token permohonan reset wajib disertakan", "MISSING_TOKEN")
+	}
+
+	result, err := h.workerSvc.ApproveCredentialReset(c.Context(), adminAccountID, rawToken)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidInput) {
+			errMsg := err.Error()
+			errMsg = strings.TrimPrefix(errMsg, domain.ErrInvalidInput.Error()+": ")
+			return ErrorResponse(c, fiber.StatusBadRequest, errMsg, "INVALID_INPUT")
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menyetujui permohonan reset: "+err.Error(), "INTERNAL_ERROR")
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Permohonan reset berhasil disetujui", result)
+}
+
+// ExecuteCredentialReset mengeksekusi reset PIN atau pembaruan nomor WhatsApp oleh mitra
+// POST /api/v1/auth/credential-reset/execute
+func (h *AuthHandler) ExecuteCredentialReset(c *fiber.Ctx) error {
+	var payload domain.ExecuteCredentialResetPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format payload eksekusi reset tidak valid", err.Error())
+	}
+
+	if err := auth.VerifyAltchaPayload(payload.AltchaPayload); err != nil {
+		if errors.Is(err, auth.ErrAltchaRequired) {
+			return ErrorResponse(c, fiber.StatusBadRequest, "Verifikasi keamanan captcha wajib diselesaikan", "ALTCHA_REQUIRED")
+		}
+		return ErrorResponse(c, fiber.StatusBadRequest, "Verifikasi keamanan captcha tidak valid atau telah kedaluwarsa", "ALTCHA_INVALID")
+	}
+
+	if err := h.workerSvc.ExecuteCredentialReset(c.Context(), &payload); err != nil {
+		if errors.Is(err, domain.ErrInvalidInput) {
+			errMsg := err.Error()
+			errMsg = strings.TrimPrefix(errMsg, domain.ErrInvalidInput.Error()+": ")
+			return ErrorResponse(c, fiber.StatusBadRequest, errMsg, "INVALID_INPUT")
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memperbarui kredensial akun: "+err.Error(), "INTERNAL_ERROR")
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Kredensial akun berhasil diperbarui. Silakan masuk menggunakan PIN baru Anda", nil)
+}
+

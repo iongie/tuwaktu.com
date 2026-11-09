@@ -127,6 +127,10 @@ func RegisterRoutes(
 		v1.Post("/auth/register", authHandler.Register)
 		api.Post("/auth/logout", authHandler.Logout)
 		v1.Post("/auth/logout", authHandler.Logout)
+		api.Post("/auth/credential-reset-request", authHandler.RequestCredentialReset)
+		v1.Post("/auth/credential-reset-request", authHandler.RequestCredentialReset)
+		api.Post("/auth/credential-reset/execute", authHandler.ExecuteCredentialReset)
+		v1.Post("/auth/credential-reset/execute", authHandler.ExecuteCredentialReset)
 		api.Get("/admin/workers/activate", authHandler.ActivateWorker)
 		v1.Get("/admin/workers/activate", authHandler.ActivateWorker)
 		if authMiddleware != nil {
@@ -142,6 +146,10 @@ func RegisterRoutes(
 		adminGroup.Get("/workers", adminHandler.GetWorkers)
 		adminGroup.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
 		adminGroup.Get("/stats", adminHandler.GetStats)
+		if authHandler != nil {
+			adminGroup.Get("/credential-reset/verify", authHandler.VerifyResetRequestByAdmin)
+			adminGroup.Post("/credential-reset/approve", authHandler.ApproveCredentialReset)
+		}
 
 		if categoryHandler != nil {
 			adminGroup.Get("/categories", categoryHandler.ListCategories)
@@ -161,6 +169,10 @@ func RegisterRoutes(
 		legacyAdmin.Get("/workers", adminHandler.GetWorkers)
 		legacyAdmin.Patch("/workers/:id/status", adminHandler.UpdateWorkerStatus)
 		legacyAdmin.Get("/stats", adminHandler.GetStats)
+		if authHandler != nil {
+			legacyAdmin.Get("/credential-reset/verify", authHandler.VerifyResetRequestByAdmin)
+			legacyAdmin.Post("/credential-reset/approve", authHandler.ApproveCredentialReset)
+		}
 
 		if categoryHandler != nil {
 			legacyAdmin.Get("/categories", categoryHandler.ListCategories)

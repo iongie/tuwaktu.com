@@ -76,9 +76,15 @@ describe('WorkerLoginFormComponent', () => {
     expect(component.loginError()).toContain('ID Praktisi');
   });
 
-  it('harus menampilkan panduan reset saat showResetInfo dipanggil', () => {
-    component.showResetInfo();
-    expect(component.loginError()).toContain('mereset nomor atau PIN');
+  it('harus membuka dialog modal permohonan reset saat showResetInfo dipanggil', () => {
+    expect(component.isResetModalOpen()).toBe(false);
+    component.showResetInfo('RESET_PIN');
+    expect(component.isResetModalOpen()).toBe(true);
+    expect(component.resetModalType()).toBe('RESET_PIN');
+
+    component.showResetInfo('CHANGE_PHONE');
+    expect(component.isResetModalOpen()).toBe(true);
+    expect(component.resetModalType()).toBe('CHANGE_PHONE');
   });
 
   it('harus berhasil login dan berpindah ke dasbor jika data valid', () => {

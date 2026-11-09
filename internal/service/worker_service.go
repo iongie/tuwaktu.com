@@ -60,6 +60,12 @@ type WorkerService interface {
 	SetWorkerStatus(ctx context.Context, workerID string, status string) error
 	Authenticate(ctx context.Context, identifier string, password string) (*domain.AuthLoginResponse, error)
 	GetSessionProfile(ctx context.Context, accountID string) (*domain.AuthUserSession, error)
+
+	// Reset Kredensial Dua Tingkat (PIN & Nomor WhatsApp)
+	RequestCredentialReset(ctx context.Context, payload *domain.CredentialResetRequestPayload) (*domain.CredentialResetRequestResponse, error)
+	VerifyResetRequestByAdmin(ctx context.Context, rawToken string) (*domain.AdminResetApprovalView, error)
+	ApproveCredentialReset(ctx context.Context, adminAccountID string, rawToken string) (*domain.AdminApproveResetResponse, error)
+	ExecuteCredentialReset(ctx context.Context, payload *domain.ExecuteCredentialResetPayload) error
 }
 
 type workerService struct {
@@ -1432,6 +1438,337 @@ func (s *workerService) UpdateWorkerBookingStatus(ctx context.Context, idOrSlug 
 
 	item := domain.ToWorkerBookingItem(updated)
 	return &item, nil
+}
+
+func getWebBaseURL() string {
+	webBaseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("WEB_BASE_URL")), "/")
+	if webBaseURL == "" {
+		webBaseURL = strings.TrimRight(strings.TrimSpace(os.Getenv("APP_BASE_URL")), "/")
+	}
+	if webBaseURL == "" {
+		webBaseURL = "http://localhost:4200"
+	}
+	return webBaseURL
+}
+
+func (s *workerService) RequestCredentialReset(ctx context.Context, payload *domain.CredentialResetRequestPayload) (*domain.CredentialResetRequestResponse, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if payload == nil {
+		return nil, fmt.Errorf("%w: payload permohonan reset wajib diisi", domain.ErrInvalidInput)
+	}
+
+	rawWA := strings.TrimSpace(payload.PhoneNumber)
+	if rawWA == "" {
+		return nil, fmt.Errorf("%w: nomor WhatsApp wajib diisi", domain.ErrInvalidInput)
+	}
+	sanitizedWA, err := domain.SanitizeAndValidateWhatsAppNumber(rawWA)
+	if err != nil {
+		return nil, fmt.Errorf("%w: format nomor WhatsApp tidak valid", domain.ErrInvalidInput)
+	}
+
+	reqType := strings.ToUpper(strings.TrimSpace(payload.RequestType))
+	if reqType == "" {
+		reqType = domain.ResetTypePIN
+	}
+	if reqType != domain.ResetTypePIN && reqType != domain.ResetTypePhone {
+		return nil, fmt.Errorf("%w: jenis permohonan reset tidak valid (pilih reset PIN atau ganti nomor)", domain.ErrInvalidInput)
+	}
+
+	account, err := s.repo.GetAccountByEmailOrPhone(ctx, sanitizedWA)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return nil, fmt.Errorf("%w: akun dengan nomor WhatsApp tersebut tidak ditemukan", domain.ErrWorkerNotFound)
+		}
+		return nil, fmt.Errorf("memeriksa data akun: %w", err)
+	}
+
+	activeToken, err := s.repo.GetActiveResetTokenByPhone(ctx, sanitizedWA, time.Now().UTC())
+	if err != nil && !errors.Is(err, domain.ErrWorkerNotFound) {
+		return nil, fmt.Errorf("memeriksa status permohonan sebelumnya: %w", err)
+	}
+	if activeToken != nil {
+		return nil, fmt.Errorf("%w: permohonan reset untuk nomor ini masih aktif dan belum kedaluwarsa. Mohon tunggu sebelum mengajukan kembali", domain.ErrInvalidInput)
+	}
+
+	workerName := "Mitra Tuwaktu"
+	if account.WorkerID != nil && strings.TrimSpace(*account.WorkerID) != "" {
+		w, err := s.repo.GetByID(ctx, *account.WorkerID)
+		if err == nil && w != nil && strings.TrimSpace(w.Name) != "" {
+			workerName = strings.TrimSpace(w.Name)
+		}
+	}
+
+	rawTokenBytes := make([]byte, 32)
+	if _, err := rand.Read(rawTokenBytes); err != nil {
+		return nil, fmt.Errorf("membuat token permohonan reset: %w", err)
+	}
+	rawToken := hex.EncodeToString(rawTokenBytes)
+	tokenHashBytes := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(tokenHashBytes[:])
+
+	expiresAt := time.Now().UTC().Add(15 * time.Minute)
+	resetToken := &domain.WorkerCredentialResetToken{
+		AccountID:        account.ID,
+		WorkerID:         account.WorkerID,
+		RequestType:      reqType,
+		PhoneNumber:      sanitizedWA,
+		RequestTokenHash: tokenHash,
+		RequestExpiresAt: expiresAt,
+		IsApproved:       false,
+	}
+
+	if err := s.repo.CreateCredentialResetToken(ctx, resetToken); err != nil {
+		return nil, fmt.Errorf("menyimpan data permohonan reset: %w", err)
+	}
+
+	adminWA := normalizeAdminWhatsAppNumber(os.Getenv("ADMIN_WHATSAPP_NUMBER"))
+	webBaseURL := getWebBaseURL()
+	approvalURL := fmt.Sprintf("%s/admin/requests/reset?token=%s", webBaseURL, rawToken)
+
+	reqLabel := "Reset PIN Keamanan"
+	if reqType == domain.ResetTypePhone {
+		reqLabel = "Ganti Nomor WhatsApp"
+	}
+
+	waMessage := fmt.Sprintf(
+		"Halo Admin Tuwaktu, saya %s (%s) mengajukan permohonan %s akun mitra saya.\n\n"+
+			"Mohon verifikasi dan setujui permohonan melalui tautan admin berikut:\n%s\n\n"+
+			"Catatan: Tautan ini berlaku selama 15 menit. Terima kasih!",
+		workerName,
+		sanitizedWA,
+		reqLabel,
+		approvalURL,
+	)
+	whatsappShareURL := fmt.Sprintf("https://wa.me/%s?text=%s", adminWA, url.QueryEscape(waMessage))
+	whatsappWebURL := fmt.Sprintf("https://web.whatsapp.com/send?phone=%s&text=%s", adminWA, url.QueryEscape(waMessage))
+
+	return &domain.CredentialResetRequestResponse{
+		WorkerName:          workerName,
+		PhoneNumber:         sanitizedWA,
+		AdminWhatsAppNumber: adminWA,
+		WhatsAppShareURL:    whatsappShareURL,
+		WhatsAppWebURL:      whatsappWebURL,
+		WhatsAppMessage:     waMessage,
+		ExpiresInMinutes:    15,
+	}, nil
+}
+
+func (s *workerService) VerifyResetRequestByAdmin(ctx context.Context, rawToken string) (*domain.AdminResetApprovalView, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	rawToken = strings.TrimSpace(rawToken)
+	if rawToken == "" {
+		return nil, fmt.Errorf("%w: token permohonan reset wajib diisi", domain.ErrInvalidInput)
+	}
+
+	tokenHashBytes := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(tokenHashBytes[:])
+
+	token, err := s.repo.GetResetTokenByRequestHash(ctx, tokenHash)
+	if err != nil {
+		return nil, fmt.Errorf("%w: tautan permohonan reset tidak valid atau tidak ditemukan", domain.ErrInvalidInput)
+	}
+
+	if token.IsApproved {
+		return nil, fmt.Errorf("%w: permohonan reset ini sudah pernah disetujui sebelumnya", domain.ErrInvalidInput)
+	}
+
+	if time.Now().UTC().After(token.RequestExpiresAt) {
+		return nil, fmt.Errorf("%w: tautan permohonan reset telah kedaluwarsa (batas waktu 15 menit telah habis)", domain.ErrInvalidInput)
+	}
+
+	workerName := "Mitra Tuwaktu"
+	if token.Worker != nil && strings.TrimSpace(token.Worker.Name) != "" {
+		workerName = strings.TrimSpace(token.Worker.Name)
+	}
+	workerID := ""
+	if token.WorkerID != nil {
+		workerID = *token.WorkerID
+	}
+
+	return &domain.AdminResetApprovalView{
+		RequestID:   token.ID,
+		WorkerID:    workerID,
+		WorkerName:  workerName,
+		WorkerPhone: token.PhoneNumber,
+		RequestType: token.RequestType,
+		CreatedAt:   token.CreatedAt,
+		ExpiresAt:   token.RequestExpiresAt,
+		IsApproved:  token.IsApproved,
+	}, nil
+}
+
+func (s *workerService) ApproveCredentialReset(ctx context.Context, adminAccountID string, rawToken string) (*domain.AdminApproveResetResponse, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	rawToken = strings.TrimSpace(rawToken)
+	if rawToken == "" {
+		return nil, fmt.Errorf("%w: token permohonan reset wajib diisi", domain.ErrInvalidInput)
+	}
+
+	tokenHashBytes := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(tokenHashBytes[:])
+
+	token, err := s.repo.GetResetTokenByRequestHash(ctx, tokenHash)
+	if err != nil {
+		return nil, fmt.Errorf("%w: tautan permohonan reset tidak valid atau tidak ditemukan", domain.ErrInvalidInput)
+	}
+
+	if token.IsApproved {
+		return nil, fmt.Errorf("%w: permohonan reset ini sudah pernah disetujui sebelumnya", domain.ErrInvalidInput)
+	}
+
+	if time.Now().UTC().After(token.RequestExpiresAt) {
+		return nil, fmt.Errorf("%w: tautan permohonan reset telah kedaluwarsa (batas waktu 15 menit telah habis)", domain.ErrInvalidInput)
+	}
+
+	execTokenBytes := make([]byte, 32)
+	if _, err := rand.Read(execTokenBytes); err != nil {
+		return nil, fmt.Errorf("membuat token eksekusi reset: %w", err)
+	}
+	execToken := hex.EncodeToString(execTokenBytes)
+	execHashBytes := sha256.Sum256([]byte(execToken))
+	execHash := hex.EncodeToString(execHashBytes[:])
+	execExpiresAt := time.Now().UTC().Add(10 * time.Minute)
+
+	if err := s.repo.ApproveResetToken(ctx, token.ID, adminAccountID, execHash, execExpiresAt); err != nil {
+		return nil, fmt.Errorf("menyetujui permohonan reset: %w", err)
+	}
+
+	webBaseURL := getWebBaseURL()
+	executionURL := fmt.Sprintf("%s/reset-credential?token=%s", webBaseURL, execToken)
+
+	workerWA := token.PhoneNumber
+	workerName := "Mitra Tuwaktu"
+	if token.Worker != nil && strings.TrimSpace(token.Worker.Name) != "" {
+		workerName = strings.TrimSpace(token.Worker.Name)
+	}
+
+	reqLabel := "Reset PIN Keamanan"
+	if token.RequestType == domain.ResetTypePhone {
+		reqLabel = "Pembaruan Nomor WhatsApp"
+	}
+
+	waMessage := fmt.Sprintf(
+		"Halo %s, permohonan %s akun Tuwaktu Anda telah disetujui oleh Admin.\n\n"+
+			"Silakan lanjutkan proses pembaruan melalui tautan resmi berikut:\n%s\n\n"+
+			"PENTING: Tautan ini berlaku selama 10 menit dan hanya dapat digunakan satu kali. Jangan bagikan tautan ini kepada siapa pun demi keamanan akun Anda.",
+		workerName,
+		reqLabel,
+		executionURL,
+	)
+	whatsappShareURL := fmt.Sprintf("https://wa.me/%s?text=%s", workerWA, url.QueryEscape(waMessage))
+	whatsappWebURL := fmt.Sprintf("https://web.whatsapp.com/send?phone=%s&text=%s", workerWA, url.QueryEscape(waMessage))
+
+	return &domain.AdminApproveResetResponse{
+		WorkerName:           workerName,
+		WorkerWhatsAppNumber: workerWA,
+		WhatsAppShareURL:     whatsappShareURL,
+		WhatsAppWebURL:       whatsappWebURL,
+		WhatsAppMessage:      waMessage,
+		ExecutionURL:         executionURL,
+		ExpiresInMinutes:     10,
+	}, nil
+}
+
+func (s *workerService) ExecuteCredentialReset(ctx context.Context, payload *domain.ExecuteCredentialResetPayload) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if payload == nil {
+		return fmt.Errorf("%w: payload eksekusi reset wajib diisi", domain.ErrInvalidInput)
+	}
+
+	cleanExecToken := strings.TrimSpace(payload.ExecutionToken)
+	if cleanExecToken == "" {
+		return fmt.Errorf("%w: token eksekusi reset wajib diisi", domain.ErrInvalidInput)
+	}
+
+	rawWA := strings.TrimSpace(payload.PhoneNumber)
+	if rawWA == "" {
+		return fmt.Errorf("%w: nomor WhatsApp terdaftar wajib diisi untuk verifikasi identitas", domain.ErrInvalidInput)
+	}
+	sanitizedWA, err := domain.SanitizeAndValidateWhatsAppNumber(rawWA)
+	if err != nil {
+		return fmt.Errorf("%w: format nomor WhatsApp terdaftar tidak valid", domain.ErrInvalidInput)
+	}
+
+	pin := strings.TrimSpace(payload.NewPIN)
+	if pin == "" {
+		return fmt.Errorf("%w: PIN baru wajib diisi", domain.ErrInvalidInput)
+	}
+	if len(pin) != 6 {
+		return fmt.Errorf("%w: PIN baru harus tepat 6 digit angka", domain.ErrInvalidInput)
+	}
+	if cleanPin := sanitize.SanitizeDigitsOnly(pin, 6); cleanPin != pin {
+		return fmt.Errorf("%w: PIN baru hanya boleh berupa angka numerik", domain.ErrInvalidInput)
+	}
+	if err := auth.ValidatePIN(pin); err != nil {
+		return fmt.Errorf("%w: %s", domain.ErrInvalidInput, err.Error())
+	}
+
+	execHashBytes := sha256.Sum256([]byte(cleanExecToken))
+	execHash := hex.EncodeToString(execHashBytes[:])
+
+	token, err := s.repo.GetResetTokenByExecutionHash(ctx, execHash)
+	if err != nil {
+		return fmt.Errorf("%w: tautan eksekusi reset tidak valid atau tidak ditemukan", domain.ErrInvalidInput)
+	}
+
+	if !token.IsApproved {
+		return fmt.Errorf("%w: permohonan reset belum disetujui oleh Admin", domain.ErrInvalidInput)
+	}
+
+	if token.IsUsed {
+		return fmt.Errorf("%w: tautan eksekusi reset ini sudah pernah digunakan sebelumnya", domain.ErrInvalidInput)
+	}
+
+	if token.ExecutionExpiresAt == nil || time.Now().UTC().After(*token.ExecutionExpiresAt) {
+		return fmt.Errorf("%w: tautan eksekusi reset telah kedaluwarsa (batas waktu 10 menit telah habis)", domain.ErrInvalidInput)
+	}
+
+	if token.PhoneNumber != sanitizedWA {
+		return fmt.Errorf("%w: nomor WhatsApp yang dimasukkan tidak cocok dengan permohonan akun yang diajukan", domain.ErrInvalidInput)
+	}
+
+	targetNewPhone := ""
+	if token.RequestType == domain.ResetTypePhone {
+		rawNewWA := strings.TrimSpace(payload.NewPhoneNumber)
+		if rawNewWA == "" {
+			return fmt.Errorf("%w: nomor WhatsApp baru wajib diisi", domain.ErrInvalidInput)
+		}
+		sanitizedNewWA, err := domain.SanitizeAndValidateWhatsAppNumber(rawNewWA)
+		if err != nil {
+			return fmt.Errorf("%w: format nomor WhatsApp baru tidak valid", domain.ErrInvalidInput)
+		}
+		if sanitizedNewWA == sanitizedWA {
+			return fmt.Errorf("%w: nomor WhatsApp baru tidak boleh sama dengan nomor WhatsApp saat ini", domain.ErrInvalidInput)
+		}
+
+		existingAcc, err := s.repo.GetAccountByEmailOrPhone(ctx, sanitizedNewWA)
+		if err != nil && !errors.Is(err, domain.ErrWorkerNotFound) {
+			return fmt.Errorf("memeriksa ketersediaan nomor WhatsApp baru: %w", err)
+		}
+		if existingAcc != nil && existingAcc.ID != token.AccountID {
+			return fmt.Errorf("%w: nomor WhatsApp baru sudah terdaftar pada akun lain", domain.ErrInvalidInput)
+		}
+		targetNewPhone = sanitizedNewWA
+	}
+
+	newPasswordHash, err := auth.HashPassword(pin)
+	if err != nil {
+		return fmt.Errorf("melakukan hashing PIN baru: %w", err)
+	}
+
+	if err := s.repo.MarkResetTokenUsed(ctx, token.ID, token.AccountID, newPasswordHash, targetNewPhone); err != nil {
+		return fmt.Errorf("memperbarui kredensial akun mitra: %w", err)
+	}
+
+	return nil
 }
 
 

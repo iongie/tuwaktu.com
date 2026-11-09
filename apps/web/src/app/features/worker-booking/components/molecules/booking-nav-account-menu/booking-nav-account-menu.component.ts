@@ -390,7 +390,7 @@ export class BookingNavAccountMenuComponent {
 
   readonly isMenuOpen = signal<boolean>(false);
   readonly isLogoutModalOpen = signal<boolean>(false);
-  readonly isAvatarBroken = signal<boolean>(false);
+  private readonly failedAvatarUrl = signal<string | null>(null);
 
   readonly sessionAvatarUrl = computed<string | undefined>(() => {
     const session = this.authService.currentUser();
@@ -406,16 +406,16 @@ export class BookingNavAccountMenuComponent {
     return undefined;
   });
 
-  constructor() {
-    effect(() => {
-      // Pantau pembaruan URL avatar sesi dan reset status broken
-      this.sessionAvatarUrl();
-      this.isAvatarBroken.set(false);
-    });
-  }
+  readonly isAvatarBroken = computed<boolean>(() => {
+    const url = this.sessionAvatarUrl();
+    return Boolean(url && url === this.failedAvatarUrl());
+  });
 
   onAvatarError(): void {
-    this.isAvatarBroken.set(true);
+    const url = this.sessionAvatarUrl();
+    if (url) {
+      this.failedAvatarUrl.set(url);
+    }
   }
 
   sessionName(): string {

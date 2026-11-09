@@ -23,7 +23,7 @@ const (
 type WorkerAccount struct {
 	ID                  string     `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
 	WorkerID            *string    `json:"worker_id,omitempty" db:"worker_id" gorm:"type:uuid;index"`
-	Email               string     `json:"email" db:"email" gorm:"uniqueIndex;type:varchar(150);not null"`
+	Email               string     `json:"email" db:"email" gorm:"type:varchar(150)"`
 	PhoneNumber         string     `json:"phone_number" db:"phone_number" gorm:"uniqueIndex;type:varchar(30)"`
 	PasswordHash        string     `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
 	Role                string     `json:"role" db:"role" gorm:"type:varchar(20);not null;default:'WORKER'"`

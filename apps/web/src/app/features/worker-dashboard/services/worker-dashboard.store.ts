@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { resolveAvatarUrl } from '../../../core/utils/avatar-url.util';
+import { AuthService } from '../../auth/services/auth.service';
 import { WorkerDashboardApiService } from './worker-dashboard-api.service';
 import {
   WorkerProfileUpdatePayload,
@@ -253,6 +254,7 @@ export function renderWhatsAppMessageText(
 })
 export class WorkerDashboardStore implements OnDestroy {
   private readonly apiService = inject(WorkerDashboardApiService);
+  private readonly authService = inject(AuthService, { optional: true });
 
   readonly workerRecordId = signal<string>('');
   readonly workerSlugIdentifier = signal<string>('');
@@ -1110,7 +1112,11 @@ export class WorkerDashboardStore implements OnDestroy {
       this.workerBasecampAddress.set(`Basecamp Area ${profile.zone.trim()}`);
     }
     this.workerBioDescription.set(profile.bio || '');
-    this.workerAvatarUrl.set(resolveAvatarUrl(profile.avatar_url));
+    const resolvedAvatar = resolveAvatarUrl(profile.avatar_url);
+    this.workerAvatarUrl.set(resolvedAvatar);
+    if (this.authService && profile.avatar_url) {
+      this.authService.updateSessionAvatar(profile.avatar_url);
+    }
     this.workerWhatsAppNumber.set(profile.whatsapp_number || '');
 
     if (
@@ -1299,7 +1305,11 @@ export class WorkerDashboardStore implements OnDestroy {
             this.workerFullName.set(response.data.name);
             this.workerProfessionZone.set(response.data.zone);
             this.workerBioDescription.set(response.data.bio || '');
-            this.workerAvatarUrl.set(resolveAvatarUrl(response.data.avatar_url));
+            const resolved = resolveAvatarUrl(response.data.avatar_url);
+            this.workerAvatarUrl.set(resolved);
+            if (this.authService && response.data.avatar_url) {
+              this.authService.updateSessionAvatar(response.data.avatar_url);
+            }
             this.workerSlugIdentifier.set(response.data.slug);
             if (response.data.whatsapp_number !== undefined) {
               this.workerWhatsAppNumber.set(

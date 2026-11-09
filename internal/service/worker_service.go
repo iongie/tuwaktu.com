@@ -117,12 +117,10 @@ func (s *workerService) formatAvatarURL(rawAvatar string) string {
 	}
 	// Extract clean filename in case path or query string was stored
 	cleanFilename := media.ExtractFilename(trimmed)
-	// Sign local avatars with 4 hours TTL
-	signed, err := media.SignMediaURL("", cleanFilename, 4*time.Hour)
-	if err != nil {
-		return trimmed
+	if cleanFilename == "" {
+		return ""
 	}
-	return signed
+	return "/api/v1/media/avatars/" + cleanFilename
 }
 
 func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicWorkerProfile, error) {

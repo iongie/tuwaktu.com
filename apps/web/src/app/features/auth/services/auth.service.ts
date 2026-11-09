@@ -372,6 +372,16 @@ export class AuthService {
     return of({ success: true });
   }
 
+  updateSessionAvatar(avatarUrl: string): void {
+    const current = this.currentUser();
+    if (current) {
+      this.currentUser.set({
+        ...current,
+        avatarUrl,
+      });
+    }
+  }
+
   register(formData: RegisterFormData): Observable<AuthRegisterResult> {
     const validation = this.validateRegistration(formData);
     if (!validation.isValid) {

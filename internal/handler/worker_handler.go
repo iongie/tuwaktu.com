@@ -214,26 +214,13 @@ func (h *WorkerHandler) ServeAvatarMedia(c *fiber.Ctx) error {
 		return ErrorResponse(c, fiber.StatusBadRequest, "Nama berkas foto tidak valid atau mengandung karakter dilarang", nil)
 	}
 
-	exp := c.Query("exp")
-	sig := c.Query("sig")
-	if strings.TrimSpace(exp) == "" || strings.TrimSpace(sig) == "" {
-		return ErrorResponse(c, fiber.StatusForbidden, "Tautan foto profil memerlukan tanda tangan keamanan yang sah", nil)
-	}
-
-	if err := media.VerifyMediaSignature(cleanFilename, exp, sig); err != nil {
-		if errors.Is(err, media.ErrExpiredToken) {
-			return ErrorResponse(c, fiber.StatusForbidden, "Tautan foto profil telah kadaluarsa", nil)
-		}
-		return ErrorResponse(c, fiber.StatusForbidden, "Tautan foto profil tidak valid atau telah dimodifikasi", nil)
-	}
-
 	filePath := filepath.Join(".", "storage", "uploads", "avatars", cleanFilename)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return ErrorResponse(c, fiber.StatusNotFound, "Berkas foto profil tidak ditemukan pada penyimpanan server", nil)
 	}
 
 	c.Set("X-Content-Type-Options", "nosniff")
-	c.Set("Cache-Control", "private, max-age=3600")
+	c.Set("Cache-Control", "public, max-age=86400")
 
 	lowerExt := strings.ToLower(filepath.Ext(cleanFilename))
 	switch lowerExt {

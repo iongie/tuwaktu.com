@@ -16,6 +16,7 @@ const (
 
 	AccountStatusActive    = "ACTIVE"
 	AccountStatusSuspended = "SUSPENDED"
+	AccountStatusPending   = "PENDING"
 )
 
 // WorkerAccount merepresentasikan entitas akun login untuk pekerja maupun admin
@@ -272,5 +273,43 @@ func (p *AuthRegisterPayload) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// WorkerActivationToken merepresentasikan entitas token aktivasi sekali pakai untuk pendaftaran mitra via WhatsApp
+type WorkerActivationToken struct {
+	ID        string     `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
+	WorkerID  string     `json:"worker_id" db:"worker_id" gorm:"type:uuid;not null;index"`
+	TokenHash string     `json:"token_hash" db:"token_hash" gorm:"type:varchar(64);not null;uniqueIndex"`
+	ExpiresAt time.Time  `json:"expires_at" db:"expires_at" gorm:"type:timestamptz;not null"`
+	IsUsed    bool       `json:"is_used" db:"is_used" gorm:"type:boolean;not null;default:false"`
+	UsedAt    *time.Time `json:"used_at,omitempty" db:"used_at" gorm:"type:timestamptz"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
+}
+
+func (WorkerActivationToken) TableName() string {
+	return "worker_activation_tokens"
+}
+
+func (t *WorkerActivationToken) BeforeCreate(tx *gorm.DB) error {
+	if strings.TrimSpace(t.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for worker_activation_token: %w", err)
+		}
+		t.ID = id.String()
+	}
+	return nil
+}
+
+// AuthRegisterResponse payload data respons saat mitra berhasil mendaftar dan menunggu aktivasi manual WhatsApp
+type AuthRegisterResponse struct {
+	WorkerID            string `json:"worker_id"`
+	Name                string `json:"name"`
+	Slug                string `json:"slug"`
+	WhatsAppNumber      string `json:"whatsapp_number"`
+	AdminWhatsAppNumber string `json:"admin_whatsapp_number"`
+	ActivationURL       string `json:"activation_url"`
+	WhatsAppShareURL    string `json:"whatsapp_share_url"`
+	ExpiresInMinutes    int    `json:"expires_in_minutes"`
 }
 

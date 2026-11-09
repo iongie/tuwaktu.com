@@ -3,9 +3,13 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
+	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -46,7 +50,8 @@ type WorkerService interface {
 
 	// Admin & Autentikasi
 	OnboardWorker(ctx context.Context, payload *domain.AdminCreateWorkerPayload) (*domain.AdminWorkerCreatedResponse, error)
-	RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthLoginResponse, error)
+	RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthRegisterResponse, error)
+	ActivateWorkerByToken(ctx context.Context, rawToken string) (*domain.Worker, error)
 	ListWorkersForAdmin(ctx context.Context) ([]domain.AdminWorkerListItem, error)
 	GetAdminStats(ctx context.Context) (*domain.AdminStats, error)
 	SetWorkerStatus(ctx context.Context, workerID string, status string) error
@@ -553,7 +558,7 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 	}, nil
 }
 
-func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthLoginResponse, error) {
+func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.AuthRegisterPayload) (*domain.AuthRegisterResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -682,7 +687,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		WhatsAppNumber: sanitizedWA,
 		Email:          email,
 		Address:        zone,
-		IsActive:       true,
+		IsActive:       false,
 	}
 
 	// 6. Buat 7 default jadwal kerja (Senin s/d Minggu)
@@ -696,7 +701,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		{DayOfWeek: 6, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: false},
 	}
 
-	// 7. Buat WorkerAccount baru
+	// 7. Buat WorkerAccount baru dengan status PENDING menunggu aktivasi WhatsApp Admin
 	newAccount := domain.WorkerAccount{
 		ID:                 accountIDStr,
 		WorkerID:           &workerIDStr,
@@ -704,7 +709,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		PhoneNumber:        sanitizedWA,
 		PasswordHash:       hashedPassword,
 		Role:               domain.RoleWorker,
-		AccountStatus:      domain.AccountStatusActive,
+		AccountStatus:      domain.AccountStatusPending,
 		MustChangePassword: false,
 	}
 
@@ -713,27 +718,102 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		return nil, fmt.Errorf("eksekusi transaksi pendaftaran mitra gagal: %w", err)
 	}
 
-	// 9. Buat token JWT
-	token, err := auth.GenerateToken(newAccount.ID, newWorker.ID, newAccount.Email, newAccount.Role, newAccount.AccountStatus, 7*24*time.Hour)
-	if err != nil {
-		return nil, fmt.Errorf("pembuatan token sesi gagal: %w", err)
+	// 9. Buat Token Aktivasi Sekali Pakai (One-Time Token, valid 15 menit)
+	rawTokenBytes := make([]byte, 32)
+	if _, err := rand.Read(rawTokenBytes); err != nil {
+		return nil, fmt.Errorf("membuat token aktivasi: %w", err)
+	}
+	rawToken := hex.EncodeToString(rawTokenBytes)
+	tokenHashBytes := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(tokenHashBytes[:])
+
+	expiresAt := time.Now().UTC().Add(15 * time.Minute)
+	activationToken := &domain.WorkerActivationToken{
+		WorkerID:  workerIDStr,
+		TokenHash: tokenHash,
+		ExpiresAt: expiresAt,
+		IsUsed:    false,
 	}
 
-	return &domain.AuthLoginResponse{
-		Token: token,
-		Session: domain.AuthUserSession{
-			ID:                 newAccount.ID,
-			WorkerID:           &newWorker.ID,
-			WorkerSlug:         newWorker.Slug,
-			Slug:               newWorker.Slug,
-			Name:               newWorker.Name,
-			Email:              newAccount.Email,
-			PhoneNumber:        newAccount.PhoneNumber,
-			Role:               newAccount.Role,
-			AccountStatus:      newAccount.AccountStatus,
-			MustChangePassword: newAccount.MustChangePassword,
-		},
+	if err := s.repo.CreateActivationToken(ctx, activationToken); err != nil {
+		return nil, fmt.Errorf("menyimpan token aktivasi pendaftaran: %w", err)
+	}
+
+	adminWA := strings.TrimSpace(os.Getenv("ADMIN_WHATSAPP_NUMBER"))
+	if adminWA == "" {
+		adminWA = "6281234567890"
+	}
+	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("APP_BASE_URL")), "/")
+	if baseURL == "" {
+		baseURL = "http://localhost:3000"
+	}
+
+	activationURL := fmt.Sprintf("%s/api/admin/workers/activate?token=%s", baseURL, rawToken)
+	specialtyInfo := strings.TrimSpace(payload.SpecialtyLabel)
+	if specialtyInfo == "" {
+		specialtyInfo = "Teknisi"
+	}
+
+	waMessage := fmt.Sprintf(
+		"Halo Admin Tuwaktu, saya %s (%s) baru saja mendaftar sebagai mitra mandiri spesialis %s di %s.\n\n"+
+			"Mohon konfirmasi dan aktifkan profil saya melalui tautan aman berikut:\n%s\n\n"+
+			"Catatan: Tautan ini sekali pakai dan berlaku selama 15 menit. Terima kasih!",
+		newWorker.Name,
+		sanitizedWA,
+		specialtyInfo,
+		zone,
+		activationURL,
+	)
+	whatsappShareURL := fmt.Sprintf("https://wa.me/%s?text=%s", adminWA, url.QueryEscape(waMessage))
+
+	return &domain.AuthRegisterResponse{
+		WorkerID:            newWorker.ID,
+		Name:                newWorker.Name,
+		Slug:                newWorker.Slug,
+		WhatsAppNumber:      sanitizedWA,
+		AdminWhatsAppNumber: adminWA,
+		ActivationURL:       activationURL,
+		WhatsAppShareURL:    whatsappShareURL,
+		ExpiresInMinutes:    15,
 	}, nil
+}
+
+// ActivateWorkerByToken memvalidasi token aktivasi sekali pakai dan mengaktifkan profil mitra
+func (s *workerService) ActivateWorkerByToken(ctx context.Context, rawToken string) (*domain.Worker, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	rawToken = strings.TrimSpace(rawToken)
+	if rawToken == "" {
+		return nil, fmt.Errorf("%w: token aktivasi wajib diisi", domain.ErrInvalidInput)
+	}
+
+	tokenHashBytes := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(tokenHashBytes[:])
+
+	token, err := s.repo.GetActivationTokenByHash(ctx, tokenHash)
+	if err != nil {
+		return nil, fmt.Errorf("%w: tautan aktivasi tidak valid atau data pendaftaran tidak ditemukan", domain.ErrInvalidInput)
+	}
+
+	if token.IsUsed {
+		return nil, fmt.Errorf("%w: tautan aktivasi ini sudah pernah digunakan sebelumnya", domain.ErrInvalidInput)
+	}
+
+	if time.Now().UTC().After(token.ExpiresAt) {
+		return nil, fmt.Errorf("%w: tautan aktivasi telah kedaluwarsa (batas waktu 15 menit telah habis)", domain.ErrInvalidInput)
+	}
+
+	if err := s.repo.MarkActivationTokenUsed(ctx, token.ID, token.WorkerID); err != nil {
+		return nil, fmt.Errorf("gagal mengaktifkan akun: %w", err)
+	}
+
+	worker, err := s.repo.GetByID(ctx, token.WorkerID)
+	if err != nil {
+		return nil, fmt.Errorf("mengambil data mitra teraktivasi: %w", err)
+	}
+
+	return worker, nil
 }
 
 func (s *workerService) ListWorkersForAdmin(ctx context.Context) ([]domain.AdminWorkerListItem, error) {
@@ -859,6 +939,9 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 	if account.AccountStatus == domain.AccountStatusSuspended {
 		return nil, fmt.Errorf("%w: akun Anda telah dinonaktifkan oleh administrator", domain.ErrWorkerInactive)
 	}
+	if account.AccountStatus == domain.AccountStatusPending {
+		return nil, fmt.Errorf("%w: akun Anda sedang menunggu konfirmasi aktivasi oleh Admin. Silakan pastikan Anda telah mengirimkan tautan aktivasi WhatsApp ke Admin Tuwaktu.", domain.ErrWorkerInactive)
+	}
 
 	match, err := auth.VerifyPassword(account.PasswordHash, password)
 	if err != nil || !match {
@@ -952,6 +1035,9 @@ func (s *workerService) GetSessionProfile(ctx context.Context, accountID string)
 
 	if account.AccountStatus == domain.AccountStatusSuspended {
 		return nil, fmt.Errorf("%w: akun Anda telah dinonaktifkan oleh administrator", domain.ErrWorkerInactive)
+	}
+	if account.AccountStatus == domain.AccountStatusPending {
+		return nil, fmt.Errorf("%w: akun Anda sedang menunggu konfirmasi aktivasi oleh Admin. Silakan pastikan Anda telah mengirimkan tautan aktivasi WhatsApp ke Admin Tuwaktu.", domain.ErrWorkerInactive)
 	}
 
 	workerIDStr := ""

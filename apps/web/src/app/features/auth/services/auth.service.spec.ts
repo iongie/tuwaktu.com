@@ -323,6 +323,7 @@ describe('AuthService', () => {
 
     it('harus memanggil POST /api/v1/auth/register dengan withCredentials: true saat registrasi berhasil', () => {
       let resultSuccess = false;
+      let registerData: any;
       service
         .register({
           fullName: 'Eko Prasetyo',
@@ -337,6 +338,7 @@ describe('AuthService', () => {
         })
         .subscribe((res) => {
           resultSuccess = res.success;
+          registerData = res.data;
         });
 
       const req = httpTestingController.expectOne('http://localhost:3000/api/v1/auth/register');
@@ -348,26 +350,25 @@ describe('AuthService', () => {
 
       req.flush({
         success: true,
-        message: 'Pendaftaran mitra berhasil',
+        message: 'Pendaftaran mitra berhasil diajukan',
         data: {
-          token: 'jwt-register-token',
-          session: {
-            id: 'worker-id-eko',
-            name: 'Eko Prasetyo',
-            slug: 'eko-teknisi-ac',
-            email: 'eko-teknisi-ac@tuwaktu.com',
-            phone_number: '6281987654321',
-            role: 'WORKER',
-            account_status: 'ACTIVE',
-            must_change_password: false,
-          },
+          worker_id: 'worker-id-eko',
+          name: 'Eko Prasetyo',
+          slug: 'eko-teknisi-ac',
+          whatsapp_number: '6281987654321',
+          admin_whatsapp_number: '6281234567890',
+          activation_url: 'http://localhost:3000/api/admin/workers/activate?token=abc',
+          whatsapp_share_url: 'https://wa.me/6281234567890?text=halo',
+          expires_in_minutes: 15,
         },
       });
 
       expect(resultSuccess).toBe(true);
-      expect(service.isLoggedIn()).toBe(true);
-      expect(service.currentUser()?.name).toBe('Eko Prasetyo');
-      expect(service.currentUser()?.slug).toBe('eko-teknisi-ac');
+      expect(service.isLoggedIn()).toBe(false);
+      expect(registerData?.name).toBe('Eko Prasetyo');
+      expect(registerData?.slug).toBe('eko-teknisi-ac');
+      expect(registerData?.whatsapp_share_url).toContain('wa.me');
+      expect(registerData?.expires_in_minutes).toBe(15);
     });
 
     it('harus menolak registrasi jika ketentuan layanan tidak disetujui tanpa mengirim request HTTP', () => {
@@ -472,6 +473,7 @@ describe('AuthService', () => {
     it('harus menyimpan sesi lokal saat httpClient tidak tersedia', () => {
       const serviceNoHttp = new AuthService();
       let resultSuccess = false;
+      let registerData: any;
       serviceNoHttp
         .register({
           fullName: 'Budi Santoso',
@@ -486,11 +488,13 @@ describe('AuthService', () => {
         })
         .subscribe((res) => {
           resultSuccess = res.success;
+          registerData = res.data;
         });
 
       expect(resultSuccess).toBe(true);
-      expect(serviceNoHttp.isLoggedIn()).toBe(true);
-      expect(serviceNoHttp.currentUser()?.name).toBe('Budi Santoso');
+      expect(serviceNoHttp.isLoggedIn()).toBe(false);
+      expect(registerData?.name).toBe('Budi Santoso');
+      expect(registerData?.whatsapp_share_url).toContain('wa.me');
     });
 
     it('harus memanggil POST /api/v1/auth/logout dengan withCredentials: true dan mereset sinyal sesi saat logout dipanggil', () => {

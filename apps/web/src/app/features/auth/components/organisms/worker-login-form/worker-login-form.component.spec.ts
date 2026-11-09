@@ -136,13 +136,6 @@ describe('WorkerLoginFormComponent', () => {
     jest.useRealTimers();
   });
 
-  it('harus memicu pengiriman magic link WhatsApp secara aman', async () => {
-    const magicSpy = jest.spyOn(authService, 'sendMagicLink').mockResolvedValue(true);
-    component.waNumber = '081288992211';
-    await component.triggerMagicLink();
-    expect(magicSpy).toHaveBeenCalledWith('081288992211');
-  });
-
   it('harus menampilkan banner peringatan jika returnUrl mengarah ke panel admin', () => {
     component.returnUrl.set('/admin/workers');
     fixture.detectChanges();

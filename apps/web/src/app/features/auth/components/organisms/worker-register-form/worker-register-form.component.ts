@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
-import { RegisterFormData, SpecialtyOption } from '../../../models/auth.models';
+import { AuthRegisterResponse, RegisterFormData, SpecialtyOption } from '../../../models/auth.models';
 import { AuthSpecialtyPickerComponent } from '../../molecules/auth-specialty-picker/auth-specialty-picker.component';
 import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-field/altcha-captcha-field.component';
 
@@ -48,287 +48,313 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
         </div>
       }
 
-      @if (formSuccess()) {
-        <div
-          class="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm"
-          role="status"
-        >
-          <span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
-          <span>{{ formSuccess() }}</span>
-        </div>
-      }
-
-      <form class="flex flex-col gap-5" (ngSubmit)="handleFormSubmit()">
-        <!-- Field 1: Nama Lengkap -->
-        <div class="flex flex-col gap-1">
-          <div class="flex justify-between items-baseline">
-            <label class="font-body-strong text-body-strong text-ink-on-light" for="fullName">
-              Nama Lengkap Pekerja / Entitas Usaha
-            </label>
-            <span class="font-caption text-caption text-ink-secondary">Nama resmi publik</span>
+      @if (registrationResult(); as result) {
+        <!-- Tampilan Langkah Terakhir: Aktivasi WhatsApp Inbound ke Admin -->
+        <div class="flex flex-col gap-6" id="workerRegistrationSuccessCard">
+          <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200/80 rounded-xl">
+            <div class="w-12 h-12 rounded-full bg-emerald-100 text-whatsapp-green flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[28px]">mark_chat_unread</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="font-micro-uppercase text-micro-uppercase text-emerald-800 font-bold uppercase tracking-wider">
+                LANGKAH TERAKHIR
+              </span>
+              <h3 class="font-heading-h3 text-heading-h3 text-emerald-950 font-bold">
+                Kirim Pesan Aktivasi ke WhatsApp Admin
+              </h3>
+            </div>
           </div>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            required
-            [(ngModel)]="fullName"
-            (ngModelChange)="onFullNameChange($event)"
-            placeholder="Contoh: Sarah Melinda / Studio Bersih Rapi"
-            class="w-full h-11 bg-surface-container-low text-ink-on-light font-body-default text-body-default px-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
-          />
-        </div>
 
-        <!-- Field 2: Spesialisasi Layanan -->
-        <app-auth-specialty-picker
-          [options]="authService.specialtyOptions"
-          [selectedId]="authService.selectedSpecialty().id"
-          (selectSpecialty)="onSpecialtySelected($event)"
-        />
-
-        <!-- Field 3: WhatsApp Utama & Direct Handshake -->
-        <div class="flex flex-col gap-1">
-          <div class="flex justify-between items-baseline">
-            <label class="font-body-strong text-body-strong text-ink-on-light" for="waNumber">
-              Nomor WhatsApp Bisnis Langsung
-            </label>
-            <span class="font-caption text-caption text-whatsapp-green font-semibold">
-              Tujuan Notifikasi Klien
-            </span>
+          <div class="p-4 bg-surface-container-low rounded-xl border border-hairline-subtle/40 flex flex-col gap-3">
+            <div class="flex justify-between items-center text-sm pb-2 border-b border-hairline-subtle/20">
+              <span class="text-ink-secondary">Nama Calon Mitra</span>
+              <span class="font-bold text-ink-on-light">{{ result.name }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm pb-2 border-b border-hairline-subtle/20">
+              <span class="text-ink-secondary">Nomor WhatsApp</span>
+              <span class="font-mono font-semibold text-ink-on-light">{{ result.whatsapp_number }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-ink-secondary">Alamat Profil Publik</span>
+              <span class="font-mono font-semibold text-accent-link">tuwaktu.com/{{ result.slug }}</span>
+            </div>
           </div>
-          <div class="flex gap-2">
-            <div
-              class="h-11 px-3.5 bg-surface-container flex items-center justify-center font-mono-rate text-mono-rate rounded-lg text-ink-on-light font-bold select-none shrink-0"
+
+          <div class="text-sm text-ink-secondary leading-relaxed bg-surface-warm-promo p-4 rounded-xl border border-promo-ink/10 flex flex-col gap-2">
+            <p>
+              Pendaftaran profil Anda telah tercatat dengan status <strong>Menunggu Konfirmasi</strong>. Demi menjaga keamanan dan memastikan keaslian nomor WhatsApp Anda, mohon kirimkan pesan aktivasi ke WhatsApp Admin langsung dari nomor WhatsApp Anda.
+            </p>
+            <div class="flex items-center gap-1.5 text-xs text-promo-ink font-semibold mt-1">
+              <span class="material-symbols-outlined text-[16px]">timer</span>
+              <span>Tautan aktivasi pada pesan berlaku selama {{ result.expires_in_minutes }} menit (sekali pakai).</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 pt-2">
+            <a
+              [href]="result.whatsapp_share_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full h-12 bg-whatsapp-green hover:bg-emerald-600 text-white font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer min-h-[48px] text-decoration-none no-underline"
             >
-              +62
+              <span class="material-symbols-outlined text-[20px]">chat</span>
+              <span>Kirim Pesan Aktivasi ke WhatsApp Admin</span>
+            </a>
+
+            <div class="flex items-center justify-center gap-1 text-sm pt-2">
+              <span class="font-body-default text-body-default text-ink-secondary">
+                Sudah mengirimkan pesan aktivasi?
+              </span>
+              <a
+                routerLink="/login"
+                class="font-button-label text-button-label text-accent-link hover:underline font-semibold min-h-[44px] inline-flex items-center py-2"
+              >
+                Masuk ke Konsol Mitra
+              </a>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Formulir Pendaftaran Mitra -->
+        <form class="flex flex-col gap-5" (ngSubmit)="handleFormSubmit()">
+          <!-- Field 1: Nama Lengkap -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-baseline">
+              <label class="font-body-strong text-body-strong text-ink-on-light" for="fullName">
+                Nama Lengkap Pekerja / Entitas Usaha
+              </label>
+              <span class="font-caption text-caption text-ink-secondary">Nama resmi publik</span>
             </div>
             <input
-              id="waNumber"
-              name="waNumber"
-              type="tel"
-              inputmode="numeric"
+              id="fullName"
+              name="fullName"
+              type="text"
               required
-              [(ngModel)]="waNumber"
-              (input)="onWaNumberInput($event)"
-              placeholder="812-3456-7890"
-              class="flex-1 h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate px-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
+              [(ngModel)]="fullName"
+              (ngModelChange)="onFullNameChange($event)"
+              placeholder="Contoh: Sarah Melinda / Studio Bersih Rapi"
+              class="w-full h-11 bg-surface-container-low text-ink-on-light font-body-default text-body-default px-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
             />
-            <button
-              type="button"
-              (click)="triggerOtpSend()"
-              [disabled]="authService.otpStatus() === 'sending'"
-              class="px-3.5 h-11 rounded-lg font-button-label text-button-label text-ink-on-dark flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer disabled:opacity-50 shrink-0"
-              [class.bg-surface-elevated-dark]="authService.otpStatus() !== 'sent'"
-              [class.hover:bg-hero-canvas]="authService.otpStatus() !== 'sent'"
-              [class.bg-whatsapp-green]="authService.otpStatus() === 'sent'"
-            >
-              @if (authService.otpStatus() === 'sending') {
-                <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-                <span>Mengirim...</span>
-              } @else if (authService.otpStatus() === 'sent') {
-                <span class="material-symbols-outlined text-[18px]">check</span>
-                <span>Terkirim</span>
+          </div>
+
+          <!-- Field 2: Spesialisasi Layanan -->
+          <app-auth-specialty-picker
+            [options]="authService.specialtyOptions"
+            [selectedId]="authService.selectedSpecialty().id"
+            (selectSpecialty)="onSpecialtySelected($event)"
+          />
+
+          <!-- Field 3: WhatsApp Utama & Direct Handshake -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-baseline">
+              <label class="font-body-strong text-body-strong text-ink-on-light" for="waNumber">
+                Nomor WhatsApp Bisnis Langsung
+              </label>
+              <span class="font-caption text-caption text-whatsapp-green font-semibold">
+                Tujuan Notifikasi Klien
+              </span>
+            </div>
+            <div class="flex gap-2">
+              <div
+                class="h-11 px-3.5 bg-surface-container flex items-center justify-center font-mono-rate text-mono-rate rounded-lg text-ink-on-light font-bold select-none shrink-0"
+              >
+                +62
+              </div>
+              <input
+                id="waNumber"
+                name="waNumber"
+                type="tel"
+                inputmode="numeric"
+                required
+                [(ngModel)]="waNumber"
+                (input)="onWaNumberInput($event)"
+                placeholder="812-3456-7890"
+                class="flex-1 h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate px-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
+              />
+            </div>
+          </div>
+
+          <!-- Field 4: Basecamp & Wilayah Awal -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-baseline">
+              <label class="font-body-strong text-body-strong text-ink-on-light" for="basecamp">
+                Basecamp Operasional & Titik Radius Nol
+              </label>
+              <span class="font-caption text-caption text-ink-secondary">Pusat kalkulasi ongkir</span>
+            </div>
+            <div class="relative">
+              <input
+                id="basecamp"
+                name="basecamp"
+                type="text"
+                required
+                [(ngModel)]="basecamp"
+                (ngModelChange)="basecampChange.emit($event)"
+                placeholder="Contoh: Tebet Barat Dalam, Jakarta Selatan"
+                class="w-full h-11 bg-surface-container-low text-ink-on-light font-body-default text-body-default pl-10 pr-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
+              />
+              <span
+                class="material-symbols-outlined absolute left-3 top-3 text-ink-disabled text-[18px]"
+              >
+                location_on
+              </span>
+            </div>
+          </div>
+
+          <!-- Field 5: URL Profil Mandiri -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-baseline">
+              <label class="font-body-strong text-body-strong text-ink-on-light" for="customSlug">
+                Alamat Tautan Profil Pemesanan Publik
+              </label>
+              @if (customSlug) {
+                <div
+                  class="flex items-center gap-1 font-caption text-caption font-semibold"
+                  [class.text-emerald-600]="slugValidation().isValid"
+                  [class.text-red-600]="!slugValidation().isValid"
+                >
+                  <span class="material-symbols-outlined text-[14px]">
+                    {{ slugValidation().isValid ? 'check_circle' : 'cancel' }}
+                  </span>
+                  <span>{{ slugValidation().message }}</span>
+                </div>
               } @else {
-                <span class="material-symbols-outlined text-[18px]">key</span>
-                <span>Kirim OTP WA</span>
+                <div class="flex items-center gap-1 font-caption text-caption text-ink-secondary">
+                  <span class="material-symbols-outlined text-[14px]">link</span>
+                  <span>Tautan unik profil Anda</span>
+                </div>
+              }
+            </div>
+            <div
+              class="flex items-center h-11 bg-surface-container-low rounded-lg px-3.5 shadow-inner border border-transparent focus-within:border-ink-on-light focus-within:bg-body-canvas transition-all"
+            >
+              <span class="font-mono-rate text-mono-rate text-ink-disabled select-none">
+                tuwaktu.com/
+              </span>
+              <input
+                id="customSlug"
+                name="customSlug"
+                type="text"
+                required
+                [(ngModel)]="customSlug"
+                (ngModelChange)="onSlugChange($event)"
+                placeholder="nama-entitas-anda"
+                class="flex-1 bg-transparent text-ink-on-light font-mono-rate text-mono-rate focus:outline-none pl-1"
+              />
+            </div>
+            <span class="font-caption text-caption text-ink-secondary">
+              Tautan mandiri ini akan dibagikan ke calon klien, bio Instagram, atau kartu nama fisik.
+            </span>
+          </div>
+
+          <!-- Field 6: Master Security PIN -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="flex flex-col gap-1">
+              <label class="font-body-strong text-body-strong text-ink-on-light" for="workerPin">
+                PIN Akses 6-Digit
+              </label>
+              <input
+                id="workerPin"
+                name="workerPin"
+                type="password"
+                maxlength="6"
+                inputmode="numeric"
+                required
+                [(ngModel)]="workerPin"
+                placeholder="••••••"
+                class="h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate tracking-widest text-center rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none shadow-inner"
+              />
+              <span class="font-caption text-caption text-ink-disabled">
+                Pengganti kata sandi rumit.
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label
+                class="font-body-strong text-body-strong text-ink-on-light"
+                for="workerPinConfirm"
+              >
+                Konfirmasi PIN Akses
+              </label>
+              <input
+                id="workerPinConfirm"
+                name="workerPinConfirm"
+                type="password"
+                maxlength="6"
+                inputmode="numeric"
+                required
+                [(ngModel)]="workerPinConfirm"
+                placeholder="••••••"
+                class="h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate tracking-widest text-center rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none shadow-inner"
+              />
+              <span class="font-caption text-caption text-ink-disabled">Wajib persis sama.</span>
+            </div>
+          </div>
+
+          <!-- Strict Worker Covenant (No em dashes) -->
+          <div
+            class="bg-surface-warm-promo p-3.5 rounded-lg flex items-start gap-3 border border-promo-ink/10"
+          >
+            <input
+              id="doctrineAgreement"
+              name="doctrineAgreement"
+              type="checkbox"
+              required
+              [(ngModel)]="doctrineAgreement"
+              class="mt-1 w-4 h-4 accent-voltage-orange rounded cursor-pointer min-h-[16px] min-w-[16px]"
+            />
+            <label
+              for="doctrineAgreement"
+              class="font-caption text-caption text-promo-ink cursor-pointer select-none leading-relaxed"
+            >
+              <strong>Ketentuan Layanan Pekerja Mandiri:</strong> Saya menyetujui komitmen layanan
+              ini - saya bertanggung jawab langsung terhadap integritas layanan kepada klien,
+              mengatur tarif serta jangkauan radius secara mandiri, dan mematuhi buffer transit istirahat demi
+              keselamatan kerja.
+            </label>
+          </div>
+
+          <!-- Verifikasi Keamanan Anti-Bot ALTCHA -->
+          <app-altcha-captcha-field
+            [disabled]="isLoading()"
+            [resetTick]="altchaResetTick()"
+            (verifiedPayload)="onAltchaVerified($event)"
+          />
+
+          <!-- Execution Trigger -->
+          <div class="flex flex-col gap-3 pt-2">
+            <button
+              type="submit"
+              [disabled]="isLoading()"
+              class="w-full h-12 bg-primary hover:bg-surface-elevated-dark text-on-primary font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 shadow-md transition-all group cursor-pointer min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              @if (isLoading()) {
+                <span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                <span>Mendaftarkan Profil Mitra...</span>
+              } @else {
+                <span>Buat Profil Mandiri & Ambil Tautan Web</span>
+                <span
+                  class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform"
+                >
+                  arrow_forward
+                </span>
               }
             </button>
-          </div>
-          @if (authService.otpStatus() === 'sent') {
-            <div
-              class="flex items-center gap-1.5 mt-1 text-whatsapp-green font-caption text-caption font-medium"
-            >
-              <span class="material-symbols-outlined text-[16px]">task_alt</span>
-              <span>{{ authService.otpFeedbackMessage() }}</span>
-            </div>
-          } @else if (authService.otpStatus() === 'error') {
-            <div class="flex items-center gap-1.5 mt-1 text-red-600 font-caption text-caption">
-              <span class="material-symbols-outlined text-[16px]">error</span>
-              <span>{{ authService.otpFeedbackMessage() }}</span>
-            </div>
-          }
-        </div>
 
-        <!-- Field 4: Basecamp & Wilayah Awal -->
-        <div class="flex flex-col gap-1">
-          <div class="flex justify-between items-baseline">
-            <label class="font-body-strong text-body-strong text-ink-on-light" for="basecamp">
-              Basecamp Operasional & Titik Radius Nol
-            </label>
-            <span class="font-caption text-caption text-ink-secondary">Pusat kalkulasi ongkir</span>
-          </div>
-          <div class="relative">
-            <input
-              id="basecamp"
-              name="basecamp"
-              type="text"
-              required
-              [(ngModel)]="basecamp"
-              (ngModelChange)="basecampChange.emit($event)"
-              placeholder="Contoh: Tebet Barat Dalam, Jakarta Selatan"
-              class="w-full h-11 bg-surface-container-low text-ink-on-light font-body-default text-body-default pl-10 pr-3.5 rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none transition-all shadow-inner"
-            />
-            <span
-              class="material-symbols-outlined absolute left-3 top-3 text-ink-disabled text-[18px]"
-            >
-              location_on
-            </span>
-          </div>
-        </div>
-
-        <!-- Field 5: URL Profil Mandiri -->
-        <div class="flex flex-col gap-1">
-          <div class="flex justify-between items-baseline">
-            <label class="font-body-strong text-body-strong text-ink-on-light" for="customSlug">
-              Alamat Tautan Profil Pemesanan Publik
-            </label>
-            @if (customSlug) {
-              <div
-                class="flex items-center gap-1 font-caption text-caption font-semibold"
-                [class.text-emerald-600]="slugValidation().isValid"
-                [class.text-red-600]="!slugValidation().isValid"
-              >
-                <span class="material-symbols-outlined text-[14px]">
-                  {{ slugValidation().isValid ? 'check_circle' : 'cancel' }}
-                </span>
-                <span>{{ slugValidation().message }}</span>
-              </div>
-            } @else {
-              <div class="flex items-center gap-1 font-caption text-caption text-ink-secondary">
-                <span class="material-symbols-outlined text-[14px]">link</span>
-                <span>Tautan unik profil Anda</span>
-              </div>
-            }
-          </div>
-          <div
-            class="flex items-center h-11 bg-surface-container-low rounded-lg px-3.5 shadow-inner border border-transparent focus-within:border-ink-on-light focus-within:bg-body-canvas transition-all"
-          >
-            <span class="font-mono-rate text-mono-rate text-ink-disabled select-none">
-              tuwaktu.com/
-            </span>
-            <input
-              id="customSlug"
-              name="customSlug"
-              type="text"
-              required
-              [(ngModel)]="customSlug"
-              (ngModelChange)="onSlugChange($event)"
-              placeholder="nama-entitas-anda"
-              class="flex-1 bg-transparent text-ink-on-light font-mono-rate text-mono-rate focus:outline-none pl-1"
-            />
-          </div>
-          <span class="font-caption text-caption text-ink-secondary">
-            Tautan mandiri ini akan dibagikan ke calon klien, bio Instagram, atau kartu nama fisik.
-          </span>
-        </div>
-
-        <!-- Field 6: Master Security PIN -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div class="flex flex-col gap-1">
-            <label class="font-body-strong text-body-strong text-ink-on-light" for="workerPin">
-              PIN Akses 6-Digit
-            </label>
-            <input
-              id="workerPin"
-              name="workerPin"
-              type="password"
-              maxlength="6"
-              inputmode="numeric"
-              required
-              [(ngModel)]="workerPin"
-              placeholder="••••••"
-              class="h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate tracking-widest text-center rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none shadow-inner"
-            />
-            <span class="font-caption text-caption text-ink-disabled">
-              Pengganti kata sandi rumit.
-            </span>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label
-              class="font-body-strong text-body-strong text-ink-on-light"
-              for="workerPinConfirm"
-            >
-              Konfirmasi PIN Akses
-            </label>
-            <input
-              id="workerPinConfirm"
-              name="workerPinConfirm"
-              type="password"
-              maxlength="6"
-              inputmode="numeric"
-              required
-              [(ngModel)]="workerPinConfirm"
-              placeholder="••••••"
-              class="h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate tracking-widest text-center rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none shadow-inner"
-            />
-            <span class="font-caption text-caption text-ink-disabled">Wajib persis sama.</span>
-          </div>
-        </div>
-
-        <!-- Strict Worker Covenant (No em dashes) -->
-        <div
-          class="bg-surface-warm-promo p-3.5 rounded-lg flex items-start gap-3 border border-promo-ink/10"
-        >
-          <input
-            id="doctrineAgreement"
-            name="doctrineAgreement"
-            type="checkbox"
-            required
-            [(ngModel)]="doctrineAgreement"
-            class="mt-1 w-4 h-4 accent-voltage-orange rounded cursor-pointer min-h-[16px] min-w-[16px]"
-          />
-          <label
-            for="doctrineAgreement"
-            class="font-caption text-caption text-promo-ink cursor-pointer select-none leading-relaxed"
-          >
-            <strong>Ketentuan Layanan Pekerja Mandiri:</strong> Saya menyetujui komitmen layanan
-            ini - saya bertanggung jawab langsung terhadap integritas layanan kepada klien,
-            mengatur tarif serta jangkauan radius secara mandiri, dan mematuhi buffer transit istirahat demi
-            keselamatan kerja.
-          </label>
-        </div>
-
-        <!-- Verifikasi Keamanan Anti-Bot ALTCHA -->
-        <app-altcha-captcha-field
-          [disabled]="isLoading()"
-          [resetTick]="altchaResetTick()"
-          (verifiedPayload)="onAltchaVerified($event)"
-        />
-
-        <!-- Execution Trigger -->
-        <div class="flex flex-col gap-3 pt-2">
-          <button
-            type="submit"
-            [disabled]="isLoading()"
-            class="w-full h-12 bg-primary hover:bg-surface-elevated-dark text-on-primary font-button-label text-button-label rounded-lg flex items-center justify-center gap-2 shadow-md transition-all group cursor-pointer min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            @if (isLoading()) {
-              <span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
-              <span>Mendaftarkan Profil Mitra...</span>
-            } @else {
-              <span>Buat Profil Mandiri & Ambil Tautan Web</span>
-              <span
-                class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform"
-              >
-                arrow_forward
+            <div class="flex items-center justify-center gap-1 text-sm">
+              <span class="font-body-default text-body-default text-ink-secondary">
+                Sudah memiliki konsol pekerja?
               </span>
-            }
-          </button>
-
-          <div class="flex items-center justify-center gap-1 text-sm">
-            <span class="font-body-default text-body-default text-ink-secondary">
-              Sudah memiliki konsol pekerja?
-            </span>
-            <a
-              routerLink="/login"
-              class="font-button-label text-button-label text-accent-link hover:underline font-semibold min-h-[44px] inline-flex items-center py-2"
-            >
-              Masuk ke Konsol Mandiri
-            </a>
+              <a
+                routerLink="/login"
+                class="font-button-label text-button-label text-accent-link hover:underline font-semibold min-h-[44px] inline-flex items-center py-2"
+              >
+                Masuk ke Konsol Mandiri
+              </a>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -355,6 +381,7 @@ export class WorkerRegisterFormComponent implements OnDestroy {
   readonly altchaPayload = signal<string>('');
   readonly altchaVerified = signal<boolean>(false);
   readonly altchaResetTick = signal<number>(0);
+  readonly registrationResult = signal<AuthRegisterResponse | null>(null);
 
   readonly slugValidation = computed(() => {
     return this.authService.validateSlug(this.customSlug);
@@ -400,11 +427,6 @@ export class WorkerRegisterFormComponent implements OnDestroy {
     this.waNumber = sanitized;
   }
 
-  async triggerOtpSend(): Promise<void> {
-    this.formError.set('');
-    await this.authService.sendInstantOtp(this.waNumber);
-  }
-
   handleFormSubmit(): void {
     if (this.isLoading()) {
       return;
@@ -442,14 +464,11 @@ export class WorkerRegisterFormComponent implements OnDestroy {
     this.authService.register(payload).subscribe({
       next: (result) => {
         this.isLoading.set(false);
-        if (result.success) {
+        if (result.success && result.data) {
+          this.registrationResult.set(result.data);
           this.formSuccess.set(
-            `Selamat! Profil kerja mandiri Anda berhasil diaktifkan. Tautan resmi: tuwaktu.com/${this.customSlug}`
+            `Pendaftaran berhasil diajukan! Silakan kirimkan pesan aktivasi WhatsApp ke Admin untuk mengaktifkan akun Anda.`
           );
-          // Navigasi ke dashboard setelah konfirmasi
-          this.redirectTimeoutId = setTimeout(() => {
-            this.router.navigate(['/dashboard/ringkasan']);
-          }, 1200);
         } else {
           this.altchaResetTick.update((v) => v + 1);
           this.formError.set(result.error || 'Pendaftaran mitra gagal. Silakan coba lagi.');

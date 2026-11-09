@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -123,7 +124,7 @@ func TestAuthHandler_Register(t *testing.T) {
 		return p
 	}
 
-	t.Run("berhasil mendaftar via POST /api/v1/auth/register dan mengatur cookie", func(t *testing.T) {
+	t.Run("berhasil mendaftar via POST /api/v1/auth/register dan mengembalikan link aktivasi whatsapp", func(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		app := setupAuthTestApp(repo)
 
@@ -147,31 +148,29 @@ func TestAuthHandler_Register(t *testing.T) {
 		assert.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
 		var resBody struct {
-			Success bool                     `json:"success"`
-			Message string                   `json:"message"`
-			Data    domain.AuthLoginResponse `json:"data"`
+			Success bool                        `json:"success"`
+			Message string                      `json:"message"`
+			Data    domain.AuthRegisterResponse `json:"data"`
 		}
 		err = json.NewDecoder(resp.Body).Decode(&resBody)
 		require.NoError(t, err)
 
 		assert.True(t, resBody.Success)
-		assert.Equal(t, "Pendaftaran mitra berhasil", resBody.Message)
-		assert.NotEmpty(t, resBody.Data.Token)
-		assert.Equal(t, "Rian Hendrawan", resBody.Data.Session.Name)
-		assert.Equal(t, "rian-ac-jakarta", resBody.Data.Session.Slug)
+		assert.Contains(t, resBody.Message, "Pendaftaran berhasil diajukan")
+		assert.NotEmpty(t, resBody.Data.WorkerID)
+		assert.Equal(t, "Rian Hendrawan", resBody.Data.Name)
+		assert.Equal(t, "rian-ac-jakarta", resBody.Data.Slug)
+		assert.Equal(t, "6281299887766", resBody.Data.WhatsAppNumber)
+		assert.NotEmpty(t, resBody.Data.AdminWhatsAppNumber)
+		assert.NotEmpty(t, resBody.Data.ActivationURL)
+		assert.NotEmpty(t, resBody.Data.WhatsAppShareURL)
+		assert.Equal(t, 15, resBody.Data.ExpiresInMinutes)
 
-		// Verifikasi cookie
+		// Verifikasi cookie sesi TIDAK di-set saat pendaftaran (akun pending verifikasi)
 		cookies := resp.Cookies()
-		var tokenCookie *http.Cookie
 		for _, c := range cookies {
-			if c.Name == handler.AuthCookieName {
-				tokenCookie = c
-				break
-			}
+			assert.NotEqual(t, handler.AuthCookieName, c.Name)
 		}
-		require.NotNil(t, tokenCookie)
-		assert.True(t, tokenCookie.HttpOnly)
-		assert.Equal(t, resBody.Data.Token, tokenCookie.Value)
 	})
 
 	t.Run("gagal dengan 400 jika PIN termasuk blacklist PIN lemah (123456, 000000, 111111)", func(t *testing.T) {
@@ -405,5 +404,78 @@ func TestAuthHandler_Login_RateLimitAndLockout(t *testing.T) {
 				assert.Contains(t, resBody.Message, "terkunci sementara")
 			}
 		}
+	})
+}
+
+func TestAuthHandler_ActivateWorker(t *testing.T) {
+	newAltcha := func(t *testing.T) string {
+		t.Helper()
+		p, err := auth.GenerateValidAltchaPayload()
+		require.NoError(t, err)
+		return p
+	}
+
+	t.Run("berhasil mengaktifkan worker via GET /api/v1/admin/workers/activate dengan token valid", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		payload := map[string]interface{}{
+			"fullName":       "Agus Teknisi",
+			"specialtyId":    "ac-electric",
+			"specialtyLabel": "Teknisi AC",
+			"waNumber":       "6281233445566",
+			"basecamp":       "Jakarta Barat",
+			"customSlug":     "agus-teknisi",
+			"pin":            "482915",
+			"altcha_payload": newAltcha(t),
+		}
+		body, _ := json.Marshal(payload)
+		regReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(body))
+		regReq.Header.Set("Content-Type", "application/json")
+		regResp, err := app.Test(regReq)
+		require.NoError(t, err)
+		require.Equal(t, fiber.StatusCreated, regResp.StatusCode)
+
+		var regResult struct {
+			Data domain.AuthRegisterResponse `json:"data"`
+		}
+		require.NoError(t, json.NewDecoder(regResp.Body).Decode(&regResult))
+		token := strings.Split(regResult.Data.ActivationURL, "token=")[1]
+
+		// Eksekusi GET aktivasi
+		actReq := httptest.NewRequest(http.MethodGet, "/api/v1/admin/workers/activate?token="+token, nil)
+		actResp, err := app.Test(actReq)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, actResp.StatusCode)
+		assert.Contains(t, actResp.Header.Get("Content-Type"), "text/html")
+
+		var buf bytes.Buffer
+		_, _ = buf.ReadFrom(actResp.Body)
+		assert.Contains(t, buf.String(), "Aktivasi Mitra Berhasil")
+		assert.Contains(t, buf.String(), "Agus Teknisi")
+
+		// Klik kedua kali harus mengembalikan halaman status gagal / sudah digunakan
+		actReq2 := httptest.NewRequest(http.MethodGet, "/api/v1/admin/workers/activate?token="+token, nil)
+		actResp2, err := app.Test(actReq2)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, actResp2.StatusCode)
+
+		var buf2 bytes.Buffer
+		_, _ = buf2.ReadFrom(actResp2.Body)
+		assert.Contains(t, buf2.String(), "sudah pernah digunakan sebelumnya")
+	})
+
+	t.Run("gagal dengan 400 jika token kosong", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		app := setupAuthTestApp(repo)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/workers/activate?token=", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		var buf bytes.Buffer
+		_, _ = buf.ReadFrom(resp.Body)
+		assert.Contains(t, buf.String(), "Tautan Aktivasi Tidak Lengkap")
 	})
 }

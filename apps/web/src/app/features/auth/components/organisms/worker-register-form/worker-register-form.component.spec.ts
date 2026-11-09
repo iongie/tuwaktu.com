@@ -96,11 +96,23 @@ describe('WorkerRegisterFormComponent', () => {
     expect(component.formError()).toContain('PIN terlalu lemah');
   });
 
-  it('harus berhasil submit dan navigasi ke dashboard saat seluruh data valid', () => {
-    jest.useFakeTimers();
-    const navigateSpy = jest.spyOn(router, 'navigate');
+  it('harus berhasil submit dan menampilkan kartu aktivasi WhatsApp saat data valid', () => {
     const { of } = require('rxjs');
-    const registerSpy = jest.spyOn(authService, 'register').mockReturnValue(of({ success: true }));
+    const registerSpy = jest.spyOn(authService, 'register').mockReturnValue(
+      of({
+        success: true,
+        data: {
+          worker_id: 'w-1',
+          name: 'Budi Santoso',
+          slug: 'budi-santoso',
+          whatsapp_number: '6281234567890',
+          admin_whatsapp_number: '6281234567890',
+          activation_url: 'http://localhost:3000/api/admin/workers/activate?token=abc',
+          whatsapp_share_url: 'https://wa.me/6281234567890?text=halo',
+          expires_in_minutes: 15,
+        },
+      })
+    );
 
     component.fullName = 'Budi Santoso';
     component.waNumber = '081234567890';
@@ -109,18 +121,20 @@ describe('WorkerRegisterFormComponent', () => {
     component.workerPin = '482915';
     component.workerPinConfirm = '482915';
     component.doctrineAgreement = true;
+    component.altchaVerified.set(true);
 
     component.handleFormSubmit();
     fixture.detectChanges();
 
     expect(registerSpy).toHaveBeenCalled();
     expect(component.formError()).toBe('');
-    expect(component.formSuccess()).toContain('Selamat! Profil kerja mandiri Anda berhasil diaktifkan');
+    expect(component.formSuccess()).toContain('Pendaftaran berhasil diajukan');
+    expect(component.registrationResult()).not.toBeNull();
+    expect(component.registrationResult()?.name).toBe('Budi Santoso');
     expect(component.isLoading()).toBe(false);
 
-    jest.runAllTimers();
-    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard/ringkasan']);
-    jest.useRealTimers();
+    const successCard = fixture.nativeElement.querySelector('#workerRegistrationSuccessCard');
+    expect(successCard).toBeTruthy();
   });
 
   it('harus menampilkan formError saat authService.register mengembalikan error', () => {
@@ -136,6 +150,7 @@ describe('WorkerRegisterFormComponent', () => {
     component.workerPin = '482915';
     component.workerPinConfirm = '482915';
     component.doctrineAgreement = true;
+    component.altchaVerified.set(true);
 
     component.handleFormSubmit();
     fixture.detectChanges();
@@ -147,11 +162,8 @@ describe('WorkerRegisterFormComponent', () => {
     expect(component.formSuccess()).toBe('');
   });
 
-  it('harus memicu pengiriman OTP saat tombol Kirim OTP ditekan', async () => {
-    const sendOtpSpy = jest.spyOn(authService, 'sendInstantOtp').mockResolvedValue(true);
-    component.waNumber = '081234567890';
-    await component.triggerOtpSend();
-    expect(sendOtpSpy).toHaveBeenCalledWith('081234567890');
+  it('harus mengatur registrationResult ke null pada kondisi awal', () => {
+    expect(component.registrationResult()).toBeNull();
   });
 
   it('harus memancarkan event basecampChange saat basecamp diubah', () => {

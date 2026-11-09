@@ -13,25 +13,27 @@ import (
 )
 
 type MemoryRepository struct {
-	mu        sync.RWMutex
-	workers   map[string]*domain.Worker
-	services  map[string]*domain.Service
-	bookings  map[string]*domain.Booking
-	schedules map[string]map[int]*domain.WorkerSchedule
-	accounts  map[string]*domain.WorkerAccount
-	reviews   map[string]*domain.Review
-	events    []*domain.AnalyticsEvent
+	mu               sync.RWMutex
+	workers          map[string]*domain.Worker
+	services         map[string]*domain.Service
+	bookings         map[string]*domain.Booking
+	schedules        map[string]map[int]*domain.WorkerSchedule
+	accounts         map[string]*domain.WorkerAccount
+	reviews          map[string]*domain.Review
+	events           []*domain.AnalyticsEvent
+	activationTokens map[string]*domain.WorkerActivationToken
 }
 
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
-		workers:   make(map[string]*domain.Worker),
-		services:  make(map[string]*domain.Service),
-		bookings:  make(map[string]*domain.Booking),
-		schedules: make(map[string]map[int]*domain.WorkerSchedule),
-		accounts:  make(map[string]*domain.WorkerAccount),
-		reviews:   make(map[string]*domain.Review),
-		events:    make([]*domain.AnalyticsEvent, 0),
+		workers:          make(map[string]*domain.Worker),
+		services:         make(map[string]*domain.Service),
+		bookings:         make(map[string]*domain.Booking),
+		schedules:        make(map[string]map[int]*domain.WorkerSchedule),
+		accounts:         make(map[string]*domain.WorkerAccount),
+		reviews:          make(map[string]*domain.Review),
+		events:           make([]*domain.AnalyticsEvent, 0),
+		activationTokens: make(map[string]*domain.WorkerActivationToken),
 	}
 }
 
@@ -1245,6 +1247,69 @@ func (m *MemoryRepository) GetSummary(ctx context.Context, days int) (*domain.Ad
 	}
 
 	return summary, nil
+}
+
+// CreateActivationToken menyimpan token aktivasi ke in-memory store
+func (m *MemoryRepository) CreateActivationToken(ctx context.Context, token *domain.WorkerActivationToken) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if token.ID == "" {
+		token.ID = uuid.NewString()
+	}
+	m.activationTokens[token.TokenHash] = token
+	return nil
+}
+
+// GetActivationTokenByHash mencari token aktivasi berdasarkan hash
+func (m *MemoryRepository) GetActivationTokenByHash(ctx context.Context, tokenHash string) (*domain.WorkerActivationToken, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	token, ok := m.activationTokens[tokenHash]
+	if !ok {
+		return nil, domain.ErrWorkerNotFound
+	}
+	return token, nil
+}
+
+// MarkActivationTokenUsed menandai token aktivasi digunakan dan mengaktifkan akun pekerja
+func (m *MemoryRepository) MarkActivationTokenUsed(ctx context.Context, tokenID string, workerID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	var targetToken *domain.WorkerActivationToken
+	for _, t := range m.activationTokens {
+		if t.ID == tokenID {
+			targetToken = t
+			break
+		}
+	}
+
+	if targetToken == nil {
+		return domain.ErrWorkerNotFound
+	}
+	if targetToken.IsUsed {
+		return fmt.Errorf("token aktivasi sudah digunakan atau tidak valid")
+	}
+
+	now := time.Now().UTC()
+	targetToken.IsUsed = true
+	targetToken.UsedAt = &now
+
+	// Aktifkan worker
+	if w, ok := m.workers[workerID]; ok {
+		w.IsActive = true
+	}
+
+	// Aktifkan worker_account
+	for _, acc := range m.accounts {
+		if acc.WorkerID != nil && *acc.WorkerID == workerID {
+			acc.AccountStatus = domain.AccountStatusActive
+		}
+	}
+
+	return nil
 }
 
 

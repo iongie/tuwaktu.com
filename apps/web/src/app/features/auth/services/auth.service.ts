@@ -5,6 +5,8 @@ import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
   AltchaChallenge,
   AuthLoginResult,
+  AuthRegisterResponse,
+  AuthRegisterResult,
   AuthUserSession,
   BackendLoginData,
   BackendUserSession,
@@ -368,7 +370,7 @@ export class AuthService {
     return of({ success: true });
   }
 
-  register(formData: RegisterFormData): Observable<AuthLoginResult> {
+  register(formData: RegisterFormData): Observable<AuthRegisterResult> {
     const validation = this.validateRegistration(formData);
     if (!validation.isValid) {
       return of({ success: false, error: validation.error });
@@ -385,18 +387,22 @@ export class AuthService {
     const cleanSlug = this.sanitizeSlug(formData.customSlug || formData.fullName);
 
     if (!this.httpClient) {
-      const fallbackSession: AuthUserSession = {
-        id: `usr_${Date.now()}`,
+      const fallbackData: AuthRegisterResponse = {
+        worker_id: `wrk_${Date.now()}`,
         name: formData.fullName.trim(),
         slug: cleanSlug,
-        waNumber: sanitizedWa,
-        role: 'worker',
-        accountStatus: 'ACTIVE',
-        mustChangePassword: false,
+        whatsapp_number: sanitizedWa,
+        admin_whatsapp_number: '6281234567890',
+        activation_url: `http://localhost:3000/api/admin/workers/activate?token=mock_token`,
+        whatsapp_share_url: `https://wa.me/6281234567890?text=Halo%20Admin%20Tuwaktu`,
+        expires_in_minutes: 15,
       };
 
-      this.currentUser.set(fallbackSession);
-      return of({ success: true });
+      return of({
+        success: true,
+        message: 'Pendaftaran berhasil diajukan. Silakan kirimkan tautan aktivasi WhatsApp ke Admin untuk mengaktifkan akun Anda.',
+        data: fallbackData,
+      });
     }
 
     const payload: Record<string, string> = {
@@ -417,7 +423,7 @@ export class AuthService {
     }
 
     return this.httpClient
-      .post<{ success: boolean; message: string; data: BackendLoginData }>(
+      .post<{ success: boolean; message: string; data: AuthRegisterResponse }>(
         `${this.normalizedBaseUrl}/api/v1/auth/register`,
         payload,
         { withCredentials: true }
@@ -425,19 +431,11 @@ export class AuthService {
       .pipe(
         map((resp) => {
           if (resp && resp.success && resp.data) {
-            const s = resp.data.session;
-            const session: AuthUserSession = {
-              id: s.id,
-              name: s.name || formData.fullName.trim(),
-              slug: s.slug || s.worker_slug || cleanSlug,
-              email: s.email,
-              waNumber: s.phone_number || sanitizedWa,
-              role: s.role as AuthUserSession['role'],
-              accountStatus: s.account_status,
-              mustChangePassword: s.must_change_password,
+            return {
+              success: true,
+              message: resp.message,
+              data: resp.data,
             };
-            this.currentUser.set(session);
-            return { success: true };
           }
           return { success: false, error: resp?.message || 'Pendaftaran mitra gagal' };
         }),

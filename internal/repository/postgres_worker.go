@@ -884,6 +884,64 @@ func (r *PostgresWorkerRepository) UpdateBookingStatus(ctx context.Context, work
 	return &updated, nil
 }
 
+// CreateActivationToken menyimpan token aktivasi baru ke database
+func (r *PostgresWorkerRepository) CreateActivationToken(ctx context.Context, token *domain.WorkerActivationToken) error {
+	return r.db.WithContext(ctx).Create(token).Error
+}
+
+// GetActivationTokenByHash mencari token aktivasi berdasarkan token_hash
+func (r *PostgresWorkerRepository) GetActivationTokenByHash(ctx context.Context, tokenHash string) (*domain.WorkerActivationToken, error) {
+	var token domain.WorkerActivationToken
+	err := r.db.WithContext(ctx).Where("token_hash = ?", tokenHash).First(&token).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrWorkerNotFound
+		}
+		return nil, fmt.Errorf("mencari token aktivasi: %w", err)
+	}
+	return &token, nil
+}
+
+// MarkActivationTokenUsed menandai token aktivasi telah digunakan dan mengaktifkan akun pekerja secara transaksional
+func (r *PostgresWorkerRepository) MarkActivationTokenUsed(ctx context.Context, tokenID string, workerID string) error {
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("memulai transaksi aktivasi: %w", tx.Error)
+	}
+
+	now := time.Now().UTC()
+
+	// 1. Update token is_used = true
+	resToken := tx.Model(&domain.WorkerActivationToken{}).
+		Where("id = ? AND is_used = false", tokenID).
+		Updates(map[string]interface{}{
+			"is_used": true,
+			"used_at": now,
+		})
+	if resToken.Error != nil {
+		tx.Rollback()
+		return fmt.Errorf("memperbarui status token aktivasi: %w", resToken.Error)
+	}
+	if resToken.RowsAffected == 0 {
+		tx.Rollback()
+		return fmt.Errorf("token aktivasi sudah digunakan atau tidak valid")
+	}
+
+	// 2. Aktifkan workers (is_active = true)
+	if err := tx.Model(&domain.Worker{}).Where("id = ?", workerID).Update("is_active", true).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("mengaktifkan worker: %w", err)
+	}
+
+	// 3. Aktifkan worker_accounts (account_status = ACTIVE)
+	if err := tx.Model(&domain.WorkerAccount{}).Where("worker_id = ?", workerID).Update("account_status", domain.AccountStatusActive).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("mengaktifkan worker_account: %w", err)
+	}
+
+	return tx.Commit().Error
+}
+
 
 
 

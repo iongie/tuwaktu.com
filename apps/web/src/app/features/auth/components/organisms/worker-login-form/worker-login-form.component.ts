@@ -274,33 +274,6 @@ import {
               <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             }
           </button>
-
-          <button
-            type="button"
-            (click)="triggerMagicLink()"
-            [disabled]="authService.magicLinkStatus() === 'sending'"
-            class="h-11 px-6 rounded font-button-label text-button-label flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[44px] disabled:opacity-50"
-            [class.bg-whatsapp-surface]="authService.magicLinkStatus() !== 'sent'"
-            [class.hover:bg-whatsapp-surface/80]="authService.magicLinkStatus() !== 'sent'"
-            [class.text-whatsapp-ink]="authService.magicLinkStatus() !== 'sent'"
-            [class.bg-whatsapp-green]="authService.magicLinkStatus() === 'sent'"
-            [class.text-white]="authService.magicLinkStatus() === 'sent'"
-          >
-            @if (authService.magicLinkStatus() === 'sending') {
-              <span class="material-symbols-outlined text-[18px] text-whatsapp-green animate-spin">
-                refresh
-              </span>
-              <span>Mengirim Tautan Otentikasi...</span>
-            } @else if (authService.magicLinkStatus() === 'sent') {
-              <span class="material-symbols-outlined text-[18px] text-white">check_circle</span>
-              <span>Tautan Terkirim ke WhatsApp Anda!</span>
-            } @else {
-              <span class="material-symbols-outlined text-[18px] text-whatsapp-green">
-                mark_chat_unread
-              </span>
-              <span>Kirim Tautan Masuk Cepat via WhatsApp</span>
-            }
-          </button>
         </div>
 
         <!-- Secondary Actions -->
@@ -450,11 +423,6 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
     this.loginError.set(
       'Untuk mereset nomor atau PIN keamanan, silakan hubungi tim dukungan Tuwaktu dengan bukti kepemilikan nomor WhatsApp.',
     );
-  }
-
-  async triggerMagicLink(): Promise<void> {
-    this.loginError.set('');
-    await this.authService.sendMagicLink(this.waNumber);
   }
 
   handleLoginSubmit(): void {

@@ -66,6 +66,24 @@ export interface AuthLoginResult {
   readonly error?: string;
 }
 
+export interface AuthRegisterResponse {
+  readonly worker_id: string;
+  readonly name: string;
+  readonly slug: string;
+  readonly whatsapp_number: string;
+  readonly admin_whatsapp_number: string;
+  readonly activation_url: string;
+  readonly whatsapp_share_url: string;
+  readonly expires_in_minutes: number;
+}
+
+export interface AuthRegisterResult {
+  readonly success: boolean;
+  readonly message?: string;
+  readonly data?: AuthRegisterResponse;
+  readonly error?: string;
+}
+
 export interface BackendUserSession {
   readonly id: string;
   readonly worker_id?: string;

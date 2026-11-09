@@ -657,7 +657,7 @@ func TestWorkerService_UpdateWorkerSchedules(t *testing.T) {
 func TestWorkerService_RegisterWorker(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("berhasil mendaftarkan mitra baru dengan token dan sesi aktif", func(t *testing.T) {
+	t.Run("berhasil mendaftarkan mitra baru dengan status pending dan token aktivasi whatsapp", func(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		svc := service.NewWorkerService(repo)
 
@@ -674,28 +674,44 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		resp, err := svc.RegisterWorker(ctx, payload)
 		require.NoError(t, err)
 		require.NotNil(t, resp)
-		assert.NotEmpty(t, resp.Token)
-		assert.Equal(t, "Budi Santoso", resp.Session.Name)
-		assert.Equal(t, "budi-ac-jakarta", resp.Session.Slug)
-		assert.Equal(t, "6281234567890", resp.Session.PhoneNumber)
-		assert.Equal(t, "budi-ac-jakarta@tuwaktu.com", resp.Session.Email)
-		assert.Equal(t, domain.RoleWorker, resp.Session.Role)
-		assert.Equal(t, domain.AccountStatusActive, resp.Session.AccountStatus)
-		assert.False(t, resp.Session.MustChangePassword)
+		assert.NotEmpty(t, resp.WorkerID)
+		assert.Equal(t, "Budi Santoso", resp.Name)
+		assert.Equal(t, "budi-ac-jakarta", resp.Slug)
+		assert.Equal(t, "6281234567890", resp.WhatsAppNumber)
+		assert.NotEmpty(t, resp.AdminWhatsAppNumber)
+		assert.NotEmpty(t, resp.ActivationURL)
+		assert.NotEmpty(t, resp.WhatsAppShareURL)
+		assert.Equal(t, 15, resp.ExpiresInMinutes)
+		assert.Contains(t, resp.WhatsAppShareURL, "wa.me/")
 
-		// Verifikasi worker tersimpan di repo
+		// Verifikasi worker tersimpan di repo dengan status awal IsActive = false (pending)
 		w, err := repo.GetBySlug(ctx, "budi-ac-jakarta")
 		require.NoError(t, err)
 		assert.Equal(t, "Budi Santoso", w.Name)
 		assert.Equal(t, 75000.0, w.BasePrice)
-		assert.True(t, w.IsActive)
+		assert.False(t, w.IsActive)
 
 		// Verifikasi jadwal kerja terbuat untuk 7 hari
 		schedules, err := repo.GetWorkerSchedules(ctx, w.ID)
 		require.NoError(t, err)
 		assert.Len(t, schedules, 7)
 
-		// Verifikasi autentikasi dengan PIN yang didaftarkan (Argon2id) berhasil
+		// Verifikasi autentikasi ditolak sebelum aktivasi admin
+		_, errPending := svc.Authenticate(ctx, "6281234567890", "482915")
+		require.Error(t, errPending)
+		assert.Contains(t, errPending.Error(), "menunggu konfirmasi aktivasi oleh Admin")
+
+		// Ekstrak token dari URL aktivasi dan aktifkan via service
+		parts := strings.Split(resp.ActivationURL, "token=")
+		require.Len(t, parts, 2)
+		rawToken := parts[1]
+
+		activatedWorker, errActivate := svc.ActivateWorkerByToken(ctx, rawToken)
+		require.NoError(t, errActivate)
+		require.NotNil(t, activatedWorker)
+		assert.True(t, activatedWorker.IsActive)
+
+		// Verifikasi autentikasi berhasil setelah aktivasi admin
 		authResp, err := svc.Authenticate(ctx, "6281234567890", "482915")
 		require.NoError(t, err)
 		require.NotNil(t, authResp)
@@ -861,6 +877,81 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 	})
 }
 
+func TestWorkerService_ActivateWorkerByToken(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("berhasil mengaktifkan worker dengan token valid", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		regResp, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+			Name:           "Bambang AC",
+			SpecialtyID:    "ac-electric",
+			SpecialtyLabel: "Teknisi AC",
+			WhatsAppNumber: "6281211223344",
+			Zone:           "Jakarta Timur",
+			Slug:           "bambang-ac",
+			PIN:            "482915",
+		})
+		require.NoError(t, err)
+
+		token := strings.Split(regResp.ActivationURL, "token=")[1]
+		worker, err := svc.ActivateWorkerByToken(ctx, token)
+		require.NoError(t, err)
+		require.NotNil(t, worker)
+		assert.True(t, worker.IsActive)
+		assert.Equal(t, "bambang-ac", worker.Slug)
+
+		// Verifikasi status akun di repo berubah jadi ACTIVE
+		account, err := repo.GetAccountByEmailOrPhone(ctx, "6281211223344")
+		require.NoError(t, err)
+		assert.Equal(t, domain.AccountStatusActive, account.AccountStatus)
+	})
+
+	t.Run("gagal jika token aktivasi kosong", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.ActivateWorkerByToken(ctx, "   ")
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+	})
+
+	t.Run("gagal jika token aktivasi tidak valid", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.ActivateWorkerByToken(ctx, "token-palsu-ngawur-1234567890")
+		require.Error(t, err)
+		assert.ErrorIs(t, err, domain.ErrInvalidInput)
+		assert.Contains(t, err.Error(), "tidak valid atau data pendaftaran tidak ditemukan")
+	})
+
+	t.Run("gagal jika token sudah pernah digunakan (single-use)", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		svc := service.NewWorkerService(repo)
+
+		regResp, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+			Name:           "Santoso AC",
+			WhatsAppNumber: "6281222334455",
+			Zone:           "Jakarta Barat",
+			Slug:           "santoso-ac",
+			PIN:            "482915",
+		})
+		require.NoError(t, err)
+
+		token := strings.Split(regResp.ActivationURL, "token=")[1]
+		_, err = svc.ActivateWorkerByToken(ctx, token)
+		require.NoError(t, err)
+
+		// Aktivasi kedua dengan token yang sama wajib ditolak
+		_, errSecond := svc.ActivateWorkerByToken(ctx, token)
+		require.Error(t, errSecond)
+		assert.ErrorIs(t, errSecond, domain.ErrInvalidInput)
+		assert.Contains(t, errSecond.Error(), "sudah pernah digunakan")
+	})
+}
+
 func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 	ctx := context.Background()
 
@@ -868,7 +959,7 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		svc := service.NewWorkerService(repo)
 
-		_, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+		regResp, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
 			Name:           "Rian Teknisi",
 			WhatsAppNumber: "6281299887766",
 			Zone:           "Jakarta Selatan",
@@ -876,6 +967,9 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 			PIN:            "482915",
 		})
 		require.NoError(t, err)
+		token := strings.Split(regResp.ActivationURL, "token=")[1]
+		_, errAct := svc.ActivateWorkerByToken(ctx, token)
+		require.NoError(t, errAct)
 
 		// Percobaan 1 s/d 4 gagal dengan ErrInvalidInput
 		for i := 1; i <= 4; i++ {
@@ -900,7 +994,7 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		svc := service.NewWorkerService(repo)
 
-		_, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+		regResp, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
 			Name:           "Dedi Teknisi",
 			WhatsAppNumber: "6281377889900",
 			Zone:           "Jakarta Barat",
@@ -908,6 +1002,9 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 			PIN:            "739184",
 		})
 		require.NoError(t, err)
+		token := strings.Split(regResp.ActivationURL, "token=")[1]
+		_, errAct := svc.ActivateWorkerByToken(ctx, token)
+		require.NoError(t, errAct)
 
 		// 4 kali gagal
 		for i := 1; i <= 4; i++ {
@@ -930,7 +1027,7 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		svc := service.NewWorkerService(repo)
 
-		_, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
+		regResp, err := svc.RegisterWorker(ctx, &domain.AuthRegisterPayload{
 			Name:           "Hendra Teknisi",
 			WhatsAppNumber: "6281355667788",
 			Zone:           "Jakarta Pusat",
@@ -938,6 +1035,9 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 			PIN:            "739184",
 		})
 		require.NoError(t, err)
+		token := strings.Split(regResp.ActivationURL, "token=")[1]
+		_, errAct := svc.ActivateWorkerByToken(ctx, token)
+		require.NoError(t, errAct)
 
 		// 4 kali gagal via WhatsApp
 		for i := 1; i <= 4; i++ {

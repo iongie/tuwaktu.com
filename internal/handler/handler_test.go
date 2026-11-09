@@ -1558,11 +1558,11 @@ func TestBookingHandler_GetAvailableSlots(t *testing.T) {
 		SlotEvening:   true,
 	})
 
-	// Monday: 2026-11-09
+	// Monday: 2026-11-16
 	// Existing booking on Afternoon slot: 13:00 - 15:00 WIB
 	wib := time.FixedZone("WIB", 7*3600)
-	bookingStart := time.Date(2026, 11, 9, 13, 0, 0, 0, wib)
-	bookingEnd := time.Date(2026, 11, 9, 15, 0, 0, 0, wib)
+	bookingStart := time.Date(2026, 11, 16, 13, 0, 0, 0, wib)
+	bookingEnd := time.Date(2026, 11, 16, 15, 0, 0, 0, wib)
 
 	repo.SeedBooking(&domain.Booking{
 		ID:          "booking-exist-1",
@@ -1574,7 +1574,7 @@ func TestBookingHandler_GetAvailableSlots(t *testing.T) {
 	})
 
 	t.Run("200 OK - returns slot list and marks afternoon slot unavailable due to overlap", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-09", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-16", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -1607,27 +1607,27 @@ func TestBookingHandler_GetAvailableSlots(t *testing.T) {
 
 	t.Run("200 OK - alias routes work for available-slots", func(t *testing.T) {
 		// Test /api/public/worker/:slug/available-slots
-		req1 := httptest.NewRequest(http.MethodGet, "/api/public/worker/agus-ac/available-slots?date=2026-11-09", nil)
+		req1 := httptest.NewRequest(http.MethodGet, "/api/public/worker/agus-ac/available-slots?date=2026-11-16", nil)
 		resp1, err1 := app.Test(req1)
 		require.NoError(t, err1)
 		assert.Equal(t, http.StatusOK, resp1.StatusCode)
 
 		// Test /api/worker/:slug/available-slots
-		req2 := httptest.NewRequest(http.MethodGet, "/api/worker/agus-ac/available-slots?date=2026-11-09", nil)
+		req2 := httptest.NewRequest(http.MethodGet, "/api/worker/agus-ac/available-slots?date=2026-11-16", nil)
 		resp2, err2 := app.Test(req2)
 		require.NoError(t, err2)
 		assert.Equal(t, http.StatusOK, resp2.StatusCode)
 	})
 
 	t.Run("200 OK - with valid service_id query param", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-09&service_id="+srv.ID, nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-16&service_id="+srv.ID, nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
 	t.Run("404 Not Found - with invalid service_id query param", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-09&service_id=non-existent-service", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/workers/agus-ac/available-slots?date=2026-11-16&service_id=non-existent-service", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -1648,9 +1648,9 @@ func TestBookingHandler_GetAvailableSlots(t *testing.T) {
 	})
 
 	t.Run("409 Conflict - CreateBooking rejects colliding booking with 60 min transit buffer", func(t *testing.T) {
-		// Existing booking is 13:00 - 15:00 on 2026-11-09.
+		// Existing booking is 13:00 - 15:00 on 2026-11-16.
 		// Try to book at 15:30 (starts within 60m buffer of 15:00):
-		collidingTime := time.Date(2026, 11, 9, 15, 30, 0, 0, wib).Format(time.RFC3339)
+		collidingTime := time.Date(2026, 11, 16, 15, 30, 0, 0, wib).Format(time.RFC3339)
 		payload := map[string]any{
 			"worker_id":    worker.ID,
 			"service_id":   srv.ID,

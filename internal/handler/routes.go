@@ -122,6 +122,8 @@ func RegisterRoutes(
 		v1.Post("/auth/register", authHandler.Register)
 		api.Post("/auth/logout", authHandler.Logout)
 		v1.Post("/auth/logout", authHandler.Logout)
+		api.Get("/admin/workers/activate", authHandler.ActivateWorker)
+		v1.Get("/admin/workers/activate", authHandler.ActivateWorker)
 		if authMiddleware != nil {
 			api.Get("/auth/me", authMiddleware.RequireAuth, authHandler.Me)
 			v1.Get("/auth/me", authMiddleware.RequireAuth, authHandler.Me)

@@ -33,6 +33,11 @@ type WorkerRepository interface {
 	RecordFailedLogin(ctx context.Context, accountID string, maxAttempts int, lockDuration time.Duration) (int, *time.Time, error)
 	ResetFailedLogin(ctx context.Context, accountID string) error
 	UpdateAccountPasswordHash(ctx context.Context, accountID string, newHash string) error
+
+	// Token Aktivasi Pendaftaran Manual via WhatsApp
+	CreateActivationToken(ctx context.Context, token *domain.WorkerActivationToken) error
+	GetActivationTokenByHash(ctx context.Context, tokenHash string) (*domain.WorkerActivationToken, error)
+	MarkActivationTokenUsed(ctx context.Context, tokenID string, workerID string) error
 }
 
 type BookingRepository interface {

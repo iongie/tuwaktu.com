@@ -7,7 +7,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AdminAnalyticsStore } from '../../../services/admin-analytics.store';
-import { BookingNavAccountMenuComponent } from '../../../../worker-booking/components/molecules/booking-nav-account-menu/booking-nav-account-menu.component';
+import { AdminCityDistributionCardComponent } from '../../organisms/admin-city-distribution-card/admin-city-distribution-card.component';
 
 @Component({
   selector: 'app-admin-analytics-page',
@@ -15,7 +15,7 @@ import { BookingNavAccountMenuComponent } from '../../../../worker-booking/compo
   imports: [
     CommonModule,
     RouterModule,
-    BookingNavAccountMenuComponent,
+    AdminCityDistributionCardComponent,
   ],
   templateUrl: './admin-analytics-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

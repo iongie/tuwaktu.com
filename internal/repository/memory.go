@@ -1091,6 +1091,7 @@ func (m *MemoryRepository) GetSummary(ctx context.Context, days int) (*domain.Ad
 		BookingStatusBreakdown: make(map[string]int64),
 		TopWorkers:             []domain.AnalyticsWorkerMetric{},
 		TopSearches:            []domain.AnalyticsSearchMetric{},
+		TopCities:              []domain.AnalyticsCityMetric{},
 		DaysRange:              days,
 	}
 
@@ -1103,10 +1104,49 @@ func (m *MemoryRepository) GetSummary(ctx context.Context, days int) (*domain.Ad
 	workerClicks := make(map[string]int64)
 	workerViews := make(map[string]int64)
 	searchCounts := make(map[string]map[string]int64)
+	cityStats := make(map[string]*struct {
+		totalActivity  int64
+		profileViews   int64
+		searches       int64
+		whatsappClicks int64
+	})
+	var totalCityActivity int64
 
 	for _, ev := range m.events {
 		if useTimeFilter && ev.CreatedAt.Before(cutoff) {
 			continue
+		}
+
+		meta := ev.GetMetadataMap()
+		cityName := ""
+		if c, ok := meta["city"].(string); ok && strings.TrimSpace(c) != "" {
+			cityName = strings.TrimSpace(c)
+		} else if loc, ok := meta["location"].(string); ok && strings.TrimSpace(loc) != "" {
+			cityName = strings.TrimSpace(loc)
+		}
+
+		if cityName != "" {
+			stat := cityStats[cityName]
+			if stat == nil {
+				stat = &struct {
+					totalActivity  int64
+					profileViews   int64
+					searches       int64
+					whatsappClicks int64
+				}{}
+				cityStats[cityName] = stat
+			}
+			stat.totalActivity++
+			totalCityActivity++
+
+			switch ev.EventName {
+			case domain.EventPageViewWorker:
+				stat.profileViews++
+			case domain.EventSearchPerformed:
+				stat.searches++
+			case domain.EventWhatsAppClick:
+				stat.whatsappClicks++
+			}
 		}
 
 		switch ev.EventName {
@@ -1122,7 +1162,6 @@ func (m *MemoryRepository) GetSummary(ctx context.Context, days int) (*domain.Ad
 			}
 		case domain.EventSearchPerformed:
 			summary.TotalSearches++
-			meta := ev.GetMetadataMap()
 			qStr, _ := meta["query"].(string)
 			locStr, _ := meta["location"].(string)
 			qStr = strings.TrimSpace(qStr)
@@ -1181,6 +1220,28 @@ func (m *MemoryRepository) GetSummary(ctx context.Context, days int) (*domain.Ad
 	})
 	if len(summary.TopSearches) > 5 {
 		summary.TopSearches = summary.TopSearches[:5]
+	}
+
+	for name, stat := range cityStats {
+		pct := 0.0
+		if totalCityActivity > 0 {
+			pct = float64(stat.totalActivity) / float64(totalCityActivity) * 100
+			pct = float64(int(pct*10+0.5)) / 10.0
+		}
+		summary.TopCities = append(summary.TopCities, domain.AnalyticsCityMetric{
+			City:           name,
+			TotalActivity:  stat.totalActivity,
+			ProfileViews:   stat.profileViews,
+			Searches:       stat.searches,
+			WhatsAppClicks: stat.whatsappClicks,
+			Percentage:     pct,
+		})
+	}
+	sort.Slice(summary.TopCities, func(i, j int) bool {
+		return summary.TopCities[i].TotalActivity > summary.TopCities[j].TotalActivity
+	})
+	if len(summary.TopCities) > 8 {
+		summary.TopCities = summary.TopCities[:8]
 	}
 
 	return summary, nil

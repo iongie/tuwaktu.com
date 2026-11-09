@@ -30,11 +30,45 @@ func (h *AnalyticsHandler) TrackPublicEvent(c *fiber.Ctx) error {
 		return ErrorResponse(c, fiber.StatusBadRequest, "nama event (event_name) wajib diisi", nil)
 	}
 
+	// Deteksi kota/wilayah hybrid (gabungan input eksplisit & header CDN/proxy)
+	if payload.Metadata == nil {
+		payload.Metadata = make(map[string]interface{})
+	}
+	if city := extractCityFromRequest(c, payload.Metadata); city != "" {
+		if _, exists := payload.Metadata["city"]; !exists {
+			payload.Metadata["city"] = city
+		}
+	}
+
 	if err := h.analyticsSvc.TrackEvent(c.UserContext(), &payload); err != nil {
 		return ErrorResponse(c, fiber.StatusBadRequest, "Gagal mencatat event: "+err.Error(), err.Error())
 	}
 
 	return SuccessResponse(c, fiber.StatusCreated, "Event telemetri berhasil dicatat", nil)
+}
+
+// extractCityFromRequest mengekstrak nama kota/wilayah secara hybrid
+func extractCityFromRequest(c *fiber.Ctx, meta map[string]interface{}) string {
+	// 1. Cek jika metadata dari request body sudah memiliki city / location eksplisit (misal dari pencarian / filter)
+	if meta != nil {
+		if loc, ok := meta["location"].(string); ok && strings.TrimSpace(loc) != "" {
+			return strings.TrimSpace(loc)
+		}
+		if city, ok := meta["city"].(string); ok && strings.TrimSpace(city) != "" {
+			return strings.TrimSpace(city)
+		}
+	}
+
+	// 2. Cek Header Reverse Proxy / CDN (Cloudflare CF-IPCity, CF-Region, X-City, X-Forwarded-City)
+	headers := []string{"CF-IPCity", "X-City", "X-Forwarded-City", "CF-Region", "X-Region"}
+	for _, h := range headers {
+		val := strings.TrimSpace(c.Get(h))
+		if val != "" {
+			return val
+		}
+	}
+
+	return ""
 }
 
 // GetAdminSummary mengambil data ringkasan analitik platform untuk panel admin

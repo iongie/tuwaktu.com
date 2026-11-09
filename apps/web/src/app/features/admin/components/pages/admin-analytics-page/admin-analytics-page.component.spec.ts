@@ -29,6 +29,16 @@ describe('AdminAnalyticsPageComponent', () => {
     top_searches: [
       { query: 'AC Inverter', location: 'Jakarta Selatan', count: 25 },
     ],
+    top_cities: [
+      {
+        city: 'Jakarta Selatan',
+        total_activity: 120,
+        profile_views: 70,
+        searches: 35,
+        whatsapp_clicks: 15,
+        percentage: 60.0,
+      },
+    ],
     booking_status_breakdown: { CONFIRMED: 12, PENDING_WA: 6 },
     days_range: 30,
   };
@@ -76,6 +86,13 @@ describe('AdminAnalyticsPageComponent', () => {
     // Cek Tren Pencarian
     expect(el.textContent).toContain('AC Inverter');
     expect(el.textContent).toContain('Wilayah: Jakarta Selatan');
+
+    // Cek Organisme Distribusi Wilayah Kota
+    const cityCard = el.querySelector('app-admin-city-distribution-card');
+    expect(cityCard).toBeTruthy();
+    expect(cityCard?.textContent).toContain('Sebaran Aktivitas Berdasarkan Wilayah');
+    expect(cityCard?.textContent).toContain('Jakarta Selatan');
+    expect(cityCard?.textContent).toContain('60%');
   });
 
   it('harus memanggil setDaysRange saat filter rentang hari dipilih', () => {

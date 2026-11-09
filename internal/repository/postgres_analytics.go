@@ -29,6 +29,7 @@ func (r *PostgresAnalyticsRepository) GetSummary(ctx context.Context, days int) 
 		BookingStatusBreakdown: make(map[string]int64),
 		TopWorkers:             []domain.AnalyticsWorkerMetric{},
 		TopSearches:            []domain.AnalyticsSearchMetric{},
+		TopCities:              []domain.AnalyticsCityMetric{},
 		DaysRange:              days,
 	}
 
@@ -214,6 +215,96 @@ func (r *PostgresAnalyticsRepository) GetSummary(ctx context.Context, days int) 
 				Query:    item.query,
 				Location: item.location,
 				Count:    item.count,
+			})
+		}
+	}
+
+	// 7. Top Cities (Distribusi Geografis Pengguna ala Umami)
+	var cityEvents []domain.AnalyticsEvent
+	qCities := r.db.WithContext(ctx).Model(&domain.AnalyticsEvent{}).
+		Where("metadata IS NOT NULL AND metadata != '' AND metadata != '{}'")
+	if useTimeFilter {
+		qCities = qCities.Where("created_at >= ?", cutoff)
+	}
+
+	if err := qCities.Order("created_at DESC").Limit(500).Find(&cityEvents).Error; err == nil {
+		type cityStat struct {
+			totalActivity  int64
+			profileViews   int64
+			searches       int64
+			whatsappClicks int64
+		}
+		cityMap := make(map[string]*cityStat)
+		var totalAllCitiesActivity int64
+
+		for _, ev := range cityEvents {
+			var meta map[string]interface{}
+			if err := json.Unmarshal([]byte(ev.Metadata), &meta); err == nil && meta != nil {
+				cityName := ""
+				if c, ok := meta["city"].(string); ok && strings.TrimSpace(c) != "" {
+					cityName = strings.TrimSpace(c)
+				} else if loc, ok := meta["location"].(string); ok && strings.TrimSpace(loc) != "" {
+					cityName = strings.TrimSpace(loc)
+				}
+
+				if cityName != "" {
+					cityName = strings.TrimSpace(cityName)
+					stat := cityMap[cityName]
+					if stat == nil {
+						stat = &cityStat{}
+						cityMap[cityName] = stat
+					}
+
+					stat.totalActivity++
+					totalAllCitiesActivity++
+
+					switch ev.EventName {
+					case domain.EventPageViewWorker:
+						stat.profileViews++
+					case domain.EventSearchPerformed:
+						stat.searches++
+					case domain.EventWhatsAppClick:
+						stat.whatsappClicks++
+					}
+				}
+			}
+		}
+
+		type cityEntry struct {
+			name string
+			stat *cityStat
+		}
+		var cityList []cityEntry
+		for name, stat := range cityMap {
+			cityList = append(cityList, cityEntry{name: name, stat: stat})
+		}
+
+		// Sortir berdasarkan totalActivity descending
+		for i := 0; i < len(cityList)-1; i++ {
+			for j := i + 1; j < len(cityList); j++ {
+				if cityList[j].stat.totalActivity > cityList[i].stat.totalActivity {
+					cityList[i], cityList[j] = cityList[j], cityList[i]
+				}
+			}
+		}
+
+		for idx, item := range cityList {
+			if idx >= 8 {
+				break
+			}
+			pct := 0.0
+			if totalAllCitiesActivity > 0 {
+				pct = float64(item.stat.totalActivity) / float64(totalAllCitiesActivity) * 100
+				pct = float64(int(pct*10+0.5)) / 10.0
+			}
+
+			summary.TopCities = append(summary.TopCities, domain.AnalyticsCityMetric{
+				City:           item.name,
+				TotalActivity:  item.stat.totalActivity,
+				ProfileViews:   item.stat.profileViews,
+				Searches:       item.stat.searches,
+				WhatsAppClicks: item.stat.whatsappClicks,
+				Percentage:     pct,
 			})
 		}
 	}

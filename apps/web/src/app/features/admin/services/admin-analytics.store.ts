@@ -31,6 +31,9 @@ export class AdminAnalyticsStore {
   readonly topSearches = computed(
     () => this.summary()?.top_searches ?? []
   );
+  readonly topCities = computed(
+    () => this.summary()?.top_cities ?? []
+  );
   readonly bookingStatusBreakdown = computed(
     () => this.summary()?.booking_status_breakdown ?? {}
   );

@@ -26,6 +26,16 @@ describe('AdminAnalyticsStore', () => {
     top_searches: [
       { query: 'ac', location: 'jakarta', count: 18 },
     ],
+    top_cities: [
+      {
+        city: 'Jakarta Selatan',
+        total_activity: 50,
+        profile_views: 30,
+        searches: 15,
+        whatsapp_clicks: 5,
+        percentage: 62.5,
+      },
+    ],
     booking_status_breakdown: { CONFIRMED: 6, PENDING_WA: 4 },
     days_range: 30,
   };
@@ -63,6 +73,8 @@ describe('AdminAnalyticsStore', () => {
     expect(store.totalSearches()).toBe(45);
     expect(store.topWorkers().length).toBe(1);
     expect(store.topSearches().length).toBe(1);
+    expect(store.topCities().length).toBe(1);
+    expect(store.topCities()[0].city).toBe('Jakarta Selatan');
   });
 
   it('harus mengubah rentang hari dan memuat ulang data saat setDaysRange dipanggil', () => {

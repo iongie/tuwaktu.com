@@ -1,14 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { Component, signal } from '@angular/core';
-import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
+import { signal } from '@angular/core';
 import { AdminCategoriesPageComponent } from './admin-categories-page.component';
 import { AdminCategoryStore } from '../../../services/admin-category.store';
-import { AuthService } from '../../../../auth/services/auth.service';
 import { AdminCategory } from '../../../models/admin-category.model';
-
-@Component({ standalone: true, template: '' })
-class DummyLoginComponent {}
 
 describe('AdminCategoriesPageComponent', () => {
   let component: AdminCategoriesPageComponent;
@@ -76,8 +71,7 @@ describe('AdminCategoriesPageComponent', () => {
       imports: [AdminCategoriesPageComponent],
       providers: [
         { provide: AdminCategoryStore, useValue: mockStore },
-        AuthService,
-        provideRouter([{ path: 'login', component: DummyLoginComponent }]),
+        provideRouter([]),
       ],
     }).compileComponents();
 

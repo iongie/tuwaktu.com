@@ -72,6 +72,16 @@ type AnalyticsSearchMetric struct {
 	Count    int64  `json:"count"`
 }
 
+// AnalyticsCityMetric proyeksi metrik persebaran aktivitas pengguna per wilayah/kota ala Umami
+type AnalyticsCityMetric struct {
+	City           string  `json:"city"`
+	TotalActivity  int64   `json:"total_activity"`
+	ProfileViews   int64   `json:"profile_views"`
+	Searches       int64   `json:"searches"`
+	WhatsAppClicks int64   `json:"whatsapp_clicks"`
+	Percentage     float64 `json:"percentage"`
+}
+
 // AdminAnalyticsSummary ringkasan agregasi data analitik platform untuk panel admin
 type AdminAnalyticsSummary struct {
 	TotalWhatsAppClicks    int64                   `json:"total_whatsapp_clicks"`
@@ -80,6 +90,7 @@ type AdminAnalyticsSummary struct {
 	TotalSearches          int64                   `json:"total_searches"`
 	TopWorkers             []AnalyticsWorkerMetric `json:"top_workers"`
 	TopSearches            []AnalyticsSearchMetric `json:"top_searches"`
+	TopCities              []AnalyticsCityMetric   `json:"top_cities"`
 	BookingStatusBreakdown map[string]int64        `json:"booking_status_breakdown"`
 	DaysRange              int                     `json:"days_range"`
 }

@@ -1,81 +1,5 @@
-<main class="min-h-screen bg-surface-container-lowest text-on-surface">
-  <!-- Top Navigation Bar Admin (Sejajar dengan Konten & Dilengkapi Dropdown Profil) -->
-  <header class="sticky top-0 w-full z-50 bg-body-canvas/95 backdrop-blur-md border-b border-hairline-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-    <div class="h-16 max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between gap-gutter">
-      <div class="flex items-center gap-space-xl">
-        <a routerLink="/" class="flex items-center gap-space-sm cursor-pointer">
-          <span class="font-heading-h3 text-heading-h3 font-bold tracking-tight text-ink-on-light uppercase">TUWAKTU</span>
-          <span class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded">MANDIRI</span>
-        </a>
-
-        <div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 bg-surface-warm-promo text-promo-ink rounded">
-          <span class="material-symbols-outlined text-[14px] text-promo-ink">admin_panel_settings</span>
-          <span class="font-caption text-caption font-semibold uppercase tracking-wider">Panel Admin</span>
-        </div>
-
-        <nav aria-label="Navigasi Panel Admin" class="hidden md:flex items-center gap-space-xs">
-          <a
-            routerLink="/admin/workers"
-            class="px-space-md py-1.5 bg-surface-highlight text-on-surface font-semibold font-button-label text-button-label rounded cursor-pointer"
-          >
-            Kelola Mitra
-          </a>
-          <a
-            routerLink="/admin/categories"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Katalog Keahlian
-          </a>
-          <a
-            routerLink="/admin/analytics"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Analitik Platform
-          </a>
-          <a
-            routerLink="/dashboard"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Dashboard Teknisi
-          </a>
-          <a
-            routerLink="/"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Jelajah Pekerja
-          </a>
-        </nav>
-      </div>
-
-      <div class="flex items-center gap-space-md relative">
-        <a
-          routerLink="/"
-          class="hidden sm:inline-flex items-center gap-space-xs px-space-md h-9 rounded bg-surface-highlight text-ink-on-light border border-hairline-light hover:bg-surface-container-high transition-colors font-button-label text-button-label cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-[18px]">visibility</span>
-          <span>Lihat Web Publik</span>
-        </a>
-
-        <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
-
-        <!-- Dropdown Menu Akun Profil -->
-        <app-booking-nav-account-menu />
-
-        <button
-          type="button"
-          class="sr-only"
-          (click)="isLogoutModalOpen.set(true)"
-          data-testid="admin-logout-btn"
-        >
-          Keluar
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Container Konten Utama -->
-  <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-    <!-- Banner Notifikasi Error Merah (Kendala Koneksi atau Otentikasi API) -->
+<div class="space-y-8">
+  <!-- Banner Notifikasi Error Merah (Kendala Koneksi atau Otentikasi API) -->
     @if (store.errorMessage()) {
       <div
         role="alert"
@@ -298,23 +222,15 @@
         />
       }
     </section>
+
+    <!-- Modal Onboarding Mitra Baru -->
+    <app-admin-worker-onboarding-modal
+      [isOpen]="store.isCreateModalOpen()"
+      [isSubmitting]="store.isOnboardingSubmitting()"
+      [errorMessage]="store.errorMessage()"
+      [createdResult]="store.newlyCreatedWorker()"
+      (closeClick)="store.closeCreateModal()"
+      (submitOnboarding)="store.submitOnboarding($event)"
+    />
   </div>
-
-  <!-- Modal Onboarding Mitra Baru -->
-  <app-admin-worker-onboarding-modal
-    [isOpen]="store.isCreateModalOpen()"
-    [isSubmitting]="store.isOnboardingSubmitting()"
-    [errorMessage]="store.errorMessage()"
-    [createdResult]="store.newlyCreatedWorker()"
-    (closeClick)="store.closeCreateModal()"
-    (submitOnboarding)="store.submitOnboarding($event)"
-  />
-
-  <!-- Modal Konfirmasi Logout -->
-  <app-logout-confirm-modal
-    [isOpen]="isLogoutModalOpen()"
-    (cancel)="isLogoutModalOpen.set(false)"
-    (confirm)="handleLogoutConfirm()"
-  />
-</main>
 

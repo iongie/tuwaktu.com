@@ -142,25 +142,15 @@ export const appRoutes: Route[] = [
     path: 'admin',
     canActivate: [adminGuard],
     canActivateChild: [adminGuard],
+    loadComponent: () =>
+      import(
+        './features/admin/components/pages/admin-layout/admin-layout.component'
+      ).then((m) => m.AdminLayoutComponent),
     children: [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'workers',
-      },
-      {
-        path: 'workers',
-        loadComponent: () =>
-          import(
-            './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
-          ).then((m) => m.AdminWorkersPageComponent),
-      },
-      {
-        path: 'categories',
-        loadComponent: () =>
-          import(
-            './features/admin/components/pages/admin-categories-page/admin-categories-page.component'
-          ).then((m) => m.AdminCategoriesPageComponent),
+        redirectTo: 'analytics',
       },
       {
         path: 'analytics',
@@ -172,6 +162,28 @@ export const appRoutes: Route[] = [
       {
         path: 'analitik',
         redirectTo: 'analytics',
+      },
+      {
+        path: 'workers',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
+          ).then((m) => m.AdminWorkersPageComponent),
+      },
+      {
+        path: 'mitra',
+        redirectTo: 'workers',
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-categories-page/admin-categories-page.component'
+          ).then((m) => m.AdminCategoriesPageComponent),
+      },
+      {
+        path: 'kategori',
+        redirectTo: 'categories',
       },
     ],
   },

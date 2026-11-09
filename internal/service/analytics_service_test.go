@@ -91,16 +91,30 @@ func TestAnalyticsService_GetAdminSummary(t *testing.T) {
 	}
 	repo.SeedBooking(b)
 
-	// Track beberapa event
+	// Track beberapa event dengan metadata wilayah kota
 	_ = svc.TrackEvent(ctx, &domain.TrackEventPayload{
 		EventName:  domain.EventWhatsAppClick,
 		EntityType: domain.EntityTypeWorker,
 		EntityID:   "budi-santoso",
+		Metadata: map[string]interface{}{
+			"city": "Jakarta Selatan",
+		},
 	})
 	_ = svc.TrackEvent(ctx, &domain.TrackEventPayload{
 		EventName:  domain.EventPageViewWorker,
 		EntityType: domain.EntityTypeWorker,
 		EntityID:   "budi-santoso",
+		Metadata: map[string]interface{}{
+			"city": "Jakarta Selatan",
+		},
+	})
+	_ = svc.TrackEvent(ctx, &domain.TrackEventPayload{
+		EventName:  domain.EventSearchPerformed,
+		EntityType: domain.EntityTypeSearch,
+		Metadata: map[string]interface{}{
+			"location": "Surabaya",
+			"query":    "Cuci AC",
+		},
 	})
 
 	summary, err := svc.GetAdminSummary(ctx, 30)
@@ -111,4 +125,14 @@ func TestAnalyticsService_GetAdminSummary(t *testing.T) {
 	assert.Equal(t, int64(1), summary.BookingStatusBreakdown["CONFIRMED"])
 	assert.NotEmpty(t, summary.TopWorkers)
 	assert.Equal(t, "Budi Santoso", summary.TopWorkers[0].WorkerName)
+
+	// Verifikasi agregasi TopCities
+	assert.NotEmpty(t, summary.TopCities)
+	assert.Equal(t, "Jakarta Selatan", summary.TopCities[0].City)
+	assert.Equal(t, int64(2), summary.TopCities[0].TotalActivity)
+	assert.Equal(t, int64(1), summary.TopCities[0].WhatsAppClicks)
+	assert.Equal(t, int64(1), summary.TopCities[0].ProfileViews)
+	assert.Equal(t, "Surabaya", summary.TopCities[1].City)
+	assert.Equal(t, int64(1), summary.TopCities[1].TotalActivity)
+	assert.Equal(t, int64(1), summary.TopCities[1].Searches)
 }

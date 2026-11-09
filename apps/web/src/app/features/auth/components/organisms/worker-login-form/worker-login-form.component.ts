@@ -252,22 +252,6 @@ import {
           </div>
         </div>
 
-        <!-- Custom Checkbox -->
-        <div class="flex items-center justify-between pt-1">
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              id="rememberDevice"
-              name="rememberDevice"
-              type="checkbox"
-              [(ngModel)]="rememberDevice"
-              class="w-5 h-5 rounded accent-voltage-orange cursor-pointer"
-            />
-            <span class="font-body-default text-body-default text-ink-on-light">
-              Ingat perangkat kerja ini selama 30 hari
-            </span>
-          </label>
-        </div>
-
         <!-- Verifikasi Keamanan Anti-Bot ALTCHA -->
         <app-altcha-captcha-field
           [disabled]="isLoading()"
@@ -464,7 +448,7 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
 
   showResetInfo(): void {
     this.loginError.set(
-      'Untuk mereset nomor atau PIN keamanan, silakan hubungi tim dukungan Tuwaktu dengan bukti kepemilikan nomor WhatsApp.'
+      'Untuk mereset nomor atau PIN keamanan, silakan hubungi tim dukungan Tuwaktu dengan bukti kepemilikan nomor WhatsApp.',
     );
   }
 
@@ -493,7 +477,9 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
     }
 
     if (!this.altchaVerified()) {
-      this.loginError.set('Verifikasi keamanan captcha wajib diselesaikan sebelum masuk.');
+      this.loginError.set(
+        'Verifikasi keamanan captcha wajib diselesaikan sebelum masuk.',
+      );
       return;
     }
 
@@ -502,7 +488,9 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isLoading.set(false);
         if (res.success) {
-          const currentRole = (this.authService.currentUser()?.role || '').toUpperCase();
+          const currentRole = (
+            this.authService.currentUser()?.role || ''
+          ).toUpperCase();
           const targetUrl = sanitizeReturnUrl(this.returnUrl());
 
           let destination = '/dashboard';
@@ -514,14 +502,18 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
             } else {
               destination = '/admin/workers';
             }
-            this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke panel administrator...');
+            this.loginSuccess.set(
+              'Otentikasi berhasil! Mengalihkan ke panel administrator...',
+            );
           } else {
             if (targetUrl && !isAdminUrl(targetUrl)) {
               destination = normalizeDashboardUrl(targetUrl);
             } else {
               destination = '/dashboard';
             }
-            this.loginSuccess.set('Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...');
+            this.loginSuccess.set(
+              'Otentikasi berhasil! Mengalihkan ke konsol kerja mandiri...',
+            );
           }
 
           this.redirectTimeoutId = setTimeout(() => {

@@ -64,9 +64,14 @@ func RegisterRoutes(
 		api.Get("/workers/:id/reviews", reviewHandler.GetWorkerReviews)
 	}
 
+	// Media dynamic serving endpoints
+	api.Get("/media/avatars/:filename", workerHandler.ServeAvatarMedia)
+
 	// Worker profile update endpoints
 	api.Put("/worker/profile", workerHandler.UpdateWorkerProfile)
 	api.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
+	api.Post("/worker/avatar", workerHandler.UploadWorkerAvatar)
+	api.Post("/workers/:id/avatar", workerHandler.UploadWorkerAvatar)
 
 	// Booking create endpoints (api group)
 	api.Post("/booking/create", bookingHandler.CreateWABooking)
@@ -202,8 +207,12 @@ func RegisterRoutes(
 	v1.Put("/workers/:id/services/:serviceId", workerHandler.UpdateService)
 	v1.Delete("/worker/services/:serviceId", workerHandler.DeleteService)
 	v1.Delete("/workers/:id/services/:serviceId", workerHandler.DeleteService)
+	v1Pub.Get("/media/avatars/:filename", workerHandler.ServeAvatarMedia)
+	v1.Get("/media/avatars/:filename", workerHandler.ServeAvatarMedia)
 	v1.Put("/worker/profile", workerHandler.UpdateWorkerProfile)
 	v1.Put("/workers/:id/profile", workerHandler.UpdateWorkerProfile)
+	v1.Post("/worker/avatar", workerHandler.UploadWorkerAvatar)
+	v1.Post("/workers/:id/avatar", workerHandler.UploadWorkerAvatar)
 	v1.Put("/worker/location-settings", workerHandler.UpdateWorkerLocationSettings)
 	v1.Put("/workers/:id/location-settings", workerHandler.UpdateWorkerLocationSettings)
 	v1.Get("/worker/schedules", workerHandler.GetWorkerSchedules)

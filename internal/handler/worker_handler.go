@@ -2,11 +2,18 @@ package handler
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"tuwaktu.com/internal/domain"
+	"tuwaktu.com/internal/pkg/media"
 	"tuwaktu.com/internal/service"
 )
 
@@ -108,6 +115,137 @@ func (h *WorkerHandler) UpdateWorkerProfile(c *fiber.Ctx) error {
 	}
 
 	return SuccessResponse(c, fiber.StatusOK, "Profil pekerja berhasil diperbarui", profile)
+}
+
+// UploadWorkerAvatar handles POST /api/v1/workers/:id/avatar, POST /api/v1/worker/avatar, and POST /api/worker/avatar
+func (h *WorkerHandler) UploadWorkerAvatar(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("id"))
+	}
+	if workerID == "" {
+		if authWorkerID, ok := c.Locals("worker_id").(string); ok && strings.TrimSpace(authWorkerID) != "" {
+			workerID = strings.TrimSpace(authWorkerID)
+		}
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi untuk mengunggah foto profil", nil)
+	}
+
+	fileHeader, err := c.FormFile("avatar")
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Berkas foto profil (avatar) wajib diunggah", nil)
+	}
+
+	// Backend protection: max 200 KB
+	const maxUploadBytes = 200 * 1024
+	if fileHeader.Size > maxUploadBytes {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Ukuran berkas melebihi batas maksimal 200 KB", nil)
+	}
+
+	src, err := fileHeader.Open()
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal membaca berkas yang diunggah", err.Error())
+	}
+	defer src.Close()
+
+	// Sniff magic bytes (first 512 bytes)
+	buf := make([]byte, 512)
+	n, _ := io.ReadFull(src, buf)
+	contentType := http.DetectContentType(buf[:n])
+
+	var ext string
+	lowerFilename := strings.ToLower(fileHeader.Filename)
+	switch {
+	case strings.Contains(contentType, "webp") || strings.HasSuffix(lowerFilename, ".webp"):
+		ext = ".webp"
+	case strings.Contains(contentType, "png") || strings.HasSuffix(lowerFilename, ".png"):
+		ext = ".png"
+	case strings.Contains(contentType, "jpeg") || strings.Contains(contentType, "jpg") || strings.HasSuffix(lowerFilename, ".jpg") || strings.HasSuffix(lowerFilename, ".jpeg"):
+		ext = ".jpg"
+	default:
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format berkas tidak didukung. Harap unggah citra WebP, JPG, atau PNG", nil)
+	}
+
+	// Generate safe unique filename
+	uniqueID, err := uuid.NewV7()
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menghasilkan pengidentifikasi berkas unik", err.Error())
+	}
+	filename := fmt.Sprintf("avt_%s%s", strings.ReplaceAll(uniqueID.String(), "-", ""), ext)
+
+	uploadDir := filepath.Join(".", "storage", "uploads", "avatars")
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menyiapkan direktori penyimpanan berkas", err.Error())
+	}
+
+	destPath := filepath.Join(uploadDir, filename)
+	if err := c.SaveFile(fileHeader, destPath); err != nil {
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menyimpan berkas ke penyimpanan server", err.Error())
+	}
+
+	profile, err := h.service.UpdateWorkerAvatar(c.UserContext(), workerID, filename)
+	if err != nil {
+		_ = os.Remove(destPath)
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal memperbarui foto profil pekerja di database", err.Error())
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Foto profil berhasil diunggah", fiber.Map{
+		"avatar_url":   profile.AvatarURL,
+		"raw_filename": filename,
+	})
+}
+
+// ServeAvatarMedia handles GET /api/v1/media/avatars/:filename and GET /api/media/avatars/:filename
+func (h *WorkerHandler) ServeAvatarMedia(c *fiber.Ctx) error {
+	rawFilename := c.Params("filename")
+	cleanFilename, err := media.SanitizeFilename(rawFilename)
+	if err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Nama berkas foto tidak valid atau mengandung karakter dilarang", nil)
+	}
+
+	exp := c.Query("exp")
+	sig := c.Query("sig")
+	if strings.TrimSpace(exp) == "" || strings.TrimSpace(sig) == "" {
+		return ErrorResponse(c, fiber.StatusForbidden, "Tautan foto profil memerlukan tanda tangan keamanan yang sah", nil)
+	}
+
+	if err := media.VerifyMediaSignature(cleanFilename, exp, sig); err != nil {
+		if errors.Is(err, media.ErrExpiredToken) {
+			return ErrorResponse(c, fiber.StatusForbidden, "Tautan foto profil telah kadaluarsa", nil)
+		}
+		return ErrorResponse(c, fiber.StatusForbidden, "Tautan foto profil tidak valid atau telah dimodifikasi", nil)
+	}
+
+	filePath := filepath.Join(".", "storage", "uploads", "avatars", cleanFilename)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return ErrorResponse(c, fiber.StatusNotFound, "Berkas foto profil tidak ditemukan pada penyimpanan server", nil)
+	}
+
+	c.Set("X-Content-Type-Options", "nosniff")
+	c.Set("Cache-Control", "private, max-age=3600")
+
+	lowerExt := strings.ToLower(filepath.Ext(cleanFilename))
+	switch lowerExt {
+	case ".webp":
+		c.Set("Content-Type", "image/webp")
+	case ".png":
+		c.Set("Content-Type", "image/png")
+	case ".jpg", ".jpeg":
+		c.Set("Content-Type", "image/jpeg")
+	}
+
+	return c.SendFile(filePath)
 }
 
 // UpdateWorkerRates handles PUT /api/v1/worker/rates, PUT /api/worker/rates, and PUT /api/v1/workers/:id/rates

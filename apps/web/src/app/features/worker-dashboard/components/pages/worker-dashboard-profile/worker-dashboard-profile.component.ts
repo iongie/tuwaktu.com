@@ -17,6 +17,7 @@ import {
   WorkerScheduleItem,
 } from '../../../models/worker-profile.model';
 import { LocationMapPickerComponent } from '../../../../worker-booking/components/molecules/location-map-picker/location-map-picker.component';
+import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picker/avatar-upload-picker.component';
 
 export type DashboardSectionTab = 'profile' | 'rates' | 'location' | 'schedule' | 'all';
 
@@ -30,7 +31,7 @@ export interface DashboardSectionMenuItem {
 @Component({
   selector: 'app-worker-dashboard-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LocationMapPickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LocationMapPickerComponent, AvatarUploadPickerComponent],
   templateUrl: './worker-dashboard-profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

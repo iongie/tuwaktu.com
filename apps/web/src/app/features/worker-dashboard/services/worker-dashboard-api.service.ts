@@ -52,6 +52,20 @@ export class WorkerDashboardApiService {
     );
   }
 
+  uploadAvatar(
+    workerId: string,
+    file: File
+  ): Observable<{ success: boolean; message: string; data?: { avatar_url: string; raw_filename: string }; error?: string | null }> {
+    const sanitizedId = encodeURIComponent(workerId.trim());
+    const formData = new FormData();
+    formData.append('avatar', file, file.name || 'avatar.webp');
+    return this.httpClient.post<{ success: boolean; message: string; data?: { avatar_url: string; raw_filename: string }; error?: string | null }>(
+      `${this.normalizedBaseUrl}/api/v1/workers/${sanitizedId}/avatar`,
+      formData,
+      { withCredentials: true }
+    );
+  }
+
   updateWorkerRates(
     workerId: string,
     payload: WorkerRateUpdatePayload

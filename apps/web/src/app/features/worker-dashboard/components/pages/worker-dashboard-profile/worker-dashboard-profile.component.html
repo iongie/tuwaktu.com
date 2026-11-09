@@ -1047,21 +1047,13 @@
                   ></textarea>
                 </div>
 
-                <!-- URL Foto Profil -->
-                <div class="space-y-1.5">
-                  <label for="workerAvatarUrlInput" class="block text-xs font-bold tracking-wide uppercase text-(--brand-ink)">
-                    URL Foto Profil
-                  </label>
-                  <input
-                    id="workerAvatarUrlInput"
-                    type="url"
-                    [ngModel]="workerAvatarUrl()"
-                    (ngModelChange)="workerAvatarUrl.set($event)"
-                    name="workerAvatarUrl"
-                    placeholder="https://example.com/foto.jpg"
-                    class="m3-field-outlined font-mono text-xs"
-                  />
-                </div>
+                <!-- Unggah & Pratinjau Foto Profil -->
+                <app-avatar-upload-picker
+                  [workerId]="workerRecordId()"
+                  [workerName]="workerFullName()"
+                  [currentAvatarUrl]="workerAvatarUrl()"
+                  (avatarUrlChange)="workerAvatarUrl.set($event)"
+                ></app-avatar-upload-picker>
 
                 <div class="pt-4 border-t border-(--hairline-light) flex items-center justify-end">
                   <button

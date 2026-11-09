@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/pkg/auth"
+	"tuwaktu.com/internal/pkg/media"
 	"tuwaktu.com/internal/pkg/sanitize"
 	"tuwaktu.com/internal/pkg/slug"
 	"tuwaktu.com/internal/repository"
@@ -36,6 +37,7 @@ type WorkerService interface {
 	GetPublicProfileBySlug(ctx context.Context, slug string) (*domain.PublicWorkerProfile, error)
 	ListPublicWorkers(ctx context.Context) ([]domain.PublicWorkerProfile, error)
 	UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error)
+	UpdateWorkerAvatar(ctx context.Context, idOrSlug string, filename string) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerRates(ctx context.Context, req *domain.WorkerRateUpdate) (*domain.PublicWorkerProfile, error)
 	UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerScheduleItem, error)
@@ -100,7 +102,25 @@ func (s *workerService) GetPublicProfileBySlug(ctx context.Context, slug string)
 	}
 
 	profile := worker.ToPublic(publicServices)
+	profile.AvatarURL = s.formatAvatarURL(profile.AvatarURL)
 	return &profile, nil
+}
+
+func (s *workerService) formatAvatarURL(rawAvatar string) string {
+	trimmed := strings.TrimSpace(rawAvatar)
+	if trimmed == "" {
+		return ""
+	}
+	// External full URLs are preserved as-is
+	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+		return trimmed
+	}
+	// Sign local avatars with 4 hours TTL
+	signed, err := media.SignMediaURL("", trimmed, 4*time.Hour)
+	if err != nil {
+		return trimmed
+	}
+	return signed
 }
 
 func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicWorkerProfile, error) {
@@ -130,7 +150,9 @@ func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicW
 			}
 		}
 
-		profiles = append(profiles, w.ToPublic(publicServices))
+		pub := w.ToPublic(publicServices)
+		pub.AvatarURL = s.formatAvatarURL(pub.AvatarURL)
+		profiles = append(profiles, pub)
 	}
 
 	return profiles, nil
@@ -182,6 +204,45 @@ func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req 
 	}
 
 	profile := updatedWorker.ToPublic(publicServices)
+	profile.AvatarURL = s.formatAvatarURL(profile.AvatarURL)
+	return &profile, nil
+}
+
+// UpdateWorkerAvatar updates the worker's avatar filename and returns the public profile with a signed URL
+func (s *workerService) UpdateWorkerAvatar(ctx context.Context, idOrSlug string, filename string) (*domain.PublicWorkerProfile, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+	cleanFilename, err := media.SanitizeFilename(filename)
+	if err != nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	req := &domain.WorkerProfileUpdate{
+		AvatarURL: cleanFilename,
+	}
+
+	updatedWorker, err := s.repo.UpdateProfile(ctx, idOrSlug, req)
+	if err != nil {
+		return nil, err
+	}
+
+	services, err := s.repo.GetServicesByWorkerID(ctx, updatedWorker.ID)
+	if err != nil {
+		services = []domain.Service{}
+	}
+
+	publicServices := make([]domain.PublicService, len(services))
+	for i, srv := range services {
+		publicServices[i] = srv.ToPublic()
+	}
+
+	profile := updatedWorker.ToPublic(publicServices)
+	profile.AvatarURL = s.formatAvatarURL(cleanFilename)
 	return &profile, nil
 }
 

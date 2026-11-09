@@ -28,5 +28,11 @@ describe('resolveAvatarUrl', () => {
     expect(resolved).toContain('/api/v1/media/avatars/avt_123.webp?exp=123&sig=abc');
     expect(resolved.startsWith('http://')).toBe(true);
   });
+
+  it('otomatis memformat nama file avatar mentah menjadi path API media avatar', () => {
+    const resolved = resolveAvatarUrl('avt_01a1be98ef257dc3af6fb750d198d8ff.webp');
+    expect(resolved).toContain('/api/v1/media/avatars/avt_01a1be98ef257dc3af6fb750d198d8ff.webp');
+    expect(resolved.startsWith('http://')).toBe(true);
+  });
 });
 

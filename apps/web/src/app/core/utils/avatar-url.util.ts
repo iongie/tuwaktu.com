@@ -25,7 +25,12 @@ export function resolveAvatarUrl(rawUrl: string | null | undefined): string {
 
   // Resolve relative media paths against apiBaseUrl (e.g. http://localhost:3000)
   const base = (environment.apiBaseUrl || '').replace(/\/+$/, '');
-  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  let path = trimmed;
+  if (!path.startsWith('/') && !path.startsWith('api/')) {
+    path = `/api/v1/media/avatars/${path}`;
+  } else if (!path.startsWith('/')) {
+    path = `/${path}`;
+  }
   return `${base}${path}`;
 }
 

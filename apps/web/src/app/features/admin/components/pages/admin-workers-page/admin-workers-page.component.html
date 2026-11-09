@@ -3,24 +3,24 @@
     @if (store.errorMessage()) {
       <div
         role="alert"
-        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 text-sm flex items-center justify-between gap-4 transition-all shadow-xs"
+        class="p-4 rounded bg-red-50 border border-red-200 text-red-950 text-xs flex items-center justify-between gap-4 transition-all shadow-none"
         data-testid="admin-error-banner"
       >
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="w-8 h-8 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <div>
-            <div class="font-bold text-rose-950 dark:text-rose-100">Kendala Koneksi atau Otentikasi API</div>
-            <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5">{{ store.errorMessage() }}</p>
+            <div class="font-bold text-red-950 font-mono-rate uppercase tracking-wider text-[11px]">Kendala Koneksi atau Otentikasi API</div>
+            <p class="text-xs text-red-800 mt-0.5">{{ store.errorMessage() }}</p>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            class="min-h-[44px] px-3.5 py-1.5 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+            class="min-h-[40px] px-3.5 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 text-xs font-bold uppercase tracking-wider font-mono-rate transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-none"
             (click)="store.loadWorkers()"
             aria-label="Coba lagi memuat data"
             data-testid="admin-error-retry-btn"
@@ -32,7 +32,7 @@
           </button>
           <button
             type="button"
-            class="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-700 hover:text-rose-900 cursor-pointer rounded-xl hover:bg-rose-500/10 transition-colors"
+            class="min-w-[40px] min-h-[40px] flex items-center justify-center text-red-700 hover:text-red-900 cursor-pointer rounded hover:bg-red-100 transition-colors"
             (click)="store.clearError()"
             aria-label="Tutup pesan error"
             data-testid="admin-error-dismiss-btn"
@@ -47,16 +47,16 @@
 
     <!-- Feedback Alert Banner -->
     @if (store.feedbackMessage()) {
-      <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-sm flex items-center justify-between gap-4">
+      <div class="p-4 rounded bg-whatsapp-surface border border-whatsapp-green/30 text-whatsapp-ink text-xs flex items-center justify-between gap-4 font-mono-rate font-bold uppercase tracking-wider">
         <div class="flex items-center gap-3">
-          <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-4 h-4 text-whatsapp-green shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
           <span>{{ store.feedbackMessage() }}</span>
         </div>
         <button
           type="button"
-          class="min-w-[44px] min-h-[44px] flex items-center justify-center text-emerald-700 hover:text-emerald-900 cursor-pointer"
+          class="min-w-[40px] min-h-[40px] flex items-center justify-center text-whatsapp-ink hover:opacity-70 cursor-pointer"
           (click)="store.clearFeedback()"
           aria-label="Tutup notifikasi"
         >
@@ -70,15 +70,15 @@
     <!-- Bento Grid Header & Metrik -->
     <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <!-- Bento 1: Hero & Tombol Tambah Mitra (Span 2 di desktop) -->
-      <div class="md:col-span-2 p-6 md:p-8 rounded-3xl bg-surface border border-hairline shadow-xs flex flex-col justify-between">
+      <div class="md:col-span-2 p-6 md:p-8 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none flex flex-col justify-between">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary mb-3">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded text-[10px] font-mono-rate font-bold uppercase tracking-wider bg-surface-highlight border border-hairline-light text-ink-on-light mb-3">
             Otoritas Administrator
           </div>
-          <h1 class="text-2xl md:text-3xl font-extrabold text-on-surface tracking-tight">
+          <h1 class="text-2xl md:text-3xl font-extrabold text-ink-on-light tracking-tight">
             Manajemen Mitra Mandiri
           </h1>
-          <p class="text-sm text-on-surface-variant mt-2 max-w-md">
+          <p class="text-xs text-ink-secondary mt-2 max-w-md">
             Kelola operasional mitra, tambahkan teknisi baru dengan verifikasi langsung, dan pantau ketersediaan booking platform.
           </p>
         </div>
@@ -86,11 +86,11 @@
         <div class="pt-6">
           <button
             type="button"
-            class="min-h-[48px] px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm hover:opacity-90 transition cursor-pointer shadow-md inline-flex items-center gap-2.5"
+            class="min-h-[44px] px-5 py-2.5 rounded bg-hero-canvas text-ink-on-dark font-bold text-xs uppercase tracking-wider hover:bg-[#262626] transition cursor-pointer shadow-none inline-flex items-center gap-2.5"
             (click)="store.openCreateModal()"
             data-testid="add-new-worker-btn"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             <span>Tambah Mitra Baru</span>
@@ -99,52 +99,52 @@
       </div>
 
       <!-- Bento 2: Metrik Mitra Aktif -->
-      <div class="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/20 shadow-xs flex flex-col justify-between">
+      <div class="p-6 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+          <span class="text-[11px] font-mono-rate font-bold uppercase tracking-wider text-ink-secondary">
             Mitra Aktif
           </span>
-          <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="w-8 h-8 rounded bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-whatsapp-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         </div>
         <div class="mt-4">
           @if (store.isLoading() && store.workers().length === 0) {
-            <div class="h-9 w-16 bg-surface-container-high rounded-lg animate-pulse"></div>
+            <div class="h-9 w-16 bg-surface-highlight rounded animate-pulse"></div>
           } @else {
-            <div class="text-3xl md:text-4xl font-extrabold text-emerald-900 dark:text-emerald-200 font-mono">
+            <div class="text-3xl md:text-4xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
               {{ store.activeWorkersCount() }}
             </div>
           }
-          <div class="text-xs text-emerald-700 mt-1">
+          <div class="text-xs text-ink-secondary mt-1">
             Menerima booking publik aktif
           </div>
         </div>
       </div>
 
       <!-- Bento 3: Metrik Ditangguhkan (Suspended) -->
-      <div class="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/20 shadow-xs flex flex-col justify-between">
+      <div class="p-6 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300">
+          <span class="text-[11px] font-mono-rate font-bold uppercase tracking-wider text-ink-secondary">
             Ditangguhkan
           </span>
-          <div class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-700 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="w-8 h-8 rounded bg-[#fee2e2] text-[#991b1b] border border-red-300 flex items-center justify-center">
+            <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
             </svg>
           </div>
         </div>
         <div class="mt-4">
           @if (store.isLoading() && store.workers().length === 0) {
-            <div class="h-9 w-16 bg-surface-container-high rounded-lg animate-pulse"></div>
+            <div class="h-9 w-16 bg-surface-highlight rounded animate-pulse"></div>
           } @else {
-            <div class="text-3xl md:text-4xl font-extrabold text-rose-900 dark:text-rose-200 font-mono">
+            <div class="text-3xl md:text-4xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
               {{ store.suspendedWorkersCount() }}
             </div>
           }
-          <div class="text-xs text-rose-700 mt-1">
+          <div class="text-xs text-ink-secondary mt-1">
             Halaman booking terkunci
           </div>
         </div>
@@ -165,11 +165,11 @@
     <!-- Tabel Mitra Component & Skeleton Loader -->
     <section>
       @if (store.isLoading()) {
-        <div class="w-full overflow-hidden rounded-2xl border border-hairline-subtle bg-surface shadow-xs" data-testid="admin-table-skeleton">
+        <div class="w-full overflow-hidden rounded-[10px] border border-hairline-light bg-body-canvas shadow-none" data-testid="admin-table-skeleton">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-hairline bg-surface-container-low text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                <tr class="border-b border-hairline-light bg-surface-highlight text-xs font-bold text-ink-on-light uppercase tracking-wider font-mono-rate">
                   <th scope="col" class="py-3.5 px-4 md:px-6">Mitra</th>
                   <th scope="col" class="py-3.5 px-4 md:px-6">Kontak & Zona</th>
                   <th scope="col" class="py-3.5 px-4 md:px-6">Tarif Dasar</th>
@@ -177,36 +177,36 @@
                   <th scope="col" class="py-3.5 px-4 md:px-6 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-hairline text-sm">
+              <tbody class="divide-y divide-hairline-light text-sm">
                 @for (row of [1, 2, 3, 4]; track row) {
                   <tr class="animate-pulse">
                     <td class="py-4 px-4 md:px-6">
                       <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-surface-container-high shrink-0"></div>
+                        <div class="w-10 h-10 rounded-full bg-surface-highlight shrink-0"></div>
                         <div class="space-y-2">
-                          <div class="h-4 bg-surface-container-high rounded w-32"></div>
-                          <div class="h-3 bg-surface-container-high/60 rounded w-20"></div>
+                          <div class="h-4 bg-surface-highlight rounded w-32"></div>
+                          <div class="h-3 bg-surface-highlight/60 rounded w-20"></div>
                         </div>
                       </div>
                     </td>
                     <td class="py-4 px-4 md:px-6">
                       <div class="space-y-2">
-                        <div class="h-3 bg-surface-container-high rounded w-36"></div>
-                        <div class="h-3 bg-surface-container-high/60 rounded w-24"></div>
-                        <div class="h-3 bg-surface-container-high/40 rounded w-28"></div>
+                        <div class="h-3 bg-surface-highlight rounded w-36"></div>
+                        <div class="h-3 bg-surface-highlight/60 rounded w-24"></div>
+                        <div class="h-3 bg-surface-highlight/40 rounded w-28"></div>
                       </div>
                     </td>
                     <td class="py-4 px-4 md:px-6">
                       <div class="space-y-2">
-                        <div class="h-4 bg-surface-container-high rounded w-24"></div>
-                        <div class="h-3 bg-surface-container-high/60 rounded w-16"></div>
+                        <div class="h-4 bg-surface-highlight rounded w-24"></div>
+                        <div class="h-3 bg-surface-highlight/60 rounded w-16"></div>
                       </div>
                     </td>
                     <td class="py-4 px-4 md:px-6">
-                      <div class="h-6 bg-surface-container-high rounded-full w-20"></div>
+                      <div class="h-6 bg-surface-highlight rounded w-20"></div>
                     </td>
                     <td class="py-4 px-4 md:px-6 text-right">
-                      <div class="h-8 bg-surface-container-high rounded-xl w-24 ml-auto"></div>
+                      <div class="h-8 bg-surface-highlight rounded w-24 ml-auto"></div>
                     </td>
                   </tr>
                 }

@@ -22,20 +22,20 @@ import {
     <div class="flex flex-col gap-6 max-w-3xl mx-auto w-full py-4">
       <!-- Breadcrumb & Header -->
       <div class="flex flex-col gap-1.5">
-        <nav class="flex items-center gap-2 text-xs text-on-surface-variant font-medium">
-          <a routerLink="/admin/workers" class="hover:text-on-surface transition-colors">Kelola Mitra</a>
+        <nav class="flex items-center gap-2 text-xs text-ink-secondary font-medium font-mono-rate">
+          <a routerLink="/admin/workers" class="hover:text-ink-on-light transition-colors">Kelola Mitra</a>
           <span>/</span>
-          <span class="text-on-surface font-semibold">Persetujuan Reset Kredensial</span>
+          <span class="text-ink-on-light font-bold">Persetujuan Reset Kredensial</span>
         </nav>
         <div class="flex items-center gap-2.5 mt-1">
-          <div class="w-10 h-10 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[24px]">admin_panel_settings</span>
+          <div class="w-9 h-9 rounded bg-surface-highlight border border-hairline-light text-voltage-orange flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
           </div>
           <div>
-            <h1 class="font-heading-h2 text-heading-h2 font-bold text-on-surface">
+            <h1 class="font-heading-h2 text-heading-h2 font-bold text-ink-on-light">
               Persetujuan Reset Kredensial Mitra
             </h1>
-            <p class="font-body-default text-caption text-on-surface-variant">
+            <p class="font-body-default text-xs text-ink-secondary">
               Verifikasi keabsahan identitas sebelum menerbitkan tautan eksekusi pembaruan PIN atau WhatsApp mitra.
             </p>
           </div>
@@ -44,28 +44,28 @@ import {
 
       <!-- State: Loading -->
       @if (loading()) {
-        <div class="p-8 bg-surface border border-outline-variant/60 rounded-2xl flex flex-col items-center justify-center gap-3">
-          <span class="inline-block w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></span>
-          <span class="text-sm font-medium text-on-surface-variant">Memverifikasi keabsahan tautan permohonan...</span>
+        <div class="p-8 bg-body-canvas border border-hairline-light rounded-[10px] flex flex-col items-center justify-center gap-3">
+          <span class="inline-block w-8 h-8 border-3 border-hero-canvas border-t-transparent rounded-full animate-spin"></span>
+          <span class="text-xs font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">Memverifikasi keabsahan tautan permohonan...</span>
         </div>
       }
 
       <!-- State: Error -->
       @if (error()) {
-        <div class="p-6 bg-red-50 border border-red-200 rounded-2xl flex flex-col gap-4 text-red-950">
+        <div class="p-6 bg-red-50 border border-red-200 rounded-[10px] flex flex-col gap-4 text-red-950">
           <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-red-600 text-[26px] shrink-0 mt-0.5">error</span>
+            <span class="material-symbols-outlined text-red-600 text-[24px] shrink-0 mt-0.5">error</span>
             <div class="flex flex-col gap-1">
-              <h3 class="font-heading-h3 text-base font-bold">Permohonan Tidak Dapat Diverifikasi</h3>
-              <p class="text-sm text-red-800 leading-relaxed">{{ error() }}</p>
+              <h3 class="font-heading-h3 text-base font-bold text-red-950">Permohonan Tidak Dapat Diverifikasi</h3>
+              <p class="text-xs text-red-800 leading-relaxed">{{ error() }}</p>
             </div>
           </div>
           <div class="pt-2">
             <a
               routerLink="/admin/workers"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-outline text-on-surface text-sm font-semibold hover:bg-surface-container transition-colors min-h-[44px]"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded bg-body-canvas border border-hairline-light text-ink-on-light text-xs font-bold uppercase tracking-wider hover:bg-surface-highlight transition-colors min-h-[44px]"
             >
-              <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_back</span>
               <span>Kembali ke Panel Pengelola Mitra</span>
             </a>
           </div>
@@ -74,57 +74,57 @@ import {
 
       <!-- State: Detail Permohonan & Konfirmasi -->
       @if (!loading() && !error() && approvalView() && !approveSuccess()) {
-        <div class="p-6 bg-surface border border-outline-variant/60 rounded-2xl shadow-xs flex flex-col gap-6">
+        <div class="p-6 bg-body-canvas border border-hairline-light rounded-[10px] shadow-none flex flex-col gap-6">
           <!-- Status Banner -->
-          <div class="flex items-center justify-between p-3.5 bg-amber-50 border border-amber-200/80 rounded-xl text-amber-950 text-sm">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-amber-700 text-[20px]">hourglass_top</span>
-              <span class="font-semibold">Menunggu Keputusan Administrator</span>
+          <div class="flex items-center justify-between p-3.5 bg-surface-highlight border border-hairline-light rounded text-ink-on-light text-xs">
+            <div class="flex items-center gap-2 font-mono-rate font-bold uppercase tracking-wider">
+              <span class="material-symbols-outlined text-voltage-orange text-[18px]">hourglass_top</span>
+              <span>Menunggu Keputusan Administrator</span>
             </div>
-            <span class="text-xs text-amber-800 font-mono font-medium">Batas Waktu: 15 Menit</span>
+            <span class="text-[11px] text-ink-secondary font-mono-rate font-medium">Batas Waktu: 15 Menit</span>
           </div>
 
           <!-- Data Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/40 flex flex-col gap-1">
-              <span class="text-xs text-on-surface-variant font-medium">Nama Mitra</span>
-              <span class="text-base font-bold text-on-surface">{{ approvalView()?.worker_name }}</span>
+            <div class="p-4 bg-surface-highlight rounded border border-hairline-light flex flex-col gap-1">
+              <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">Nama Mitra</span>
+              <span class="text-sm font-bold text-ink-on-light">{{ approvalView()?.worker_name }}</span>
             </div>
 
-            <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/40 flex flex-col gap-1">
-              <span class="text-xs text-on-surface-variant font-medium">Nomor WhatsApp Terdaftar</span>
-              <span class="text-base font-bold font-mono text-on-surface">{{ approvalView()?.worker_phone }}</span>
+            <div class="p-4 bg-surface-highlight rounded border border-hairline-light flex flex-col gap-1">
+              <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">Nomor WhatsApp Terdaftar</span>
+              <span class="text-sm font-bold font-mono-rate text-ink-on-light">{{ approvalView()?.worker_phone }}</span>
             </div>
 
-            <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/40 flex flex-col gap-1">
-              <span class="text-xs text-on-surface-variant font-medium">Jenis Permohonan</span>
-              <span class="text-base font-bold text-primary">
+            <div class="p-4 bg-surface-highlight rounded border border-hairline-light flex flex-col gap-1">
+              <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">Jenis Permohonan</span>
+              <span class="text-sm font-bold text-ink-on-light">
                 {{ approvalView()?.request_type === 'RESET_PIN' ? 'Reset PIN Keamanan Akun' : 'Ganti Nomor WhatsApp Terdaftar' }}
               </span>
             </div>
 
-            <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/40 flex flex-col gap-1">
-              <span class="text-xs text-on-surface-variant font-medium">Waktu Pengajuan</span>
-              <span class="text-sm font-semibold text-on-surface">
+            <div class="p-4 bg-surface-highlight rounded border border-hairline-light flex flex-col gap-1">
+              <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">Waktu Pengajuan</span>
+              <span class="text-xs font-mono-rate font-bold text-ink-on-light">
                 {{ approvalView()?.created_at | date:'dd MMM yyyy, HH:mm' }} WIB
               </span>
             </div>
           </div>
 
           <!-- Instruksi Keamanan untuk Admin -->
-          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/40 flex items-start gap-3">
-            <span class="material-symbols-outlined text-secondary text-[22px] shrink-0 mt-0.5">verified</span>
-            <div class="flex flex-col gap-1 text-xs text-on-surface-variant leading-relaxed">
-              <strong class="text-on-surface font-semibold">Protokol Keamanan Operator:</strong>
+          <div class="p-4 bg-surface-highlight rounded border border-hairline-light flex items-start gap-3">
+            <span class="material-symbols-outlined text-whatsapp-green text-[20px] shrink-0 mt-0.5">verified</span>
+            <div class="flex flex-col gap-1 text-xs text-ink-secondary leading-relaxed">
+              <strong class="text-ink-on-light font-bold">Protokol Keamanan Operator:</strong>
               Pastikan Anda telah mengonfirmasi permohonan ini secara langsung dengan mitra terkait melalui riwayat chat WhatsApp. Setelah disetujui, tautan eksekusi sekali pakai (Tier-2, 10 menit) akan diterbitkan.
             </div>
           </div>
 
           <!-- Tombol Keputusan -->
-          <div class="flex items-center justify-end gap-3 pt-2 border-t border-outline-variant/40">
+          <div class="flex items-center justify-end gap-3 pt-2 border-t border-hairline-light">
             <a
               routerLink="/admin/workers"
-              class="px-5 py-2.5 rounded-xl border border-outline text-on-surface font-semibold hover:bg-surface-container transition-colors text-sm min-h-[48px] flex items-center"
+              class="px-5 py-2.5 rounded border border-hairline-light text-ink-on-light bg-body-canvas hover:bg-surface-highlight font-bold text-xs uppercase tracking-wider transition-colors min-h-[44px] flex items-center"
             >
               Tolak / Batal
             </a>
@@ -132,14 +132,14 @@ import {
               type="button"
               (click)="approveRequest()"
               [disabled]="isApproving()"
-              class="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-semibold hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer flex items-center gap-2 min-h-[48px] text-sm"
+              class="px-6 py-2.5 rounded bg-hero-canvas text-ink-on-dark hover:bg-[#262626] font-bold text-xs uppercase tracking-wider disabled:opacity-50 transition-all cursor-pointer flex items-center gap-2 min-h-[44px]"
             >
               @if (isApproving()) {
-                <span class="inline-block w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+                <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 <span>Memproses Persetujuan...</span>
               } @else {
-                <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                <span>Setujui & Terbitkan Tautan Mitra</span>
+                <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                <span>Setujui &amp; Terbitkan Tautan Mitra</span>
               }
             </button>
           </div>
@@ -148,38 +148,38 @@ import {
 
       <!-- State: Sukses Disetujui -->
       @if (approveSuccess()) {
-        <div class="p-6 bg-surface border border-emerald-200 rounded-2xl shadow-xs flex flex-col gap-6">
+        <div class="p-6 bg-body-canvas border border-hairline-light rounded-[10px] shadow-none flex flex-col gap-6">
           <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-[28px]">task_alt</span>
+            <div class="w-12 h-12 rounded bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/20 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[28px] text-whatsapp-green">task_alt</span>
             </div>
             <div class="flex flex-col gap-1">
-              <h3 class="font-heading-h3 text-lg font-bold text-on-surface">
+              <h3 class="font-heading-h3 text-base font-bold text-ink-on-light">
                 Permohonan Berhasil Disetujui!
               </h3>
-              <p class="font-body-default text-sm text-on-surface-variant leading-relaxed">
+              <p class="font-body-default text-xs text-ink-secondary leading-relaxed">
                 Tautan eksekusi pembaruan kredensial sekali pakai telah dibuat dan aktif selama 10 menit. Silakan kirimkan tautan ini langsung ke WhatsApp mitra.
               </p>
             </div>
           </div>
 
           <!-- Tautan Eksekusi Box -->
-          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/60 flex flex-col gap-2.5">
-            <div class="flex items-center justify-between text-xs text-on-surface-variant font-medium">
+          <div class="p-4 bg-surface-highlight rounded border border-hairline-light flex flex-col gap-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-secondary font-medium font-mono-rate">
               <span>Tautan Eksekusi Mitra (Sekali Pakai):</span>
-              <span class="text-emerald-700 font-semibold">Aktif (10 Menit)</span>
+              <span class="text-whatsapp-green font-bold uppercase tracking-wider">Aktif (10 Menit)</span>
             </div>
             <div class="flex items-center gap-2">
               <input
                 type="text"
                 readonly
                 [value]="approveSuccess()?.execution_url"
-                class="w-full p-2.5 bg-surface rounded-lg border border-outline-variant/60 text-xs font-mono text-on-surface outline-none select-all"
+                class="w-full p-2.5 bg-body-canvas rounded border border-hairline-light text-xs font-mono-rate text-ink-on-light outline-none select-all"
               />
               <button
                 type="button"
                 (click)="copyExecutionLink()"
-                class="px-4 py-2.5 rounded-lg border border-outline text-xs font-semibold hover:bg-surface-container transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer min-h-[40px]"
+                class="px-4 py-2.5 rounded border border-hairline-light bg-body-canvas text-ink-on-light font-bold text-xs uppercase tracking-wider hover:bg-surface-highlight transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer min-h-[40px]"
               >
                 <span class="material-symbols-outlined text-[16px]">
                   {{ copied() ? 'check' : 'content_copy' }}
@@ -195,17 +195,17 @@ import {
               [href]="approveSuccess()?.whatsapp_share_url"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex-1 py-3 px-5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 min-h-[48px] text-sm"
+              class="flex-1 py-3 px-5 rounded bg-whatsapp-green text-white hover:bg-whatsapp-green-hover font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 min-h-[48px]"
             >
-              <span class="material-symbols-outlined text-[20px]">chat</span>
+              <span class="material-symbols-outlined text-[18px]">chat</span>
               <span>Kirim Tautan via WhatsApp Mitra</span>
             </a>
 
             <a
               routerLink="/admin/workers"
-              class="px-5 py-3 rounded-xl border border-outline text-on-surface font-semibold hover:bg-surface-container transition-colors text-center text-sm min-h-[48px] flex items-center justify-center"
+              class="px-5 py-3 rounded border border-hairline-light bg-body-canvas text-ink-on-light hover:bg-surface-highlight font-bold text-xs uppercase tracking-wider transition-colors text-center min-h-[48px] flex items-center justify-center"
             >
-              Selesai & Kembali ke Panel
+              Selesai &amp; Kembali ke Panel
             </a>
           </div>
         </div>

@@ -11,19 +11,19 @@ import { AdminWorkerFilterStatus } from '../../../models/admin-worker.model';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl bg-surface-container border border-hairline-subtle shadow-xs">
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none">
       <!-- Search Input Field -->
       <div class="relative flex-1">
         <label for="adminWorkerSearchInput" class="sr-only">Cari Mitra</label>
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-on-surface-variant">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-secondary">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
         <input
           id="adminWorkerSearchInput"
           type="text"
-          class="w-full pl-10 pr-10 py-2.5 min-h-[44px] rounded-xl bg-surface border border-hairline text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+          class="w-full pl-10 pr-10 py-2.5 min-h-[44px] rounded bg-surface-highlight border border-hairline-light text-xs font-mono-rate text-ink-on-light placeholder:text-ink-disabled focus:outline-none focus:border-accent-link focus:bg-body-canvas transition"
           placeholder="Cari berdasarkan nama, profesi, email, nomor WhatsApp, atau slug..."
           [value]="searchQuery()"
           (input)="handleSearchInput($event)"
@@ -31,7 +31,7 @@ import { AdminWorkerFilterStatus } from '../../../models/admin-worker.model';
         @if (searchQuery().length > 0) {
           <button
             type="button"
-            class="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface min-w-[44px] justify-center"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-ink-secondary hover:text-ink-on-light min-w-[44px] justify-center cursor-pointer"
             aria-label="Bersihkan pencarian"
             (click)="clearSearch()"
           >
@@ -46,12 +46,15 @@ import { AdminWorkerFilterStatus } from '../../../models/admin-worker.model';
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0" role="group" aria-label="Filter status mitra">
         <button
           type="button"
-          class="min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-          [class.bg-primary]="currentFilter() === 'ALL'"
-          [class.text-on-primary]="currentFilter() === 'ALL'"
-          [class.bg-surface]="currentFilter() !== 'ALL'"
-          [class.text-on-surface-variant]="currentFilter() !== 'ALL'"
-          [class.hover:bg-surface-container-high]="currentFilter() !== 'ALL'"
+          class="min-h-[40px] px-3.5 py-1.5 rounded text-xs font-bold uppercase tracking-wider font-mono-rate whitespace-nowrap transition cursor-pointer border"
+          [class.bg-hero-canvas]="currentFilter() === 'ALL'"
+          [class.text-ink-on-dark]="currentFilter() === 'ALL'"
+          [class.border-hero-canvas]="currentFilter() === 'ALL'"
+          [class.bg-surface-highlight]="currentFilter() !== 'ALL'"
+          [class.text-ink-secondary]="currentFilter() !== 'ALL'"
+          [class.border-hairline-light]="currentFilter() !== 'ALL'"
+          [class.hover:bg-body-canvas]="currentFilter() !== 'ALL'"
+          [class.hover:text-ink-on-light]="currentFilter() !== 'ALL'"
           (click)="filterChange.emit('ALL')"
           data-testid="filter-all-btn"
         >
@@ -60,12 +63,15 @@ import { AdminWorkerFilterStatus } from '../../../models/admin-worker.model';
 
         <button
           type="button"
-          class="min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-          [class.bg-emerald-600]="currentFilter() === 'ACTIVE'"
-          [class.text-white]="currentFilter() === 'ACTIVE'"
-          [class.bg-surface]="currentFilter() !== 'ACTIVE'"
-          [class.text-emerald-700]="currentFilter() !== 'ACTIVE'"
-          [class.hover:bg-emerald-500/10]="currentFilter() !== 'ACTIVE'"
+          class="min-h-[40px] px-3.5 py-1.5 rounded text-xs font-bold uppercase tracking-wider font-mono-rate whitespace-nowrap transition cursor-pointer border"
+          [class.bg-hero-canvas]="currentFilter() === 'ACTIVE'"
+          [class.text-ink-on-dark]="currentFilter() === 'ACTIVE'"
+          [class.border-hero-canvas]="currentFilter() === 'ACTIVE'"
+          [class.bg-surface-highlight]="currentFilter() !== 'ACTIVE'"
+          [class.text-ink-secondary]="currentFilter() !== 'ACTIVE'"
+          [class.border-hairline-light]="currentFilter() !== 'ACTIVE'"
+          [class.hover:bg-body-canvas]="currentFilter() !== 'ACTIVE'"
+          [class.hover:text-ink-on-light]="currentFilter() !== 'ACTIVE'"
           (click)="filterChange.emit('ACTIVE')"
           data-testid="filter-active-btn"
         >
@@ -74,12 +80,15 @@ import { AdminWorkerFilterStatus } from '../../../models/admin-worker.model';
 
         <button
           type="button"
-          class="min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-          [class.bg-rose-600]="currentFilter() === 'SUSPENDED'"
-          [class.text-white]="currentFilter() === 'SUSPENDED'"
-          [class.bg-surface]="currentFilter() !== 'SUSPENDED'"
-          [class.text-rose-700]="currentFilter() !== 'SUSPENDED'"
-          [class.hover:bg-rose-500/10]="currentFilter() !== 'SUSPENDED'"
+          class="min-h-[40px] px-3.5 py-1.5 rounded text-xs font-bold uppercase tracking-wider font-mono-rate whitespace-nowrap transition cursor-pointer border"
+          [class.bg-hero-canvas]="currentFilter() === 'SUSPENDED'"
+          [class.text-ink-on-dark]="currentFilter() === 'SUSPENDED'"
+          [class.border-hero-canvas]="currentFilter() === 'SUSPENDED'"
+          [class.bg-surface-highlight]="currentFilter() !== 'SUSPENDED'"
+          [class.text-ink-secondary]="currentFilter() !== 'SUSPENDED'"
+          [class.border-hairline-light]="currentFilter() !== 'SUSPENDED'"
+          [class.hover:bg-body-canvas]="currentFilter() !== 'SUSPENDED'"
+          [class.hover:text-ink-on-light]="currentFilter() !== 'SUSPENDED'"
           (click)="filterChange.emit('SUSPENDED')"
           data-testid="filter-suspended-btn"
         >

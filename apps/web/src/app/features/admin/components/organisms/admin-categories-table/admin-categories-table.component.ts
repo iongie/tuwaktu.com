@@ -14,19 +14,19 @@ import { AdminCategoryStatusBadgeComponent } from '../../molecules/admin-categor
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DecimalPipe, AdminCategoryStatusBadgeComponent],
   template: `
-    <div class="w-full overflow-hidden rounded-2xl border border-hairline-subtle bg-surface shadow-xs">
+    <div class="w-full overflow-hidden rounded-[10px] border border-hairline-light bg-body-canvas shadow-none">
       @if (categories().length === 0) {
         <div class="flex flex-col items-center justify-center p-12 text-center" data-testid="empty-categories-state">
-          <div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-4">
-            <span class="material-symbols-outlined text-3xl">category</span>
+          <div class="w-12 h-12 rounded bg-surface-highlight border border-hairline-light flex items-center justify-center text-ink-secondary mb-4">
+            <span class="material-symbols-outlined text-2xl">category</span>
           </div>
-          <h3 class="text-base font-bold text-on-surface mb-1">Belum Ada Kategori Keahlian</h3>
-          <p class="text-sm text-on-surface-variant max-w-sm mb-6">
+          <h3 class="text-base font-bold text-ink-on-light mb-1">Belum Ada Kategori Keahlian</h3>
+          <p class="text-xs text-ink-secondary max-w-sm mb-6">
             Tidak ditemukan kategori dengan filter pencarian ini atau belum ada data keahlian tersimpan.
           </p>
           <button
             type="button"
-            class="min-h-[44px] px-5 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:opacity-90 transition cursor-pointer"
+            class="min-h-[44px] px-5 py-2.5 rounded bg-hero-canvas text-ink-on-dark text-xs font-bold uppercase tracking-wider font-mono-rate hover:bg-[#262626] transition cursor-pointer"
             (click)="addCategoryClick.emit()"
             data-testid="empty-add-category-btn"
           >
@@ -37,7 +37,7 @@ import { AdminCategoryStatusBadgeComponent } from '../../molecules/admin-categor
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="border-b border-hairline bg-surface-container-low text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+              <tr class="border-b border-hairline-light bg-surface-highlight text-xs font-bold text-ink-on-light uppercase tracking-wider font-mono-rate">
                 <th scope="col" class="py-3.5 px-4 md:px-6">Keahlian &amp; Ikon</th>
                 <th scope="col" class="py-3.5 px-4 md:px-6">Deskripsi &amp; Tag</th>
                 <th scope="col" class="py-3.5 px-4 md:px-6">Tarif Awal</th>
@@ -46,20 +46,20 @@ import { AdminCategoryStatusBadgeComponent } from '../../molecules/admin-categor
                 <th scope="col" class="py-3.5 px-4 md:px-6 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-hairline text-sm">
+            <tbody class="divide-y divide-hairline-light text-sm">
               @for (cat of categories(); track cat.id) {
-                <tr class="hover:bg-surface-container-low/60 transition group">
+                <tr class="hover:bg-surface-highlight/60 transition group">
                   <!-- Kolom Nama & Ikon -->
                   <td class="py-4 px-4 md:px-6">
                     <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-xl">{{ cat.icon || 'build' }}</span>
+                      <div class="w-9 h-9 rounded bg-surface-highlight border border-hairline-light text-ink-on-light flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">{{ cat.icon || 'build' }}</span>
                       </div>
                       <div>
-                        <div class="font-bold text-on-surface flex items-center gap-2">
+                        <div class="font-bold text-ink-on-light flex items-center gap-2">
                           <span>{{ cat.name }}</span>
                         </div>
-                        <div class="text-xs font-mono text-on-surface-variant mt-0.5">
+                        <div class="text-xs font-mono-rate text-ink-secondary mt-0.5">
                           /{{ cat.slug }}
                         </div>
                       </div>
@@ -68,11 +68,11 @@ import { AdminCategoryStatusBadgeComponent } from '../../molecules/admin-categor
 
                   <!-- Kolom Deskripsi & Highlight -->
                   <td class="py-4 px-4 md:px-6 max-w-xs">
-                    <p class="text-xs text-on-surface line-clamp-2 leading-relaxed">
+                    <p class="text-xs text-ink-on-light line-clamp-2 leading-relaxed">
                       {{ cat.description || 'Tidak ada deskripsi' }}
                     </p>
                     @if (cat.highlight_tag) {
-                      <span class="inline-block mt-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface">
+                      <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono-rate bg-surface-highlight border border-hairline-light text-ink-on-light">
                         {{ cat.highlight_tag }}
                       </span>
                     }
@@ -80,17 +80,17 @@ import { AdminCategoryStatusBadgeComponent } from '../../molecules/admin-categor
 
                   <!-- Kolom Tarif -->
                   <td class="py-4 px-4 md:px-6">
-                    <div class="font-mono font-semibold text-on-surface">
+                    <div class="font-mono-rate font-bold text-ink-on-light tabular-nums">
                       Rp {{ cat.starting_price | number:'1.0-0' }}
                     </div>
-                    <div class="text-xs text-on-surface-variant">
+                    <div class="text-[11px] text-ink-secondary font-mono-rate">
                       per {{ cat.price_unit || 'kunjungan' }}
                     </div>
                   </td>
 
                   <!-- Kolom Urutan -->
                   <td class="py-4 px-4 md:px-6">
-                    <span class="font-mono text-xs px-2 py-1 rounded bg-surface-container-high text-on-surface font-semibold">
+                    <span class="font-mono-rate text-xs px-2 py-1 rounded bg-surface-highlight border border-hairline-light text-ink-on-light font-bold">
                       #{{ cat.sort_order }}
                     </span>
                   </td>
@@ -102,37 +102,37 @@ import { AdminCategoryStatusBadgeComponent } from '../../molecules/admin-categor
 
                   <!-- Kolom Aksi -->
                   <td class="py-4 px-4 md:px-6 text-right">
-                    <div class="flex items-center justify-end gap-1">
+                    <div class="flex items-center justify-end gap-1.5">
                       <button
                         type="button"
-                        class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition cursor-pointer"
+                        class="min-h-[38px] min-w-[38px] flex items-center justify-center rounded border border-hairline-light text-ink-secondary hover:text-ink-on-light hover:bg-surface-highlight transition cursor-pointer"
                         (click)="toggleStatus.emit(cat)"
                         [title]="cat.is_active ? 'Nonaktifkan dari katalog publik' : 'Aktifkan di katalog publik'"
                         data-testid="toggle-category-status-btn"
                       >
-                        <span class="material-symbols-outlined text-lg">
+                        <span class="material-symbols-outlined text-base">
                           {{ cat.is_active ? 'visibility_off' : 'visibility' }}
                         </span>
                       </button>
 
                       <button
                         type="button"
-                        class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-primary hover:bg-primary/10 transition cursor-pointer"
+                        class="min-h-[38px] min-w-[38px] flex items-center justify-center rounded border border-hairline-light text-ink-on-light hover:bg-surface-highlight transition cursor-pointer"
                         (click)="editCategory.emit(cat)"
                         title="Edit data kategori"
                         data-testid="edit-category-btn"
                       >
-                        <span class="material-symbols-outlined text-lg">edit</span>
+                        <span class="material-symbols-outlined text-base">edit</span>
                       </button>
 
                       <button
                         type="button"
-                        class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-rose-600 hover:bg-rose-500/10 transition cursor-pointer"
+                        class="min-h-[38px] min-w-[38px] flex items-center justify-center rounded border border-red-300 text-red-700 hover:bg-red-50 transition cursor-pointer"
                         (click)="deleteCategory.emit(cat)"
                         title="Hapus kategori"
                         data-testid="delete-category-btn"
                       >
-                        <span class="material-symbols-outlined text-lg">delete</span>
+                        <span class="material-symbols-outlined text-base">delete</span>
                       </button>
                     </div>
                   </td>

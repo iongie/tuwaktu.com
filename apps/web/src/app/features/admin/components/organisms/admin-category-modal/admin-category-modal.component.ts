@@ -35,35 +35,35 @@ import {
         ></button>
 
         <div
-          class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-surface border border-hairline p-6 md:p-8 shadow-2xl"
+          class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[16px] bg-body-canvas border border-hairline-light p-6 md:p-8 shadow-none"
         >
           <button
             type="button"
-            class="absolute top-6 right-6 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition cursor-pointer"
+            class="absolute top-6 right-6 min-w-[36px] min-h-[36px] flex items-center justify-center rounded border border-hairline-light text-ink-secondary hover:text-ink-on-light hover:bg-surface-highlight transition cursor-pointer"
             aria-label="Tutup jendela"
             (click)="handleClose()"
             data-testid="close-category-modal-btn"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
           <header class="mb-6 space-y-1">
-            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-primary/10 text-primary font-mono text-xs font-semibold uppercase tracking-wider">
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-surface-highlight border border-hairline-light text-ink-on-light font-mono-rate text-[10px] font-bold uppercase tracking-wider">
               Katalog Keahlian
             </div>
-            <h2 id="categoryModalTitle" class="text-2xl font-bold tracking-tight text-on-surface">
+            <h2 id="categoryModalTitle" class="text-xl font-bold tracking-tight text-ink-on-light">
               {{ category() ? 'Perbarui Kategori Keahlian' : 'Tambah Kategori Baru' }}
             </h2>
-            <p class="text-sm text-on-surface-variant">
+            <p class="text-xs text-ink-secondary">
               {{ category() ? 'Perbarui data spesialisasi dan parameter tarif awal.' : 'Lengkapi informasi keahlian teknisi untuk ditampilkan pada katalog publik.' }}
             </p>
           </header>
 
           <form (ngSubmit)="handleSubmit()" class="space-y-4">
             <div>
-              <label for="cat-name" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+              <label for="cat-name" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                 Nama Kategori <span class="text-rose-500">*</span>
               </label>
               <input
@@ -74,14 +74,14 @@ import {
                 [ngModel]="formName()"
                 (ngModelChange)="formName.set($event)"
                 placeholder="Contoh: Servis & Pasang AC"
-                class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface transition"
+                class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                 data-testid="category-name-input"
               />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="cat-slug" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+                <label for="cat-slug" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                   Slug URL (Opsional)
                 </label>
                 <input
@@ -91,13 +91,13 @@ import {
                   [ngModel]="formSlug()"
                   (ngModelChange)="formSlug.set($event)"
                   placeholder="otomatis dari nama"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm font-mono text-on-surface transition"
+                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                   data-testid="category-slug-input"
                 />
               </div>
 
               <div>
-                <label for="cat-icon" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+                <label for="cat-icon" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                   Ikon Material
                 </label>
                 <input
@@ -107,14 +107,14 @@ import {
                   [ngModel]="formIcon()"
                   (ngModelChange)="formIcon.set($event)"
                   placeholder="ac_unit, bolt, tv, build"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm font-mono text-on-surface transition"
+                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                   data-testid="category-icon-input"
                 />
               </div>
             </div>
 
             <div>
-              <label for="cat-desc" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+              <label for="cat-desc" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                 Deskripsi Cakupan Layanan
               </label>
               <textarea
@@ -124,14 +124,14 @@ import {
                 [ngModel]="formDescription()"
                 (ngModelChange)="formDescription.set($event)"
                 placeholder="Rincian singkat cakupan pekerjaan teknisi pada kategori ini..."
-                class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface transition resize-none"
+                class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition resize-none"
                 data-testid="category-description-input"
               ></textarea>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="cat-price" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+                <label for="cat-price" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                   Tarif Mulai Dari (Rp)
                 </label>
                 <input
@@ -143,13 +143,13 @@ import {
                   [ngModel]="formStartingPrice()"
                   (ngModelChange)="formStartingPrice.set($event)"
                   placeholder="75000"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface transition"
+                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                   data-testid="category-price-input"
                 />
               </div>
 
               <div>
-                <label for="cat-unit" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+                <label for="cat-unit" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                   Satuan Tarif
                 </label>
                 <input
@@ -159,7 +159,7 @@ import {
                   [ngModel]="formPriceUnit()"
                   (ngModelChange)="formPriceUnit.set($event)"
                   placeholder="kunjungan, unit, jam"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface transition"
+                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                   data-testid="category-unit-input"
                 />
               </div>
@@ -167,7 +167,7 @@ import {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="cat-highlight" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+                <label for="cat-highlight" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                   Tag Penanda (Highlight)
                 </label>
                 <input
@@ -177,13 +177,13 @@ import {
                   [ngModel]="formHighlightTag()"
                   (ngModelChange)="formHighlightTag.set($event)"
                   placeholder="Populer, Higienis, Prioritas"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface transition"
+                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                   data-testid="category-highlight-input"
                 />
               </div>
 
               <div>
-                <label for="cat-sort" class="block text-xs font-semibold uppercase tracking-wider text-on-surface mb-1">
+                <label for="cat-sort" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
                   Urutan Tampil (Sort Order)
                 </label>
                 <input
@@ -194,7 +194,7 @@ import {
                   [ngModel]="formSortOrder()"
                   (ngModelChange)="formSortOrder.set($event)"
                   placeholder="1"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface transition"
+                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
                   data-testid="category-sort-input"
                 />
               </div>
@@ -207,19 +207,19 @@ import {
                 type="checkbox"
                 [ngModel]="formIsActive()"
                 (ngModelChange)="formIsActive.set($event)"
-                class="w-4 h-4 rounded border-outline/30 text-primary focus:ring-primary"
+                class="w-4 h-4 rounded border-hairline-light text-hero-canvas focus:ring-accent-link"
                 data-testid="category-active-checkbox"
               />
-              <label for="cat-active" class="text-sm text-on-surface font-medium cursor-pointer">
+              <label for="cat-active" class="text-xs text-ink-on-light font-bold font-mono-rate cursor-pointer">
                 Aktifkan di Katalog Beranda Publik
               </label>
             </div>
 
-            <footer class="pt-4 flex items-center justify-end gap-3 border-t border-hairline">
+            <footer class="pt-4 flex items-center justify-end gap-3 border-t border-hairline-light">
               <button
                 type="button"
                 (click)="handleClose()"
-                class="min-h-[44px] px-5 py-2.5 rounded-xl text-sm font-semibold text-on-surface hover:bg-surface-container-high transition cursor-pointer"
+                class="min-h-[44px] px-5 py-2.5 rounded border border-hairline-light text-xs font-bold uppercase tracking-wider font-mono-rate text-ink-on-light bg-body-canvas hover:bg-surface-highlight transition cursor-pointer"
                 data-testid="cancel-category-btn"
               >
                 Batal
@@ -227,7 +227,7 @@ import {
               <button
                 type="submit"
                 [disabled]="isSubmitting() || !formName().trim()"
-                class="min-h-[44px] px-6 py-2.5 rounded-xl text-sm font-bold bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 transition cursor-pointer shadow-sm"
+                class="min-h-[44px] px-6 py-2.5 rounded text-xs font-bold uppercase tracking-wider font-mono-rate bg-hero-canvas text-ink-on-dark hover:bg-[#262626] disabled:opacity-50 transition cursor-pointer shadow-none"
                 data-testid="save-category-btn"
               >
                 {{ isSubmitting() ? 'Menyimpan...' : (category() ? 'Simpan Perubahan' : 'Tambah Kategori') }}

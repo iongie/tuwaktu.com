@@ -31,24 +31,24 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
         (click)="onBackdropClick($event)"
       >
         <div
-          class="relative w-full max-w-lg bg-surface border border-outline-variant/60 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+          class="relative w-full max-w-lg bg-body-canvas border border-hairline-light rounded-[16px] shadow-none overflow-hidden flex flex-col max-h-[90vh]"
           (click)="$event.stopPropagation()"
         >
           <!-- Header Modal -->
-          <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/40 bg-surface-container-low">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-hairline-light bg-surface-highlight">
             <div class="flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-primary text-[22px]">lock_reset</span>
-              <h3 id="resetModalTitle" class="font-heading-h3 text-heading-h3 font-bold text-on-surface">
+              <span class="material-symbols-outlined text-voltage-orange text-[22px]">lock_reset</span>
+              <h3 id="resetModalTitle" class="font-heading-h3 text-heading-h3 font-bold text-ink-on-light">
                 Bantuan Akses Akun Mitra
               </h3>
             </div>
             <button
               type="button"
               (click)="closeModal()"
-              class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+              class="w-8 h-8 flex items-center justify-center rounded border border-hairline-light bg-body-canvas text-ink-on-light hover:bg-surface-highlight transition-colors cursor-pointer"
               aria-label="Tutup dialog permohonan reset"
             >
-              <span class="material-symbols-outlined text-[20px]">close</span>
+              <span class="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
 
@@ -57,22 +57,25 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
             @if (!successData()) {
               <!-- Segmented Control Jenis Permohonan -->
               <div class="flex flex-col gap-1.5">
-                <label class="font-body-strong text-body-strong text-on-surface text-sm">
+                <label class="font-mono-rate text-xs uppercase tracking-wider text-ink-on-light font-bold">
                   Pilih Jenis Permohonan
                 </label>
-                <div class="grid grid-cols-2 p-1 bg-surface-container rounded-xl gap-1" role="tablist">
+                <div class="grid grid-cols-2 p-1 bg-surface-highlight border border-hairline-light rounded gap-1" role="tablist">
                   <button
                     type="button"
                     role="tab"
                     [attr.aria-selected]="selectedType() === 'RESET_PIN'"
                     (click)="selectType('RESET_PIN')"
-                    class="py-2.5 px-3 rounded-lg text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    class="py-2.5 px-3 rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     [ngClass]="{
-                      'bg-surface text-primary shadow-xs': selectedType() === 'RESET_PIN',
-                      'text-on-surface-variant hover:text-on-surface': selectedType() !== 'RESET_PIN'
+                      'bg-body-canvas text-ink-on-light border border-hairline-light shadow-xs': selectedType() === 'RESET_PIN',
+                      'text-ink-secondary hover:text-ink-on-light border border-transparent': selectedType() !== 'RESET_PIN'
                     }"
                   >
-                    <span class="material-symbols-outlined text-[18px]">pin</span>
+                    @if (selectedType() === 'RESET_PIN') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-voltage-orange shrink-0"></span>
+                    }
+                    <span class="material-symbols-outlined text-[16px]">pin</span>
                     <span>Reset PIN Keamanan</span>
                   </button>
                   <button
@@ -80,22 +83,25 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                     role="tab"
                     [attr.aria-selected]="selectedType() === 'CHANGE_PHONE'"
                     (click)="selectType('CHANGE_PHONE')"
-                    class="py-2.5 px-3 rounded-lg text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    class="py-2.5 px-3 rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     [ngClass]="{
-                      'bg-surface text-primary shadow-xs': selectedType() === 'CHANGE_PHONE',
-                      'text-on-surface-variant hover:text-on-surface': selectedType() !== 'CHANGE_PHONE'
+                      'bg-body-canvas text-ink-on-light border border-hairline-light shadow-xs': selectedType() === 'CHANGE_PHONE',
+                      'text-ink-secondary hover:text-ink-on-light border border-transparent': selectedType() !== 'CHANGE_PHONE'
                     }"
                   >
-                    <span class="material-symbols-outlined text-[18px]">sync_alt</span>
+                    @if (selectedType() === 'CHANGE_PHONE') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-voltage-orange shrink-0"></span>
+                    }
+                    <span class="material-symbols-outlined text-[16px]">sync_alt</span>
                     <span>Ganti Nomor WhatsApp</span>
                   </button>
                 </div>
               </div>
 
               <!-- Deskripsi Konteks Alur -->
-              <div class="p-3.5 bg-surface-container-low border border-outline-variant/40 rounded-xl flex items-start gap-3">
-                <span class="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">verified_user</span>
-                <p class="font-body-default text-caption text-on-surface-variant leading-relaxed">
+              <div class="p-3.5 bg-surface-highlight border border-hairline-light rounded flex items-start gap-3">
+                <span class="material-symbols-outlined text-whatsapp-green text-[18px] shrink-0 mt-0.5">verified_user</span>
+                <p class="font-body-default text-xs text-ink-secondary leading-relaxed">
                   @if (selectedType() === 'RESET_PIN') {
                     Permohonan reset PIN akan diverifikasi oleh Admin Tuwaktu via WhatsApp untuk memastikan keamanan akun mandiri Anda sebelum tautan PIN baru dikirimkan.
                   } @else {
@@ -106,7 +112,7 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
 
               @if (errorMessage()) {
                 <div
-                  class="flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-sm"
+                  class="flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200 text-red-900 rounded text-xs"
                   role="alert"
                 >
                   <span class="material-symbols-outlined text-red-600 text-[18px] shrink-0 mt-0.5">error</span>
@@ -116,12 +122,12 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
 
               <!-- Input Nomor WhatsApp Terdaftar -->
               <div class="flex flex-col gap-1.5">
-                <label for="resetWaNumber" class="font-body-strong text-body-strong text-on-surface text-sm flex items-center justify-between">
+                <label for="resetWaNumber" class="font-mono-rate text-xs uppercase tracking-wider text-ink-on-light font-bold flex items-center justify-between">
                   <span>Nomor WhatsApp Terdaftar</span>
-                  <span class="font-caption text-caption text-on-surface-variant">Awali dengan 62 atau 08</span>
+                  <span class="font-mono-rate text-[11px] text-ink-secondary font-normal">Awali dengan 62 atau 08</span>
                 </label>
-                <div class="flex items-center bg-surface-container-low rounded-xl px-3.5 h-12 border border-outline-variant/60 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                  <div class="flex items-center gap-1.5 pr-3 text-on-surface font-semibold shrink-0 select-none border-r border-outline-variant/50">
+                <div class="flex items-center bg-surface-highlight rounded px-3.5 h-11 border border-hairline-light focus-within:border-accent-link focus-within:bg-body-canvas transition-all">
+                  <div class="flex items-center gap-1.5 pr-3 text-ink-on-light font-bold shrink-0 select-none border-r border-hairline-light font-mono-rate text-xs">
                     <span>🇮🇩</span>
                     <span>+62</span>
                   </div>
@@ -134,7 +140,7 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                     [value]="waNumber()"
                     (input)="onWaNumberInput($event)"
                     placeholder="812 8899 2211"
-                    class="w-full bg-transparent border-none outline-none font-mono text-on-surface placeholder:text-on-surface-variant/50 pl-3 text-base"
+                    class="w-full bg-transparent border-none outline-none font-mono-rate text-ink-on-light placeholder:text-ink-disabled pl-3 text-sm"
                   />
                 </div>
               </div>
@@ -152,7 +158,7 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                   type="button"
                   (click)="closeModal()"
                   [disabled]="isLoading()"
-                  class="px-5 py-2.5 rounded-xl border border-outline text-on-surface font-semibold hover:bg-surface-container transition-colors cursor-pointer min-h-[48px]"
+                  class="px-5 py-2.5 rounded border border-hairline-light text-ink-on-light bg-body-canvas hover:bg-surface-highlight font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer min-h-[44px]"
                 >
                   Batal
                 </button>
@@ -160,13 +166,13 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                   type="button"
                   (click)="submitResetRequest()"
                   [disabled]="isLoading() || !isFormValid()"
-                  class="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-semibold hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-2 min-h-[48px]"
+                  class="px-6 py-2.5 rounded bg-hero-canvas text-ink-on-dark hover:bg-[#262626] font-bold text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-2 min-h-[44px]"
                 >
                   @if (isLoading()) {
-                    <span class="inline-block w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+                    <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     <span>Memproses...</span>
                   } @else {
-                    <span class="material-symbols-outlined text-[18px]">send</span>
+                    <span class="material-symbols-outlined text-[16px]">send</span>
                     <span>Kirim ke WhatsApp Admin</span>
                   }
                 </button>
@@ -174,26 +180,26 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
             } @else {
               <!-- Tampilan Berhasil: Arahkan ke WhatsApp Admin -->
               <div class="flex flex-col items-center text-center gap-4 py-3">
-                <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-[32px]">mark_chat_unread</span>
+                <div class="w-12 h-12 rounded bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[28px] text-whatsapp-green">mark_chat_unread</span>
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <h4 class="font-heading-h3 text-heading-h3 font-bold text-on-surface">
+                  <h4 class="font-heading-h3 text-heading-h3 font-bold text-ink-on-light">
                     Permohonan Siap Dikirim!
                   </h4>
-                  <p class="font-body-default text-body-default text-on-surface-variant max-w-md leading-relaxed">
+                  <p class="font-body-default text-xs text-ink-secondary max-w-md leading-relaxed">
                     Tautan permohonan telah dibuat dan berlaku selama 15 menit. Silakan buka aplikasi WhatsApp untuk mengirimkan pesan verifikasi langsung ke Admin Tuwaktu.
                   </p>
                 </div>
 
-                <div class="w-full p-4 bg-surface-container-low rounded-xl border border-outline-variant/60 flex flex-col gap-2 text-left">
-                  <div class="flex items-center justify-between text-xs text-on-surface-variant font-medium">
+                <div class="w-full p-4 bg-surface-highlight rounded border border-hairline-light flex flex-col gap-2 text-left">
+                  <div class="flex items-center justify-between text-xs text-ink-secondary font-medium">
                     <span>Nomor WhatsApp Mitra:</span>
-                    <span class="font-mono font-semibold text-on-surface">{{ successData()?.phone_number }}</span>
+                    <span class="font-mono-rate font-bold text-ink-on-light">{{ successData()?.phone_number }}</span>
                   </div>
-                  <div class="flex items-center justify-between text-xs text-on-surface-variant font-medium">
+                  <div class="flex items-center justify-between text-xs text-ink-secondary font-medium">
                     <span>Jenis Permohonan:</span>
-                    <span class="font-semibold text-primary">
+                    <span class="font-bold text-ink-on-light">
                       {{ selectedType() === 'RESET_PIN' ? 'Reset PIN Keamanan' : 'Ganti Nomor WhatsApp' }}
                     </span>
                   </div>
@@ -204,9 +210,9 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                     [href]="successData()?.whatsapp_share_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="w-full py-3 px-4 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 min-h-[48px]"
+                    class="w-full py-3 px-4 rounded bg-whatsapp-green hover:bg-whatsapp-green-hover text-white font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 min-h-[48px]"
                   >
-                    <span class="material-symbols-outlined text-[20px]">chat</span>
+                    <span class="material-symbols-outlined text-[18px]">chat</span>
                     <span>Kirim via Aplikasi WhatsApp</span>
                   </a>
 
@@ -214,7 +220,7 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                     [href]="successData()?.whatsapp_web_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="w-full py-2.5 px-4 rounded-xl border border-outline text-on-surface font-semibold hover:bg-surface-container transition-colors flex items-center justify-center gap-2 min-h-[44px] text-sm"
+                    class="w-full py-2.5 px-4 rounded border border-hairline-light bg-body-canvas text-ink-on-light hover:bg-surface-highlight font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     <span>Gunakan WhatsApp Web (Browser)</span>
                   </a>
@@ -222,9 +228,9 @@ import { AltchaCaptchaFieldComponent } from '../altcha-captcha-field/altcha-capt
                   <button
                     type="button"
                     (click)="closeModal()"
-                    class="mt-2 text-on-surface-variant hover:text-on-surface text-sm font-medium py-2 cursor-pointer"
+                    class="mt-1 text-xs font-bold uppercase tracking-wider text-ink-secondary hover:text-ink-on-light py-2 cursor-pointer transition-colors"
                   >
-                    Selesai & Tutup Jendela
+                    Selesai &amp; Tutup Jendela
                   </button>
                 </div>
               </div>

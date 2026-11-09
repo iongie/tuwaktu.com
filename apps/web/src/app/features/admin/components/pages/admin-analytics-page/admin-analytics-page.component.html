@@ -12,16 +12,16 @@
 
       <!-- Kontrol Rentang Waktu & Refresh -->
       <div class="flex flex-wrap items-center gap-2">
-        <div class="inline-flex rounded-lg border border-hairline-subtle p-1 bg-surface-container-low">
+        <div class="inline-flex rounded border border-hairline-light p-1 bg-surface-highlight">
           @for (range of timeRanges; track range.days) {
             <button
               type="button"
               (click)="onSelectRange(range.days)"
-              [class.bg-on-surface]="store.selectedDays() === range.days"
-              [class.text-surface]="store.selectedDays() === range.days"
+              [class.bg-hero-canvas]="store.selectedDays() === range.days"
+              [class.text-ink-on-dark]="store.selectedDays() === range.days"
               [class.font-bold]="store.selectedDays() === range.days"
-              [class.text-on-surface-variant]="store.selectedDays() !== range.days"
-              class="px-3 py-1.5 text-caption rounded-md transition-colors cursor-pointer"
+              [class.text-ink-secondary]="store.selectedDays() !== range.days"
+              class="px-3 py-1.5 text-xs font-mono-rate uppercase tracking-wider rounded transition-colors cursor-pointer"
             >
               {{ range.label }}
             </button>
@@ -32,7 +32,7 @@
           type="button"
           (click)="refreshData()"
           [disabled]="store.isLoading()"
-          class="m3-btn-outlined inline-flex items-center gap-1.5 px-3 py-1.5 text-caption font-bold rounded-lg cursor-pointer min-h-[36px]"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono-rate font-bold uppercase tracking-wider rounded border border-hairline-light bg-body-canvas text-ink-on-light hover:bg-surface-highlight cursor-pointer min-h-[36px]"
           title="Segarkan Data"
         >
           <span
@@ -48,15 +48,15 @@
 
     <!-- Alert Error jika Gagal -->
     @if (store.errorMessage()) {
-      <div class="p-space-md rounded-xl bg-error/10 border border-error/30 text-on-surface flex items-center justify-between gap-3">
+      <div class="p-4 rounded bg-red-50 border border-red-200 text-red-950 flex items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-error">error</span>
-          <span class="text-caption font-medium">{{ store.errorMessage() }}</span>
+          <span class="material-symbols-outlined text-red-600">error</span>
+          <span class="font-medium">{{ store.errorMessage() }}</span>
         </div>
         <button
           type="button"
           (click)="refreshData()"
-          class="text-caption font-bold text-voltage-orange hover:underline cursor-pointer"
+          class="font-mono-rate font-bold uppercase text-voltage-orange hover:underline cursor-pointer"
         >
           Coba Lagi
         </button>
@@ -64,94 +64,94 @@
     }
 
     <!-- 4 Bento KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- KPI 1: Klik WhatsApp Mitra (Konversi Utama) -->
-      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-success">
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-success shadow-none">
         <div class="flex items-center justify-between">
-          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
             Klik WhatsApp Mitra
           </span>
-          <span class="p-2 rounded-lg bg-success/15 text-success flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">chat</span>
+          <span class="p-2 rounded bg-whatsapp-surface text-whatsapp-green flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">chat</span>
           </span>
         </div>
-        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
           {{ store.totalWhatsAppClicks() }}
         </div>
-        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px] text-success">check_circle</span>
+        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-whatsapp-green">check_circle</span>
           <span>Lead terhubung langsung ke mitra</span>
         </div>
       </div>
 
       <!-- KPI 2: Total Reservasi Booking -->
-      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-voltage-orange">
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-voltage-orange shadow-none">
         <div class="flex items-center justify-between">
-          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
             Total Reservasi Booking
           </span>
-          <span class="p-2 rounded-lg bg-voltage-orange/15 text-voltage-orange flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">event_available</span>
+          <span class="p-2 rounded bg-voltage-orange/15 text-voltage-orange flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">event_available</span>
           </span>
         </div>
-        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
           {{ store.totalBookings() }}
         </div>
-        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px] text-voltage-orange">schedule</span>
           <span>Pesanan dibuat melalui sistem</span>
         </div>
       </div>
 
       <!-- KPI 3: Kunjungan Profil Mitra -->
-      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-indigo-500">
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-indigo-500 shadow-none">
         <div class="flex items-center justify-between">
-          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
             Kunjungan Profil Mitra
           </span>
-          <span class="p-2 rounded-lg bg-indigo-500/15 text-indigo-500 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">visibility</span>
+          <span class="p-2 rounded bg-indigo-500/15 text-indigo-500 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">visibility</span>
           </span>
         </div>
-        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
           {{ store.totalProfileViews() }}
         </div>
-        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px] text-indigo-500">touch_app</span>
           <span>Tampilan halaman profil pekerja</span>
         </div>
       </div>
 
       <!-- KPI 4: Total Pencarian Beranda -->
-      <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-sm border-l-4 border-l-amber-500">
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-amber-500 shadow-none">
         <div class="flex items-center justify-between">
-          <span class="text-caption font-mono-rate uppercase tracking-wider text-ink-secondary">
+          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
             Pencarian di Beranda
           </span>
-          <span class="p-2 rounded-lg bg-amber-500/15 text-amber-500 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">search</span>
+          <span class="p-2 rounded bg-amber-500/15 text-amber-500 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">search</span>
           </span>
         </div>
-        <div class="text-[32px] font-bold text-on-surface font-mono-rate">
+        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
           {{ store.totalSearches() }}
         </div>
-        <div class="text-[12px] text-ink-secondary flex items-center gap-1">
+        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px] text-amber-500">query_stats</span>
-          <span>Kata kunci keahlian & wilayah dicari</span>
+          <span>Kata kunci keahlian &amp; wilayah dicari</span>
         </div>
       </div>
     </div>
 
     <!-- Bento Grid Bagian Kedua: Top Mitra & Tren Pencarian -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <!-- Tabel Top 5 Mitra Paling Diminati (7 Kolom) -->
-      <div class="lg:col-span-7 m3-card-outlined p-space-xl bg-body-canvas space-y-space-md">
-        <div class="flex items-center justify-between border-b border-hairline-subtle pb-space-sm">
+      <div class="lg:col-span-7 rounded-[10px] bg-body-canvas border border-hairline-light p-6 space-y-4 shadow-none">
+        <div class="flex items-center justify-between border-b border-hairline-light pb-3">
           <div>
-            <h2 class="font-heading-h3 text-[18px] font-bold text-on-surface">
+            <h2 class="font-heading-h3 text-[18px] font-bold text-ink-on-light">
               Top 5 Mitra Paling Diminati
             </h2>
-            <p class="text-caption text-ink-secondary">
+            <p class="text-xs text-ink-secondary">
               Peringkat mitra berdasarkan jumlah klik WhatsApp dan kunjungan profil.
             </p>
           </div>
@@ -159,14 +159,14 @@
         </div>
 
         @if (store.topWorkers().length === 0) {
-          <div class="py-8 text-center text-caption text-ink-disabled">
+          <div class="py-8 text-center text-xs text-ink-disabled font-mono-rate">
             Belum ada data interaksi mitra pada periode ini.
           </div>
         } @else {
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-caption border-collapse">
+            <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-hairline-subtle text-ink-secondary font-mono-rate text-[11px] uppercase">
+                <tr class="border-b border-hairline-light text-ink-secondary font-mono-rate text-[11px] uppercase">
                   <th class="py-2.5 px-3">Nama Mitra</th>
                   <th class="py-2.5 px-3">Zona Pangkalan</th>
                   <th class="py-2.5 px-3 text-right">Klik WA</th>
@@ -174,26 +174,26 @@
                   <th class="py-2.5 px-3 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-hairline-subtle">
+              <tbody class="divide-y divide-hairline-light">
                 @for (worker of store.topWorkers(); track worker.worker_id) {
-                  <tr class="hover:bg-surface-container-low transition-colors">
-                    <td class="py-3 px-3 font-semibold text-on-surface">
+                  <tr class="hover:bg-surface-highlight transition-colors">
+                    <td class="py-3 px-3 font-semibold text-ink-on-light">
                       {{ worker.worker_name }}
                     </td>
-                    <td class="py-3 px-3 text-ink-secondary">
+                    <td class="py-3 px-3 text-ink-secondary font-mono-rate">
                       {{ worker.zone || 'Jabodetabek' }}
                     </td>
-                    <td class="py-3 px-3 text-right font-mono-rate font-bold text-success">
+                    <td class="py-3 px-3 text-right font-mono-rate font-bold text-whatsapp-green">
                       {{ worker.whatsapp_clicks }}
                     </td>
-                    <td class="py-3 px-3 text-right font-mono-rate text-on-surface-variant">
+                    <td class="py-3 px-3 text-right font-mono-rate text-ink-secondary">
                       {{ worker.profile_views }}
                     </td>
                     <td class="py-3 px-3 text-center">
                       <a
                         [routerLink]="['/' + worker.worker_slug]"
                         target="_blank"
-                        class="inline-flex items-center gap-1 text-[11px] text-voltage-orange hover:underline font-bold cursor-pointer"
+                        class="inline-flex items-center gap-1 text-[11px] text-voltage-orange hover:underline font-bold font-mono-rate cursor-pointer"
                       >
                         <span>Lihat Profil</span>
                         <span class="material-symbols-outlined text-[13px]">open_in_new</span>
@@ -208,40 +208,40 @@
       </div>
 
       <!-- Kolom Kanan: Tren Pencarian & Status Booking (5 Kolom) -->
-      <div class="lg:col-span-5 space-y-space-lg">
+      <div class="lg:col-span-5 space-y-4">
         <!-- Tren Pencarian Terpopuler -->
-        <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-md">
-          <div class="flex items-center justify-between border-b border-hairline-subtle pb-space-sm">
+        <div class="rounded-[10px] bg-body-canvas border border-hairline-light p-6 space-y-4 shadow-none">
+          <div class="flex items-center justify-between border-b border-hairline-light pb-3">
             <div>
-              <h3 class="font-heading-h3 text-[16px] font-bold text-on-surface">
+              <h3 class="font-heading-h3 text-[16px] font-bold text-ink-on-light">
                 Tren Pencarian Terpopuler
               </h3>
-              <p class="text-caption text-ink-secondary">
-                Kata kunci & wilayah yang dicari klien di Beranda.
+              <p class="text-xs text-ink-secondary">
+                Kata kunci &amp; wilayah yang dicari klien di Beranda.
               </p>
             </div>
             <span class="material-symbols-outlined text-[20px] text-amber-500">trending_up</span>
           </div>
 
           @if (store.topSearches().length === 0) {
-            <div class="py-6 text-center text-caption text-ink-disabled">
+            <div class="py-6 text-center text-xs text-ink-disabled font-mono-rate">
               Belum ada riwayat pencarian pada periode ini.
             </div>
           } @else {
             <div class="space-y-2">
               @for (search of store.topSearches(); track search.query + search.location) {
-                <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low border border-hairline-subtle text-caption">
+                <div class="flex items-center justify-between p-2.5 rounded bg-surface-highlight border border-hairline-light text-xs">
                   <div class="truncate">
-                    <span class="font-bold text-on-surface">
+                    <span class="font-bold text-ink-on-light">
                       {{ search.query || 'Semua Keahlian' }}
                     </span>
                     @if (search.location) {
-                      <span class="text-ink-secondary text-[11px] block">
+                      <span class="text-ink-secondary text-[11px] block font-mono-rate">
                         Wilayah: {{ search.location }}
                       </span>
                     }
                   </div>
-                  <span class="font-mono-rate font-bold text-[12px] px-2 py-0.5 rounded bg-surface-container-high text-on-surface shrink-0">
+                  <span class="font-mono-rate font-bold text-[11px] px-2 py-0.5 rounded bg-body-canvas border border-hairline-light text-ink-on-light shrink-0">
                     {{ search.count }}x
                   </span>
                 </div>
@@ -251,41 +251,41 @@
         </div>
 
         <!-- Sebaran Status Reservasi Booking -->
-        <div class="m3-card-outlined p-space-xl bg-body-canvas space-y-space-md">
-          <div class="flex items-center justify-between border-b border-hairline-subtle pb-space-sm">
+        <div class="rounded-[10px] bg-body-canvas border border-hairline-light p-6 space-y-4 shadow-none">
+          <div class="flex items-center justify-between border-b border-hairline-light pb-3">
             <div>
-              <h3 class="font-heading-h3 text-[16px] font-bold text-on-surface">
+              <h3 class="font-heading-h3 text-[16px] font-bold text-ink-on-light">
                 Status Reservasi Booking
               </h3>
-              <p class="text-caption text-ink-secondary">
+              <p class="text-xs text-ink-secondary">
                 Agregasi status pemesanan reservasi klien.
               </p>
             </div>
             <span class="material-symbols-outlined text-[20px] text-ink-secondary">pie_chart</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-caption">
-            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
-              <span class="text-[11px] text-ink-secondary uppercase block">Dikonfirmasi</span>
-              <span class="font-mono-rate text-[20px] font-bold text-success">
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
+              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Dikonfirmasi</span>
+              <span class="font-mono-rate text-[20px] font-bold text-whatsapp-green tabular-nums">
                 {{ store.bookingStatusBreakdown()['CONFIRMED'] || 0 }}
               </span>
             </div>
-            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
-              <span class="text-[11px] text-ink-secondary uppercase block">Menunggu WA</span>
-              <span class="font-mono-rate text-[20px] font-bold text-voltage-orange">
+            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
+              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Menunggu WA</span>
+              <span class="font-mono-rate text-[20px] font-bold text-voltage-orange tabular-nums">
                 {{ store.bookingStatusBreakdown()['PENDING_WA'] || 0 }}
               </span>
             </div>
-            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
-              <span class="text-[11px] text-ink-secondary uppercase block">Selesai</span>
-              <span class="font-mono-rate text-[20px] font-bold text-indigo-500">
+            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
+              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Selesai</span>
+              <span class="font-mono-rate text-[20px] font-bold text-indigo-500 tabular-nums">
                 {{ store.bookingStatusBreakdown()['COMPLETED'] || 0 }}
               </span>
             </div>
-            <div class="p-3 rounded-lg bg-surface-container-low border border-hairline-subtle">
-              <span class="text-[11px] text-ink-secondary uppercase block">Dibatalkan</span>
-              <span class="font-mono-rate text-[20px] font-bold text-ink-disabled">
+            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
+              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Dibatalkan</span>
+              <span class="font-mono-rate text-[20px] font-bold text-ink-disabled tabular-nums">
                 {{ store.bookingStatusBreakdown()['CANCELLED'] || 0 }}
               </span>
             </div>

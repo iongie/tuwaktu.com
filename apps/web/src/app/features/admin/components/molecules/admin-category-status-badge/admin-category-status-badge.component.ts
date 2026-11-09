@@ -7,18 +7,18 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     @if (isActive()) {
       <span
-        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30"
+        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono-rate text-[10px] font-bold uppercase tracking-wider bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/30"
         data-testid="category-badge-active"
       >
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-whatsapp-green animate-pulse"></span>
         Aktif di Katalog
       </span>
     } @else {
       <span
-        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant border border-hairline-subtle"
+        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono-rate text-[10px] font-bold uppercase tracking-wider bg-surface-highlight text-ink-secondary border border-hairline-light"
         data-testid="category-badge-inactive"
       >
-        <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-ink-disabled"></span>
         Nonaktif
       </span>
     }

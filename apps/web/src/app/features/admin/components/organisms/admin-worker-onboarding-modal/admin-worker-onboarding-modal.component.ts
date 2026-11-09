@@ -35,18 +35,18 @@ import {
         ></button>
 
         <div
-          class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-surface border border-hairline p-6 md:p-8 shadow-2xl"
+          class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[16px] bg-body-canvas border border-hairline-light p-6 md:p-8 shadow-none"
         >
           <!-- Close Button -->
           <button
             type="button"
-            class="absolute top-6 right-6 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition cursor-pointer"
+            class="absolute top-6 right-6 min-w-[36px] min-h-[36px] flex items-center justify-center rounded border border-hairline-light text-ink-secondary hover:text-ink-on-light hover:bg-surface-highlight transition cursor-pointer"
             aria-label="Tutup jendela"
             (click)="closeModal()"
             data-testid="close-modal-btn"
           >
             <svg
-              class="w-5 h-5"
+              class="w-4 h-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -64,17 +64,17 @@ import {
             <!-- FORM ONBOARDING -->
             <div class="mb-6">
               <div
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary mb-2"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono-rate font-bold uppercase tracking-wider bg-surface-highlight border border-hairline-light text-ink-on-light mb-2"
               >
                 Panel Onboarding Mitra
               </div>
               <h2
                 id="modalTitle"
-                class="text-xl md:text-2xl font-bold text-on-surface"
+                class="text-xl font-bold text-ink-on-light"
               >
                 Tambah Mitra Mandiri Baru
               </h2>
-              <p class="text-sm text-on-surface-variant mt-1">
+              <p class="text-xs text-ink-secondary mt-1">
                 Daftarkan saudara atau teknisi baru. Akun login, profil publik,
                 dan jadwal rutin akan dibuatkan otomatis.
               </p>
@@ -82,7 +82,7 @@ import {
 
             @if (errorMessage()) {
               <div
-                class="p-4 mb-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-800 text-sm flex items-start gap-3"
+                class="p-4 mb-5 rounded bg-red-50 border border-red-200 text-red-950 text-xs flex items-start gap-3"
               >
                 <svg
                   class="w-5 h-5 text-rose-600 shrink-0 mt-0.5"
@@ -250,11 +250,11 @@ import {
 
               <!-- Action Buttons -->
               <div
-                class="pt-4 flex items-center justify-end gap-3 border-t border-hairline"
+                class="pt-4 flex items-center justify-end gap-3 border-t border-hairline-light"
               >
                 <button
                   type="button"
-                  class="min-h-[44px] px-5 py-2.5 rounded-xl border border-hairline text-sm font-semibold text-on-surface hover:bg-surface-container-high transition cursor-pointer"
+                  class="min-h-[44px] px-5 py-2.5 rounded border border-hairline-light text-xs font-bold uppercase tracking-wider font-mono-rate text-ink-on-light bg-body-canvas hover:bg-surface-highlight transition cursor-pointer"
                   (click)="closeModal()"
                   [disabled]="isSubmitting()"
                 >
@@ -262,7 +262,7 @@ import {
                 </button>
                 <button
                   type="submit"
-                  class="min-h-[44px] px-6 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:opacity-90 transition cursor-pointer flex items-center gap-2"
+                  class="min-h-[44px] px-6 py-2.5 rounded bg-hero-canvas text-ink-on-dark font-bold text-xs uppercase tracking-wider font-mono-rate hover:bg-[#262626] transition cursor-pointer flex items-center gap-2 disabled:opacity-50 shadow-none"
                   [disabled]="isSubmitting()"
                   data-testid="submit-onboarding-btn"
                 >
@@ -281,10 +281,10 @@ import {
             <!-- LAYAR SUKSES & SALIN UNDANGAN -->
             <div class="text-center py-4" data-testid="success-onboarding-view">
               <div
-                class="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto mb-4"
+                class="w-12 h-12 rounded bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/20 flex items-center justify-center mx-auto mb-4"
               >
                 <svg
-                  class="w-8 h-8"
+                  class="w-6 h-6 text-whatsapp-green"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -298,39 +298,39 @@ import {
                 </svg>
               </div>
 
-              <h2 class="text-xl md:text-2xl font-bold text-on-surface mb-1">
+              <h2 class="text-xl font-bold text-ink-on-light mb-1">
                 Mitra Berhasil Didaftarkan!
               </h2>
-              <p class="text-sm text-on-surface-variant max-w-md mx-auto mb-6">
+              <p class="text-xs text-ink-secondary max-w-md mx-auto mb-6">
                 Akun telah aktif. Salin teks undangan di bawah atau kirimkan
                 langsung ke WhatsApp mitra.
               </p>
 
               <!-- Kredensial Box -->
               <div
-                class="p-4 rounded-2xl bg-surface-container-high border border-hairline text-left text-sm mb-6 font-mono space-y-1.5"
+                class="p-4 rounded bg-surface-highlight border border-hairline-light text-left text-xs mb-6 font-mono-rate space-y-1.5"
               >
                 <div>
-                  <span class="text-on-surface-variant">Nama:</span>
-                  <strong class="text-on-surface">{{
+                  <span class="text-ink-secondary">Nama:</span>
+                  <strong class="text-ink-on-light">{{
                     createdResult()!.worker.name
                   }}</strong>
                 </div>
                 <div>
-                  <span class="text-on-surface-variant">Akun Login:</span>
-                  <strong class="text-on-surface">{{
+                  <span class="text-ink-secondary">Akun Login:</span>
+                  <strong class="text-ink-on-light">{{
                     createdResult()!.account.email
                   }}</strong>
                 </div>
                 <div>
-                  <span class="text-on-surface-variant">Sandi Sementara:</span>
-                  <strong class="text-primary">{{
+                  <span class="text-ink-secondary">Sandi Sementara:</span>
+                  <strong class="text-voltage-orange font-bold">{{
                     createdResult()!.temporary_password
                   }}</strong>
                 </div>
                 <div>
-                  <span class="text-on-surface-variant">Slug Profil:</span>
-                  <strong class="text-on-surface"
+                  <span class="text-ink-secondary">Slug Profil:</span>
+                  <strong class="text-ink-on-light"
                     >/{{ createdResult()!.worker.slug }}</strong
                   >
                 </div>
@@ -342,7 +342,7 @@ import {
               >
                 <button
                   type="button"
-                  class="min-h-[44px] px-6 py-2.5 rounded-xl border border-hairline bg-surface text-on-surface hover:bg-surface-container-high text-sm font-semibold transition cursor-pointer flex items-center justify-center gap-2"
+                  class="min-h-[44px] px-6 py-2.5 rounded border border-hairline-light bg-body-canvas text-ink-on-light hover:bg-surface-highlight text-xs font-bold uppercase tracking-wider font-mono-rate transition cursor-pointer flex items-center justify-center gap-2"
                   (click)="copyInvitationText()"
                   data-testid="copy-invitation-btn"
                 >
@@ -370,7 +370,7 @@ import {
                   [href]="whatsappShareUrl()"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="min-h-[44px] px-6 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold transition cursor-pointer flex items-center justify-center gap-2"
+                  class="min-h-[44px] px-6 py-2.5 rounded bg-whatsapp-green text-white hover:bg-whatsapp-green-hover text-xs font-bold uppercase tracking-wider font-mono-rate transition cursor-pointer flex items-center justify-center gap-2"
                   data-testid="send-wa-btn"
                 >
                   <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -382,13 +382,13 @@ import {
                 </a>
               </div>
 
-              <div class="mt-6 pt-4 border-t border-hairline">
+              <div class="mt-6 pt-4 border-t border-hairline-light">
                 <button
                   type="button"
-                  class="text-xs text-on-surface-variant hover:text-on-surface font-semibold cursor-pointer"
+                  class="text-xs text-ink-secondary hover:text-ink-on-light font-bold font-mono-rate uppercase tracking-wider cursor-pointer"
                   (click)="closeModal()"
                 >
-                  Selesai & Tutup Jendela
+                  Selesai &amp; Tutup Jendela
                 </button>
               </div>
             </div>

@@ -19,11 +19,11 @@ import { WorkerDashboardReviewRecord } from '../../../models/worker-profile.mode
   template: `
     <div class="space-y-6">
       <!-- Page Title & Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-outline-variant">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-hairline-light">
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-ink-primary font-display flex items-center gap-2.5">
+          <h1 class="text-xl sm:text-2xl font-bold text-ink-on-light flex items-center gap-2.5">
             <span>Ulasan &amp; Reputasi Layanan</span>
-            <span class="m3-badge text-xs px-2.5 py-0.5 rounded-full bg-secondary-container text-secondary font-medium">
+            <span class="px-2 py-0.5 rounded bg-surface-highlight border border-hairline-light text-ink-on-light font-mono-rate text-xs font-bold">
               {{ reviews().length }} Ulasan
             </span>
           </h1>
@@ -36,13 +36,13 @@ import { WorkerDashboardReviewRecord } from '../../../models/worker-profile.mode
       <!-- Metric Stats Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <!-- Card 1: Rata-rata Rating -->
-        <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-xs flex items-center justify-between">
+        <div class="bg-body-canvas rounded-[10px] p-5 border border-hairline-light shadow-none flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-ink-secondary uppercase tracking-wider">
+            <p class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
               Rating Rata-rata
             </p>
             <div class="flex items-baseline gap-2 mt-1">
-              <span class="text-3xl font-extrabold text-ink-primary font-mono">
+              <span class="text-3xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
                 {{ averageRating() }}
               </span>
               <div class="flex items-center text-amber-500 text-sm">
@@ -50,67 +50,70 @@ import { WorkerDashboardReviewRecord } from '../../../models/worker-profile.mode
               </div>
             </div>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-            <span class="material-symbols-outlined text-2xl">grade</span>
+          <div class="w-10 h-10 rounded bg-[#fff8e1] text-[#b78103] border border-[#ffe082] flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">grade</span>
           </div>
         </div>
 
         <!-- Card 2: Total Ulasan Masuk -->
-        <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-xs flex items-center justify-between">
+        <div class="bg-body-canvas rounded-[10px] p-5 border border-hairline-light shadow-none flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-ink-secondary uppercase tracking-wider">
+            <p class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
               Total Ulasan Terverifikasi
             </p>
             <div class="flex items-baseline gap-2 mt-1">
-              <span class="text-3xl font-extrabold text-ink-primary font-mono">
+              <span class="text-3xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
                 {{ reviews().length }}
               </span>
               <span class="text-xs text-ink-disabled font-medium">pelanggan</span>
             </div>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-secondary-container text-secondary flex items-center justify-center border border-secondary/20">
-            <span class="material-symbols-outlined text-2xl">verified</span>
+          <div class="w-10 h-10 rounded bg-surface-highlight text-ink-on-light border border-hairline-light flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">verified</span>
           </div>
         </div>
 
         <!-- Card 3: Tingkat Kepuasan Bintang 5 -->
-        <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant shadow-xs flex items-center justify-between">
+        <div class="bg-body-canvas rounded-[10px] p-5 border border-hairline-light shadow-none flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-ink-secondary uppercase tracking-wider">
+            <p class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
               Kepuasan Bintang 5
             </p>
             <div class="flex items-baseline gap-2 mt-1">
-              <span class="text-3xl font-extrabold text-ink-primary font-mono">
+              <span class="text-3xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
                 {{ fiveStarPercentage() }}%
               </span>
               <span class="text-xs text-ink-disabled font-medium">skor maksimal</span>
             </div>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-            <span class="material-symbols-outlined text-2xl">sentiment_very_satisfied</span>
+          <div class="w-10 h-10 rounded bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">sentiment_very_satisfied</span>
           </div>
         </div>
       </div>
 
       <!-- Reviews Section Container -->
-      <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 sm:p-6 shadow-xs space-y-5">
+      <div class="bg-body-canvas rounded-[10px] border border-hairline-light p-5 sm:p-6 shadow-none space-y-5">
         <!-- Filter Tabs -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-outline-variant">
-          <div class="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Filter bintang ulasan">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-hairline-light">
+          <div class="flex flex-wrap items-center gap-1.5 p-1 bg-surface-highlight border border-hairline-light rounded" role="tablist" aria-label="Filter bintang ulasan">
             @for (opt of filterOptions; track opt.value) {
               <button
                 type="button"
                 (click)="selectedStarFilter.set(opt.value)"
                 [class]="selectedStarFilter() === opt.value
-                  ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-on-surface text-surface shadow-xs transition-colors'
-                  : 'px-3 py-1.5 rounded-lg text-xs font-medium text-ink-secondary hover:bg-surface-container transition-colors cursor-pointer'"
+                  ? 'px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider bg-body-canvas text-ink-on-light border border-hairline-light shadow-xs transition-colors cursor-pointer flex items-center gap-1.5'
+                  : 'px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider text-ink-secondary hover:text-ink-on-light transition-colors cursor-pointer border border-transparent'"
               >
-                {{ opt.label }}
+                @if (selectedStarFilter() === opt.value) {
+                  <span class="w-1.5 h-1.5 rounded-full bg-voltage-orange shrink-0"></span>
+                }
+                <span>{{ opt.label }}</span>
               </button>
             }
           </div>
 
-          <div class="text-xs text-ink-secondary font-mono">
+          <div class="text-xs text-ink-secondary font-mono-rate">
             Menampilkan {{ filteredReviews().length }} ulasan
           </div>
         </div>
@@ -118,18 +121,18 @@ import { WorkerDashboardReviewRecord } from '../../../models/worker-profile.mode
         <!-- State: Loading -->
         @if (isLoading()) {
           <div class="py-12 text-center">
-            <div class="inline-block w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-medium text-ink-secondary">Memuat data ulasan pelanggan...</p>
+            <div class="inline-block w-8 h-8 border-3 border-hero-canvas border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-xs font-mono-rate text-ink-secondary uppercase tracking-wider font-bold">Memuat data ulasan pelanggan...</p>
           </div>
         }
 
         <!-- State: Empty Reviews -->
         @else if (filteredReviews().length === 0) {
           <div class="py-12 text-center max-w-sm mx-auto">
-            <div class="w-12 h-12 rounded-full bg-surface-container-high text-ink-secondary mx-auto mb-3 flex items-center justify-center">
+            <div class="w-12 h-12 rounded bg-surface-highlight border border-hairline-light text-ink-secondary mx-auto mb-3 flex items-center justify-center">
               <span class="material-symbols-outlined text-2xl">rate_review</span>
             </div>
-            <h3 class="text-base font-bold text-ink-primary mb-1">
+            <h3 class="text-base font-bold text-ink-on-light mb-1">
               Belum Ada Ulasan Ditemukan
             </h3>
             <p class="text-xs text-ink-secondary leading-relaxed">
@@ -144,20 +147,20 @@ import { WorkerDashboardReviewRecord } from '../../../models/worker-profile.mode
 
         <!-- State: Review Cards List -->
         @else {
-          <div class="divide-y divide-outline-variant/60">
+          <div class="divide-y divide-hairline-light">
             @for (rev of filteredReviews(); track rev.id) {
               <div class="py-4.5 first:pt-0 last:pb-0 space-y-2.5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-sm font-bold text-ink-primary">
+                    <span class="text-sm font-bold text-ink-on-light">
                       {{ rev.client_name }}
                     </span>
                     @if (rev.is_anonymous) {
-                      <span class="text-[10px] bg-surface-container text-ink-secondary px-2 py-0.5 rounded-full font-mono">
+                      <span class="text-[10px] bg-surface-highlight border border-hairline-light text-ink-secondary px-2 py-0.5 rounded font-mono-rate uppercase tracking-wider">
                         Publik Disamarkan
                       </span>
                     }
-                    <span class="text-xs text-ink-disabled font-mono">
+                    <span class="text-xs text-ink-disabled font-mono-rate">
                       #{{ rev.booking_code }}
                     </span>
                     <span class="text-xs text-ink-secondary">
@@ -173,13 +176,13 @@ import { WorkerDashboardReviewRecord } from '../../../models/worker-profile.mode
                         </span>
                       }
                     </div>
-                    <span class="text-xs text-ink-disabled font-mono whitespace-nowrap">
+                    <span class="text-xs text-ink-disabled font-mono-rate whitespace-nowrap">
                       {{ formatDate(rev.created_at) }}
                     </span>
                   </div>
                 </div>
 
-                <p class="text-xs sm:text-sm text-ink-primary leading-relaxed whitespace-pre-line bg-surface-container-low/50 p-3 rounded-xl border border-outline-variant/40">
+                <p class="text-xs sm:text-sm text-ink-on-light leading-relaxed whitespace-pre-line bg-surface-highlight p-3.5 rounded border border-hairline-light">
                   "{{ rev.comment }}"
                 </p>
               </div>

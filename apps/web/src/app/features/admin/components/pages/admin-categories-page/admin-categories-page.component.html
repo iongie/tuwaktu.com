@@ -3,22 +3,22 @@
     @if (store.feedbackMessage()) {
       <div
         role="status"
-        class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-sm flex items-center justify-between gap-4 transition-all shadow-xs"
+        class="p-4 rounded bg-whatsapp-surface border border-whatsapp-green/30 text-whatsapp-ink text-xs flex items-center justify-between gap-4 font-mono-rate font-bold uppercase tracking-wider shadow-none"
         data-testid="category-feedback-banner"
       >
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded bg-whatsapp-green/20 text-whatsapp-green flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-base">check_circle</span>
           </div>
           <span class="font-medium">{{ store.feedbackMessage() }}</span>
         </div>
         <button
           type="button"
-          class="min-w-[44px] min-h-[44px] flex items-center justify-center text-emerald-700 hover:text-emerald-900 cursor-pointer rounded-xl hover:bg-emerald-500/10 transition"
+          class="min-w-[40px] min-h-[40px] flex items-center justify-center text-whatsapp-ink hover:opacity-70 cursor-pointer rounded transition"
           (click)="store.clearFeedback()"
           aria-label="Tutup notifikasi sukses"
         >
-          <span class="material-symbols-outlined text-lg">close</span>
+          <span class="material-symbols-outlined text-base">close</span>
         </button>
       </div>
     }
@@ -27,22 +27,22 @@
     @if (store.errorMessage()) {
       <div
         role="alert"
-        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 text-sm flex items-center justify-between gap-4 transition-all shadow-xs"
+        class="p-4 rounded bg-red-50 border border-red-200 text-red-950 text-xs flex items-center justify-between gap-4 transition-all shadow-none"
         data-testid="category-error-banner"
       >
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-base">warning</span>
           </div>
           <div>
-            <div class="font-bold text-rose-950 dark:text-rose-100">Kendala Operasi Kategori</div>
-            <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5">{{ store.errorMessage() }}</p>
+            <div class="font-bold text-red-950 font-mono-rate uppercase tracking-wider text-[11px]">Kendala Operasi Kategori</div>
+            <p class="text-xs text-red-800 mt-0.5">{{ store.errorMessage() }}</p>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            class="min-h-[44px] px-3.5 py-1.5 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+            class="min-h-[40px] px-3.5 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 text-xs font-bold uppercase tracking-wider font-mono-rate transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-none"
             (click)="store.loadCategories()"
             aria-label="Coba lagi memuat data kategori"
             data-testid="category-retry-btn"
@@ -51,11 +51,11 @@
           </button>
           <button
             type="button"
-            class="min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-700 hover:text-rose-900 cursor-pointer rounded-xl hover:bg-rose-500/10 transition-colors"
+            class="min-w-[40px] min-h-[40px] flex items-center justify-center text-red-700 hover:text-red-900 cursor-pointer rounded hover:bg-red-100 transition-colors"
             (click)="store.clearError()"
             aria-label="Tutup notifikasi error"
           >
-            <span class="material-symbols-outlined text-lg">close</span>
+            <span class="material-symbols-outlined text-base">close</span>
           </button>
         </div>
       </div>
@@ -64,21 +64,21 @@
     <!-- Header Judul & Tombol Tambah Kategori -->
     <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-on-light">
           Katalog Keahlian Teknisi
         </h1>
-        <p class="text-sm text-on-surface-variant mt-1">
+        <p class="text-xs text-ink-secondary mt-1">
           Kelola kategori spesialisasi kerja, tarif awal standar, dan parameter visibilitas pada halaman beranda publik.
         </p>
       </div>
 
       <button
         type="button"
-        class="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-on-primary font-bold text-sm hover:opacity-95 shadow-xs hover:shadow transition-all cursor-pointer shrink-0"
+        class="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded bg-hero-canvas text-ink-on-dark font-bold text-xs uppercase tracking-wider font-mono-rate hover:bg-[#262626] shadow-none transition-all cursor-pointer shrink-0"
         (click)="handleAddCategory()"
         data-testid="add-category-btn"
       >
-        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span class="material-symbols-outlined text-base">add_circle</span>
         <span>Tambah Kategori Baru</span>
       </button>
     </section>
@@ -86,39 +86,39 @@
     <!-- Bento Grid Kartu Metrik Ringkasan Kategori -->
     <section class="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-label="Metrik Ringkasan Kategori">
       <!-- Total Kategori -->
-      <div class="p-5 rounded-2xl bg-surface border border-hairline-subtle shadow-xs space-y-2">
-        <div class="flex items-center justify-between text-on-surface-variant">
-          <span class="text-xs font-semibold uppercase tracking-wider">Total Kategori</span>
-          <span class="material-symbols-outlined text-xl text-primary">category</span>
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none space-y-2">
+        <div class="flex items-center justify-between text-ink-secondary font-mono-rate">
+          <span class="text-[11px] font-bold uppercase tracking-wider">Total Kategori</span>
+          <span class="material-symbols-outlined text-xl text-ink-on-light">category</span>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-on-surface font-mono" data-testid="metric-total-categories">
+        <div class="text-3xl font-extrabold tracking-tight text-ink-on-light font-mono-rate tabular-nums" data-testid="metric-total-categories">
           {{ store.totalCount() }}
         </div>
-        <p class="text-xs text-on-surface-variant">Seluruh spesialisasi terdaftar</p>
+        <p class="text-xs text-ink-secondary">Seluruh spesialisasi terdaftar</p>
       </div>
 
       <!-- Kategori Aktif -->
-      <div class="p-5 rounded-2xl bg-surface border border-hairline-subtle shadow-xs space-y-2">
-        <div class="flex items-center justify-between text-on-surface-variant">
-          <span class="text-xs font-semibold uppercase tracking-wider">Aktif di Publik</span>
-          <span class="material-symbols-outlined text-xl text-emerald-600">visibility</span>
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none space-y-2">
+        <div class="flex items-center justify-between text-ink-secondary font-mono-rate">
+          <span class="text-[11px] font-bold uppercase tracking-wider">Aktif di Publik</span>
+          <span class="material-symbols-outlined text-xl text-whatsapp-green">visibility</span>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400 font-mono" data-testid="metric-active-categories">
+        <div class="text-3xl font-extrabold tracking-tight text-ink-on-light font-mono-rate tabular-nums" data-testid="metric-active-categories">
           {{ store.activeCount() }}
         </div>
-        <p class="text-xs text-on-surface-variant">Tampil di beranda &amp; pencarian</p>
+        <p class="text-xs text-ink-secondary">Tampil di beranda &amp; pencarian</p>
       </div>
 
       <!-- Kategori Nonaktif -->
-      <div class="p-5 rounded-2xl bg-surface border border-hairline-subtle shadow-xs space-y-2">
-        <div class="flex items-center justify-between text-on-surface-variant">
-          <span class="text-xs font-semibold uppercase tracking-wider">Nonaktif</span>
-          <span class="material-symbols-outlined text-xl text-on-surface-variant">visibility_off</span>
+      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none space-y-2">
+        <div class="flex items-center justify-between text-ink-secondary font-mono-rate">
+          <span class="text-[11px] font-bold uppercase tracking-wider">Nonaktif</span>
+          <span class="material-symbols-outlined text-xl text-ink-disabled">visibility_off</span>
         </div>
-        <div class="text-3xl font-extrabold tracking-tight text-on-surface-variant font-mono" data-testid="metric-inactive-categories">
+        <div class="text-3xl font-extrabold tracking-tight text-ink-secondary font-mono-rate tabular-nums" data-testid="metric-inactive-categories">
           {{ store.inactiveCount() }}
         </div>
-        <p class="text-xs text-on-surface-variant">Disembunyikan dari publik</p>
+        <p class="text-xs text-ink-secondary">Disembunyikan dari publik</p>
       </div>
     </section>
 

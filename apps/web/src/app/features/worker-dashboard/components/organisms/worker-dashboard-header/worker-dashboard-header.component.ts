@@ -330,13 +330,13 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
                   </a>
 
                   <a
-                    routerLink="/dashboard/tarif-layanan"
+                    routerLink="/dashboard/profile"
                     (click)="closeProfileMenu()"
                     class="flex items-center gap-space-sm px-space-sm py-2 rounded text-on-surface hover:bg-surface-highlight transition-colors font-button-label text-caption font-medium cursor-pointer min-h-[44px]"
                     role="menuitem"
                   >
                     <span class="material-symbols-outlined text-[18px] text-ink-secondary">manage_accounts</span>
-                    <span>Pengaturan Profil &amp; Tarif Mandiri</span>
+                    <span>Pengaturan Profil &amp; Foto</span>
                   </a>
 
                   <a

@@ -148,6 +148,11 @@ export class WorkerDashboardSidebarComponent {
       icon: 'grid_view',
     },
     {
+      routePath: '/dashboard/profile',
+      label: 'Profil & Identitas',
+      icon: 'person',
+    },
+    {
       routePath: '/dashboard/tarif-layanan',
       label: 'Tarif & Layanan',
       icon: 'sell',

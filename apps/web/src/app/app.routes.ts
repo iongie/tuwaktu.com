@@ -12,10 +12,6 @@ export const appRoutes: Route[] = [
       ).then((m) => m.HomePageComponent),
   },
   {
-    path: 'dashboard/profile',
-    redirectTo: 'dashboard/integrasi-whatsapp',
-  },
-  {
     path: 'dashboard',
     canActivate: [authGuard],
     canActivateChild: [authGuard],
@@ -82,7 +78,14 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'profile',
-        redirectTo: 'integrasi-whatsapp',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/pages/worker-dashboard-profile-page/worker-dashboard-profile-page.component'
+          ).then((m) => m.WorkerDashboardProfilePageComponent),
+      },
+      {
+        path: 'profil',
+        redirectTo: 'profile',
       },
       {
         path: 'plan',

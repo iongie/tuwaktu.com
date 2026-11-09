@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   HostListener,
   inject,
   signal,
@@ -8,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { LogoutConfirmModalComponent } from '../../../../auth/components/molecules/logout-confirm-modal/logout-confirm-modal.component';
@@ -222,17 +224,18 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
               </div>
 
               <div class="relative shrink-0">
-                @if (store.workerAvatarUrl()) {
+                @if (resolvedHeaderAvatarUrl() && !isHeaderAvatarBroken()) {
                   <img
-                    [src]="store.workerAvatarUrl()"
+                    [src]="resolvedHeaderAvatarUrl()"
                     [alt]="store.workerFullName() || 'Avatar Mitra'"
+                    (error)="isHeaderAvatarBroken.set(true)"
                     class="w-8 h-8 rounded-full object-cover ring-1 ring-hairline-light"
                   />
                 } @else {
                   <div
-                    class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary"
+                    class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-xs"
                   >
-                    <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+                    {{ (store.workerFullName() || 'TW').substring(0, 2).toUpperCase() }}
                   </div>
                 }
                 <span
@@ -401,6 +404,10 @@ export class WorkerDashboardHeaderComponent {
   readonly isLogoutModalOpen = signal<boolean>(false);
   readonly isSwitcherOpen = signal(false);
   readonly isProfileMenuOpen = signal(false);
+  readonly isHeaderAvatarBroken = signal(false);
+  readonly resolvedHeaderAvatarUrl = computed(() =>
+    resolveAvatarUrl(this.store.workerAvatarUrl())
+  );
   readonly switcherSlugValue = signal('');
   readonly quickPresets = ['sarah-cleaning', 'budi-santoso', 'eko-teknisi'];
 

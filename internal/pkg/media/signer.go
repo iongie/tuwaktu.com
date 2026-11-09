@@ -37,6 +37,23 @@ func GetMediaSecret() []byte {
 	return []byte(secret)
 }
 
+// ExtractFilename extracts a clean basename from a URL, relative path, or raw filename
+func ExtractFilename(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return ""
+	}
+	// Strip query string if present
+	if idx := strings.Index(trimmed, "?"); idx != -1 {
+		trimmed = trimmed[:idx]
+	}
+	// Replace Windows path separators
+	trimmed = strings.ReplaceAll(trimmed, "\\", "/")
+	// Get base name
+	parts := strings.Split(trimmed, "/")
+	return parts[len(parts)-1]
+}
+
 // SanitizeFilename verifies that the filename contains no path traversal sequences
 // and matches the allowed alphanumeric pattern with image extensions.
 func SanitizeFilename(filename string) (string, error) {

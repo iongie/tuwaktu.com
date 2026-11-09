@@ -45,3 +45,5 @@ node_modules/
 .nx/workspace-data/
 .angular/
 node_modules
+
+storage/

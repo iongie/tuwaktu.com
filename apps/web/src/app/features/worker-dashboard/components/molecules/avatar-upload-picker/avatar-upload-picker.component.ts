@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { compressImageToTargetSize } from '../../../../../core/utils/image-compression.util';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { WorkerDashboardApiService } from '../../../services/worker-dashboard-api.service';
 
 @Component({
@@ -132,7 +133,7 @@ export class AvatarUploadPickerComponent {
       if (preview) {
         return preview;
       }
-      return this.currentAvatarUrl().trim();
+      return resolveAvatarUrl(this.currentAvatarUrl().trim());
     };
   }
 

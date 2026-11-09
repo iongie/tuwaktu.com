@@ -6,6 +6,26 @@ import (
 	"time"
 )
 
+func TestExtractFilename(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"avt_123.webp", "avt_123.webp"},
+		{"/api/v1/media/avatars/avt_123.webp?exp=123&sig=abc", "avt_123.webp"},
+		{"http://localhost:3000/api/v1/media/avatars/avt_999.jpg", "avt_999.jpg"},
+		{"storage/uploads/avatars/avt_file.png", "avt_file.png"},
+		{"", ""},
+	}
+
+	for _, tt := range tests {
+		actual := ExtractFilename(tt.input)
+		if actual != tt.expected {
+			t.Errorf("ExtractFilename(%s) = %s, expected %s", tt.input, actual, tt.expected)
+		}
+	}
+}
+
 func TestSanitizeFilename(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
 import { DashboardStatusToggleComponent } from '../../molecules/dashboard-status-toggle/dashboard-status-toggle.component';
 import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metric-stat-card/dashboard-metric-stat-card.component';
@@ -30,8 +31,9 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <div class="relative shrink-0">
               <img
-                [src]="store.workerAvatarUrl() || fallbackAvatar"
+                [src]="resolvedAvatarUrl() || fallbackAvatar"
                 [alt]="store.workerFullName() || 'Avatar Mitra'"
+                (error)="onAvatarError($event)"
                 class="w-20 h-20 sm:w-22 sm:h-22 rounded-full object-cover ring-2 ring-white/20 shadow-md"
               />
               <span
@@ -258,6 +260,17 @@ export class WorkerDashboardHeroBannerComponent {
 
   readonly fallbackAvatar =
     'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop';
+
+  readonly resolvedAvatarUrl = computed(() =>
+    resolveAvatarUrl(this.store.workerAvatarUrl())
+  );
+
+  onAvatarError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img && img.src !== this.fallbackAvatar) {
+      img.src = this.fallbackAvatar;
+    }
+  }
 
   readonly workerBadgeCode = computed(() => {
     const id = this.store.workerRecordId().trim();

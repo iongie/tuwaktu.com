@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { resolveAvatarUrl } from '../../../core/utils/avatar-url.util';
 import { WorkerDashboardApiService } from './worker-dashboard-api.service';
 import {
   WorkerProfileUpdatePayload,
@@ -1109,7 +1110,7 @@ export class WorkerDashboardStore implements OnDestroy {
       this.workerBasecampAddress.set(`Basecamp Area ${profile.zone.trim()}`);
     }
     this.workerBioDescription.set(profile.bio || '');
-    this.workerAvatarUrl.set(profile.avatar_url || '');
+    this.workerAvatarUrl.set(resolveAvatarUrl(profile.avatar_url));
     this.workerWhatsAppNumber.set(profile.whatsapp_number || '');
 
     if (
@@ -1298,7 +1299,7 @@ export class WorkerDashboardStore implements OnDestroy {
             this.workerFullName.set(response.data.name);
             this.workerProfessionZone.set(response.data.zone);
             this.workerBioDescription.set(response.data.bio || '');
-            this.workerAvatarUrl.set(response.data.avatar_url || '');
+            this.workerAvatarUrl.set(resolveAvatarUrl(response.data.avatar_url));
             this.workerSlugIdentifier.set(response.data.slug);
             if (response.data.whatsapp_number !== undefined) {
               this.workerWhatsAppNumber.set(

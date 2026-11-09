@@ -115,8 +115,10 @@ func (s *workerService) formatAvatarURL(rawAvatar string) string {
 	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
 		return trimmed
 	}
+	// Extract clean filename in case path or query string was stored
+	cleanFilename := media.ExtractFilename(trimmed)
 	// Sign local avatars with 4 hours TTL
-	signed, err := media.SignMediaURL("", trimmed, 4*time.Hour)
+	signed, err := media.SignMediaURL("", cleanFilename, 4*time.Hour)
 	if err != nil {
 		return trimmed
 	}
@@ -186,6 +188,13 @@ func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req 
 			return nil, err
 		}
 		req.WhatsAppNumber = sanitized
+	}
+
+	if strings.TrimSpace(req.AvatarURL) != "" {
+		trimmedAvatar := strings.TrimSpace(req.AvatarURL)
+		if !strings.HasPrefix(trimmedAvatar, "http://") && !strings.HasPrefix(trimmedAvatar, "https://") {
+			req.AvatarURL = media.ExtractFilename(trimmedAvatar)
+		}
 	}
 
 	updatedWorker, err := s.repo.UpdateProfile(ctx, id, req)

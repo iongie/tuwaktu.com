@@ -346,6 +346,7 @@ export class AuthService {
                 slug: s.slug || s.worker_slug || 'mitra-mandiri',
                 email: s.email,
                 waNumber: s.phone_number || data.waNumber,
+                avatarUrl: s.avatar_url,
                 role: s.role as AuthUserSession['role'],
                 accountStatus: s.account_status,
                 mustChangePassword: s.must_change_password,

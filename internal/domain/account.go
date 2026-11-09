@@ -151,6 +151,7 @@ type AuthUserSession struct {
 	WorkerSlug         string  `json:"worker_slug,omitempty"`
 	Slug               string  `json:"slug,omitempty"`
 	Name               string  `json:"name"`
+	AvatarURL          string  `json:"avatar_url,omitempty"`
 	Email              string  `json:"email"`
 	PhoneNumber        string  `json:"phone_number"`
 	Role               string  `json:"role"`

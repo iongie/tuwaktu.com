@@ -92,6 +92,7 @@ export interface BackendUserSession {
   readonly worker_slug?: string;
   readonly slug?: string;
   readonly name: string;
+  readonly avatar_url?: string;
   readonly email: string;
   readonly phone_number: string;
   readonly role: string;

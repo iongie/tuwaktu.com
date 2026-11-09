@@ -562,10 +562,7 @@ func (s *workerService) OnboardWorker(ctx context.Context, payload *domain.Admin
 		bio = fmt.Sprintf("Mitra teknisi profesional terverifikasi di area %s.", zone)
 	}
 
-	avatarURL := strings.TrimSpace(payload.Address) // check or fallback
-	if avatarURL == "" {
-		avatarURL = "https://images.unsplash.com/photo-1540569014015-19a7be504e3a"
-	}
+	avatarURL := ""
 
 	phone := strings.TrimSpace(payload.PhoneNumber)
 	if phone == "" {
@@ -790,7 +787,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		Slug:           workerSlug,
 		Name:           name,
 		Bio:            bio,
-		AvatarURL:      "https://images.unsplash.com/photo-1540569014015-19a7be504e3a",
+		AvatarURL:      "",
 		Rating:         5.0,
 		ReviewCount:    0,
 		Zone:           zone,
@@ -1091,6 +1088,7 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 	workerIDStr := ""
 	workerSlug := ""
 	userName := "Pengguna"
+	avatarURL := ""
 
 	if account.Role == domain.RoleAdmin {
 		userName = "Super Administrator"
@@ -1103,10 +1101,12 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 	if account.Worker != nil {
 		userName = account.Worker.Name
 		workerSlug = account.Worker.Slug
+		avatarURL = account.Worker.AvatarURL
 	} else if workerIDStr != "" {
 		if w, err := s.repo.GetByID(ctx, workerIDStr); err == nil && w != nil {
 			userName = w.Name
 			workerSlug = w.Slug
+			avatarURL = w.AvatarURL
 		}
 	}
 
@@ -1123,6 +1123,7 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 			WorkerSlug:         workerSlug,
 			Slug:               workerSlug,
 			Name:               userName,
+			AvatarURL:          avatarURL,
 			Email:              account.Email,
 			PhoneNumber:        account.PhoneNumber,
 			Role:               account.Role,
@@ -1159,6 +1160,7 @@ func (s *workerService) GetSessionProfile(ctx context.Context, accountID string)
 	workerIDStr := ""
 	workerSlug := ""
 	userName := "Pengguna"
+	avatarURL := ""
 
 	if account.WorkerID != nil {
 		workerIDStr = *account.WorkerID
@@ -1171,10 +1173,12 @@ func (s *workerService) GetSessionProfile(ctx context.Context, accountID string)
 	if account.Worker != nil {
 		userName = account.Worker.Name
 		workerSlug = account.Worker.Slug
+		avatarURL = account.Worker.AvatarURL
 	} else if workerIDStr != "" {
 		if w, err := s.repo.GetByID(ctx, workerIDStr); err == nil && w != nil {
 			userName = w.Name
 			workerSlug = w.Slug
+			avatarURL = w.AvatarURL
 		}
 	}
 
@@ -1184,6 +1188,7 @@ func (s *workerService) GetSessionProfile(ctx context.Context, accountID string)
 		WorkerSlug:         workerSlug,
 		Slug:               workerSlug,
 		Name:               userName,
+		AvatarURL:          avatarURL,
 		Email:              account.Email,
 		PhoneNumber:        account.PhoneNumber,
 		Role:               account.Role,

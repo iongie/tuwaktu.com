@@ -5,6 +5,7 @@ import {
   output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { FeaturedWorker } from '../../../models/home.model';
 
 @Component({
@@ -35,7 +36,13 @@ import { FeaturedWorker } from '../../../models/home.model';
                   <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 rounded-full bg-white/10 shrink-0 overflow-hidden flex items-center justify-center border border-white/20">
                       @if (worker.avatarUrl) {
-                        <img [src]="worker.avatarUrl" [alt]="worker.name" class="w-full h-full object-cover" />
+                        <img
+                          [src]="resolveUrl(worker.avatarUrl)"
+                          [alt]="worker.name"
+                          (error)="onImgError($event)"
+                          class="w-full h-full object-cover"
+                        />
+                        <span class="material-symbols-outlined text-[18px] text-white/70 hidden">person</span>
                       } @else {
                         <span class="material-symbols-outlined text-[18px] text-white/70">person</span>
                       }
@@ -109,6 +116,20 @@ export class SearchAutoSuggestDropdownComponent {
 
   onCategoryClick(category: string): void {
     this.selectCategory.emit(category);
+  }
+
+  resolveUrl(url: string | null | undefined): string {
+    return resolveAvatarUrl(url);
+  }
+
+  onImgError(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target) {
+      target.style.display = 'none';
+      if (target.nextElementSibling) {
+        (target.nextElementSibling as HTMLElement).classList.remove('hidden');
+      }
+    }
   }
 }
 

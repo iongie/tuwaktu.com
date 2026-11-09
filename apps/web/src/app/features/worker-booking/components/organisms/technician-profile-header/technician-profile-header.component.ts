@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
 import { AuthService } from '../../../../auth/services/auth.service';
 
@@ -27,10 +28,11 @@ import { AuthService } from '../../../../auth/services/auth.service';
           <div class="lg:col-span-7 space-y-space-xl">
             <div class="flex items-start sm:items-center gap-space-lg">
               <div class="relative shrink-0">
-                @if (workerProfile().avatar_url) {
+                @if (resolvedAvatarUrl() && !isAvatarBroken()) {
                   <img
-                    [src]="workerProfile().avatar_url"
+                    [src]="resolvedAvatarUrl()"
                     [alt]="'Foto profil ' + workerProfile().name"
+                    (error)="isAvatarBroken.set(true)"
                     class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shadow-xl"
                   />
                 } @else {
@@ -179,6 +181,11 @@ export class TechnicianProfileHeaderComponent {
   readonly authService = inject(AuthService);
   readonly workerProfile = input.required<PublicTechnicianProfile>();
   readonly isCopied = signal<boolean>(false);
+  readonly isAvatarBroken = signal<boolean>(false);
+
+  readonly resolvedAvatarUrl = computed(() => {
+    return resolveAvatarUrl(this.workerProfile().avatar_url);
+  });
 
   readonly formattedRate = computed(() => {
     const profile = this.workerProfile();

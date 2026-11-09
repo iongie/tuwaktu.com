@@ -176,6 +176,28 @@ describe('BookingNavAccountMenuComponent', () => {
       expect(component.isLogoutModalOpen()).toBe(false);
       expect(component.isMenuOpen()).toBe(false);
     });
+
+    it('harus menampilkan inisial pekerja jika avatar gambar gagal dimuat (broken image)', () => {
+      authService.setSession({
+        id: 'usr-123',
+        name: 'Gigih Santoso',
+        slug: 'gigih-santoso',
+        role: 'worker',
+        avatarUrl: 'https://invalid-url.com/broken-avatar.jpg',
+      });
+      fixture.detectChanges();
+
+      const img = fixture.nativeElement.querySelector('#userProfileMenuBtn img');
+      expect(img).toBeTruthy();
+
+      // Trigger error pada elemen gambar
+      img.dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+
+      const imgAfterError = fixture.nativeElement.querySelector('#userProfileMenuBtn img');
+      expect(imgAfterError).toBeNull();
+      expect(fixture.nativeElement.querySelector('#userProfileMenuBtn').textContent).toContain('GS');
+    });
   });
 
   describe('Kondisi 3: Logged-in Admin (Super Administrator)', () => {

@@ -5,6 +5,7 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { AdminWorkerListItem } from '../../../models/admin-worker.model';
 import { AdminWorkerStatusBadgeComponent } from '../../molecules/admin-worker-status-badge/admin-worker-status-badge.component';
 
@@ -55,7 +56,13 @@ import { AdminWorkerStatusBadgeComponent } from '../../molecules/admin-worker-st
                     <div class="flex items-center gap-3">
                       <div class="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center shrink-0 overflow-hidden">
                         @if (worker.avatar_url) {
-                          <img [src]="worker.avatar_url" [alt]="worker.name" class="w-full h-full object-cover" />
+                          <img
+                            [src]="resolveUrl(worker.avatar_url)"
+                            [alt]="worker.name"
+                            (error)="onImgError($event)"
+                            class="w-full h-full object-cover"
+                          />
+                          <span class="hidden">{{ worker.name.charAt(0).toUpperCase() }}</span>
                         } @else {
                           <span>{{ worker.name.charAt(0).toUpperCase() }}</span>
                         }
@@ -171,5 +178,19 @@ export class AdminWorkersTableComponent {
   readonly workers = input<AdminWorkerListItem[]>([]);
   readonly addWorkerClick = output<void>();
   readonly toggleStatusClick = output<AdminWorkerListItem>();
+
+  resolveUrl(url: string | null | undefined): string {
+    return resolveAvatarUrl(url);
+  }
+
+  onImgError(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target) {
+      target.style.display = 'none';
+      if (target.nextElementSibling) {
+        (target.nextElementSibling as HTMLElement).classList.remove('hidden');
+      }
+    }
+  }
 }
 

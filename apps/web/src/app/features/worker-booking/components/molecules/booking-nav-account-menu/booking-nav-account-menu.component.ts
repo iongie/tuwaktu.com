@@ -1,6 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  effect,
   HostListener,
   inject,
   input,
@@ -8,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { PublicTechnicianProfile } from '../../../models/worker-catalog.model';
 import { LogoutConfirmModalComponent } from '../../../../auth/components/molecules/logout-confirm-modal/logout-confirm-modal.component';
@@ -49,8 +52,13 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
             <div
               class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-caption ring-2 ring-primary/20 overflow-hidden"
             >
-              @if (sessionAvatarUrl()) {
-                <img [src]="sessionAvatarUrl()" [alt]="sessionName()" class="w-full h-full object-cover" />
+              @if (sessionAvatarUrl() && !isAvatarBroken()) {
+                <img
+                  [src]="sessionAvatarUrl()"
+                  [alt]="sessionName()"
+                  (error)="onAvatarError()"
+                  class="w-full h-full object-cover"
+                />
               } @else {
                 <span>{{ sessionInitials() }}</span>
               }
@@ -189,8 +197,13 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
             <div
               class="w-8 h-8 rounded-full bg-hero-canvas text-ink-on-dark flex items-center justify-center font-bold text-caption ring-2 ring-hairline-subtle overflow-hidden"
             >
-              @if (sessionAvatarUrl()) {
-                <img [src]="sessionAvatarUrl()" [alt]="sessionName()" class="w-full h-full object-cover" />
+              @if (sessionAvatarUrl() && !isAvatarBroken()) {
+                <img
+                  [src]="sessionAvatarUrl()"
+                  [alt]="sessionName()"
+                  (error)="onAvatarError()"
+                  class="w-full h-full object-cover"
+                />
               } @else {
                 <span>{{ sessionInitials() }}</span>
               }
@@ -377,6 +390,33 @@ export class BookingNavAccountMenuComponent {
 
   readonly isMenuOpen = signal<boolean>(false);
   readonly isLogoutModalOpen = signal<boolean>(false);
+  readonly isAvatarBroken = signal<boolean>(false);
+
+  readonly sessionAvatarUrl = computed<string | undefined>(() => {
+    const session = this.authService.currentUser();
+    if (session?.avatarUrl) {
+      const resolved = resolveAvatarUrl(session.avatarUrl);
+      return resolved || undefined;
+    }
+    const worker = this.activeWorker();
+    if (worker && session && worker.slug === session.slug) {
+      const resolved = resolveAvatarUrl(worker.avatar_url);
+      return resolved || undefined;
+    }
+    return undefined;
+  });
+
+  constructor() {
+    effect(() => {
+      // Pantau pembaruan URL avatar sesi dan reset status broken
+      this.sessionAvatarUrl();
+      this.isAvatarBroken.set(false);
+    });
+  }
+
+  onAvatarError(): void {
+    this.isAvatarBroken.set(true);
+  }
 
   sessionName(): string {
     const session = this.authService.currentUser();
@@ -429,15 +469,6 @@ export class BookingNavAccountMenuComponent {
     return 'mitra-mandiri';
   }
 
-  sessionAvatarUrl(): string | undefined {
-    const session = this.authService.currentUser();
-    if (session?.avatarUrl) return session.avatarUrl;
-    const worker = this.activeWorker();
-    if (worker && session && worker.slug === session.slug) {
-      return worker.avatar_url;
-    }
-    return undefined;
-  }
 
   @HostListener('window:keydown.escape')
   handleEscape(): void {

@@ -1,6 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { resolveAvatarUrl } from '../../../../../core/utils/avatar-url.util';
 import { FeaturedWorker } from '../../../models/home.model';
 
 @Component({
@@ -19,10 +26,11 @@ import { FeaturedWorker } from '../../../models/home.model';
             <div
               class="w-16 h-16 rounded-xl bg-surface-container-high overflow-hidden border border-hairline-subtle"
             >
-              @if (worker().avatarUrl) {
+              @if (resolvedAvatarUrl() && !isAvatarBroken()) {
                 <img
-                  [src]="worker().avatarUrl"
+                  [src]="resolvedAvatarUrl()"
                   [alt]="'Foto profil ' + worker().name"
+                  (error)="isAvatarBroken.set(true)"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
@@ -58,16 +66,26 @@ import { FeaturedWorker } from '../../../models/home.model';
               }
             </div>
 
-            <p class="font-caption text-caption text-ink-secondary truncate mt-0.5">
+            <p
+              class="font-caption text-caption text-ink-secondary truncate mt-0.5"
+            >
               {{ worker().specialty }}
             </p>
 
-            <div class="flex items-center gap-space-xs mt-1 text-caption text-ink-secondary">
-              <span class="material-symbols-outlined text-[15px] text-voltage-orange">
+            <div
+              class="flex items-center gap-space-xs mt-1 text-caption text-ink-secondary"
+            >
+              <span
+                class="material-symbols-outlined text-[15px] text-voltage-orange"
+              >
                 star
               </span>
-              <span class="font-bold text-on-surface">{{ worker().rating.toFixed(2) }}</span>
-              <span class="text-ink-disabled">({{ worker().reviewCount }} ulasan)</span>
+              <span class="font-bold text-on-surface">{{
+                worker().rating.toFixed(2)
+              }}</span>
+              <span class="text-ink-disabled"
+                >({{ worker().reviewCount }} ulasan)</span
+              >
             </div>
           </div>
         </div>
@@ -77,12 +95,16 @@ import { FeaturedWorker } from '../../../models/home.model';
           class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs p-space-sm bg-surface-container-low rounded-lg text-caption"
         >
           <div class="flex items-center gap-1.5 text-ink-secondary min-w-0">
-            <span class="material-symbols-outlined text-[16px] text-ink-disabled shrink-0">
+            <span
+              class="material-symbols-outlined text-[16px] text-ink-disabled shrink-0"
+            >
               pin_drop
             </span>
             <span class="truncate">{{ worker().basecampZone }}</span>
           </div>
-          <div class="flex items-center gap-1 text-promo-ink font-semibold shrink-0">
+          <div
+            class="flex items-center gap-1 text-promo-ink font-semibold shrink-0"
+          >
             <span class="material-symbols-outlined text-[15px]">schedule</span>
             <span>Buffer {{ worker().bufferMinutes }}m</span>
           </div>
@@ -105,22 +127,30 @@ import { FeaturedWorker } from '../../../models/home.model';
         class="mt-space-lg pt-space-md border-t border-hairline-subtle flex items-center justify-between gap-space-md"
       >
         <div class="space-y-0.5">
-          <span class="font-micro-uppercase text-caption text-ink-disabled uppercase">
+          <span
+            class="font-micro-uppercase text-caption text-ink-disabled uppercase"
+          >
             Tarif Mulai dari
           </span>
           <p class="font-mono-rate text-heading-h3 font-bold text-on-surface">
             {{ formattedStartingPrice() }}
-            <span class="text-caption font-normal text-ink-secondary">/ {{ worker().priceUnit }}</span>
+            <span class="text-caption font-normal text-ink-secondary"
+              >/ {{ worker().priceUnit }}</span
+            >
           </p>
         </div>
 
         <a
           [routerLink]="['/', worker().slug]"
           class="m3-btn-whatsapp gap-space-xs text-caption font-bold shadow-sm hover:shadow group-hover:bg-whatsapp-green-hover"
-          [attr.aria-label]="'Lihat jadwal dan pesan layanan dari ' + worker().name"
+          [attr.aria-label]="
+            'Lihat jadwal dan pesan layanan dari ' + worker().name
+          "
         >
           <span>Lihat Jadwal &amp; Pesan</span>
-          <span class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5">
+          <span
+            class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5"
+          >
             arrow_forward
           </span>
         </a>
@@ -131,6 +161,11 @@ import { FeaturedWorker } from '../../../models/home.model';
 })
 export class HomeWorkerCardComponent {
   readonly worker = input.required<FeaturedWorker>();
+  readonly isAvatarBroken = signal<boolean>(false);
+
+  readonly resolvedAvatarUrl = computed(() => {
+    return resolveAvatarUrl(this.worker().avatarUrl);
+  });
 
   readonly initials = computed(() => {
     const name = this.worker().name.trim();

@@ -6,7 +6,7 @@ import {
   output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { BookingNavAccountMenuComponent } from '../../../../worker-booking/components/molecules/booking-nav-account-menu/booking-nav-account-menu.component';
@@ -14,7 +14,7 @@ import { BookingNavAccountMenuComponent } from '../../../../worker-booking/compo
 @Component({
   selector: 'app-admin-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, BookingNavAccountMenuComponent],
+  imports: [CommonModule, BookingNavAccountMenuComponent],
   template: `
     <header class="h-16 sticky top-0 z-40 bg-body-canvas/95 backdrop-blur-md border-b border-hairline-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between px-4 sm:px-6 lg:px-8">
       <!-- Sisi Kiri: Tombol Hamburger Mobile & Breadcrumb Halaman -->

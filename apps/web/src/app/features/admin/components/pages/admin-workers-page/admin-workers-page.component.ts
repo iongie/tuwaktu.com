@@ -4,7 +4,6 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AdminWorkerStore } from '../../../services/admin-worker.store';
 import { AdminWorkerFilterBarComponent } from '../../molecules/admin-worker-filter-bar/admin-worker-filter-bar.component';
 import { AdminWorkersTableComponent } from '../../organisms/admin-workers-table/admin-workers-table.component';
@@ -15,7 +14,6 @@ import { AdminWorkerOnboardingModalComponent } from '../../organisms/admin-worke
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterLink,
     AdminWorkerFilterBarComponent,
     AdminWorkersTableComponent,
     AdminWorkerOnboardingModalComponent,

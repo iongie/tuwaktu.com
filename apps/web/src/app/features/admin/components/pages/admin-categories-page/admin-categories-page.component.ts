@@ -4,7 +4,6 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdminCategoryStore } from '../../../services/admin-category.store';
 import { AdminCategoriesTableComponent } from '../../organisms/admin-categories-table/admin-categories-table.component';
@@ -20,7 +19,6 @@ import {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterLink,
     FormsModule,
     AdminCategoryFilterBarComponent,
     AdminCategoriesTableComponent,

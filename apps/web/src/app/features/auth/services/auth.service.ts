@@ -505,6 +505,12 @@ export class AuthService {
         message: 'Minimal 3 karakter alfanumerik',
       };
     }
+    if (clean.length > 50) {
+      return {
+        isValid: false,
+        message: 'Maksimal 50 karakter alfanumerik',
+      };
+    }
     return {
       isValid: true,
       message: 'Tersedia & Siap Diklaim',
@@ -651,12 +657,18 @@ export class AuthService {
     if (data.fullName.trim().length < 3) {
       return { isValid: false, error: 'Nama lengkap pekerja minimal 3 karakter.' };
     }
+    if (data.fullName.trim().length > 100) {
+      return { isValid: false, error: 'Nama lengkap pekerja maksimal 100 karakter.' };
+    }
     const cleanWaDigits = data.waNumber.replace(/[^0-9]/g, '');
     if (!cleanWaDigits || cleanWaDigits.length < 8 || cleanWaDigits.length > 15) {
       return { isValid: false, error: 'Nomor WhatsApp bisnis tidak valid (panjang 8-15 digit).' };
     }
     if (!data.basecamp.trim()) {
       return { isValid: false, error: 'Basecamp operasional dan titik radius nol wajib diisi.' };
+    }
+    if (data.basecamp.trim().length > 255) {
+      return { isValid: false, error: 'Alamat basecamp operasional maksimal 255 karakter.' };
     }
     const slugCheck = this.validateSlug(data.customSlug);
     if (!slugCheck.isValid) {
@@ -693,6 +705,9 @@ export class AuthService {
     } else {
       if (!data.workerId.trim()) {
         return { isValid: false, error: 'Email atau ID Praktisi wajib diisi.' };
+      }
+      if (data.workerId.trim().length > 100) {
+        return { isValid: false, error: 'Email atau ID Praktisi maksimal 100 karakter.' };
       }
     }
 

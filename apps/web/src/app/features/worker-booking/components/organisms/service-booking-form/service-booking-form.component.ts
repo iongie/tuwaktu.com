@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { filterNumericInput, sanitizePlainText } from '../../../../../core/utils/sanitize.utils';
 import {
   PublicServiceCatalogItem,
   PublicTechnicianProfile,
@@ -204,6 +205,7 @@ export interface BookingFormDraft {
                     <input
                       class="w-full h-11 pl-10 pr-3 bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-body-default text-body-default outline-none shadow-inner"
                       id="clientLocationInput"
+                      maxlength="255"
                       placeholder="Masukkan kelurahan atau kecamatan..."
                       type="text"
                       [ngModel]="formDraft().serviceLocationAddress"
@@ -508,6 +510,7 @@ export interface BookingFormDraft {
                   </label>
                   <input
                     id="clientFullNameInput"
+                    maxlength="100"
                     class="w-full h-11 px-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-body-default text-body-default outline-none shadow-inner"
                     [class.border]="validationErrors()['client_name']"
                     [class.border-error]="validationErrors()['client_name']"
@@ -530,6 +533,7 @@ export interface BookingFormDraft {
                   </label>
                   <input
                     id="clientContactPhoneInput"
+                    maxlength="16"
                     class="w-full h-11 px-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-mono-rate text-mono-rate outline-none shadow-inner"
                     [class.border]="validationErrors()['client_phone']"
                     [class.border-error]="validationErrors()['client_phone']"
@@ -554,6 +558,7 @@ export interface BookingFormDraft {
                 </label>
                 <input
                   id="clientEmailAddressInput"
+                  maxlength="100"
                   class="w-full h-11 px-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-body-default text-body-default outline-none shadow-inner"
                   [class.border]="validationErrors()['client_email']"
                   [class.border-error]="validationErrors()['client_email']"
@@ -576,6 +581,7 @@ export interface BookingFormDraft {
                 </label>
                 <textarea
                   id="serviceLocationAddressInput"
+                  maxlength="255"
                   class="w-full p-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-body-default text-body-default outline-none shadow-inner resize-none"
                   [class.border]="validationErrors()['location']"
                   [class.border-error]="validationErrors()['location']"
@@ -598,6 +604,7 @@ export interface BookingFormDraft {
                 </label>
                 <textarea
                   id="additionalClientNotesInput"
+                  maxlength="500"
                   class="w-full p-space-md bg-surface-highlight focus:bg-body-canvas rounded text-on-surface font-body-default text-body-default outline-none shadow-inner resize-none"
                   rows="2"
                   [ngModel]="formDraft().additionalClientNotes"
@@ -1049,14 +1056,27 @@ export class ServiceBookingFormComponent {
   }
 
   onFieldChange(field: keyof BookingFormDraft, value: string): void {
-    const updated = { ...this.formDraft(), [field]: value };
+    let cleanVal = value;
+    if (field === 'clientFullName') {
+      cleanVal = cleanVal.slice(0, 100);
+    } else if (field === 'serviceLocationAddress' || field === 'serviceOperationalZone') {
+      cleanVal = cleanVal.slice(0, 255);
+    } else if (field === 'clientEmailAddress') {
+      cleanVal = cleanVal.slice(0, 100);
+    } else if (field === 'additionalClientNotes') {
+      cleanVal = cleanVal.slice(0, 500);
+    }
+    const updated = { ...this.formDraft(), [field]: cleanVal };
     this.formDraftChange.emit(updated);
     this.clearFieldError.emit(field);
   }
 
   onPhoneInput(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
-    const sanitized = inputElement.value.replace(/[^0-9+]/g, '');
+    let sanitized = inputElement.value.replace(/[^0-9+]/g, '');
+    if (sanitized.length > 16) {
+      sanitized = sanitized.slice(0, 16);
+    }
     inputElement.value = sanitized;
     this.onFieldChange('clientContactPhone', sanitized);
   }

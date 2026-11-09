@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"tuwaktu.com/internal/domain"
 	"tuwaktu.com/internal/pkg/auth"
+	"tuwaktu.com/internal/pkg/sanitize"
 	"tuwaktu.com/internal/pkg/slug"
 	"tuwaktu.com/internal/repository"
 )
@@ -143,8 +144,19 @@ func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req 
 	if id == "" || req == nil {
 		return nil, domain.ErrInvalidInput
 	}
-	if strings.TrimSpace(req.Name) == "" {
+	cleanName := sanitize.SanitizeText(req.Name, 100)
+	if cleanName == "" {
 		return nil, domain.ErrInvalidInput
+	}
+	req.Name = cleanName
+	if req.Bio != "" {
+		req.Bio = sanitize.SanitizeText(req.Bio, 500)
+	}
+	if req.Address != "" {
+		req.Address = sanitize.SanitizeText(req.Address, 255)
+	}
+	if req.Zone != "" {
+		req.Zone = sanitize.SanitizeText(req.Zone, 100)
 	}
 	if strings.TrimSpace(req.WhatsAppNumber) != "" {
 		sanitized, err := domain.SanitizeAndValidateWhatsAppNumber(req.WhatsAppNumber)
@@ -566,12 +578,15 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		return nil, domain.ErrInvalidInput
 	}
 
-	name := strings.TrimSpace(payload.Name)
+	name := sanitize.SanitizeText(payload.Name, 100)
 	if name == "" {
-		name = strings.TrimSpace(payload.FullName)
+		name = sanitize.SanitizeText(payload.FullName, 100)
 	}
 	if name == "" {
 		return nil, fmt.Errorf("%w: nama lengkap mitra wajib diisi", domain.ErrInvalidInput)
+	}
+	if len([]rune(name)) > 100 {
+		return nil, fmt.Errorf("%w: nama lengkap mitra maksimal 100 karakter", domain.ErrInvalidInput)
 	}
 
 	rawWA := strings.TrimSpace(payload.WhatsAppNumber)
@@ -587,29 +602,41 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		return nil, err
 	}
 
-	zone := strings.TrimSpace(payload.Zone)
+	zone := sanitize.SanitizeText(payload.Zone, 255)
 	if zone == "" {
-		zone = strings.TrimSpace(payload.Basecamp)
+		zone = sanitize.SanitizeText(payload.Basecamp, 255)
 	}
 	if zone == "" {
 		return nil, fmt.Errorf("%w: zona atau basecamp operasional wajib diisi", domain.ErrInvalidInput)
+	}
+	if len([]rune(zone)) > 255 {
+		return nil, fmt.Errorf("%w: zona atau basecamp operasional maksimal 255 karakter", domain.ErrInvalidInput)
 	}
 
 	rawSlug := strings.ToLower(strings.TrimSpace(payload.Slug))
 	if rawSlug == "" {
 		return nil, fmt.Errorf("%w: slug profil mitra wajib diisi", domain.ErrInvalidInput)
 	}
+	if len([]rune(rawSlug)) > 50 {
+		return nil, fmt.Errorf("%w: slug profil mitra maksimal 50 karakter", domain.ErrInvalidInput)
+	}
 	workerSlug := slug.GenerateSlug(rawSlug)
 	if len(workerSlug) < 3 {
 		return nil, fmt.Errorf("%w: slug profil minimal 3 karakter alfanumerik", domain.ErrInvalidInput)
+	}
+	if len(workerSlug) > 50 {
+		return nil, fmt.Errorf("%w: slug profil mitra maksimal 50 karakter", domain.ErrInvalidInput)
 	}
 
 	pin := strings.TrimSpace(payload.PIN)
 	if pin == "" {
 		pin = strings.TrimSpace(payload.Password)
 	}
-	if len(pin) < 6 {
-		return nil, fmt.Errorf("%w: PIN kedaulatan minimal 6 digit", domain.ErrInvalidInput)
+	if len(pin) != 6 {
+		return nil, fmt.Errorf("%w: PIN kedaulatan harus tepat 6 digit angka", domain.ErrInvalidInput)
+	}
+	if cleanPin := sanitize.SanitizeDigitsOnly(pin, 6); cleanPin != pin {
+		return nil, fmt.Errorf("%w: PIN kedaulatan hanya boleh berupa angka", domain.ErrInvalidInput)
 	}
 	if err := auth.ValidatePIN(pin); err != nil {
 		return nil, fmt.Errorf("%w: %s", domain.ErrInvalidInput, err.Error())
@@ -1089,13 +1116,17 @@ func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payl
 		return nil, domain.ErrInvalidInput
 	}
 
-	name := strings.TrimSpace(payload.Name)
+	name := sanitize.SanitizeText(payload.Name, 100)
 	if name == "" {
 		return nil, fmt.Errorf("%w: nama layanan wajib diisi", domain.ErrInvalidInput)
 	}
-	if len(name) < 3 {
+	if len([]rune(name)) < 3 {
 		return nil, fmt.Errorf("%w: nama layanan minimal 3 karakter", domain.ErrInvalidInput)
 	}
+	if len([]rune(name)) > 100 {
+		return nil, fmt.Errorf("%w: nama layanan maksimal 100 karakter", domain.ErrInvalidInput)
+	}
+	description := sanitize.SanitizeText(payload.Description, 500)
 	if payload.Price < 0 {
 		return nil, fmt.Errorf("%w: tarif harga layanan tidak boleh negatif", domain.ErrInvalidInput)
 	}
@@ -1139,7 +1170,7 @@ func (s *workerService) CreateService(ctx context.Context, idOrSlug string, payl
 		WorkerID:        worker.ID,
 		CategoryID:      payload.CategoryID,
 		Name:            name,
-		Description:     strings.TrimSpace(payload.Description),
+		Description:     description,
 		Price:           payload.Price,
 		BasePrice:       basePrice,
 		RateType:        rateType,
@@ -1169,13 +1200,18 @@ func (s *workerService) UpdateService(ctx context.Context, idOrSlug string, serv
 	}
 
 	if payload.Name != nil {
-		name := strings.TrimSpace(*payload.Name)
-		if name == "" {
+		sanitizedName := sanitize.SanitizeText(*payload.Name, 100)
+		if sanitizedName == "" {
 			return nil, fmt.Errorf("%w: nama layanan tidak boleh kosong", domain.ErrInvalidInput)
 		}
-		if len(name) < 3 {
+		if len(sanitizedName) < 3 {
 			return nil, fmt.Errorf("%w: nama layanan minimal 3 karakter", domain.ErrInvalidInput)
 		}
+		payload.Name = &sanitizedName
+	}
+	if payload.Description != nil {
+		sanitizedDesc := sanitize.SanitizeText(*payload.Description, 500)
+		payload.Description = &sanitizedDesc
 	}
 	if payload.Price != nil && *payload.Price < 0 {
 		return nil, fmt.Errorf("%w: tarif harga layanan tidak boleh negatif", domain.ErrInvalidInput)

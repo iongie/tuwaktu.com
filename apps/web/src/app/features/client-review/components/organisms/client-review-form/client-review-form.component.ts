@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { sanitizePlainText } from '../../../../../core/utils/sanitize.utils';
 import { ReviewInvitationDetail } from '../../../models/client-review.model';
 import { StarRatingInputComponent } from '../../molecules/star-rating-input/star-rating-input.component';
 
@@ -74,7 +75,7 @@ import { StarRatingInputComponent } from '../../molecules/star-rating-input/star
               Ceritakan Pengalaman Anda <span class="text-error">*</span>
             </label>
             <span class="text-xs font-mono text-ink-disabled">
-              {{ commentText().length }}/500
+              {{ commentText().length }}/1000
             </span>
           </div>
           <textarea
@@ -83,7 +84,7 @@ import { StarRatingInputComponent } from '../../molecules/star-rating-input/star
             [ngModel]="commentText()"
             (ngModelChange)="onCommentChange($event)"
             name="comment"
-            maxlength="500"
+            maxlength="1000"
             placeholder="Bagaimana kerapian kerja, keramahan, dan ketepatan waktu teknisi? Bagikan pengalaman Anda untuk membantu calon pelanggan lain."
             class="m3-field-outlined w-full p-3.5 text-sm rounded-xl resize-none transition-colors duration-150"
             [class.border-error]="commentError()"
@@ -180,9 +181,12 @@ export class ClientReviewFormComponent {
       this.ratingError.set(null);
     }
 
-    const trimmedComment = this.commentText().trim();
-    if (trimmedComment.length < 5) {
+    const cleanedComment = sanitizePlainText(this.commentText(), 1000);
+    if (cleanedComment.length < 5) {
       this.commentError.set('Ulasan pengalaman minimal harus 5 karakter.');
+      hasError = true;
+    } else if (cleanedComment.length > 1000) {
+      this.commentError.set('Ulasan pengalaman maksimal 1.000 karakter.');
       hasError = true;
     } else {
       this.commentError.set(null);
@@ -194,7 +198,7 @@ export class ClientReviewFormComponent {
 
     this.submitReview.emit({
       rating: this.selectedRating(),
-      comment: trimmedComment,
+      comment: cleanedComment,
       isAnonymous: this.isAnonymous(),
     });
   }

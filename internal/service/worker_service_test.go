@@ -811,7 +811,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		assert.Contains(t, err.Error(), "slug profil minimal 3 karakter")
 	})
 
-	t.Run("gagal jika PIN kurang dari 6 digit", func(t *testing.T) {
+	t.Run("gagal jika PIN bukan tepat 6 digit angka", func(t *testing.T) {
 		repo := repository.NewMemoryRepository()
 		svc := service.NewWorkerService(repo)
 
@@ -825,7 +825,7 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 
 		_, err := svc.RegisterWorker(ctx, payload)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "PIN kedaulatan minimal 6 digit")
+		assert.Contains(t, err.Error(), "PIN kedaulatan harus tepat 6 digit angka")
 	})
 
 	t.Run("gagal jika nomor WhatsApp sudah terdaftar", func(t *testing.T) {

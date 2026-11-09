@@ -96,12 +96,13 @@ func main() {
 	reviewHandler := handler.NewReviewHandler(reviewSvc)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsSvc)
 
-	// Initialize Fiber App with environment-aware settings
+	// Initialize Fiber App with environment-aware settings and 1MB body limit protection
 	app := fiber.New(fiber.Config{
 		AppName:           cfg.AppName,
 		ServerHeader:      cfg.ServerHeader,
 		Prefork:           cfg.Prefork,
 		EnablePrintRoutes: cfg.IsDevelopment(),
+		BodyLimit:         1 * 1024 * 1024, // 1 MB request body size limit to prevent buffer overflow / DoS
 	})
 
 	// Middlewares

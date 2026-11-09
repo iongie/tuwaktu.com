@@ -10,6 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { filterNumericInput, sanitizePlainText } from '../../../../../core/utils/sanitize.utils';
 import { AuthService } from '../../../services/auth.service';
 import { AuthRegisterResponse, RegisterFormData, SpecialtyOption } from '../../../models/auth.models';
 import { AuthSpecialtyPickerComponent } from '../../molecules/auth-specialty-picker/auth-specialty-picker.component';
@@ -129,6 +130,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
               id="fullName"
               name="fullName"
               type="text"
+              maxlength="100"
               required
               [(ngModel)]="fullName"
               (ngModelChange)="onFullNameChange($event)"
@@ -165,6 +167,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
                 name="waNumber"
                 type="tel"
                 inputmode="numeric"
+                maxlength="13"
                 required
                 [(ngModel)]="waNumber"
                 (input)="onWaNumberInput($event)"
@@ -187,6 +190,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
                 id="basecamp"
                 name="basecamp"
                 type="text"
+                maxlength="255"
                 required
                 [(ngModel)]="basecamp"
                 (ngModelChange)="basecampChange.emit($event)"
@@ -235,6 +239,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
                 id="customSlug"
                 name="customSlug"
                 type="text"
+                maxlength="50"
                 required
                 [(ngModel)]="customSlug"
                 (ngModelChange)="onSlugChange($event)"
@@ -261,6 +266,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
                 inputmode="numeric"
                 required
                 [(ngModel)]="workerPin"
+                (input)="onPinInput($event, 'pin')"
                 placeholder="••••••"
                 class="h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate tracking-widest text-center rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none shadow-inner"
               />
@@ -284,6 +290,7 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
                 inputmode="numeric"
                 required
                 [(ngModel)]="workerPinConfirm"
+                (input)="onPinInput($event, 'pinConfirm')"
                 placeholder="••••••"
                 class="h-11 bg-surface-container-low text-ink-on-light font-mono-rate text-mono-rate tracking-widest text-center rounded-lg border border-transparent focus:border-ink-on-light focus:bg-body-canvas focus:outline-none shadow-inner"
               />
@@ -421,10 +428,16 @@ export class WorkerRegisterFormComponent implements OnDestroy {
   }
 
   onWaNumberInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const sanitized = input.value.replace(/[^0-9]/g, '');
-    input.value = sanitized;
-    this.waNumber = sanitized;
+    this.waNumber = filterNumericInput(event, 13);
+  }
+
+  onPinInput(event: Event, target: 'pin' | 'pinConfirm'): void {
+    const numericVal = filterNumericInput(event, 6);
+    if (target === 'pin') {
+      this.workerPin = numericVal;
+    } else {
+      this.workerPinConfirm = numericVal;
+    }
   }
 
   handleFormSubmit(): void {
@@ -434,6 +447,10 @@ export class WorkerRegisterFormComponent implements OnDestroy {
 
     this.formError.set('');
     this.formSuccess.set('');
+
+    this.fullName = sanitizePlainText(this.fullName, 100);
+    this.basecamp = sanitizePlainText(this.basecamp, 255);
+    this.customSlug = sanitizePlainText(this.customSlug, 50);
 
     const payload: RegisterFormData = {
       fullName: this.fullName,

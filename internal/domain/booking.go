@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"tuwaktu.com/internal/pkg/sanitize"
 )
 
 // Booking represents the database entity for a booking order
@@ -260,15 +261,15 @@ func NormalizeIndonesianPhone(phone string) string {
 
 // Validate checks request validity and parses the booking date
 func (r *CreateBookingRequest) Validate() (time.Time, error) {
-	trimmedName := strings.TrimSpace(r.ClientName)
+	trimmedName := sanitize.SanitizeText(r.ClientName, 100)
 	if trimmedName == "" {
 		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) wajib diisi", ErrInvalidInput)
 	}
 	if len([]rune(trimmedName)) < 3 {
 		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) minimal 3 karakter", ErrInvalidInput)
 	}
-	if len([]rune(trimmedName)) > 150 {
-		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) maksimal 150 karakter", ErrInvalidInput)
+	if len([]rune(trimmedName)) > 100 {
+		return time.Time{}, fmt.Errorf("%w: nama klien (client_name) maksimal 100 karakter", ErrInvalidInput)
 	}
 	r.ClientName = trimmedName
 
@@ -285,16 +286,28 @@ func (r *CreateBookingRequest) Validate() (time.Time, error) {
 	}
 	r.ClientPhone = NormalizeIndonesianPhone(rawPhone)
 
-	trimmedLocation := strings.TrimSpace(r.Location)
+	trimmedLocation := sanitize.SanitizeText(r.Location, 255)
 	if trimmedLocation == "" {
 		return time.Time{}, fmt.Errorf("%w: alamat detail lokasi pemesanan (location) wajib diisi", ErrInvalidInput)
 	}
 	if len([]rune(trimmedLocation)) < 10 {
 		return time.Time{}, fmt.Errorf("%w: alamat detail lokasi pemesanan (location) minimal 10 karakter untuk patokan rumah", ErrInvalidInput)
 	}
+	if len([]rune(trimmedLocation)) > 255 {
+		return time.Time{}, fmt.Errorf("%w: alamat detail lokasi pemesanan (location) maksimal 255 karakter", ErrInvalidInput)
+	}
 	r.Location = trimmedLocation
 	if strings.TrimSpace(r.Zone) == "" {
-		r.Zone = trimmedLocation
+		r.Zone = sanitize.SanitizeText(trimmedLocation, 100)
+	} else {
+		r.Zone = sanitize.SanitizeText(r.Zone, 100)
+	}
+
+	if r.Notes != "" {
+		r.Notes = sanitize.SanitizeText(r.Notes, 500)
+	}
+	if r.ClientEmail != "" {
+		r.ClientEmail = sanitize.SanitizeText(r.ClientEmail, 100)
 	}
 
 	trimmedDate := strings.TrimSpace(r.BookingDate)

@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { filterNumericInput, sanitizePlainText } from '../../../../../core/utils/sanitize.utils';
 import { AuthService } from '../../../services/auth.service';
 import { AuthMethod, LoginFormData } from '../../../models/auth.models';
 import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-field/altcha-captcha-field.component';
@@ -162,8 +163,11 @@ import {
                 id="loginWaNumber"
                 name="loginWaNumber"
                 type="tel"
+                inputmode="numeric"
+                maxlength="16"
                 required
                 [(ngModel)]="waNumber"
+                (input)="onWaNumberInput($event)"
                 placeholder="812 8899 2211"
                 class="w-full bg-transparent border-none outline-none font-mono-rate text-mono-rate text-ink-on-light placeholder:text-ink-disabled pl-2"
               />
@@ -191,6 +195,7 @@ import {
                 id="loginWorkerId"
                 name="loginWorkerId"
                 type="text"
+                maxlength="100"
                 required
                 [(ngModel)]="workerId"
                 placeholder="spesialis.ahli@email.com atau @id-pekerja"
@@ -236,6 +241,7 @@ import {
               pattern="[0-9]*"
               required
               [(ngModel)]="securityPin"
+              (input)="onPinInput($event)"
               placeholder="••••••"
               class="w-full bg-transparent border-none outline-none font-mono-rate text-mono-rate text-ink-on-light tracking-widest placeholder:text-ink-disabled"
             />
@@ -419,6 +425,14 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
     this.showPin.update((curr) => !curr);
   }
 
+  onWaNumberInput(event: Event): void {
+    this.waNumber = filterNumericInput(event, 16);
+  }
+
+  onPinInput(event: Event): void {
+    this.securityPin = filterNumericInput(event, 6);
+  }
+
   showResetInfo(): void {
     this.loginError.set(
       'Untuk mereset nomor atau PIN keamanan, silakan hubungi tim dukungan Tuwaktu dengan bukti kepemilikan nomor WhatsApp.',
@@ -428,6 +442,9 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
   handleLoginSubmit(): void {
     this.loginError.set('');
     this.loginSuccess.set('');
+
+    this.workerId = sanitizePlainText(this.workerId, 100);
+    this.waNumber = sanitizePlainText(this.waNumber, 16);
 
     const payload: LoginFormData = {
       method: this.activeMethod(),

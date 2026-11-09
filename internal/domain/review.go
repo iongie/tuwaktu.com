@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"tuwaktu.com/internal/pkg/sanitize"
 )
 
 // Review represents client feedback and rating for a completed booking
@@ -73,13 +74,14 @@ func (req *SubmitReviewRequest) Validate() error {
 	if req.Rating < 1 || req.Rating > 5 {
 		return ErrInvalidRating
 	}
-	trimmedComment := strings.TrimSpace(req.Comment)
-	if len(trimmedComment) < 5 {
+	cleanedComment := sanitize.SanitizeText(req.Comment, 1000)
+	if len([]rune(cleanedComment)) < 5 {
 		return ErrReviewCommentTooShort
 	}
-	if len(trimmedComment) > 1000 {
+	if len([]rune(cleanedComment)) > 1000 {
 		return ErrInvalidInput
 	}
+	req.Comment = cleanedComment
 	return nil
 }
 

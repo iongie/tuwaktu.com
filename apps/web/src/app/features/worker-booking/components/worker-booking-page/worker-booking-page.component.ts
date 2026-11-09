@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { sanitizePlainText } from '../../../../core/utils/sanitize.utils';
 import { WorkerBookingStore } from '../../services/worker-booking.store';
 import {
   PublicServiceCatalogItem,
@@ -155,6 +156,8 @@ export class WorkerBookingPageComponent implements OnInit {
       errors['location'] = 'Alamat detail & patokan rumah wajib diisi.';
     } else if (trimmedLocation.length < 10) {
       errors['location'] = 'Alamat detail minimal 10 karakter untuk patokan rumah.';
+    } else if (trimmedLocation.length > 255) {
+      errors['location'] = 'Alamat detail maksimal 255 karakter.';
     }
 
     if (!this.reservationScheduledDate) {
@@ -195,10 +198,18 @@ export class WorkerBookingPageComponent implements OnInit {
 
     const trimmedEmail = this.clientEmailAddress.trim();
     if (trimmedEmail) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(trimmedEmail)) {
-        errors['client_email'] = 'Format alamat email tidak valid (contoh: pemesan@email.com).';
+      if (trimmedEmail.length > 100) {
+        errors['client_email'] = 'Alamat email maksimal 100 karakter.';
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trimmedEmail)) {
+          errors['client_email'] = 'Format alamat email tidak valid (contoh: pemesan@email.com).';
+        }
       }
+    }
+
+    if (this.additionalClientNotes.trim().length > 500) {
+      errors['notes'] = 'Catatan instruksi maksimal 500 karakter.';
     }
 
     this.clientValidationErrors.set(errors);
@@ -246,13 +257,13 @@ export class WorkerBookingPageComponent implements OnInit {
       worker_id: activeProfile.id,
       worker_slug: activeProfile.slug,
       service_id: selectedService.id,
-      client_name: this.clientFullName.trim(),
+      client_name: sanitizePlainText(this.clientFullName, 100),
       client_phone: this.clientContactPhone.trim(),
-      client_email: this.clientEmailAddress.trim(),
-      location: this.serviceLocationAddress.trim(),
-      zone: this.serviceOperationalZone.trim(),
+      client_email: sanitizePlainText(this.clientEmailAddress, 100),
+      location: sanitizePlainText(this.serviceLocationAddress, 255),
+      zone: sanitizePlainText(this.serviceOperationalZone, 100),
       booking_date: parsedIsoDate,
-      notes: this.additionalClientNotes.trim(),
+      notes: sanitizePlainText(this.additionalClientNotes, 500),
       status: 'PENDING_WA',
     };
 

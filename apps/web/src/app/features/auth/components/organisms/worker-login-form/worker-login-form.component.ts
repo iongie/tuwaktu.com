@@ -49,42 +49,6 @@ import {
         </p>
       </div>
 
-      <!-- Switch Metode Masuk -->
-      <div
-        class="bg-surface-container p-1 rounded flex items-center"
-        role="tablist"
-        aria-label="Metode Masuk"
-      >
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeMethod() === 'wa'"
-          (click)="setMethod('wa')"
-          class="flex-1 py-2 px-3.5 rounded font-button-label text-button-label flex items-center justify-center gap-2 min-h-[44px] transition-all cursor-pointer"
-          [class.bg-body-canvas]="activeMethod() === 'wa'"
-          [class.text-ink-on-light]="activeMethod() === 'wa'"
-          [class.shadow-sm]="activeMethod() === 'wa'"
-          [class.text-on-surface-variant]="activeMethod() !== 'wa'"
-        >
-          <span class="material-symbols-outlined text-whatsapp-green text-[18px]">phone_iphone</span>
-          <span>Nomor WhatsApp Aktif</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeMethod() === 'id'"
-          (click)="setMethod('id')"
-          class="flex-1 py-2 px-3.5 rounded font-button-label text-button-label flex items-center justify-center gap-2 min-h-[44px] transition-all cursor-pointer"
-          [class.bg-body-canvas]="activeMethod() === 'id'"
-          [class.text-ink-on-light]="activeMethod() === 'id'"
-          [class.shadow-sm]="activeMethod() === 'id'"
-          [class.text-on-surface-variant]="activeMethod() !== 'id'"
-        >
-          <span class="material-symbols-outlined text-[18px]">badge</span>
-          <span>Email / ID Praktisi</span>
-        </button>
-      </div>
-
       @if (requiresAdminLogin()) {
         <div
           id="adminAuthNoticeBanner"
@@ -141,69 +105,37 @@ import {
 
       <form class="flex flex-col gap-4" (ngSubmit)="handleLoginSubmit()">
         <!-- WhatsApp View -->
-        @if (activeMethod() === 'wa') {
-          <div class="flex flex-col gap-1">
-            <label
-              class="font-body-strong text-body-strong text-ink-on-light flex items-center justify-between"
-              for="loginWaNumber"
-            >
-              <span>Nomor WhatsApp Pekerja</span>
-              <span class="font-caption text-caption text-ink-secondary">Terdaftar di Tuwaktu</span>
-            </label>
+        <div class="flex flex-col gap-1">
+          <label
+            class="font-body-strong text-body-strong text-ink-on-light flex items-center justify-between"
+            for="loginWaNumber"
+          >
+            <span>Nomor WhatsApp Pekerja</span>
+            <span class="font-caption text-caption text-ink-secondary">Terdaftar di Tuwaktu</span>
+          </label>
+          <div
+            class="flex items-center bg-surface-highlight rounded px-3.5 h-11 border border-transparent focus-within:border-ink-on-light focus-within:bg-body-canvas focus-within:ring-2 focus-within:ring-(--accent-link)"
+          >
             <div
-              class="flex items-center bg-surface-highlight rounded px-3.5 h-11 border border-transparent focus-within:border-ink-on-light focus-within:bg-body-canvas focus-within:ring-2 focus-within:ring-(--accent-link)"
+              class="flex items-center gap-1.5 pr-3 text-ink-on-light font-body-strong text-body-strong shrink-0 select-none"
             >
-              <div
-                class="flex items-center gap-1.5 pr-3 text-ink-on-light font-body-strong text-body-strong shrink-0 select-none"
-              >
-                <span class="text-base">🇮🇩</span>
-                <span>+62</span>
-              </div>
-              <input
-                id="loginWaNumber"
-                name="loginWaNumber"
-                type="tel"
-                inputmode="numeric"
-                maxlength="16"
-                required
-                [(ngModel)]="waNumber"
-                (input)="onWaNumberInput($event)"
-                placeholder="812 8899 2211"
-                class="w-full bg-transparent border-none outline-none font-mono-rate text-mono-rate text-ink-on-light placeholder:text-ink-disabled pl-2"
-              />
+              <span class="text-base">🇮🇩</span>
+              <span>+62</span>
             </div>
+            <input
+              id="loginWaNumber"
+              name="loginWaNumber"
+              type="tel"
+              inputmode="numeric"
+              maxlength="16"
+              required
+              [(ngModel)]="waNumber"
+              (input)="onWaNumberInput($event)"
+              placeholder="812 8899 2211"
+              class="w-full bg-transparent border-none outline-none font-mono-rate text-mono-rate text-ink-on-light placeholder:text-ink-disabled pl-2"
+            />
           </div>
-        } @else {
-          <!-- Email/ID View -->
-          <div class="flex flex-col gap-1">
-            <label
-              class="font-body-strong text-body-strong text-ink-on-light flex items-center justify-between"
-              for="loginWorkerId"
-            >
-              <span>Email atau ID Praktisi</span>
-              <span class="font-caption text-caption text-ink-secondary">
-                Format: tuwaktu.com/nama-anda
-              </span>
-            </label>
-            <div
-              class="flex items-center bg-surface-highlight rounded px-3.5 h-11 border border-transparent focus-within:border-ink-on-light focus-within:bg-body-canvas focus-within:ring-2 focus-within:ring-(--accent-link)"
-            >
-              <span class="material-symbols-outlined text-ink-secondary text-[20px] mr-2">
-                alternate_email
-              </span>
-              <input
-                id="loginWorkerId"
-                name="loginWorkerId"
-                type="text"
-                maxlength="100"
-                required
-                [(ngModel)]="workerId"
-                placeholder="spesialis.ahli@email.com atau @id-pekerja"
-                class="w-full bg-transparent border-none outline-none font-body-default text-body-default text-ink-on-light placeholder:text-ink-disabled"
-              />
-            </div>
-          </div>
-        }
+        </div>
 
         <!-- PIN Keamanan Akun -->
         <div class="flex flex-col gap-1">
@@ -388,9 +320,6 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
     const initialReturnUrl = sanitizeReturnUrl(rawInitialUrl);
     if (initialReturnUrl) {
       this.returnUrl.set(initialReturnUrl);
-      if (isAdminUrl(initialReturnUrl)) {
-        this.activeMethod.set('id');
-      }
     }
 
     if (this.route.queryParamMap) {
@@ -398,9 +327,6 @@ export class WorkerLoginFormComponent implements OnInit, OnDestroy {
         const rawUrl = params.get('returnUrl');
         const sanitizedUrl = sanitizeReturnUrl(rawUrl);
         this.returnUrl.set(sanitizedUrl);
-        if (sanitizedUrl && isAdminUrl(sanitizedUrl)) {
-          this.activeMethod.set('id');
-        }
       });
     }
   }

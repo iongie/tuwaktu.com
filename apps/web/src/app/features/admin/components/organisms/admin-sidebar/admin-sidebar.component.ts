@@ -108,9 +108,7 @@ export interface AdminNavMenuItem {
       </div>
 
       <!-- Kelompok 2: Pintasan Bawah (Switcher & Logout) -->
-      <div
-        class="flex flex-col gap-1 px-3 border-t border-[#262626] pt-4"
-      >
+      <div class="flex flex-col gap-1 px-3 border-t border-[#262626] pt-4">
         <span
           class="px-3 pb-1 text-[10px] font-mono-rate uppercase tracking-wider text-[#737373] font-bold"
         >
@@ -135,20 +133,6 @@ export interface AdminNavMenuItem {
           <span class="material-symbols-outlined text-[14px] text-[#555555]">
             open_in_new
           </span>
-        </a>
-
-        <!-- Tautan ke Dashboard Teknisi -->
-        <a
-          routerLink="/dashboard"
-          class="flex items-center gap-2.5 px-3 py-2 rounded text-xs text-[#a3a3a3] hover:bg-[#1f1f1f] hover:text-white transition-colors cursor-pointer group"
-          title="Buka Dashboard Mandiri Teknisi"
-        >
-          <span
-            class="material-symbols-outlined text-[16px] text-[#737373] group-hover:text-voltage-orange transition-colors"
-          >
-            build
-          </span>
-          <span>Dashboard Teknisi</span>
         </a>
 
         <!-- Tombol Logout -->

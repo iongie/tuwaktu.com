@@ -3,6 +3,7 @@ import {
   Component,
   OnInit,
   inject,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminCategoryStore } from '../../../services/admin-category.store';
@@ -28,9 +29,14 @@ import {
 })
 export class AdminCategoriesPageComponent implements OnInit {
   readonly store = inject(AdminCategoryStore);
+  readonly isSyncBannerVisible = signal<boolean>(true);
 
   ngOnInit(): void {
     this.store.loadCategories();
+  }
+
+  dismissSyncBanner(): void {
+    this.isSyncBannerVisible.set(false);
   }
 
   handleSearchInput(event: Event): void {
@@ -62,5 +68,24 @@ export class AdminCategoriesPageComponent implements OnInit {
     if (confirm(`Apakah Anda yakin ingin menghapus kategori "${category.name}"?`)) {
       this.store.deleteCategory(category);
     }
+  }
+
+  exportSchema(): void {
+    const list = this.store.categories();
+    if (!list || list.length === 0) return;
+    if (typeof document === 'undefined') return;
+
+    const jsonContent =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(list, null, 2));
+    const link = document.createElement('a');
+    link.setAttribute('href', jsonContent);
+    link.setAttribute(
+      'download',
+      `kategori-tuwaktu-${new Date().toISOString().split('T')[0]}.json`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }

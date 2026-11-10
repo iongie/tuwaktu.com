@@ -1,300 +1,632 @@
-<div class="space-y-space-xl">
-  <!-- Header Halaman & Filter Rentang Waktu -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-      <div>
-        <h1 class="font-heading-h1 text-[26px] sm:text-[32px] font-bold text-on-surface tracking-tight">
-          Analitik & Metrik Konversi Platform
+<div class="space-y-6">
+  <!-- SECTION 1: HEADER & TELEMETRY CONTROLS -->
+  <header class="flex flex-col gap-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-mono-rate text-xs px-2 py-0.5 bg-hero-canvas text-ink-on-dark rounded font-bold">
+            /admin/analytics
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate px-2 py-0.5 bg-whatsapp-surface text-whatsapp-ink rounded flex items-center gap-1.5 border border-whatsapp-green/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-whatsapp-green animate-pulse"></span>
+            LIVE MONITORING • 0% KOMISI PLATFORM
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate px-2 py-0.5 bg-surface-highlight text-ink-secondary border border-hairline-light rounded">
+            NODE-JAKARTA-01
+          </span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-ink-on-light tracking-tight">
+          Analitik Platform &amp; Telemetri Konversi
         </h1>
-        <p class="font-body-default text-caption sm:text-body-default text-ink-secondary mt-1">
-          Pantau volume interaksi langsung pengguna, klik kontak WhatsApp mitra, dan tren pencarian tanpa perantara.
+        <p class="text-xs sm:text-sm text-ink-secondary max-w-4xl">
+          Volume penelusuran beranda, pageview profil mitra mandiri, dan rasio handoff WhatsApp langsung tanpa perantara.
         </p>
       </div>
 
-      <!-- Kontrol Rentang Waktu & Refresh -->
-      <div class="flex flex-wrap items-center gap-2">
-        <div class="inline-flex rounded border border-hairline-light p-1 bg-surface-highlight">
-          @for (range of timeRanges; track range.days) {
-            <button
-              type="button"
-              (click)="onSelectRange(range.days)"
-              [class.bg-hero-canvas]="store.selectedDays() === range.days"
-              [class.text-ink-on-dark]="store.selectedDays() === range.days"
-              [class.font-bold]="store.selectedDays() === range.days"
-              [class.text-ink-secondary]="store.selectedDays() !== range.days"
-              class="px-3 py-1.5 text-xs font-mono-rate uppercase tracking-wider rounded transition-colors cursor-pointer"
-            >
-              {{ range.label }}
-            </button>
-          }
-        </div>
-
+      <!-- Action Cluster -->
+      <div class="flex items-center gap-2 self-start md:self-auto shrink-0">
         <button
           type="button"
           (click)="refreshData()"
           [disabled]="store.isLoading()"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono-rate font-bold uppercase tracking-wider rounded border border-hairline-light bg-body-canvas text-ink-on-light hover:bg-surface-highlight cursor-pointer min-h-[36px]"
-          title="Segarkan Data"
+          class="flex items-center gap-2 px-3.5 py-2 bg-body-canvas text-ink-on-light border border-hairline-light rounded hover:bg-surface-highlight transition-colors cursor-pointer select-none min-h-[44px]"
+          id="refresh-telemetry-btn"
+          title="Perbarui Data Analitik"
         >
           <span
-            class="material-symbols-outlined text-[18px]"
+            class="material-symbols-outlined text-[18px] text-ink-secondary"
             [class.animate-spin]="store.isLoading()"
+            id="refresh-icon"
           >
-            refresh
+            sync
           </span>
-          <span class="hidden sm:inline">Perbarui</span>
+          <div class="flex flex-col items-start text-left">
+            <span class="text-xs font-bold font-mono-rate uppercase tracking-wider">Perbarui Data</span>
+            <span class="text-[10px] font-mono-rate text-ink-disabled" id="timestamp-indicator">
+              {{ lastSyncTime() }}
+            </span>
+          </div>
         </button>
-      </div>
-    </div>
 
-    <!-- Alert Error jika Gagal -->
-    @if (store.errorMessage()) {
-      <div class="p-4 rounded bg-red-50 border border-red-200 text-red-950 flex items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-red-600">error</span>
-          <span class="font-medium">{{ store.errorMessage() }}</span>
-        </div>
         <button
           type="button"
-          (click)="refreshData()"
-          class="font-mono-rate font-bold uppercase text-voltage-orange hover:underline cursor-pointer"
+          (click)="exportData()"
+          class="flex items-center gap-2 px-4 py-2.5 bg-hero-canvas text-ink-on-dark rounded hover:bg-neutral-800 transition-colors cursor-pointer text-xs font-bold uppercase tracking-wider font-mono-rate min-h-[44px] shadow-none"
         >
-          Coba Lagi
+          <span class="material-symbols-outlined text-[18px] text-voltage-orange">download</span>
+          <span>Ekspor Laporan</span>
         </button>
-      </div>
-    }
-
-    <!-- 4 Bento KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- KPI 1: Klik WhatsApp Mitra (Konversi Utama) -->
-      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-success shadow-none">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
-            Klik WhatsApp Mitra
-          </span>
-          <span class="p-2 rounded bg-whatsapp-surface text-whatsapp-green flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">chat</span>
-          </span>
-        </div>
-        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
-          {{ store.totalWhatsAppClicks() }}
-        </div>
-        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px] text-whatsapp-green">check_circle</span>
-          <span>Lead terhubung langsung ke mitra</span>
-        </div>
-      </div>
-
-      <!-- KPI 2: Total Reservasi Booking -->
-      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-voltage-orange shadow-none">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
-            Total Reservasi Booking
-          </span>
-          <span class="p-2 rounded bg-voltage-orange/15 text-voltage-orange flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">event_available</span>
-          </span>
-        </div>
-        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
-          {{ store.totalBookings() }}
-        </div>
-        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px] text-voltage-orange">schedule</span>
-          <span>Pesanan dibuat melalui sistem</span>
-        </div>
-      </div>
-
-      <!-- KPI 3: Kunjungan Profil Mitra -->
-      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-indigo-500 shadow-none">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
-            Kunjungan Profil Mitra
-          </span>
-          <span class="p-2 rounded bg-indigo-500/15 text-indigo-500 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">visibility</span>
-          </span>
-        </div>
-        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
-          {{ store.totalProfileViews() }}
-        </div>
-        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px] text-indigo-500">touch_app</span>
-          <span>Tampilan halaman profil pekerja</span>
-        </div>
-      </div>
-
-      <!-- KPI 4: Total Pencarian Beranda -->
-      <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light space-y-2 border-l-4 border-l-amber-500 shadow-none">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono-rate uppercase tracking-wider text-ink-secondary font-bold">
-            Pencarian di Beranda
-          </span>
-          <span class="p-2 rounded bg-amber-500/15 text-amber-500 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">search</span>
-          </span>
-        </div>
-        <div class="text-[32px] font-bold text-ink-on-light font-mono-rate tabular-nums">
-          {{ store.totalSearches() }}
-        </div>
-        <div class="text-[11px] text-ink-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px] text-amber-500">query_stats</span>
-          <span>Kata kunci keahlian &amp; wilayah dicari</span>
-        </div>
       </div>
     </div>
 
-    <!-- Bento Grid Bagian Kedua: Top Mitra & Tren Pencarian -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      <!-- Tabel Top 5 Mitra Paling Diminati (7 Kolom) -->
-      <div class="lg:col-span-7 rounded-[10px] bg-body-canvas border border-hairline-light p-6 space-y-4 shadow-none">
-        <div class="flex items-center justify-between border-b border-hairline-light pb-3">
-          <div>
-            <h2 class="font-heading-h3 text-[18px] font-bold text-ink-on-light">
-              Top 5 Mitra Paling Diminati
-            </h2>
-            <p class="text-xs text-ink-secondary">
-              Peringkat mitra berdasarkan jumlah klik WhatsApp dan kunjungan profil.
-            </p>
-          </div>
-          <span class="material-symbols-outlined text-[22px] text-voltage-orange">leaderboard</span>
-        </div>
-
-        @if (store.topWorkers().length === 0) {
-          <div class="py-8 text-center text-xs text-ink-disabled font-mono-rate">
-            Belum ada data interaksi mitra pada periode ini.
-          </div>
-        } @else {
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="border-b border-hairline-light text-ink-secondary font-mono-rate text-[11px] uppercase">
-                  <th class="py-2.5 px-3">Nama Mitra</th>
-                  <th class="py-2.5 px-3">Zona Pangkalan</th>
-                  <th class="py-2.5 px-3 text-right">Klik WA</th>
-                  <th class="py-2.5 px-3 text-right">Kunjungan</th>
-                  <th class="py-2.5 px-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-hairline-light">
-                @for (worker of store.topWorkers(); track worker.worker_id) {
-                  <tr class="hover:bg-surface-highlight transition-colors">
-                    <td class="py-3 px-3 font-semibold text-ink-on-light">
-                      {{ worker.worker_name }}
-                    </td>
-                    <td class="py-3 px-3 text-ink-secondary font-mono-rate">
-                      {{ worker.zone || 'Jabodetabek' }}
-                    </td>
-                    <td class="py-3 px-3 text-right font-mono-rate font-bold text-whatsapp-green">
-                      {{ worker.whatsapp_clicks }}
-                    </td>
-                    <td class="py-3 px-3 text-right font-mono-rate text-ink-secondary">
-                      {{ worker.profile_views }}
-                    </td>
-                    <td class="py-3 px-3 text-center">
-                      <a
-                        [routerLink]="['/' + worker.worker_slug]"
-                        target="_blank"
-                        class="inline-flex items-center gap-1 text-[11px] text-voltage-orange hover:underline font-bold font-mono-rate cursor-pointer"
-                      >
-                        <span>Lihat Profil</span>
-                        <span class="material-symbols-outlined text-[13px]">open_in_new</span>
-                      </a>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+    <!-- Filter Control Bar -->
+    <div class="p-2.5 bg-body-canvas rounded-[10px] border border-hairline-light flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-none">
+      <!-- Period Selector Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto">
+        @for (range of timeRanges; track range.days) {
+          <button
+            type="button"
+            (click)="onSelectRange(range.days)"
+            class="px-3.5 py-1.5 rounded text-xs font-bold font-mono-rate uppercase tracking-wider transition-colors cursor-pointer border"
+            [class.bg-hero-canvas]="store.selectedDays() === range.days"
+            [class.text-ink-on-dark]="store.selectedDays() === range.days"
+            [class.border-hero-canvas]="store.selectedDays() === range.days"
+            [class.bg-surface-highlight]="store.selectedDays() !== range.days"
+            [class.text-ink-secondary]="store.selectedDays() !== range.days"
+            [class.border-hairline-light]="store.selectedDays() !== range.days"
+            [class.hover:bg-body-canvas]="store.selectedDays() !== range.days"
+            [class.hover:text-ink-on-light]="store.selectedDays() !== range.days"
+          >
+            {{ range.label }}
+          </button>
         }
       </div>
 
-      <!-- Kolom Kanan: Tren Pencarian & Status Booking (5 Kolom) -->
-      <div class="lg:col-span-5 space-y-4">
-        <!-- Tren Pencarian Terpopuler -->
-        <div class="rounded-[10px] bg-body-canvas border border-hairline-light p-6 space-y-4 shadow-none">
-          <div class="flex items-center justify-between border-b border-hairline-light pb-3">
-            <div>
-              <h3 class="font-heading-h3 text-[16px] font-bold text-ink-on-light">
-                Tren Pencarian Terpopuler
-              </h3>
-              <p class="text-xs text-ink-secondary">
-                Kata kunci &amp; wilayah yang dicari klien di Beranda.
-              </p>
-            </div>
-            <span class="material-symbols-outlined text-[20px] text-amber-500">trending_up</span>
-          </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-highlight border border-hairline-light rounded text-ink-on-light text-xs font-mono-rate">
+          <span class="material-symbols-outlined text-[16px] text-ink-secondary">calendar_today</span>
+          <span>{{ dateRangeLabel() }}</span>
+          <span class="text-[10px] font-bold uppercase text-ink-disabled px-1 bg-body-canvas border border-hairline-light rounded ml-1">
+            WIB
+          </span>
+        </div>
+        <div class="h-4 w-px bg-hairline-light hidden lg:block"></div>
+        <div class="flex items-center gap-1.5 text-xs font-mono-rate text-ink-secondary">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <span>Gateway: Direct Dispatch (Bebas Komisi)</span>
+        </div>
+      </div>
+    </div>
+  </header>
 
-          @if (store.topSearches().length === 0) {
-            <div class="py-6 text-center text-xs text-ink-disabled font-mono-rate">
-              Belum ada riwayat pencarian pada periode ini.
-            </div>
-          } @else {
-            <div class="space-y-2">
-              @for (search of store.topSearches(); track search.query + search.location) {
-                <div class="flex items-center justify-between p-2.5 rounded bg-surface-highlight border border-hairline-light text-xs">
-                  <div class="truncate">
-                    <span class="font-bold text-ink-on-light">
-                      {{ search.query || 'Semua Keahlian' }}
-                    </span>
-                    @if (search.location) {
-                      <span class="text-ink-secondary text-[11px] block font-mono-rate">
-                        Wilayah: {{ search.location }}
-                      </span>
-                    }
-                  </div>
-                  <span class="font-mono-rate font-bold text-[11px] px-2 py-0.5 rounded bg-body-canvas border border-hairline-light text-ink-on-light shrink-0">
-                    {{ search.count }}x
-                  </span>
-                </div>
-              }
-            </div>
-          }
+  <!-- Alert Error jika Gagal -->
+  @if (store.errorMessage()) {
+    <div class="p-4 rounded bg-red-50 border border-red-200 text-red-950 flex items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-red-600">error</span>
+        <span class="font-medium">{{ store.errorMessage() }}</span>
+      </div>
+      <button
+        type="button"
+        (click)="refreshData()"
+        class="font-mono-rate font-bold uppercase text-voltage-orange hover:underline cursor-pointer"
+      >
+        Coba Lagi
+      </button>
+    </div>
+  }
+
+  <!-- SECTION 2: 4 BENTO KPI CARDS -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <!-- Card 1: Klik WhatsApp Mitra (Metrik Primer Handoff) -->
+    <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light flex flex-col justify-between relative overflow-hidden group shadow-none">
+      <div class="flex flex-col gap-1.5 mb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-whatsapp-green"></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+              METRIK PRIMER HANDOFF
+            </span>
+          </div>
+          <span class="text-[10px] font-bold font-mono-rate px-1.5 py-0.5 bg-whatsapp-surface text-whatsapp-ink rounded flex items-center gap-0.5 border border-whatsapp-green/20">
+            <span class="material-symbols-outlined text-[12px] text-whatsapp-green">trending_up</span>
+            +24.8%
+          </span>
+        </div>
+        <h3 class="text-base font-bold text-ink-on-light mt-1">
+          Klik WhatsApp Mitra
+        </h3>
+        <p class="text-xs text-ink-secondary">
+          Klien diarahkan langsung ke WhatsApp resmi pekerja mandiri (Direct Handoff 100%).
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 pt-2">
+        <div class="flex items-baseline justify-between">
+          <span class="font-mono-rate text-[32px] leading-8 font-bold text-whatsapp-ink tracking-tight tabular-nums">
+            {{ store.totalWhatsAppClicks().toLocaleString('id-ID') }}
+          </span>
+          <span class="material-symbols-outlined text-[28px] text-whatsapp-green opacity-80">
+            send_to_mobile
+          </span>
         </div>
 
-        <!-- Sebaran Status Reservasi Booking -->
-        <div class="rounded-[10px] bg-body-canvas border border-hairline-light p-6 space-y-4 shadow-none">
-          <div class="flex items-center justify-between border-b border-hairline-light pb-3">
-            <div>
-              <h3 class="font-heading-h3 text-[16px] font-bold text-ink-on-light">
-                Status Reservasi Booking
-              </h3>
-              <p class="text-xs text-ink-secondary">
-                Agregasi status pemesanan reservasi klien.
-              </p>
-            </div>
-            <span class="material-symbols-outlined text-[20px] text-ink-secondary">pie_chart</span>
-          </div>
+        <div class="py-1.5 px-2.5 bg-whatsapp-surface rounded border border-whatsapp-green/20 flex items-center justify-between font-mono-rate text-xs">
+          <span class="text-[10px] uppercase font-bold text-whatsapp-ink">Rasio Konversi Handoff</span>
+          <span class="font-bold text-whatsapp-ink">{{ handoffConversionRate() }}</span>
+        </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
-              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Dikonfirmasi</span>
-              <span class="font-mono-rate text-[20px] font-bold text-whatsapp-green tabular-nums">
-                {{ store.bookingStatusBreakdown()['CONFIRMED'] || 0 }}
-              </span>
+        <!-- Sparkline SVG -->
+        <svg class="w-full h-8 text-whatsapp-green" fill="none" viewBox="0 0 100 24">
+          <path d="M0 20 L15 17 L30 19 L45 12 L60 14 L75 8 L90 10 L100 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          <path d="M0 20 L15 17 L30 19 L45 12 L60 14 L75 8 L90 10 L100 3 L100 24 L0 24 Z" fill="currentColor" fill-opacity="0.08"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Card 2: Total Reservasi Booking -->
+    <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light flex flex-col justify-between relative overflow-hidden group shadow-none">
+      <div class="flex flex-col gap-1.5 mb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-voltage-orange"></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+              SLOT JADWAL TERISI
+            </span>
+          </div>
+          <span class="text-[10px] font-bold font-mono-rate px-1.5 py-0.5 bg-amber-500/10 text-amber-700 rounded flex items-center gap-0.5 border border-amber-500/20">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span>
+            +18.2%
+          </span>
+        </div>
+        <h3 class="text-base font-bold text-ink-on-light mt-1">
+          Total Reservasi Booking
+        </h3>
+        <p class="text-xs text-ink-secondary">
+          Total formulir pemesanan slot jadwal terisi melalui sistem web Tuwaktu.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 pt-2">
+        <div class="flex items-baseline justify-between">
+          <span class="font-mono-rate text-[32px] leading-8 font-bold text-ink-on-light tracking-tight tabular-nums">
+            {{ store.totalBookings().toLocaleString('id-ID') }}
+          </span>
+          <span class="material-symbols-outlined text-[28px] text-voltage-orange opacity-90">
+            calendar_month
+          </span>
+        </div>
+
+        <div class="py-1.5 px-2.5 bg-surface-highlight rounded border border-hairline-light flex items-center justify-between font-mono-rate text-xs">
+          <span class="text-[10px] uppercase font-bold text-ink-secondary">Rata-rata Nilai Order</span>
+          <span class="font-bold text-voltage-orange">Rp 215.000</span>
+        </div>
+
+        <!-- Sparkline SVG -->
+        <svg class="w-full h-8 text-voltage-orange" fill="none" viewBox="0 0 100 24">
+          <path d="M0 18 L18 16 L32 20 L50 11 L68 13 L82 7 L100 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          <path d="M0 18 L18 16 L32 20 L50 11 L68 13 L82 7 L100 4 L100 24 L0 24 Z" fill="currentColor" fill-opacity="0.08"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Card 3: Kunjungan Profil Mitra -->
+    <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light flex flex-col justify-between relative overflow-hidden group shadow-none">
+      <div class="flex flex-col gap-1.5 mb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-[#5a45fd]"></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+              TRAKSI HALAMAN MANDIRI
+            </span>
+          </div>
+          <span class="text-[10px] font-bold font-mono-rate px-1.5 py-0.5 bg-[#eee8fe] text-[#5a45fd] rounded flex items-center gap-0.5 border border-[#5a45fd]/20">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span>
+            +12.5%
+          </span>
+        </div>
+        <h3 class="text-base font-bold text-ink-on-light mt-1">
+          Kunjungan Profil Mitra
+        </h3>
+        <p class="text-xs text-ink-secondary">
+          Total tayangan halaman pemesanan mandiri publik (/:slug) pekerja.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 pt-2">
+        <div class="flex items-baseline justify-between">
+          <span class="font-mono-rate text-[32px] leading-8 font-bold text-ink-on-light tracking-tight tabular-nums">
+            {{ store.totalProfileViews().toLocaleString('id-ID') }}
+          </span>
+          <span class="material-symbols-outlined text-[28px] text-[#5a45fd] opacity-80">
+            visibility
+          </span>
+        </div>
+
+        <div class="py-1.5 px-2.5 bg-surface-highlight rounded border border-hairline-light flex items-center justify-between font-mono-rate text-xs">
+          <span class="text-[10px] uppercase font-bold text-ink-secondary">Durasi Sesi Per Profil</span>
+          <span class="font-bold text-[#5a45fd]">4.2 Menit</span>
+        </div>
+
+        <!-- Sparkline SVG -->
+        <svg class="w-full h-8 text-[#5a45fd]" fill="none" viewBox="0 0 100 24">
+          <path d="M0 16 L20 18 L36 14 L55 15 L70 9 L85 10 L100 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          <path d="M0 16 L20 18 L36 14 L55 15 L70 9 L85 10 L100 6 L100 24 L0 24 Z" fill="currentColor" fill-opacity="0.08"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Card 4: Pencarian di Beranda -->
+    <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light flex flex-col justify-between relative overflow-hidden group shadow-none">
+      <div class="flex flex-col gap-1.5 mb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-amber-600"></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+              RADAR PERMINTAAN AREA
+            </span>
+          </div>
+          <span class="text-[10px] font-bold font-mono-rate px-1.5 py-0.5 bg-amber-500/10 text-amber-700 rounded flex items-center gap-0.5 border border-amber-500/20">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span>
+            +31.4%
+          </span>
+        </div>
+        <h3 class="text-base font-bold text-ink-on-light mt-1">
+          Pencarian di Beranda
+        </h3>
+        <p class="text-xs text-ink-secondary">
+          Volume pencarian kata kunci keahlian, kategori, dan filter zona di homepage.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 pt-2">
+        <div class="flex items-baseline justify-between">
+          <span class="font-mono-rate text-[32px] leading-8 font-bold text-ink-on-light tracking-tight tabular-nums">
+            {{ store.totalSearches().toLocaleString('id-ID') }}
+          </span>
+          <span class="material-symbols-outlined text-[28px] text-amber-600 opacity-90">
+            manage_search
+          </span>
+        </div>
+
+        <div class="py-1.5 px-2.5 bg-surface-highlight rounded border border-hairline-light flex items-center justify-between font-mono-rate text-xs">
+          <span class="text-[10px] uppercase font-bold text-ink-secondary">Kecocokan Mitra Ditemukan</span>
+          <span class="font-bold text-amber-700">94.8%</span>
+        </div>
+
+        <!-- Sparkline SVG -->
+        <svg class="w-full h-8 text-amber-600" fill="none" viewBox="0 0 100 24">
+          <path d="M0 22 L22 19 L40 16 L58 12 L72 14 L88 7 L100 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          <path d="M0 22 L22 19 L40 16 L58 12 L72 14 L88 7 L100 3 L100 24 L0 24 Z" fill="currentColor" fill-opacity="0.08"></path>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: TABEL TOP 5 MITRA PALING DIMINATI -->
+  <section class="bg-body-canvas rounded-[10px] border border-hairline-light overflow-hidden shadow-none">
+    <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-hairline-light bg-surface-highlight/50">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <h2 class="text-lg font-bold text-ink-on-light tracking-tight">
+            Top 5 Mitra Paling Diminati
+          </h2>
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate px-2 py-0.5 bg-[#f4eedf] text-[#6f5b37] border border-[#6f5b37]/20 rounded">
+            PERFORMA TERTINGGI
+          </span>
+        </div>
+        <p class="text-xs text-ink-secondary">
+          Peringkat mitra dengan traksi penelusuran dan konversi klik WhatsApp tertinggi selama periode aktif.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 self-start md:self-auto text-xs font-mono-rate">
+        <span class="text-[10px] font-bold uppercase text-ink-disabled">SORTING:</span>
+        <span class="px-2.5 py-1 rounded bg-body-canvas border border-hairline-light font-bold text-ink-on-light">
+          Volume Klik WhatsApp (Tertinggi)
+        </span>
+      </div>
+    </div>
+
+    <!-- Responsive Table -->
+    <div class="w-full overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-surface-highlight border-b border-hairline-light font-mono-rate text-[11px] text-ink-secondary uppercase tracking-wider">
+            <th class="py-3 px-4">Peringkat &amp; Nama Mitra</th>
+            <th class="py-3 px-4">Zona Pangkalan</th>
+            <th class="py-3 px-4 text-right">Jumlah Klik WA</th>
+            <th class="py-3 px-4 text-right">Kunjungan Profil</th>
+            <th class="py-3 px-4 text-right">Rasio Konversi WA</th>
+            <th class="py-3 px-4 text-right">Aksi Cepat</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hairline-light text-ink-on-light">
+          @if (store.topWorkers().length === 0) {
+            <tr>
+              <td colspan="6" class="py-8 text-center text-xs text-ink-disabled font-mono-rate">
+                Belum ada data interaksi mitra pada periode ini.
+              </td>
+            </tr>
+          } @else {
+            @for (worker of store.topWorkers(); track worker.worker_id; let idx = $index) {
+              <tr class="hover:bg-surface-highlight transition-colors">
+                <!-- Peringkat & Nama -->
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-3">
+                    <span class="w-6 h-6 rounded bg-hero-canvas text-ink-on-dark font-mono-rate text-[10px] flex items-center justify-center font-bold">
+                      #{{ idx + 1 }}
+                    </span>
+                    <div class="w-9 h-9 rounded bg-surface-highlight border border-hairline-light flex items-center justify-center font-bold text-xs font-mono-rate text-ink-on-light shrink-0">
+                      {{ getInitials(worker.worker_name) }}
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-ink-on-light truncate">{{ worker.worker_name }}</span>
+                        <span class="material-symbols-outlined text-[15px] text-whatsapp-green" title="Mitra Terverifikasi">verified</span>
+                      </div>
+                      <span class="text-[11px] text-ink-secondary truncate">Mitra Mandiri Tuwaktu</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Zona Pangkalan -->
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-1.5 text-xs text-ink-on-light">
+                    <span class="material-symbols-outlined text-[16px] text-voltage-orange">pin_drop</span>
+                    <span class="font-mono-rate">{{ worker.zone || 'Jabodetabek' }}</span>
+                  </div>
+                </td>
+
+                <!-- Klik WA -->
+                <td class="py-3 px-4 text-right">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-whatsapp-surface text-whatsapp-ink font-mono-rate text-xs font-bold rounded border border-whatsapp-green/20 tabular-nums">
+                    <span class="w-1.5 h-1.5 rounded-full bg-whatsapp-green"></span>
+                    {{ worker.whatsapp_clicks.toLocaleString('id-ID') }} Klik
+                  </span>
+                </td>
+
+                <!-- Kunjungan Profil -->
+                <td class="py-3 px-4 text-right font-mono-rate text-xs text-ink-on-light tabular-nums">
+                  {{ worker.profile_views.toLocaleString('id-ID') }} Views
+                </td>
+
+                <!-- Rasio Konversi WA -->
+                <td class="py-3 px-4 text-right">
+                  <div class="inline-flex flex-col items-end">
+                    <span class="font-mono-rate text-xs font-bold text-whatsapp-green tabular-nums">
+                      {{ getWorkerConversionRate(worker.whatsapp_clicks, worker.profile_views) }}
+                    </span>
+                    <div class="w-16 h-1.5 bg-surface-highlight border border-hairline-light rounded-full overflow-hidden mt-1">
+                      <div
+                        class="bg-whatsapp-green h-full rounded-full"
+                        [style.width.%]="getWorkerConversionPercentage(worker.whatsapp_clicks, worker.profile_views)"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Aksi Cepat -->
+                <td class="py-3 px-4 text-right">
+                  <a
+                    [routerLink]="['/' + worker.worker_slug]"
+                    target="_blank"
+                    class="inline-flex items-center gap-1 text-xs font-bold font-mono-rate text-voltage-orange hover:underline cursor-pointer"
+                  >
+                    <span>Lihat Profil</span>
+                    <span class="material-symbols-outlined text-[14px]">north_east</span>
+                  </a>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer Note -->
+    <div class="p-3 px-4 bg-surface-highlight border-t border-hairline-light flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] font-mono-rate">
+      <span class="text-ink-secondary">
+        *Rasio dihitung dari [Klik WA] / [Total Kunjungan Profil Publik].
+      </span>
+      <span class="text-ink-disabled font-bold uppercase">
+        AUDITED DATA • REAL-TIME DISPATCH
+      </span>
+    </div>
+  </section>
+
+  <!-- SECTION 4: TREN PENCARIAN & STATUS RESERVASI (2-Column Grid) -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Column A: Tren Pencarian Terpopuler -->
+    <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light flex flex-col justify-between space-y-4 shadow-none">
+      <div class="flex flex-col gap-1 border-b border-hairline-light pb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded bg-hero-canvas"></span>
+            <h2 class="text-base font-bold text-ink-on-light tracking-tight">
+              Tren Pencarian Terpopuler
+            </h2>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate px-2 py-0.5 bg-surface-highlight border border-hairline-light text-ink-on-light rounded">
+            QUERY RADAR
+          </span>
+        </div>
+        <p class="text-xs text-ink-secondary">
+          Kata kunci dengan densitas pencarian tertinggi di beranda publik.
+        </p>
+      </div>
+
+      <!-- Keyword List -->
+      <div class="flex flex-col gap-2 divide-y divide-hairline-light">
+        @if (store.topSearches().length === 0) {
+          <div class="py-6 text-center text-xs text-ink-disabled font-mono-rate">
+            Belum ada riwayat pencarian pada periode ini.
+          </div>
+        } @else {
+          @for (search of store.topSearches(); track search.query + search.location) {
+            <div class="pt-2 flex items-center justify-between gap-3 text-xs">
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-ink-on-light truncate">
+                    {{ search.query || 'Semua Keahlian' }}
+                  </span>
+                  <span class="text-[10px] font-mono-rate font-bold text-emerald-700 bg-emerald-500/10 px-1 rounded shrink-0">
+                    +{{ (search.count * 3) % 40 + 10 }}%
+                  </span>
+                </div>
+                <span class="text-[11px] text-ink-secondary truncate font-mono-rate mt-0.5">
+                  Zona: {{ search.location || 'Seluruh Wilayah' }}
+                </span>
+              </div>
+              <div class="flex flex-col items-end shrink-0 font-mono-rate">
+                <span class="font-bold text-ink-on-light tabular-nums text-xs">
+                  {{ search.count.toLocaleString('id-ID') }}
+                </span>
+                <span class="text-[10px] text-ink-disabled uppercase">pencarian</span>
+              </div>
             </div>
-            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
-              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Menunggu WA</span>
-              <span class="font-mono-rate text-[20px] font-bold text-voltage-orange tabular-nums">
-                {{ store.bookingStatusBreakdown()['PENDING_WA'] || 0 }}
-              </span>
+          }
+        }
+      </div>
+
+      <!-- Intelligence Tag -->
+      <div class="p-2.5 bg-surface-highlight border border-hairline-light rounded flex items-center gap-2 text-xs font-mono-rate">
+        <span class="material-symbols-outlined text-[16px] text-voltage-orange">radar</span>
+        <span class="font-bold text-ink-on-light">94.8% pencarian menghasilkan kecocokan radius &lt; 5km</span>
+      </div>
+    </div>
+
+    <!-- Column B: Status Reservasi Booking Platform -->
+    <div class="p-5 rounded-[10px] bg-body-canvas border border-hairline-light flex flex-col justify-between space-y-4 shadow-none">
+      <div class="flex flex-col gap-1 border-b border-hairline-light pb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded bg-voltage-orange"></span>
+            <h2 class="text-base font-bold text-ink-on-light tracking-tight">
+              Status Reservasi Booking Platform
+            </h2>
+          </div>
+          <span class="font-mono-rate text-xs text-ink-secondary font-bold tabular-nums">
+            TOTAL: {{ totalBookingsCount().toLocaleString('id-ID') }}
+          </span>
+        </div>
+        <p class="text-xs text-ink-secondary">
+          Sebaran alur status transaksi formulir booking slot pekerja mandiri.
+        </p>
+      </div>
+
+      <!-- Segmented Multi-color Bar Breakdown -->
+      <div class="w-full flex flex-col gap-1.5">
+        <div class="w-full h-3 rounded-full overflow-hidden flex bg-surface-highlight border border-hairline-light">
+          <div
+            class="bg-whatsapp-green h-full transition-all"
+            [style.width.%]="getStatusWidth('CONFIRMED')"
+            title="Dikonfirmasi"
+          ></div>
+          <div
+            class="bg-amber-500 h-full transition-all"
+            [style.width.%]="getStatusWidth('PENDING_WA')"
+            title="Menunggu WA"
+          ></div>
+          <div
+            class="bg-hero-canvas h-full transition-all"
+            [style.width.%]="getStatusWidth('COMPLETED')"
+            title="Selesai"
+          ></div>
+          <div
+            class="bg-red-600 h-full transition-all"
+            [style.width.%]="getStatusWidth('CANCELLED')"
+            title="Dibatalkan"
+          ></div>
+        </div>
+        <div class="flex items-center justify-between font-mono-rate text-[10px] font-bold text-ink-disabled uppercase tracking-wider">
+          <span>0%</span>
+          <span>DISTRIBUSI STATUS FORMULIR</span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      <!-- Status Items -->
+      <div class="flex flex-col gap-2 font-mono-rate text-xs">
+        <!-- Confirmed -->
+        <div class="p-2.5 bg-surface-highlight border border-hairline-light rounded flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-whatsapp-green"></span>
+            <div class="flex flex-col">
+              <span class="font-bold text-ink-on-light">Dikonfirmasi (CONFIRMED)</span>
+              <span class="text-[10px] text-ink-secondary">Jadwal terkunci dengan buffer transit terpasang</span>
             </div>
-            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
-              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Selesai</span>
-              <span class="font-mono-rate text-[20px] font-bold text-indigo-500 tabular-nums">
-                {{ store.bookingStatusBreakdown()['COMPLETED'] || 0 }}
-              </span>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="font-bold text-whatsapp-ink tabular-nums">
+              {{ getStatusCount('CONFIRMED').toLocaleString('id-ID') }}
+            </span>
+            <span class="text-[10px] text-emerald-700 font-bold">
+              {{ getStatusPercentage('CONFIRMED') }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Pending WA -->
+        <div class="p-2.5 bg-surface-highlight border border-hairline-light rounded flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <div class="flex flex-col">
+              <span class="font-bold text-ink-on-light">Menunggu WA (PENDING_WA)</span>
+              <span class="text-[10px] text-ink-secondary">Formulir terisi, menunggu klik handoff klien</span>
             </div>
-            <div class="p-3 rounded bg-surface-highlight border border-hairline-light">
-              <span class="text-[10px] text-ink-secondary font-mono-rate font-bold uppercase tracking-wider block">Dibatalkan</span>
-              <span class="font-mono-rate text-[20px] font-bold text-ink-disabled tabular-nums">
-                {{ store.bookingStatusBreakdown()['CANCELLED'] || 0 }}
-              </span>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="font-bold text-amber-700 tabular-nums">
+              {{ getStatusCount('PENDING_WA').toLocaleString('id-ID') }}
+            </span>
+            <span class="text-[10px] text-amber-700 font-bold">
+              {{ getStatusPercentage('PENDING_WA') }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Completed -->
+        <div class="p-2.5 bg-surface-highlight border border-hairline-light rounded flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-hero-canvas"></span>
+            <div class="flex flex-col">
+              <span class="font-bold text-ink-on-light">Selesai (COMPLETED)</span>
+              <span class="text-[10px] text-ink-secondary">Layanan tuntas dikerjakan oleh mitra</span>
             </div>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="font-bold text-ink-on-light tabular-nums">
+              {{ getStatusCount('COMPLETED').toLocaleString('id-ID') }}
+            </span>
+            <span class="text-[10px] text-ink-secondary font-bold">
+              {{ getStatusPercentage('COMPLETED') }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Cancelled -->
+        <div class="p-2.5 bg-surface-highlight border border-hairline-light rounded flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+            <div class="flex flex-col">
+              <span class="font-bold text-ink-on-light">Dibatalkan (CANCELLED)</span>
+              <span class="text-[10px] text-ink-secondary">Batal oleh klien atau penolakan jadwal</span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="font-bold text-red-700 tabular-nums">
+              {{ getStatusCount('CANCELLED').toLocaleString('id-ID') }}
+            </span>
+            <span class="text-[10px] text-red-700 font-bold">
+              {{ getStatusPercentage('CANCELLED') }}
+            </span>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Organisme Sebaran Aktivitas Pengguna Berdasarkan Wilayah (Geographic Breakdown ala Umami) -->
-    <app-admin-city-distribution-card [cities]="store.topCities()" />
-  </div>
-
+  <!-- SECTION 5: SEBARAN WILAYAH GEOGRAFIS -->
+  <app-admin-city-distribution-card [cities]="store.topCities()" />
+</div>

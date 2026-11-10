@@ -1,236 +1,274 @@
-<div class="space-y-8">
-  <!-- Banner Notifikasi Error Merah (Kendala Koneksi atau Otentikasi API) -->
-    @if (store.errorMessage()) {
-      <div
-        role="alert"
-        class="p-4 rounded bg-red-50 border border-red-200 text-red-950 text-xs flex items-center justify-between gap-4 transition-all shadow-none"
-        data-testid="admin-error-banner"
-      >
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div>
-            <div class="font-bold text-red-950 font-mono-rate uppercase tracking-wider text-[11px]">Kendala Koneksi atau Otentikasi API</div>
-            <p class="text-xs text-red-800 mt-0.5">{{ store.errorMessage() }}</p>
-          </div>
+<div class="space-y-6">
+  <!-- SECTION 1: TOP BREADCRUMB & AUTHORITY STATUS BAR -->
+  <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="flex items-center gap-2 flex-wrap text-xs text-ink-secondary">
+      <span>Admin Platform</span>
+      <span class="text-ink-disabled font-mono-rate">/</span>
+      <span>Konsol Pusat</span>
+      <span class="text-ink-disabled font-mono-rate">/</span>
+      <span class="font-bold text-ink-on-light">Manajemen Mitra &amp; Verifikasi</span>
+    </div>
+    <div class="inline-flex items-center gap-2 px-2.5 py-1 bg-surface-highlight border border-hairline-light rounded text-ink-on-light text-[11px] font-mono-rate font-bold uppercase tracking-wider self-start sm:self-auto">
+      <span class="material-symbols-outlined text-[15px] text-voltage-orange">shield</span>
+      <span>OTORITAS ADMIN PLATFORM • ZERO ESCROW MITRA SUPERVISOR</span>
+    </div>
+  </header>
+
+  <!-- Banner Notifikasi Error -->
+  @if (store.errorMessage()) {
+    <div
+      role="alert"
+      class="p-4 rounded-[10px] bg-red-50 border border-red-200 text-red-950 text-xs flex items-center justify-between gap-4 transition-all shadow-none"
+      data-testid="admin-error-banner"
+    >
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[18px]">error</span>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            class="min-h-[40px] px-3.5 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 text-xs font-bold uppercase tracking-wider font-mono-rate transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-none"
-            (click)="store.loadWorkers()"
-            aria-label="Coba lagi memuat data"
-            data-testid="admin-error-retry-btn"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Coba Lagi</span>
-          </button>
-          <button
-            type="button"
-            class="min-w-[40px] min-h-[40px] flex items-center justify-center text-red-700 hover:text-red-900 cursor-pointer rounded hover:bg-red-100 transition-colors"
-            (click)="store.clearError()"
-            aria-label="Tutup pesan error"
-            data-testid="admin-error-dismiss-btn"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+        <div>
+          <div class="font-bold text-red-950 font-mono-rate uppercase tracking-wider text-[11px]">Kendala Koneksi atau Otentikasi API</div>
+          <p class="text-xs text-red-800 mt-0.5">{{ store.errorMessage() }}</p>
         </div>
       </div>
-    }
-
-    <!-- Feedback Alert Banner -->
-    @if (store.feedbackMessage()) {
-      <div class="p-4 rounded bg-whatsapp-surface border border-whatsapp-green/30 text-whatsapp-ink text-xs flex items-center justify-between gap-4 font-mono-rate font-bold uppercase tracking-wider">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 text-whatsapp-green shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>{{ store.feedbackMessage() }}</span>
-        </div>
+      <div class="flex items-center gap-2 shrink-0">
         <button
           type="button"
-          class="min-w-[40px] min-h-[40px] flex items-center justify-center text-whatsapp-ink hover:opacity-70 cursor-pointer"
-          (click)="store.clearFeedback()"
-          aria-label="Tutup notifikasi"
+          class="min-h-[40px] px-3.5 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 text-xs font-bold uppercase tracking-wider font-mono-rate transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-none"
+          (click)="store.loadWorkers()"
+          aria-label="Coba lagi memuat data"
+          data-testid="admin-error-retry-btn"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <span class="material-symbols-outlined text-[16px]">sync</span>
+          <span>Coba Lagi</span>
+        </button>
+        <button
+          type="button"
+          class="min-w-[40px] min-h-[40px] flex items-center justify-center text-red-700 hover:text-red-900 cursor-pointer rounded hover:bg-red-100 transition-colors"
+          (click)="store.clearError()"
+          aria-label="Tutup pesan error"
+          data-testid="admin-error-dismiss-btn"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
-    }
+    </div>
+  }
 
-    <!-- Bento Grid Header & Metrik -->
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <!-- Bento 1: Hero & Tombol Tambah Mitra (Span 2 di desktop) -->
-      <div class="md:col-span-2 p-6 md:p-8 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none flex flex-col justify-between">
-        <div>
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded text-[10px] font-mono-rate font-bold uppercase tracking-wider bg-surface-highlight border border-hairline-light text-ink-on-light mb-3">
-            Otoritas Administrator
-          </div>
-          <h1 class="text-2xl md:text-3xl font-extrabold text-ink-on-light tracking-tight">
-            Manajemen Mitra Mandiri
-          </h1>
-          <p class="text-xs text-ink-secondary mt-2 max-w-md">
-            Kelola operasional mitra, tambahkan teknisi baru dengan verifikasi langsung, dan pantau ketersediaan booking platform.
-          </p>
+  <!-- System Feedback Banner (Sinkronisasi & Notifikasi Sukses) -->
+  @if (store.feedbackMessage()) {
+    <div class="flex items-center justify-between p-3.5 bg-whatsapp-surface border border-whatsapp-green/30 rounded-[10px] text-whatsapp-ink text-xs transition-all duration-200">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-8 h-8 rounded bg-whatsapp-surface flex items-center justify-center shrink-0 border border-whatsapp-green/20">
+          <span class="material-symbols-outlined text-whatsapp-green text-[18px]">check_circle</span>
         </div>
-
-        <div class="pt-6">
-          <button
-            type="button"
-            class="min-h-[44px] px-5 py-2.5 rounded bg-hero-canvas text-ink-on-dark font-bold text-xs uppercase tracking-wider hover:bg-[#262626] transition cursor-pointer shadow-none inline-flex items-center gap-2.5"
-            (click)="store.openCreateModal()"
-            data-testid="add-new-worker-btn"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Tambah Mitra Baru</span>
-          </button>
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold text-whatsapp-ink font-mono-rate uppercase tracking-wider text-[11px]">Status Sinkronisasi</span>
+          <span class="text-xs text-whatsapp-ink/90 truncate">{{ store.feedbackMessage() }}</span>
         </div>
       </div>
+      <button
+        type="button"
+        class="min-w-[36px] min-h-[36px] flex items-center justify-center hover:bg-whatsapp-green/10 rounded transition-colors shrink-0 text-whatsapp-ink cursor-pointer"
+        (click)="store.clearFeedback()"
+        aria-label="Tutup notifikasi"
+      >
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+  }
 
-      <!-- Bento 2: Metrik Mitra Aktif -->
-      <div class="p-6 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono-rate font-bold uppercase tracking-wider text-ink-secondary">
-            Mitra Aktif
+  <!-- SECTION 2: BENTO GRID HEADER & PRIMARY KPIS -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <!-- Bento 1: Hero Admin Card (6 cols di desktop) -->
+    <div class="lg:col-span-6 bg-hero-canvas rounded-[10px] p-6 md:p-8 text-ink-on-dark flex flex-col justify-between shadow-none relative overflow-hidden">
+      <div class="flex flex-col gap-3 z-10">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate px-2 py-0.5 bg-surface-elevated-dark text-ink-on-dark rounded border border-hairline-dark inline-flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-voltage-orange"></span>
+            SUPERVISI KEDAULATAN KERJA
           </span>
-          <div class="w-8 h-8 rounded bg-whatsapp-surface text-whatsapp-ink border border-whatsapp-green/20 flex items-center justify-center">
-            <svg class="w-4 h-4 text-whatsapp-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+          <span class="text-[10px] font-mono-rate text-ink-disabled">SYS-VERIF-v2</span>
         </div>
-        <div class="mt-4">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-ink-on-dark tracking-tight">
+          Direktori &amp; Manajemen Mitra Mandiri
+        </h1>
+        <p class="text-xs sm:text-sm text-ink-disabled max-w-xl">
+          Kelola operasional mitra, atur slot jadwal, dan pantau status ketersediaan di direktori publik langsung tanpa perantara.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 pt-6 z-10">
+        <a
+          routerLink="/admin/workers/new"
+          class="h-11 px-5 bg-body-canvas hover:bg-surface-highlight text-ink-on-light font-bold text-xs uppercase tracking-wider font-mono-rate rounded inline-flex items-center gap-2 transition-colors cursor-pointer select-none"
+          data-testid="add-new-worker-btn"
+        >
+          <span class="material-symbols-outlined text-[18px] text-voltage-orange">person_add</span>
+          <span>+ Tambah Mitra Baru</span>
+        </a>
+        <button
+          type="button"
+          (click)="exportWorkers()"
+          class="h-11 px-5 bg-surface-elevated-dark hover:bg-surface-tint text-ink-on-dark font-bold text-xs uppercase tracking-wider font-mono-rate rounded inline-flex items-center gap-2 transition-colors cursor-pointer border border-hairline-dark select-none"
+        >
+          <span class="material-symbols-outlined text-[18px]">download</span>
+          <span>Ekspor Direktori (CSV)</span>
+        </button>
+      </div>
+
+      <!-- Ambient Glow -->
+      <div class="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-surface-elevated-dark/40 blur-2xl pointer-events-none"></div>
+    </div>
+
+    <!-- Bento 2: KPI Mitra Aktif Bekerja (3 cols di desktop) -->
+    <div class="lg:col-span-3 bg-body-canvas rounded-[10px] p-6 border border-hairline-light flex flex-col justify-between shadow-none">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">STATUS REAL-TIME</span>
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-whatsapp-green opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-whatsapp-green"></span>
+          </span>
+        </div>
+        <span class="text-sm font-bold text-ink-on-light pt-1">Mitra Aktif Bekerja</span>
+        <div class="mt-2">
           @if (store.isLoading() && store.workers().length === 0) {
-            <div class="h-9 w-16 bg-surface-highlight rounded animate-pulse"></div>
+            <div class="h-10 w-24 bg-surface-highlight rounded animate-pulse"></div>
           } @else {
-            <div class="text-3xl md:text-4xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
-              {{ store.activeWorkersCount() }}
+            <div class="text-3xl sm:text-4xl font-extrabold text-ink-on-light font-mono-rate tabular-nums flex items-baseline gap-2">
+              <span>{{ store.activeWorkersCount() }}</span>
+              <span class="text-base text-whatsapp-green font-normal">Mitra</span>
             </div>
           }
-          <div class="text-xs text-ink-secondary mt-1">
-            Menerima booking publik aktif
-          </div>
         </div>
       </div>
 
-      <!-- Bento 3: Metrik Ditangguhkan (Suspended) -->
-      <div class="p-6 rounded-[10px] bg-body-canvas border border-hairline-light shadow-none flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono-rate font-bold uppercase tracking-wider text-ink-secondary">
-            Ditangguhkan
-          </span>
-          <div class="w-8 h-8 rounded bg-[#fee2e2] text-[#991b1b] border border-red-300 flex items-center justify-center">
-            <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-            </svg>
-          </div>
+      <div class="pt-3 mt-4 bg-surface-highlight p-3 rounded border border-hairline-light flex flex-col gap-1">
+        <span class="text-[11px] text-ink-secondary leading-snug">Profil publik aktif menerima reservasi slot di web pemesanan mandiri.</span>
+        <div class="flex items-center gap-1.5 pt-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-whatsapp-green"></span>
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-whatsapp-green">TERSEDIA DI DIREKTORI PUBLIK</span>
         </div>
-        <div class="mt-4">
+      </div>
+    </div>
+
+    <!-- Bento 3: KPI Mitra Ditangguhkan / Reviu (3 cols di desktop) -->
+    <div class="lg:col-span-3 bg-body-canvas rounded-[10px] p-6 border border-hairline-light flex flex-col justify-between shadow-none">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">AUDIT &amp; INVESTIGASI</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+        </div>
+        <span class="text-sm font-bold text-ink-on-light pt-1">Ditangguhkan / Reviu</span>
+        <div class="mt-2">
           @if (store.isLoading() && store.workers().length === 0) {
-            <div class="h-9 w-16 bg-surface-highlight rounded animate-pulse"></div>
+            <div class="h-10 w-24 bg-surface-highlight rounded animate-pulse"></div>
           } @else {
-            <div class="text-3xl md:text-4xl font-extrabold text-ink-on-light font-mono-rate tabular-nums">
-              {{ store.suspendedWorkersCount() }}
+            <div class="text-3xl sm:text-4xl font-extrabold text-red-600 font-mono-rate tabular-nums flex items-baseline gap-2">
+              <span>{{ store.suspendedWorkersCount() }}</span>
+              <span class="text-base text-ink-secondary font-normal">Mitra</span>
             </div>
           }
-          <div class="text-xs text-ink-secondary mt-1">
-            Halaman booking terkunci
-          </div>
         </div>
       </div>
-    </section>
 
-    <!-- Filter Bar Component -->
-    <app-admin-worker-filter-bar
-      [searchQuery]="store.searchQuery()"
-      [currentFilter]="store.statusFilter()"
-      [totalCount]="store.totalWorkersCount()"
-      [activeCount]="store.activeWorkersCount()"
-      [suspendedCount]="store.suspendedWorkersCount()"
-      (searchChange)="store.setSearchQuery($event)"
-      (filterChange)="store.setStatusFilter($event)"
-    />
+      <div class="pt-3 mt-4 bg-red-50 p-3 rounded border border-red-200 flex flex-col gap-1">
+        <span class="text-[11px] text-red-900 leading-snug">Akses pemesanan publik terkunci sementara untuk peninjauan profil.</span>
+        <div class="flex items-center gap-1.5 pt-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+          <span class="text-[10px] font-bold uppercase tracking-wider font-mono-rate text-red-700">TERKUNCI SEMENTARA</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- Tabel Mitra Component & Skeleton Loader -->
-    <section>
-      @if (store.isLoading()) {
-        <div class="w-full overflow-hidden rounded-[10px] border border-hairline-light bg-body-canvas shadow-none" data-testid="admin-table-skeleton">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b border-hairline-light bg-surface-highlight text-xs font-bold text-ink-on-light uppercase tracking-wider font-mono-rate">
-                  <th scope="col" class="py-3.5 px-4 md:px-6">Mitra</th>
-                  <th scope="col" class="py-3.5 px-4 md:px-6">Kontak & Zona</th>
-                  <th scope="col" class="py-3.5 px-4 md:px-6">Tarif Dasar</th>
-                  <th scope="col" class="py-3.5 px-4 md:px-6">Status Akun</th>
-                  <th scope="col" class="py-3.5 px-4 md:px-6 text-right">Aksi</th>
+  <!-- SECTION 3: FILTER BAR COMPONENT -->
+  <app-admin-worker-filter-bar
+    [searchQuery]="store.searchQuery()"
+    [currentFilter]="store.statusFilter()"
+    [totalCount]="store.totalWorkersCount()"
+    [activeCount]="store.activeWorkersCount()"
+    [suspendedCount]="store.suspendedWorkersCount()"
+    (searchChange)="store.setSearchQuery($event)"
+    (filterChange)="store.setStatusFilter($event)"
+  />
+
+  <!-- SECTION 4: TABEL MITRA COMPONENT & SKELETON LOADER -->
+  <section>
+    @if (store.isLoading()) {
+      <div class="w-full overflow-hidden rounded-[10px] border border-hairline-light bg-body-canvas shadow-none" data-testid="admin-table-skeleton">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-hairline-light bg-surface-highlight text-xs font-bold text-ink-on-light uppercase tracking-wider font-mono-rate">
+                <th scope="col" class="py-3.5 px-4 md:px-6">PROFIL &amp; KREDENSIAL</th>
+                <th scope="col" class="py-3.5 px-4 md:px-6">KONTAK &amp; BASECAMP ZONA</th>
+                <th scope="col" class="py-3.5 px-4 md:px-6">TARIF DASAR &amp; SKEMA</th>
+                <th scope="col" class="py-3.5 px-4 md:px-6">STATUS AKUN</th>
+                <th scope="col" class="py-3.5 px-4 md:px-6 text-right">AKSI KONTROL CEPAT</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-hairline-light text-sm">
+              @for (row of [1, 2, 3, 4]; track row) {
+                <tr class="animate-pulse">
+                  <td class="py-4 px-4 md:px-6">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-surface-highlight shrink-0"></div>
+                      <div class="space-y-2">
+                        <div class="h-4 bg-surface-highlight rounded w-32"></div>
+                        <div class="h-3 bg-surface-highlight/60 rounded w-20"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 md:px-6">
+                    <div class="space-y-2">
+                      <div class="h-3 bg-surface-highlight rounded w-36"></div>
+                      <div class="h-3 bg-surface-highlight/60 rounded w-24"></div>
+                      <div class="h-3 bg-surface-highlight/40 rounded w-28"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 md:px-6">
+                    <div class="space-y-2">
+                      <div class="h-4 bg-surface-highlight rounded w-24"></div>
+                      <div class="h-3 bg-surface-highlight/60 rounded w-16"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 md:px-6">
+                    <div class="h-6 bg-surface-highlight rounded w-20"></div>
+                  </td>
+                  <td class="py-4 px-4 md:px-6 text-right">
+                    <div class="h-8 bg-surface-highlight rounded w-24 ml-auto"></div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody class="divide-y divide-hairline-light text-sm">
-                @for (row of [1, 2, 3, 4]; track row) {
-                  <tr class="animate-pulse">
-                    <td class="py-4 px-4 md:px-6">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-surface-highlight shrink-0"></div>
-                        <div class="space-y-2">
-                          <div class="h-4 bg-surface-highlight rounded w-32"></div>
-                          <div class="h-3 bg-surface-highlight/60 rounded w-20"></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="py-4 px-4 md:px-6">
-                      <div class="space-y-2">
-                        <div class="h-3 bg-surface-highlight rounded w-36"></div>
-                        <div class="h-3 bg-surface-highlight/60 rounded w-24"></div>
-                        <div class="h-3 bg-surface-highlight/40 rounded w-28"></div>
-                      </div>
-                    </td>
-                    <td class="py-4 px-4 md:px-6">
-                      <div class="space-y-2">
-                        <div class="h-4 bg-surface-highlight rounded w-24"></div>
-                        <div class="h-3 bg-surface-highlight/60 rounded w-16"></div>
-                      </div>
-                    </td>
-                    <td class="py-4 px-4 md:px-6">
-                      <div class="h-6 bg-surface-highlight rounded w-20"></div>
-                    </td>
-                    <td class="py-4 px-4 md:px-6 text-right">
-                      <div class="h-8 bg-surface-highlight rounded w-24 ml-auto"></div>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+              }
+            </tbody>
+          </table>
         </div>
-      } @else {
-        <app-admin-workers-table
-          [workers]="store.filteredWorkers()"
-          (addWorkerClick)="store.openCreateModal()"
-          (toggleStatusClick)="store.toggleWorkerStatus($event)"
-        />
-      }
-    </section>
+      </div>
+    } @else {
+      <app-admin-workers-table
+        [workers]="store.filteredWorkers()"
+        (addWorkerClick)="navigateToAddWorker()"
+        (toggleStatusClick)="store.toggleWorkerStatus($event)"
+      />
+    }
+  </section>
 
-    <!-- Modal Onboarding Mitra Baru -->
-    <app-admin-worker-onboarding-modal
-      [isOpen]="store.isCreateModalOpen()"
-      [isSubmitting]="store.isOnboardingSubmitting()"
-      [errorMessage]="store.errorMessage()"
-      [createdResult]="store.newlyCreatedWorker()"
-      (closeClick)="store.closeCreateModal()"
-      (submitOnboarding)="store.submitOnboarding($event)"
-    />
-  </div>
-
+  <!-- SECTION 5: OPERATIONAL SOVEREIGN FOOTER BANNER -->
+  <footer class="p-4 md:p-6 bg-surface-highlight border border-hairline-light rounded-[10px] flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded bg-body-canvas border border-hairline-light flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-voltage-orange text-[22px]">handshake</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-bold text-ink-on-light text-xs font-mono-rate uppercase tracking-wider">Tuwaktu Zero-Commission Architecture</span>
+        <span class="text-xs text-ink-secondary mt-0.5">Seluruh transaksi dan pembayaran klien diterima 100% langsung oleh mitra tanpa potongan komisi platform.</span>
+      </div>
+    </div>
+    <div class="shrink-0 hidden md:block">
+      <span class="font-mono-rate text-[11px] font-bold uppercase text-ink-secondary px-2.5 py-1 bg-body-canvas border border-hairline-light rounded">
+        DIRECT-PEER ENGINE v2.4
+      </span>
+    </div>
+  </footer>
+</div>

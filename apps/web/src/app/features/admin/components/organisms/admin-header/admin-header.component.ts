@@ -73,6 +73,9 @@ export class AdminHeaderComponent {
     if (url.includes('/admin/analytics')) {
       return 'Analitik Platform';
     }
+    if (url.includes('/admin/workers/new') || url.includes('/admin/workers/tambah')) {
+      return 'Tambah Mitra Baru';
+    }
     if (url.includes('/admin/workers')) {
       return 'Kelola Mitra';
     }

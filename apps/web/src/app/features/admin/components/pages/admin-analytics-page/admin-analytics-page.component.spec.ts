@@ -68,7 +68,7 @@ describe('AdminAnalyticsPageComponent', () => {
 
   it('harus merender kartu KPI utama dan data ringkasan analitik', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Analitik & Metrik Konversi Platform');
+    expect(el.textContent).toContain('Analitik Platform & Telemetri Konversi');
     expect(el.textContent).toContain('Klik WhatsApp Mitra');
     expect(el.textContent).toContain('Total Reservasi Booking');
     expect(el.textContent).toContain('Kunjungan Profil Mitra');
@@ -85,7 +85,7 @@ describe('AdminAnalyticsPageComponent', () => {
 
     // Cek Tren Pencarian
     expect(el.textContent).toContain('AC Inverter');
-    expect(el.textContent).toContain('Wilayah: Jakarta Selatan');
+    expect(el.textContent).toContain('Zona: Jakarta Selatan');
 
     // Cek Organisme Distribusi Wilayah Kota
     const cityCard = el.querySelector('app-admin-city-distribution-card');

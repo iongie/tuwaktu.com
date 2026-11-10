@@ -40,6 +40,24 @@ export const appRoutes: Route[] = [
           ).then((m) => m.WorkerDashboardRatesComponent),
       },
       {
+        path: 'tarif-layanan/tambah',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/pages/worker-service-editor-page/worker-service-editor-page.component'
+          ).then((m) => m.WorkerServiceEditorPageComponent),
+      },
+      {
+        path: 'tarif-layanan/new',
+        redirectTo: 'tarif-layanan/tambah',
+      },
+      {
+        path: 'tarif-layanan/:id/edit',
+        loadComponent: () =>
+          import(
+            './features/worker-dashboard/components/pages/worker-service-editor-page/worker-service-editor-page.component'
+          ).then((m) => m.WorkerServiceEditorPageComponent),
+      },
+      {
         path: 'tarif',
         redirectTo: 'tarif-layanan',
       },
@@ -183,6 +201,17 @@ export const appRoutes: Route[] = [
           import(
             './features/admin/components/pages/admin-workers-page/admin-workers-page.component'
           ).then((m) => m.AdminWorkersPageComponent),
+      },
+      {
+        path: 'workers/new',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-worker-create-page/admin-worker-create-page.component'
+          ).then((m) => m.AdminWorkerCreatePageComponent),
+      },
+      {
+        path: 'workers/tambah',
+        redirectTo: 'workers/new',
       },
       {
         path: 'mitra',

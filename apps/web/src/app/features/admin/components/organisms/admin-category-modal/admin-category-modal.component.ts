@@ -21,7 +21,7 @@ import {
   template: `
     @if (isOpen()) {
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-hero-canvas/70 backdrop-blur-xs transition-opacity"
         role="dialog"
         aria-modal="true"
         aria-labelledby="categoryModalTitle"
@@ -35,54 +35,59 @@ import {
         ></button>
 
         <div
-          class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[16px] bg-body-canvas border border-hairline-light p-6 md:p-8 shadow-none"
+          class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[12px] bg-body-canvas border border-hairline-light shadow-xl flex flex-col"
         >
-          <button
-            type="button"
-            class="absolute top-6 right-6 min-w-[36px] min-h-[36px] flex items-center justify-center rounded border border-hairline-light text-ink-secondary hover:text-ink-on-light hover:bg-surface-highlight transition cursor-pointer"
-            aria-label="Tutup jendela"
-            (click)="handleClose()"
-            data-testid="close-category-modal-btn"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          <header class="mb-6 space-y-1">
-            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-surface-highlight border border-hairline-light text-ink-on-light font-mono-rate text-[10px] font-bold uppercase tracking-wider">
-              Katalog Keahlian
-            </div>
-            <h2 id="categoryModalTitle" class="text-xl font-bold tracking-tight text-ink-on-light">
-              {{ category() ? 'Perbarui Kategori Keahlian' : 'Tambah Kategori Baru' }}
-            </h2>
-            <p class="text-xs text-ink-secondary">
-              {{ category() ? 'Perbarui data spesialisasi dan parameter tarif awal.' : 'Lengkapi informasi keahlian teknisi untuk ditampilkan pada katalog publik.' }}
-            </p>
-          </header>
-
-          <form (ngSubmit)="handleSubmit()" class="space-y-4">
-            <div>
-              <label for="cat-name" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
-                Nama Kategori <span class="text-rose-500">*</span>
-              </label>
-              <input
-                id="cat-name"
-                name="name"
-                type="text"
-                required
-                [ngModel]="formName()"
-                (ngModelChange)="formName.set($event)"
-                placeholder="Contoh: Servis & Pasang AC"
-                class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
-                data-testid="category-name-input"
-              />
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Modal Header (Nocturne Dark Header) -->
+          <div class="bg-hero-canvas text-ink-on-dark p-6 flex items-center justify-between border-b border-hairline-dark">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded bg-surface-elevated-dark text-voltage-orange flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">post_add</span>
+              </div>
               <div>
-                <label for="cat-slug" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
-                  Slug URL (Opsional)
+                <h2 id="categoryModalTitle" class="text-lg font-bold tracking-tight text-ink-on-dark font-sans">
+                  {{ category() ? 'Sunting Kategori: ' + category()?.name : 'Tambah Kategori Keahlian Baru' }}
+                </h2>
+                <p class="text-xs text-ink-disabled font-sans">
+                  Konfigurasi taksonomi dan penetapan parameter benchmark teknisi
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="w-8 h-8 rounded bg-surface-elevated-dark text-ink-disabled hover:text-ink-on-dark flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Tutup jendela"
+              (click)="handleClose()"
+              data-testid="close-category-modal-btn"
+            >
+              <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+
+          <!-- Modal Body Form -->
+          <form (ngSubmit)="handleSubmit()" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Nama Kategori -->
+              <div class="flex flex-col gap-1">
+                <label for="cat-name" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
+                  Nama Kategori Keahlian <span class="text-voltage-orange">*</span>
+                </label>
+                <input
+                  id="cat-name"
+                  name="name"
+                  type="text"
+                  required
+                  [ngModel]="formName()"
+                  (ngModelChange)="onNameChange($event)"
+                  placeholder="Misal: Servis & Pasang AC"
+                  class="h-11 px-3.5 bg-surface-highlight focus:bg-body-canvas text-ink-on-light rounded border border-hairline-light outline-none focus:border-hero-canvas text-xs font-mono-rate transition"
+                  data-testid="category-name-input"
+                />
+              </div>
+
+              <!-- Slug Otomatis -->
+              <div class="flex flex-col gap-1">
+                <label for="cat-slug" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
+                  Slug URL Otomatis
                 </label>
                 <input
                   id="cat-slug"
@@ -91,65 +96,60 @@ import {
                   [ngModel]="formSlug()"
                   (ngModelChange)="formSlug.set($event)"
                   placeholder="otomatis dari nama"
-                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
+                  class="h-11 px-3.5 bg-surface-highlight focus:bg-body-canvas text-ink-on-light rounded border border-hairline-light outline-none focus:border-hero-canvas text-xs font-mono-rate transition"
                   data-testid="category-slug-input"
                 />
               </div>
+            </div>
 
-              <div>
-                <label for="cat-icon" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Ikon Material -->
+              <div class="flex flex-col gap-1">
+                <label for="cat-icon" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
                   Ikon Material
                 </label>
-                <input
-                  id="cat-icon"
-                  name="icon"
-                  type="text"
-                  [ngModel]="formIcon()"
-                  (ngModelChange)="formIcon.set($event)"
-                  placeholder="ac_unit, bolt, tv, build"
-                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
-                  data-testid="category-icon-input"
-                />
+                <div class="flex items-center gap-2">
+                  <div class="w-11 h-11 bg-hero-canvas text-voltage-orange rounded flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">{{ formIcon() || 'build' }}</span>
+                  </div>
+                  <input
+                    id="cat-icon"
+                    name="icon"
+                    type="text"
+                    [ngModel]="formIcon()"
+                    (ngModelChange)="formIcon.set($event)"
+                    placeholder="ac_unit, bolt, build"
+                    class="h-11 px-3 w-full bg-surface-highlight focus:bg-body-canvas text-ink-on-light font-mono-rate text-xs rounded border border-hairline-light outline-none focus:border-hero-canvas transition"
+                    data-testid="category-icon-input"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label for="cat-desc" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
-                Deskripsi Cakupan Layanan
-              </label>
-              <textarea
-                id="cat-desc"
-                name="description"
-                rows="3"
-                [ngModel]="formDescription()"
-                (ngModelChange)="formDescription.set($event)"
-                placeholder="Rincian singkat cakupan pekerjaan teknisi pada kategori ini..."
-                class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition resize-none"
-                data-testid="category-description-input"
-              ></textarea>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="cat-price" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
-                  Tarif Mulai Dari (Rp)
+              <!-- Tarif Rekomendasi -->
+              <div class="flex flex-col gap-1">
+                <label for="cat-price" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
+                  Tarif Rekomendasi (Rp)
                 </label>
-                <input
-                  id="cat-price"
-                  name="starting_price"
-                  type="number"
-                  min="0"
-                  step="5000"
-                  [ngModel]="formStartingPrice()"
-                  (ngModelChange)="formStartingPrice.set($event)"
-                  placeholder="75000"
-                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
-                  data-testid="category-price-input"
-                />
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono-rate text-ink-secondary font-bold">Rp</span>
+                  <input
+                    id="cat-price"
+                    name="starting_price"
+                    type="number"
+                    min="0"
+                    step="5000"
+                    [ngModel]="formStartingPrice()"
+                    (ngModelChange)="formStartingPrice.set($event)"
+                    placeholder="75000"
+                    class="h-11 pl-9 pr-3 w-full bg-surface-highlight focus:bg-body-canvas text-ink-on-light font-mono-rate text-xs rounded border border-hairline-light outline-none focus:border-hero-canvas transition tabular-nums"
+                    data-testid="category-price-input"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label for="cat-unit" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
+              <!-- Satuan Tarif -->
+              <div class="flex flex-col gap-1">
+                <label for="cat-unit" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
                   Satuan Tarif
                 </label>
                 <input
@@ -158,33 +158,18 @@ import {
                   type="text"
                   [ngModel]="formPriceUnit()"
                   (ngModelChange)="formPriceUnit.set($event)"
-                  placeholder="kunjungan, unit, jam"
-                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
+                  placeholder="unit, jam, kunjungan"
+                  class="h-11 px-3.5 bg-surface-highlight focus:bg-body-canvas text-ink-on-light rounded border border-hairline-light outline-none focus:border-hero-canvas text-xs font-mono-rate transition"
                   data-testid="category-unit-input"
                 />
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="cat-highlight" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
-                  Tag Penanda (Highlight)
-                </label>
-                <input
-                  id="cat-highlight"
-                  name="highlight_tag"
-                  type="text"
-                  [ngModel]="formHighlightTag()"
-                  (ngModelChange)="formHighlightTag.set($event)"
-                  placeholder="Populer, Higienis, Prioritas"
-                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
-                  data-testid="category-highlight-input"
-                />
-              </div>
-
-              <div>
-                <label for="cat-sort" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate mb-1">
-                  Urutan Tampil (Sort Order)
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <!-- Urutan Tampilan -->
+              <div class="flex flex-col gap-1 md:col-span-1">
+                <label for="cat-sort" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
+                  Urutan Prioritas
                 </label>
                 <input
                   id="cat-sort"
@@ -194,45 +179,96 @@ import {
                   [ngModel]="formSortOrder()"
                   (ngModelChange)="formSortOrder.set($event)"
                   placeholder="1"
-                  class="w-full px-4 py-2.5 rounded bg-surface-highlight border border-hairline-light focus:border-accent-link focus:bg-body-canvas text-xs font-mono-rate text-ink-on-light transition"
+                  class="h-11 px-3.5 bg-surface-highlight focus:bg-body-canvas text-ink-on-light font-mono-rate text-xs rounded border border-hairline-light outline-none focus:border-hero-canvas transition tabular-nums"
                   data-testid="category-sort-input"
                 />
               </div>
+
+              <!-- Tag Penanda / Highlight -->
+              <div class="flex flex-col gap-1 md:col-span-1">
+                <label for="cat-highlight" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
+                  Tag Penanda
+                </label>
+                <input
+                  id="cat-highlight"
+                  name="highlight_tag"
+                  type="text"
+                  [ngModel]="formHighlightTag()"
+                  (ngModelChange)="formHighlightTag.set($event)"
+                  placeholder="Populer, Higienis"
+                  class="h-11 px-3.5 bg-surface-highlight focus:bg-body-canvas text-ink-on-light rounded border border-hairline-light outline-none focus:border-hero-canvas text-xs font-mono-rate transition"
+                  data-testid="category-highlight-input"
+                />
+              </div>
+
+              <!-- Deskripsi Ringkas -->
+              <div class="flex flex-col gap-1 md:col-span-2">
+                <label for="cat-desc" class="block text-xs font-bold uppercase tracking-wider text-ink-on-light font-mono-rate">
+                  Deskripsi Cakupan Layanan
+                </label>
+                <textarea
+                  id="cat-desc"
+                  name="description"
+                  rows="1"
+                  [ngModel]="formDescription()"
+                  (ngModelChange)="formDescription.set($event)"
+                  placeholder="Rangkuman spesialisasi yang tampil pada pencarian..."
+                  class="h-11 p-2.5 bg-surface-highlight focus:bg-body-canvas text-ink-on-light rounded border border-hairline-light outline-none focus:border-hero-canvas text-xs font-sans transition resize-none"
+                  data-testid="category-description-input"
+                ></textarea>
+              </div>
             </div>
 
-            <div class="pt-2 flex items-center gap-3">
-              <input
-                id="cat-active"
-                name="is_active"
-                type="checkbox"
-                [ngModel]="formIsActive()"
-                (ngModelChange)="formIsActive.set($event)"
-                class="w-4 h-4 rounded border-hairline-light text-hero-canvas focus:ring-accent-link"
-                data-testid="category-active-checkbox"
-              />
-              <label for="cat-active" class="text-xs text-ink-on-light font-bold font-mono-rate cursor-pointer">
-                Aktifkan di Katalog Beranda Publik
-              </label>
+            <!-- Toggle Visibilitas Publik -->
+            <div class="flex items-center justify-between p-3.5 bg-surface-highlight border border-hairline-light rounded-[10px]">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[20px] text-whatsapp-green">visibility</span>
+                <div class="flex flex-col">
+                  <span class="font-bold text-ink-on-light text-xs font-mono-rate uppercase tracking-wider">Visibilitas Publik</span>
+                  <span class="text-[11px] text-ink-secondary">Aktifkan langsung di beranda tamu &amp; saringan filter pencarian</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <input
+                  id="cat-active"
+                  name="is_active"
+                  type="checkbox"
+                  [ngModel]="formIsActive()"
+                  (ngModelChange)="formIsActive.set($event)"
+                  class="w-4 h-4 rounded border-hairline-light text-hero-canvas focus:ring-accent-link cursor-pointer"
+                  data-testid="category-active-checkbox"
+                />
+                <label for="cat-active" class="text-xs text-ink-on-light font-bold font-mono-rate cursor-pointer">
+                  {{ formIsActive() ? 'Aktif' : 'Nonaktif' }}
+                </label>
+              </div>
             </div>
 
-            <footer class="pt-4 flex items-center justify-end gap-3 border-t border-hairline-light">
-              <button
-                type="button"
-                (click)="handleClose()"
-                class="min-h-[44px] px-5 py-2.5 rounded border border-hairline-light text-xs font-bold uppercase tracking-wider font-mono-rate text-ink-on-light bg-body-canvas hover:bg-surface-highlight transition cursor-pointer"
-                data-testid="cancel-category-btn"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                [disabled]="isSubmitting() || !formName().trim()"
-                class="min-h-[44px] px-6 py-2.5 rounded text-xs font-bold uppercase tracking-wider font-mono-rate bg-hero-canvas text-ink-on-dark hover:bg-[#262626] disabled:opacity-50 transition cursor-pointer shadow-none"
-                data-testid="save-category-btn"
-              >
-                {{ isSubmitting() ? 'Menyimpan...' : (category() ? 'Simpan Perubahan' : 'Tambah Kategori') }}
-              </button>
-            </footer>
+            <!-- Modal Footer -->
+            <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-hairline-light">
+              <span class="text-[10px] font-mono-rate text-ink-disabled uppercase tracking-wider">
+                DIKELOLA VIA KONSOL ADMIN TUWAKTU
+              </span>
+              <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  (click)="handleClose()"
+                  class="h-10 px-5 rounded border border-hairline-light text-xs font-bold uppercase tracking-wider font-mono-rate text-ink-on-light bg-body-canvas hover:bg-surface-highlight transition cursor-pointer"
+                  data-testid="cancel-category-btn"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="isSubmitting() || !formName().trim()"
+                  class="h-10 px-6 rounded text-xs font-bold uppercase tracking-wider font-mono-rate bg-hero-canvas text-ink-on-dark hover:bg-neutral-800 disabled:opacity-50 transition cursor-pointer shadow-none flex items-center gap-1.5"
+                  data-testid="save-category-btn"
+                >
+                  <span class="material-symbols-outlined text-[16px] text-voltage-orange">check</span>
+                  <span>{{ isSubmitting() ? 'Menyimpan...' : (category() ? 'Simpan Perubahan' : 'Tambah Kategori') }}</span>
+                </button>
+              </div>
+            </div>
           </form>
         </div>
       </div>
@@ -283,6 +319,22 @@ export class AdminCategoryModalComponent {
     if (this.isOpen()) {
       this.handleClose();
     }
+  }
+
+  onNameChange(value: string): void {
+    this.formName.set(value);
+    if (!this.category() && (!this.formSlug() || this.formSlug() === this.slugify(this.formName()))) {
+      this.formSlug.set(this.slugify(value));
+    }
+  }
+
+  private slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 
   handleClose(): void {

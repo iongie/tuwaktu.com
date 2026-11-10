@@ -79,15 +79,4 @@
   @if (isSimulationModalOpen()) {
     <app-rates-simulation-modal (dismissModal)="closeSimulationModal()" />
   }
-
-  <!-- Service Edit & Create Modal Molecule -->
-  @if (isEditModalOpen()) {
-    <app-rates-edit-service-modal
-      [serviceItem]="selectedServiceToEdit()"
-      [availableCategories]="categoriesList()"
-      (dismissModal)="closeEditModal()"
-      (save)="handleServiceSaved($event)"
-      (delete)="handleServiceDeleted($event)"
-    />
-  }
 </div>

@@ -135,6 +135,20 @@ export interface AdminNavMenuItem {
           </span>
         </a>
 
+        <!-- Tautan ke Dashboard Teknisi -->
+        <a
+          routerLink="/dashboard"
+          class="flex items-center gap-2.5 px-3 py-2 rounded text-xs text-[#a3a3a3] hover:bg-[#1f1f1f] hover:text-white transition-colors cursor-pointer group"
+          title="Buka Dashboard Mandiri Teknisi"
+        >
+          <span
+            class="material-symbols-outlined text-[16px] text-[#737373] group-hover:text-voltage-orange transition-colors"
+          >
+            build
+          </span>
+          <span>Dashboard Teknisi</span>
+        </a>
+
         <!-- Tombol Logout -->
         <button
           type="button"

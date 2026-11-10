@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { AdminWorkersPageComponent } from './admin-workers-page.component';
 import { AdminWorkerStore } from '../../../services/admin-worker.store';
 
@@ -17,16 +17,10 @@ describe('AdminWorkersPageComponent', () => {
       feedbackMessage: jest.fn().mockReturnValue(null),
       searchQuery: jest.fn().mockReturnValue(''),
       statusFilter: jest.fn().mockReturnValue('ALL'),
-      isCreateModalOpen: jest.fn().mockReturnValue(false),
-      isOnboardingSubmitting: jest.fn().mockReturnValue(false),
-      newlyCreatedWorker: jest.fn().mockReturnValue(null),
       totalWorkersCount: jest.fn().mockReturnValue(0),
       activeWorkersCount: jest.fn().mockReturnValue(0),
       suspendedWorkersCount: jest.fn().mockReturnValue(0),
       loadWorkers: jest.fn(),
-      openCreateModal: jest.fn(),
-      closeCreateModal: jest.fn(),
-      submitOnboarding: jest.fn(),
       toggleWorkerStatus: jest.fn(),
       setSearchQuery: jest.fn(),
       setStatusFilter: jest.fn(),
@@ -38,7 +32,7 @@ describe('AdminWorkersPageComponent', () => {
       imports: [AdminWorkersPageComponent],
       providers: [
         { provide: AdminWorkerStore, useValue: mockStore },
-        provideRouter([]),
+        provideRouter([{ path: '**', component: AdminWorkersPageComponent }]),
       ],
     }).compileComponents();
 
@@ -51,11 +45,17 @@ describe('AdminWorkersPageComponent', () => {
     expect(mockStore.loadWorkers).toHaveBeenCalled();
   });
 
-  it('harus membuka modal onboarding saat tombol Tambah Mitra Baru ditekan', () => {
+  it('harus memiliki routerLink ke /admin/workers/new pada tombol Tambah Mitra Baru', () => {
     fixture.detectChanges();
     const addBtn = fixture.nativeElement.querySelector('[data-testid="add-new-worker-btn"]');
-    addBtn.click();
-    expect(mockStore.openCreateModal).toHaveBeenCalled();
+    expect(addBtn.getAttribute('routerLink') || addBtn.getAttribute('href')).toContain('/admin/workers/new');
+  });
+
+  it('harus bernavigasi ke /admin/workers/new saat navigateToAddWorker dipanggil', () => {
+    const router = TestBed.inject(Router);
+    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    component.navigateToAddWorker();
+    expect(navSpy).toHaveBeenCalledWith(['/admin/workers/new']);
   });
 
   it('harus merender banner error merah saat store.errorMessage memiliki nilai', () => {

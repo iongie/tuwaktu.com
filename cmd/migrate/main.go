@@ -64,6 +64,14 @@ func main() {
 		if err := runSeed(db, migrationsDir); err != nil {
 			log.Fatalf("[FATAL] Eksekusi seed data gagal: %v", err)
 		}
+	case "unlock-admin", "unlock":
+		target := ""
+		if len(os.Args) > 2 {
+			target = strings.TrimSpace(os.Args[2])
+		}
+		if err := runUnlockAdmin(db, target); err != nil {
+			log.Fatalf("[FATAL] Buka kunci akun gagal: %v", err)
+		}
 	default:
 		fmt.Printf("Perintah '%s' tidak dikenali.\n\n", command)
 		printUsage()
@@ -75,10 +83,11 @@ func printUsage() {
 	fmt.Println("Penggunaan CLI Migrasi Tuwaktu:")
 	fmt.Println("  go run ./cmd/migrate [perintah]")
 	fmt.Println("\nPerintah yang tersedia:")
-	fmt.Println("  up              Menjalankan seluruh file migrasi pending (*.up.sql)")
-	fmt.Println("  down | revert   Membatalkan (rollback) satu file migrasi terakhir (*.down.sql)")
-	fmt.Println("  status          Menampilkan status migrasi yang telah dieksekusi dan pending")
-	fmt.Println("  seed            Mengeksekusi file data awal (migrations/seed.sql)")
+	fmt.Println("  up                     Menjalankan seluruh file migrasi pending (*.up.sql)")
+	fmt.Println("  down | revert          Membatalkan (rollback) satu file migrasi terakhir (*.down.sql)")
+	fmt.Println("  status                 Menampilkan status migrasi yang telah dieksekusi dan pending")
+	fmt.Println("  seed                   Mengeksekusi file data awal (migrations/seed.sql)")
+	fmt.Println("  unlock-admin | unlock  Membuka kunci akun Admin (atau [identifier]) yang terkunci")
 }
 
 func ensureSchemaMigrationsTable(db *sql.DB) error {
@@ -346,5 +355,42 @@ func runSeed(db *sql.DB, migrationsDir string) error {
 	}
 
 	log.Println("[INFO] Data seed awal berhasil dimasukkan ke database.")
+	return nil
+}
+
+func runUnlockAdmin(db *sql.DB, target string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	if target == "" || strings.EqualFold(target, "admin") {
+		query := `
+			UPDATE worker_accounts
+			SET failed_login_attempts = 0, locked_until = NULL, updated_at = CURRENT_TIMESTAMP
+			WHERE role = 'ADMIN' OR LOWER(email) = 'admin@tuwaktu.com';
+		`
+		res, err := db.ExecContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("membuka kunci akun admin: %w", err)
+		}
+		rows, _ := res.RowsAffected()
+		log.Printf("[INFO] Berhasil membuka kunci %d akun administrator (failed_login_attempts = 0, locked_until = NULL).\n", rows)
+		return nil
+	}
+
+	query := `
+		UPDATE worker_accounts
+		SET failed_login_attempts = 0, locked_until = NULL, updated_at = CURRENT_TIMESTAMP
+		WHERE LOWER(email) = LOWER($1) OR phone_number = $1 OR id::text = $1;
+	`
+	res, err := db.ExecContext(ctx, query, target)
+	if err != nil {
+		return fmt.Errorf("membuka kunci akun '%s': %w", target, err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		log.Printf("[INFO] Tidak ditemukan akun dengan identifier '%s'.\n", target)
+	} else {
+		log.Printf("[INFO] Berhasil membuka kunci akun '%s' (%d baris terpengaruh).\n", target, rows)
+	}
 	return nil
 }

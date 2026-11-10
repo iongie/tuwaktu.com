@@ -1039,13 +1039,12 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 	normalizedKey := strings.ToLower(identifier)
 	now := time.Now().UTC()
 
-	if s.isIdentifierLockedInMemory(normalizedKey, now) {
-		return nil, fmt.Errorf("%w: akun Anda terkunci sementara selama 15 menit karena mencapai batas maksimal %d kali percobaan gagal", domain.ErrAccountLocked, MaxFailedLoginAttempts)
-	}
-
 	account, err := s.repo.GetAccountByEmailOrPhone(ctx, identifier)
 	if err != nil {
 		if errors.Is(err, domain.ErrWorkerNotFound) {
+			if s.isIdentifierLockedInMemory(normalizedKey, now) {
+				return nil, fmt.Errorf("%w: akun Anda terkunci sementara selama 15 menit karena mencapai batas maksimal %d kali percobaan gagal", domain.ErrAccountLocked, MaxFailedLoginAttempts)
+			}
 			if _, locked := s.recordFailedAttemptInMemory(normalizedKey, now); locked {
 				return nil, fmt.Errorf("%w: terlalu banyak percobaan gagal (maksimal %d kali). Silakan coba lagi dalam 15 menit", domain.ErrAccountLocked, MaxFailedLoginAttempts)
 			}
@@ -1062,7 +1061,14 @@ func (s *workerService) Authenticate(ctx context.Context, identifier string, pas
 		accountKeys = append(accountKeys, phoneKey)
 	}
 
-	if account.LockedUntil != nil && now.Before(*account.LockedUntil) {
+	// Sinkronisasi status kunci akun:
+	// Jika akun di database tidak dalam kondisi terkunci (misalnya baru saja di-unlock via CLI `npm run admin:unlock`),
+	// bersihkan lock in-memory agar admin/mitra dapat langsung login tanpa harus me-restart server HTTP.
+	if account.LockedUntil == nil || !now.Before(*account.LockedUntil) {
+		for _, key := range accountKeys {
+			s.resetFailedAttemptInMemory(key)
+		}
+	} else {
 		return nil, fmt.Errorf("%w: akun Anda terkunci sementara selama 15 menit karena mencapai batas maksimal %d kali percobaan gagal", domain.ErrAccountLocked, MaxFailedLoginAttempts)
 	}
 

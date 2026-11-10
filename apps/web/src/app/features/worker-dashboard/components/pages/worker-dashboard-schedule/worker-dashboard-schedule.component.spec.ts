@@ -121,11 +121,13 @@ describe('WorkerDashboardScheduleComponent', () => {
 
   it('harus menampilkan pesan feedback sukses saat handleSlotSaved dipanggil', () => {
     component.handleSlotSaved({
-      date: 'Besok (25 Okt)',
+      date: 'Rabu, 11 Nov 2026',
+      rawDate: '2026-11-11',
       start: '20:00',
-      end: '22:30',
+      end: '22:00',
+      durationMinutes: 120,
     });
 
-    expect(store.scheduleFeedbackSuccess()).toContain('Slot tambahan untuk Besok (25 Okt)');
+    expect(store.scheduleFeedbackSuccess()).toContain('Slot tambahan untuk Rabu, 11 Nov 2026');
   });
 });

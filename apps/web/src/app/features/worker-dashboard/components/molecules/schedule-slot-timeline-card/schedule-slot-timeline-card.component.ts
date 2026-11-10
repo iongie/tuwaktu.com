@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface ScheduleSlotBooking {
@@ -442,7 +448,7 @@ export interface ScheduleSlotBooking {
           class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-highlight hover:bg-surface-container text-primary font-button-label text-button-label rounded-lg transition-colors border border-hairline-subtle shadow-xs cursor-pointer min-h-[44px]"
         >
           <span class="material-symbols-outlined text-[18px]">more_time</span>
-          <span>+ Tambah Slot Khusus / Lembur</span>
+          <span>Tambah Slot Khusus / Lembur</span>
         </button>
       </div>
     </section>
@@ -463,14 +469,26 @@ export class ScheduleSlotTimelineCardComponent {
   readonly toggleSlotLock = output<string>();
   readonly addCustomSlot = output<void>();
 
-  readonly slot1Booking = computed(() => this.bookings().find((b) => b.slotNumber === '01') || null);
-  readonly slot2Booking = computed(() => this.bookings().find((b) => b.slotNumber === '02') || null);
-  readonly slot3Booking = computed(() => this.bookings().find((b) => b.slotNumber === '03') || null);
+  readonly slot1Booking = computed(
+    () => this.bookings().find((b) => b.slotNumber === '01') || null,
+  );
+  readonly slot2Booking = computed(
+    () => this.bookings().find((b) => b.slotNumber === '02') || null,
+  );
+  readonly slot3Booking = computed(
+    () => this.bookings().find((b) => b.slotNumber === '03') || null,
+  );
 
   readonly isSunday = computed(() => this.selectedSegment().includes('Minggu'));
-  readonly isToday = computed(() => this.selectedSegment().includes('Hari Ini'));
-  readonly isSaturday = computed(() => this.selectedSegment().includes('Sabtu'));
-  readonly isTomorrow = computed(() => this.selectedSegment().includes('Besok'));
+  readonly isToday = computed(() =>
+    this.selectedSegment().includes('Hari Ini'),
+  );
+  readonly isSaturday = computed(() =>
+    this.selectedSegment().includes('Sabtu'),
+  );
+  readonly isTomorrow = computed(() =>
+    this.selectedSegment().includes('Besok'),
+  );
 
   readonly capacityHeadline = computed(() => {
     if (this.isSunday()) {
@@ -514,7 +532,7 @@ export class ScheduleSlotTimelineCardComponent {
 
     const totalSlots = this.isSaturday() ? 2 : 3;
     const booked = this.bookings().length;
-    const lockedCount = (!this.isSaturday() && this.isSlot3Locked()) ? 1 : 0;
+    const lockedCount = !this.isSaturday() && this.isSlot3Locked() ? 1 : 0;
     const available = Math.max(0, totalSlots - booked - lockedCount);
     const percent = Math.round(((booked + lockedCount) / totalSlots) * 100);
 

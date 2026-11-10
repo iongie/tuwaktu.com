@@ -73,7 +73,7 @@ describe('ScheduleSlotTimelineCardComponent', () => {
     const emitSpy = jest.spyOn(component.addCustomSlot, 'emit');
     const addSlotButton = Array.from(
       fixture.nativeElement.querySelectorAll('button')
-    ).find((btn) => (btn as HTMLElement).textContent?.includes('+ Tambah Slot Khusus')) as HTMLButtonElement;
+    ).find((btn) => (btn as HTMLElement).textContent?.includes('Tambah Slot Khusus')) as HTMLButtonElement;
 
     expect(addSlotButton).toBeTruthy();
     addSlotButton.click();

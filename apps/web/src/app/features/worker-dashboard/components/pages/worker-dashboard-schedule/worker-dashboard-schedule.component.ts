@@ -12,7 +12,10 @@ import { WorkerScheduleMainPanelComponent } from '../../organisms/worker-schedul
 import { WorkerScheduleSidebarPanelComponent } from '../../organisms/worker-schedule-sidebar-panel/worker-schedule-sidebar-panel.component';
 import { ScheduleSimulationModalComponent } from '../../molecules/schedule-simulation-modal/schedule-simulation-modal.component';
 import { ScheduleOrderDetailsModalComponent } from '../../molecules/schedule-order-details-modal/schedule-order-details-modal.component';
-import { ScheduleAddSlotModalComponent } from '../../molecules/schedule-add-slot-modal/schedule-add-slot-modal.component';
+import {
+  AddSlotPayload,
+  ScheduleAddSlotModalComponent,
+} from '../../molecules/schedule-add-slot-modal/schedule-add-slot-modal.component';
 
 @Component({
   selector: 'app-worker-dashboard-schedule',
@@ -83,7 +86,7 @@ export class WorkerDashboardScheduleComponent implements OnDestroy {
     this.openAddSlotModal();
   }
 
-  handleSlotSaved(slot: { date: string; start: string; end: string }): void {
+  handleSlotSaved(slot: AddSlotPayload): void {
     this.store.scheduleFeedbackSuccess.set(
       `Slot tambahan untuk ${slot.date} (${slot.start} - ${slot.end} WIB) berhasil dibuka!`
     );

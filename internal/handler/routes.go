@@ -107,7 +107,9 @@ func RegisterRoutes(
 	api.Get("/worker/date-overrides", workerHandler.GetWorkerDateOverrides)
 	api.Get("/workers/:id/date-overrides", workerHandler.GetWorkerDateOverrides)
 	api.Put("/worker/date-overrides", workerHandler.UpsertWorkerDateOverride)
+	api.Post("/worker/date-overrides", workerHandler.UpsertWorkerDateOverride)
 	api.Put("/workers/:id/date-overrides", workerHandler.UpsertWorkerDateOverride)
+	api.Post("/workers/:id/date-overrides", workerHandler.UpsertWorkerDateOverride)
 
 	// Worker bookings endpoints
 	api.Get("/worker/bookings", workerHandler.GetWorkerBookings)
@@ -240,7 +242,9 @@ func RegisterRoutes(
 	v1.Get("/worker/date-overrides", workerHandler.GetWorkerDateOverrides)
 	v1.Get("/workers/:id/date-overrides", workerHandler.GetWorkerDateOverrides)
 	v1.Put("/worker/date-overrides", workerHandler.UpsertWorkerDateOverride)
+	v1.Post("/worker/date-overrides", workerHandler.UpsertWorkerDateOverride)
 	v1.Put("/workers/:id/date-overrides", workerHandler.UpsertWorkerDateOverride)
+	v1.Post("/workers/:id/date-overrides", workerHandler.UpsertWorkerDateOverride)
 	v1.Get("/worker/bookings", workerHandler.GetWorkerBookings)
 	v1.Get("/workers/:id/bookings", workerHandler.GetWorkerBookings)
 	v1.Patch("/worker/bookings/:bookingId/status", workerHandler.UpdateWorkerBookingStatus)

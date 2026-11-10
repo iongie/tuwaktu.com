@@ -351,7 +351,10 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly orderLeadTimeHours = signal<number>(3);
   readonly autoBlockPersonalAgenda = signal<boolean>(true);
   readonly selectedScheduleDateSegment = signal<string>('Besok');
+  readonly isSlot1Locked = signal<boolean>(false);
+  readonly isSlot2Locked = signal<boolean>(false);
   readonly isSlot3Locked = signal<boolean>(false);
+  readonly specialHolidays = signal<string[]>([]);
 
   readonly isProfileLoading = signal<boolean>(false);
   readonly isProfileSubmitting = signal<boolean>(false);
@@ -1711,7 +1714,50 @@ export class WorkerDashboardStore implements OnDestroy {
   }
 
   toggleSlot3Lock(): void {
-    this.isSlot3Locked.update((val) => !val);
+    this.toggleSlotLock('slot-03');
+  }
+
+  toggleSlotLock(slotId: string): void {
+    if (slotId === 'slot-01') {
+      const nextVal = !this.isSlot1Locked();
+      this.isSlot1Locked.set(nextVal);
+      this.scheduleFeedbackSuccess.set(
+        nextVal
+          ? 'Slot 1 (Pagi 08:00 - 11:30) ditutup sementara dari pemesanan publik.'
+          : 'Slot 1 (Pagi 08:00 - 11:30) dibuka kembali untuk pemesanan publik.',
+      );
+    } else if (slotId === 'slot-02') {
+      const nextVal = !this.isSlot2Locked();
+      this.isSlot2Locked.set(nextVal);
+      this.scheduleFeedbackSuccess.set(
+        nextVal
+          ? 'Slot 2 (Siang 13:00 - 16:30) ditutup sementara dari pemesanan publik.'
+          : 'Slot 2 (Siang 13:00 - 16:30) dibuka kembali untuk pemesanan publik.',
+      );
+    } else {
+      const nextVal = !this.isSlot3Locked();
+      this.isSlot3Locked.set(nextVal);
+      this.scheduleFeedbackSuccess.set(
+        nextVal
+          ? 'Slot 3 (Sore 17:30 - 20:00) ditutup sementara dari pemesanan publik.'
+          : 'Slot 3 (Sore 17:30 - 20:00) dibuka kembali untuk pemesanan publik.',
+      );
+    }
+  }
+
+  toggleSpecialHoliday(isoDate: string): void {
+    const holidays = this.specialHolidays();
+    if (holidays.includes(isoDate)) {
+      this.specialHolidays.set(holidays.filter((d) => d !== isoDate));
+      this.scheduleFeedbackSuccess.set(
+        `Tanggal ${isoDate} berhasil dibuka kembali untuk operasional pemesanan.`,
+      );
+    } else {
+      this.specialHolidays.set([...holidays, isoDate]);
+      this.scheduleFeedbackSuccess.set(
+        `Tanggal ${isoDate} berhasil ditandai sebagai libur khusus / cuti.`,
+      );
+    }
   }
 
   resetScheduleToDefault(): void {
@@ -1723,7 +1769,10 @@ export class WorkerDashboardStore implements OnDestroy {
     this.orderLeadTimeHours.set(3);
     this.autoBlockPersonalAgenda.set(true);
     this.selectedScheduleDateSegment.set('Besok');
+    this.isSlot1Locked.set(false);
+    this.isSlot2Locked.set(false);
     this.isSlot3Locked.set(false);
+    this.specialHolidays.set([]);
     this.updateScheduleSyncTimestamp();
     this.scheduleFeedbackSuccess.set(
       'Jadwal kerja dan aturan buffer berhasil diatur ulang ke default!',

@@ -19,11 +19,11 @@ describe('WorkerScheduleSidebarPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('harus memuat ketiga widget: public preview card, manifesto card, dan calendar sync card', () => {
+  it('harus memuat widget pratinjau publik dan TIDAK memuat widget tidak perlu (Anti-Slop)', () => {
     const el = fixture.nativeElement;
     expect(el.querySelector('app-schedule-public-preview-card')).toBeTruthy();
-    expect(el.querySelector('app-schedule-manifesto-card')).toBeTruthy();
-    expect(el.querySelector('app-schedule-calendar-sync-card')).toBeTruthy();
+    expect(el.querySelector('app-schedule-manifesto-card')).toBeNull();
+    expect(el.querySelector('app-schedule-calendar-sync-card')).toBeNull();
   });
 
   it('harus menerima input isSlot3Locked dan meneruskannya ke public preview card', () => {

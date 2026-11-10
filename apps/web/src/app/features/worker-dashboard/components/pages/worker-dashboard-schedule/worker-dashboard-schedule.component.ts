@@ -70,6 +70,34 @@ export class WorkerDashboardScheduleComponent implements OnDestroy {
     }
   }
 
+  setTransitBufferMinutes(minutes: number): void {
+    this.store.setTransitBufferMinutes(minutes);
+  }
+
+  toggleAutoPeakHourBuffer(): void {
+    this.store.toggleAutoPeakHourBuffer();
+  }
+
+  toggleMandatoryLunchBreak(): void {
+    this.store.toggleMandatoryLunchBreak();
+  }
+
+  setSelectedScheduleDateSegment(segment: string): void {
+    this.store.setSelectedScheduleDateSegment(segment);
+  }
+
+  toggleSpecialHoliday(isoDate: string): void {
+    this.store.toggleSpecialHoliday(isoDate);
+  }
+
+  toggleSlotLock(slotId: string): void {
+    this.store.toggleSlotLock(slotId);
+  }
+
+  setOrderLeadTimeHours(hours: number): void {
+    this.store.setOrderLeadTimeHours(hours);
+  }
+
   openSimulationModal(): void {
     this.isSimulationModalOpen.set(true);
   }
@@ -89,12 +117,6 @@ export class WorkerDashboardScheduleComponent implements OnDestroy {
   handleSlotSaved(slot: AddSlotPayload): void {
     this.store.scheduleFeedbackSuccess.set(
       `Slot tambahan untuk ${slot.date} (${slot.start} - ${slot.end} WIB) berhasil dibuka!`
-    );
-  }
-
-  handleManageGoogleSync(): void {
-    this.store.scheduleFeedbackSuccess.set(
-      'Pengaturan sinkronisasi Google Calendar aktif dan berjalan normal.'
     );
   }
 

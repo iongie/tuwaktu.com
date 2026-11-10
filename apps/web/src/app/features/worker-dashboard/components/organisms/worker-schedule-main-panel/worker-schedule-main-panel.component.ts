@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WorkerScheduleItem } from '../../../models/worker-profile.model';
 import { ScheduleBufferSelectorComponent } from '../../molecules/schedule-buffer-selector/schedule-buffer-selector.component';
@@ -26,14 +31,17 @@ import { ScheduleWeeklyMatrixTableComponent } from '../../molecules/schedule-wee
         (toggleLunchBreak)="toggleLunchBreak.emit()"
       />
 
-      <!-- Section 2: Real-Time Slots Timeline -->
+      <!-- Section 2: Real-Time Slots Timeline & Kalender Bulanan -->
       <app-schedule-slot-timeline-card
-        [selectedSegment]="selectedSegment()"
+        [isSlot1Locked]="isSlot1Locked()"
+        [isSlot2Locked]="isSlot2Locked()"
         [isSlot3Locked]="isSlot3Locked()"
+        [specialHolidays]="specialHolidays()"
+        [schedules]="schedules()"
         [publicProfileUrl]="publicProfileUrl()"
         [bufferMinutes]="selectedBufferMinutes()"
         [isTodayEmergencyLocked]="isTodayEmergencyLocked()"
-        (segmentChange)="segmentChange.emit($event)"
+        (toggleHoliday)="toggleHoliday.emit($event)"
         (viewOrderDetails)="viewOrderDetails.emit($event)"
         (editSlotTime)="editSlotTime.emit($event)"
         (toggleSlotLock)="toggleSlotLock.emit($event)"
@@ -56,7 +64,10 @@ export class WorkerScheduleMainPanelComponent {
   readonly autoPeakHourBuffer = input<boolean>(true);
   readonly mandatoryLunchBreak = input<boolean>(true);
   readonly selectedSegment = input<string>('Besok');
+  readonly isSlot1Locked = input<boolean>(false);
+  readonly isSlot2Locked = input<boolean>(false);
   readonly isSlot3Locked = input<boolean>(false);
+  readonly specialHolidays = input<string[]>([]);
   readonly isTodayEmergencyLocked = input<boolean>(false);
   readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly schedules = input<WorkerScheduleItem[]>([]);
@@ -66,6 +77,7 @@ export class WorkerScheduleMainPanelComponent {
   readonly togglePeakHour = output<void>();
   readonly toggleLunchBreak = output<void>();
   readonly segmentChange = output<string>();
+  readonly toggleHoliday = output<string>();
   readonly viewOrderDetails = output<string>();
   readonly editSlotTime = output<string>();
   readonly toggleSlotLock = output<string>();

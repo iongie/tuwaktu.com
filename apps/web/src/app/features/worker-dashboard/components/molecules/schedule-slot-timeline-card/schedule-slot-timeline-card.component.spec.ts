@@ -19,14 +19,78 @@ describe('ScheduleSlotTimelineCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('harus memancarkan segmentChange saat tab filter tanggal diklik', () => {
-    const emitSpy = jest.spyOn(component.segmentChange, 'emit');
-    const segmentButtons = fixture.nativeElement.querySelectorAll('button');
+  it('harus merender kalender grid bulanan dengan nama bulan dan navigasi', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Kalender Kerja & Ketersediaan Slot');
+    expect(component.calendarDays().length).toBeGreaterThanOrEqual(28);
 
-    // Button 0 is 'Hari Ini'
-    segmentButtons[0].click();
+    const prevMonthBtn = el.querySelector('button[aria-label="Bulan Sebelumnya"]') as HTMLButtonElement;
+    const nextMonthBtn = el.querySelector('button[aria-label="Bulan Berikutnya"]') as HTMLButtonElement;
+    expect(prevMonthBtn).toBeTruthy();
+    expect(nextMonthBtn).toBeTruthy();
+  });
 
-    expect(emitSpy).toHaveBeenCalledWith('Hari Ini');
+  it('harus dapat bernavigasi ke bulan sebelumnya dan bulan berikutnya', () => {
+    const initialMonth = component.calendarViewDate().getMonth();
+
+    component.nextMonth();
+    expect(component.calendarViewDate().getMonth()).toBe((initialMonth + 1) % 12);
+
+    component.previousMonth();
+    expect(component.calendarViewDate().getMonth()).toBe(initialMonth);
+
+    component.goToToday();
+    const today = new Date();
+    expect(component.calendarViewDate().getMonth()).toBe(today.getMonth());
+  });
+
+  it('harus memancarkan toggleHoliday saat tombol Tandai Libur Tanggal Ini ditekan', () => {
+    const holidaySpy = jest.spyOn(component.toggleHoliday, 'emit');
+    const toggleBtn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="toggle-date-holiday-btn"]');
+    expect(toggleBtn).toBeTruthy();
+
+    toggleBtn.click();
+    expect(holidaySpy).toHaveBeenCalledWith(component.selectedIsoDate());
+  });
+
+  it('harus menampilkan status hari libur saat tanggal ada di input specialHolidays', () => {
+    const currentIso = component.selectedIsoDate();
+    fixture.componentRef.setInput('specialHolidays', [currentIso]);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Hari Libur Terjadwal');
+    expect(el.textContent).toContain('Buka Operasional Tanggal Ini');
+  });
+
+  it('harus menyediakan tombol kunci mandiri untuk Slot 1, Slot 2, dan Slot 3', () => {
+    const lockSpy = jest.spyOn(component.toggleSlotLock, 'emit');
+
+    const slot1Btn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="toggle-slot-1-btn"]');
+    const slot2Btn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="toggle-slot-2-btn"]');
+    const slot3Btn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="toggle-slot-3-btn"]');
+
+    expect(slot1Btn).toBeTruthy();
+    expect(slot2Btn).toBeTruthy();
+    expect(slot3Btn).toBeTruthy();
+
+    slot1Btn.click();
+    expect(lockSpy).toHaveBeenCalledWith('slot-01');
+
+    slot2Btn.click();
+    expect(lockSpy).toHaveBeenCalledWith('slot-02');
+
+    slot3Btn.click();
+    expect(lockSpy).toHaveBeenCalledWith('slot-03');
+  });
+
+  it('harus menampilkan status ditutup sementara saat isSlot1Locked bernilai true', () => {
+    fixture.componentRef.setInput('isSlot1Locked', true);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Slot Pagi Ditutup dari Pemesanan Publik');
+    expect(el.textContent).toContain('1 dari 3 Slot Terkunci');
   });
 
   it('harus memancarkan viewOrderDetails saat tombol rincian order ditekan', () => {
@@ -48,7 +112,7 @@ describe('ScheduleSlotTimelineCardComponent', () => {
     fixture.detectChanges();
 
     const orderDetailButtons = Array.from(
-      fixture.nativeElement.querySelectorAll('button')
+      fixture.nativeElement.querySelectorAll('button'),
     ).filter((btn) => (btn as HTMLElement).textContent?.includes('Rincian Order')) as HTMLButtonElement[];
 
     expect(orderDetailButtons.length).toBeGreaterThan(0);
@@ -57,65 +121,15 @@ describe('ScheduleSlotTimelineCardComponent', () => {
     expect(emitSpy).toHaveBeenCalledWith('order-ratna');
   });
 
-  it('harus memancarkan toggleSlotLock saat tombol kunci slot ditekan', () => {
-    const emitSpy = jest.spyOn(component.toggleSlotLock, 'emit');
-    const lockButton = Array.from(
-      fixture.nativeElement.querySelectorAll('button')
-    ).find((btn) => (btn as HTMLElement).textContent?.includes('Kunci Slot Ini')) as HTMLButtonElement;
-
-    expect(lockButton).toBeTruthy();
-    lockButton.click();
-
-    expect(emitSpy).toHaveBeenCalledWith('slot-03');
-  });
-
   it('harus memancarkan addCustomSlot saat tombol tambah slot khusus ditekan', () => {
     const emitSpy = jest.spyOn(component.addCustomSlot, 'emit');
     const addSlotButton = Array.from(
-      fixture.nativeElement.querySelectorAll('button')
+      fixture.nativeElement.querySelectorAll('button'),
     ).find((btn) => (btn as HTMLElement).textContent?.includes('Tambah Slot Khusus')) as HTMLButtonElement;
 
     expect(addSlotButton).toBeTruthy();
     addSlotButton.click();
 
     expect(emitSpy).toHaveBeenCalled();
-  });
-
-  it('harus menampilkan kartu hari istirahat mandiri saat segmen Minggu (Libur) aktif', () => {
-    fixture.componentRef.setInput('selectedSegment', 'Minggu (Libur)');
-    fixture.detectChanges();
-
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Hari Istirahat Mandiri Terjadwal');
-    expect(el.textContent).toContain('Kapasitas Slot Minggu:');
-    expect(el.textContent).toContain('0% Kapasitas • Tidak Menerima Pemesanan Publik');
-  });
-
-  it('harus menampilkan peringatan darurat saat segmen Hari Ini aktif dengan status emergency lock', () => {
-    fixture.componentRef.setInput('selectedSegment', 'Hari Ini');
-    fixture.componentRef.setInput('isTodayEmergencyLocked', true);
-    fixture.detectChanges();
-
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Status Darurat Aktif: Semua Slot Hari Ini Terkunci');
-    expect(el.textContent).toContain('Terkunci Sementara (Darurat)');
-  });
-
-  it('harus menampilkan durasi buffer transit sesuai input bufferMinutes', () => {
-    fixture.componentRef.setInput('bufferMinutes', 60);
-    fixture.detectChanges();
-
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('11:30 - 13:00 WIB (60 Menit)');
-    expect(el.textContent).toContain('16:00 - 17:30 WIB (60 Menit)');
-  });
-
-  it('harus memastikan seluruh tombol filter segmen tanggal memiliki target sentuh min-h-[44px]', () => {
-    const segmentButtons = fixture.nativeElement.querySelectorAll('button');
-    const dateButtons = Array.from(segmentButtons).slice(0, 4) as HTMLButtonElement[];
-
-    for (const btn of dateButtons) {
-      expect(btn.classList.contains('min-h-[44px]')).toBe(true);
-    }
   });
 });

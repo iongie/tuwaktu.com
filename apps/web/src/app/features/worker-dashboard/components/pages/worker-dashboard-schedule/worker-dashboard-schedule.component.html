@@ -1,22 +1,17 @@
-<div class="flex flex-col w-full gap-space-2xl">
-  <!-- Top Workspace Context Header -->
+<div class="space-y-space-xl">
+  <!-- Header Section with Quick Emergency Actions -->
   <div class="flex flex-col gap-space-lg">
-    <div class="flex flex-col md:flex-row md:items-start justify-between gap-space-lg">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
       <div class="flex flex-col gap-space-xs">
-        <div class="flex items-center gap-space-xs flex-wrap">
-          <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary tracking-widest uppercase font-bold">
-            Manajemen Waktu &amp; Jadwal
-          </span>
-          <span class="text-ink-secondary text-caption">•</span>
-          <span class="font-micro-uppercase text-micro-uppercase text-voltage-orange tracking-widest uppercase font-bold">
-            Disiplin Transit Mandiri
-          </span>
+        <div class="flex items-center gap-space-xs text-ink-secondary text-caption font-mono-rate">
+          <span class="material-symbols-outlined text-sm">schedule</span>
+          <span>DOKTRIN MANAJEMEN WAKTU &amp; BUFFER OPERASIONAL</span>
         </div>
-        <h1 class="font-heading-1 text-heading-1 text-primary tracking-tight font-bold">
-          Kalender &amp; Slot Kerja
+        <h1 class="font-heading-1 text-heading-1 text-primary font-bold">
+          Manajemen Jadwal &amp; Kapasitas Harian
         </h1>
-        <p class="font-body-default text-body-default text-on-surface-variant max-w-3xl leading-relaxed">
-          Atur ketersediaan jam kerja mingguan, kuota slot per hari, dan proteksi jeda buffer perjalanan (transit) otomatis agar ritme fisik pekerja terlindungi tanpa bentrok jadwal.
+        <p class="font-body-default text-body-default text-ink-secondary">
+          Kendali penuh kedaulatan waktu, kalender kerja bulanan, batas transit, dan status operasional publik.
         </p>
       </div>
 
@@ -25,7 +20,7 @@
         <button
           type="button"
           (click)="openSimulationModal()"
-          class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-lowest text-on-surface hover:bg-surface-highlight transition-colors rounded-lg shadow-xs border border-hairline-subtle font-button-label text-button-label cursor-pointer min-h-[44px]"
+          class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-lowest text-on-surface hover:bg-surface-highlight transition-colors rounded-lg shadow-xs border border-hairline-subtle font-button-label text-button-label cursor-pointer min-h-11"
         >
           <span class="material-symbols-outlined text-[18px]">open_in_new</span>
           <span>Simulasi Kalender Publik</span>
@@ -35,7 +30,7 @@
           id="emergencyLockBtn"
           type="button"
           (click)="toggleEmergencyLock()"
-          class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg shadow-xs font-button-label text-button-label transition-colors cursor-pointer min-h-[44px]"
+          class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg shadow-xs font-button-label text-button-label transition-colors cursor-pointer min-h-11"
           [class.bg-error-surface]="!store.isTodayEmergencyLocked()"
           [class.text-error]="!store.isTodayEmergencyLocked()"
           [class.hover:bg-red-100]="!store.isTodayEmergencyLocked()"
@@ -56,7 +51,7 @@
         <button
           type="button"
           (click)="openAddSlotModal()"
-          class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-high hover:bg-surface-variant text-on-surface transition-colors rounded-lg shadow-xs font-button-label text-button-label cursor-pointer min-h-[44px]"
+          class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-high hover:bg-surface-variant text-on-surface transition-colors rounded-lg shadow-xs font-button-label text-button-label cursor-pointer min-h-11"
         >
           <span class="material-symbols-outlined text-[18px]">add</span>
           <span>Buka Slot Tambahan</span>
@@ -67,7 +62,7 @@
           type="button"
           (click)="submitSchedule()"
           [disabled]="store.isScheduleSubmitting()"
-          class="flex items-center gap-space-xs px-space-md py-space-sm bg-primary hover:bg-neutral-800 text-on-primary rounded-lg shadow-xs font-button-label text-button-label transition-colors cursor-pointer min-h-[44px]"
+          class="flex items-center gap-space-xs px-space-md py-space-sm bg-primary hover:bg-neutral-800 text-on-primary rounded-lg shadow-xs font-button-label text-button-label transition-colors cursor-pointer min-h-11"
         >
           @if (store.isScheduleSubmitting()) {
             <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -83,7 +78,7 @@
       </div>
     </div>
 
-    <!-- Telemetry Alert Strip -->
+    <!-- Strip Informasi Jeda Istirahat & Transit -->
     <div class="bg-surface-container-lowest p-space-md rounded-xl flex items-center justify-between shadow-xs border border-hairline-subtle gap-space-md">
       <div class="flex items-center gap-space-md">
         <div class="w-10 h-10 rounded-xl bg-success-surface flex items-center justify-center shrink-0 border border-success/20">
@@ -91,28 +86,20 @@
         </div>
         <div class="flex flex-col">
           <span class="font-body-strong text-body-strong text-primary font-bold">
-            Protokol Penjaga Stamina Aktif
+            Proteksi Jeda Istirahat &amp; Perjalanan
           </span>
           <span class="font-caption text-caption text-ink-secondary">
-            Pencegahan tabrakan rute aktif otomatis. Booking masuk via WhatsApp divalidasi silang terhadap radius GPS 12km &amp; durasi pemulihan.
+            Setiap pesanan otomatis diberi jeda waktu istirahat dan perjalanan antar lokasi agar jadwal tidak bentrok.
           </span>
         </div>
       </div>
-      <div class="hidden lg:flex items-center gap-space-xl shrink-0">
+      <div class="hidden sm:flex items-center gap-space-xl shrink-0">
         <div class="flex flex-col text-right">
           <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary font-bold tracking-wider">
-            ESTIMASI TRANSIT AMAN
+            ESTIMASI JEDA TRANSIT
           </span>
           <span class="font-mono-rate text-mono-rate text-primary font-bold">
             {{ store.transitBufferMinutes() }} Menit / Trip
-          </span>
-        </div>
-        <div class="flex flex-col text-right">
-          <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary font-bold tracking-wider">
-            EFISIENSI RITME
-          </span>
-          <span class="font-mono-rate text-mono-rate text-success font-bold">
-            96.4% Terjaga
           </span>
         </div>
       </div>
@@ -128,21 +115,25 @@
         [autoPeakHourBuffer]="store.autoPeakHourBuffer()"
         [mandatoryLunchBreak]="store.mandatoryLunchBreak()"
         [selectedSegment]="store.selectedScheduleDateSegment()"
+        [isSlot1Locked]="store.isSlot1Locked()"
+        [isSlot2Locked]="store.isSlot2Locked()"
         [isSlot3Locked]="store.isSlot3Locked()"
+        [specialHolidays]="store.specialHolidays()"
         [isTodayEmergencyLocked]="store.isTodayEmergencyLocked()"
         [publicProfileUrl]="publicProfileDisplayUrl()"
         [schedules]="store.workerSchedules()"
         [leadTimeHours]="store.orderLeadTimeHours()"
-        (bufferMinutesChange)="store.setTransitBufferMinutes($event)"
-        (togglePeakHour)="store.toggleAutoPeakHourBuffer()"
-        (toggleLunchBreak)="store.toggleMandatoryLunchBreak()"
-        (segmentChange)="store.setSelectedScheduleDateSegment($event)"
+        (bufferMinutesChange)="setTransitBufferMinutes($event)"
+        (togglePeakHour)="toggleAutoPeakHourBuffer()"
+        (toggleLunchBreak)="toggleMandatoryLunchBreak()"
+        (segmentChange)="setSelectedScheduleDateSegment($event)"
+        (toggleHoliday)="toggleSpecialHoliday($event)"
         (viewOrderDetails)="openOrderDetailsModal($event)"
         (editSlotTime)="handleEditSlotTime()"
-        (toggleSlotLock)="store.toggleSlot3Lock()"
+        (toggleSlotLock)="toggleSlotLock($event)"
         (addCustomSlot)="openAddSlotModal()"
         (toggleDay)="toggleDay($event)"
-        (leadTimeChange)="store.setOrderLeadTimeHours($event)"
+        (leadTimeChange)="setOrderLeadTimeHours($event)"
       />
     </div>
 
@@ -153,8 +144,6 @@
         [publicProfileUrl]="publicProfileDisplayUrl()"
         [isSlot3Locked]="store.isSlot3Locked()"
         (openPublicSimulation)="openSimulationModal()"
-        (toggleAutoBlock)="store.toggleAutoBlockPersonalAgenda()"
-        (manageGoogleSync)="handleManageGoogleSync()"
       />
     </div>
   </div>

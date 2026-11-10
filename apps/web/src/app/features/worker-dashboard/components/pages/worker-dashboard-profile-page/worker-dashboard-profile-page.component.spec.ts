@@ -41,5 +41,14 @@ describe('WorkerDashboardProfilePageComponent', () => {
     component.submitProfileForm();
     expect(spy).toHaveBeenCalled();
   });
+
+  it('harus merender input email dan memperbarui sinyal workerEmail', async () => {
+    const inputEl = fixture.nativeElement.querySelector('#profileEmailInput') as HTMLInputElement;
+    expect(inputEl).toBeTruthy();
+    store.workerEmail.set('sarah@example.com');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(inputEl.value).toBe('sarah@example.com');
+  });
 });
 

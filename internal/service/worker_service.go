@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/mail"
 	"net/url"
 	"os"
 	"strings"
@@ -198,6 +199,28 @@ func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req 
 		trimmedAvatar := strings.TrimSpace(req.AvatarURL)
 		if !strings.HasPrefix(trimmedAvatar, "http://") && !strings.HasPrefix(trimmedAvatar, "https://") {
 			req.AvatarURL = media.ExtractFilename(trimmedAvatar)
+		}
+	}
+
+	if strings.TrimSpace(req.Email) != "" {
+		trimmedEmail := strings.ToLower(strings.TrimSpace(req.Email))
+		addr, errMail := mail.ParseAddress(trimmedEmail)
+		if errMail != nil || addr.Address != trimmedEmail || !strings.Contains(trimmedEmail, ".") {
+			return nil, fmt.Errorf("%w: format alamat email tidak valid", domain.ErrInvalidInput)
+		}
+		req.Email = trimmedEmail
+
+		existingAcc, errAcc := s.repo.GetAccountByEmailOrPhone(ctx, req.Email)
+		if errAcc == nil && existingAcc != nil {
+			var currentWorkerID string
+			if existingWorker, errW := s.repo.GetByID(ctx, id); errW == nil && existingWorker != nil {
+				currentWorkerID = existingWorker.ID
+			} else if existingWorkerBySlug, errS := s.repo.GetBySlug(ctx, id); errS == nil && existingWorkerBySlug != nil {
+				currentWorkerID = existingWorkerBySlug.ID
+			}
+			if existingAcc.WorkerID == nil || *existingAcc.WorkerID != currentWorkerID {
+				return nil, fmt.Errorf("%w: alamat email sudah digunakan oleh akun lain", domain.ErrInvalidInput)
+			}
 		}
 	}
 
@@ -741,17 +764,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		return nil, fmt.Errorf("memeriksa akun nomor WhatsApp: %w", errPhone)
 	}
 
-	// 2. Cek apakah email terdaftar di worker_accounts
-	email := fmt.Sprintf("%s@tuwaktu.com", workerSlug)
-	existingAccEmail, errEmail := s.repo.GetAccountByEmailOrPhone(ctx, email)
-	if errEmail == nil && existingAccEmail != nil {
-		return nil, fmt.Errorf("%w: Nomor WhatsApp atau slug ini sudah terdaftar sebagai mitra. Silakan masuk.", domain.ErrInvalidInput)
-	}
-	if errEmail != nil && !errors.Is(errEmail, domain.ErrWorkerNotFound) {
-		return nil, fmt.Errorf("memeriksa akun email: %w", errEmail)
-	}
-
-	// 3. Cek keunikan slug di workers
+	// 2. Cek keunikan slug di workers
 	existingWorker, errWorker := s.repo.GetBySlug(ctx, workerSlug)
 	if errWorker == nil && existingWorker != nil {
 		return nil, fmt.Errorf("%w: Slug profil sudah digunakan. Silakan pilih slug lain.", domain.ErrInvalidInput)
@@ -760,7 +773,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		return nil, fmt.Errorf("memeriksa ketersediaan slug: %w", errWorker)
 	}
 
-	// 4. Hash PIN
+	// 3. Hash PIN
 	hashedPassword, err := auth.HashPassword(pin)
 	if err != nil {
 		return nil, fmt.Errorf("melakukan hashing PIN: %w", err)
@@ -778,7 +791,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 	}
 	accountIDStr := accountID.String()
 
-	// 5. Buat entitas Worker baru
+	// 4. Buat entitas Worker baru
 	bio := strings.TrimSpace(payload.SpecialtyLabel)
 	if bio != "" {
 		bio = fmt.Sprintf("Mitra mandiri spesialis %s di wilayah %s.", bio, zone)
@@ -802,12 +815,12 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		ExtraFeePerKM:  0,
 		PhoneNumber:    sanitizedWA,
 		WhatsAppNumber: sanitizedWA,
-		Email:          email,
+		Email:          "",
 		Address:        zone,
 		IsActive:       false,
 	}
 
-	// 6. Buat 7 default jadwal kerja (Senin s/d Minggu)
+	// 5. Buat 7 default jadwal kerja (Senin s/d Minggu)
 	defaultSchedules := []domain.WorkerSchedule{
 		{DayOfWeek: 0, IsActive: false, SlotMorning: false, SlotAfternoon: false, SlotEvening: false},
 		{DayOfWeek: 1, IsActive: true, SlotMorning: true, SlotAfternoon: true, SlotEvening: false},
@@ -818,11 +831,11 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 		{DayOfWeek: 6, IsActive: true, SlotMorning: true, SlotAfternoon: false, SlotEvening: false},
 	}
 
-	// 7. Buat WorkerAccount baru dengan status PENDING menunggu aktivasi WhatsApp Admin
+	// 6. Buat WorkerAccount baru dengan status PENDING menunggu aktivasi WhatsApp Admin
 	newAccount := domain.WorkerAccount{
 		ID:                 accountIDStr,
 		WorkerID:           &workerIDStr,
-		Email:              email,
+		Email:              "",
 		PhoneNumber:        sanitizedWA,
 		PasswordHash:       hashedPassword,
 		Role:               domain.RoleWorker,

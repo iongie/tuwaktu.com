@@ -261,6 +261,7 @@ func (r *PostgresWorkerRepository) UpdateProfile(ctx context.Context, id string,
 	}
 	if strings.TrimSpace(profile.Email) != "" {
 		worker.Email = strings.TrimSpace(profile.Email)
+		_ = r.db.WithContext(ctx).Model(&domain.WorkerAccount{}).Where("worker_id = ?", worker.ID).Update("email", worker.Email).Error
 	}
 	if strings.TrimSpace(profile.Address) != "" {
 		worker.Address = strings.TrimSpace(profile.Address)

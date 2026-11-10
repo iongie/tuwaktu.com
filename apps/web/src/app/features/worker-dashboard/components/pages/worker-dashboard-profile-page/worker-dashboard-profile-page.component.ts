@@ -98,6 +98,29 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
                 />
               </div>
 
+              <!-- Alamat Email (Opsional) -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label
+                    for="profileEmailInput"
+                    class="block text-xs font-bold tracking-wide uppercase text-on-surface"
+                  >
+                    Alamat Email (Opsional)
+                  </label>
+                  <span class="text-[11px] text-ink-secondary">Identitas masuk alternatif</span>
+                </div>
+                <input
+                  id="profileEmailInput"
+                  type="email"
+                  [ngModel]="store.workerEmail()"
+                  (ngModelChange)="store.workerEmail.set($event)"
+                  name="workerEmail"
+                  placeholder="Contoh: sarah@email.com"
+                  maxlength="100"
+                  class="w-full px-4 py-2.5 rounded-lg border border-hairline-subtle bg-surface-highlight text-on-surface text-sm focus:outline-hidden focus:border-primary focus:bg-white transition-colors"
+                />
+              </div>
+
               <!-- Spesialisasi / Profesi & Wilayah -->
               <div class="space-y-1.5">
                 <label

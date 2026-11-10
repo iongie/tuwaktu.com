@@ -294,6 +294,11 @@ func (m *MemoryRepository) UpdateProfile(ctx context.Context, id string, profile
 	}
 	if strings.TrimSpace(profile.Email) != "" {
 		w.Email = strings.TrimSpace(profile.Email)
+		for _, acc := range m.accounts {
+			if acc.WorkerID != nil && *acc.WorkerID == w.ID {
+				acc.Email = w.Email
+			}
+		}
 	}
 	if strings.TrimSpace(profile.Address) != "" {
 		w.Address = strings.TrimSpace(profile.Address)

@@ -394,6 +394,16 @@ export class AuthService {
     }
   }
 
+  updateSessionEmail(email: string): void {
+    const current = this.currentUser();
+    if (current) {
+      this.currentUser.set({
+        ...current,
+        email,
+      });
+    }
+  }
+
   register(formData: RegisterFormData): Observable<AuthRegisterResult> {
     const validation = this.validateRegistration(formData);
     if (!validation.isValid) {

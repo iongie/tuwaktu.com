@@ -229,6 +229,54 @@ func TestWorkerService_UpdateWorkerProfile(t *testing.T) {
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Nil(t, profile)
 	})
+
+	t.Run("rejects invalid email format", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedWorker(&domain.Worker{
+			ID:       "w-mail-1",
+			Slug:     "worker-mail",
+			Name:     "Worker Mail",
+			IsActive: true,
+		})
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerProfile(ctx, "w-mail-1", &domain.WorkerProfileUpdate{
+			Name:  "Worker Mail",
+			Email: "invalid-email-format",
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "format alamat email tidak valid")
+	})
+
+	t.Run("rejects email already used by another worker account", func(t *testing.T) {
+		repo := repository.NewMemoryRepository()
+		repo.SeedWorker(&domain.Worker{
+			ID:       "w-mail-1",
+			Slug:     "worker-1",
+			Name:     "Worker One",
+			IsActive: true,
+		})
+		repo.SeedWorker(&domain.Worker{
+			ID:       "w-mail-2",
+			Slug:     "worker-2",
+			Name:     "Worker Two",
+			IsActive: true,
+		})
+		otherWorkerID := "w-mail-1"
+		repo.SeedAccount(&domain.WorkerAccount{
+			ID:       "acc-mail-1",
+			WorkerID: &otherWorkerID,
+			Email:    "taken@example.com",
+		})
+		svc := service.NewWorkerService(repo)
+
+		_, err := svc.UpdateWorkerProfile(ctx, "w-mail-2", &domain.WorkerProfileUpdate{
+			Name:  "Worker Two",
+			Email: "taken@example.com",
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "alamat email sudah digunakan oleh akun lain")
+	})
 }
 
 func TestWorkerService_UpdateWorkerRates(t *testing.T) {
@@ -688,11 +736,12 @@ func TestWorkerService_RegisterWorker(t *testing.T) {
 		assert.NotEmpty(t, resp.WhatsAppMessage)
 		assert.Contains(t, resp.WhatsAppMessage, "Halo Admin Tuwaktu")
 
-		// Verifikasi worker tersimpan di repo dengan status awal IsActive = false (pending)
+		// Verifikasi worker tersimpan di repo dengan status awal IsActive = false (pending) dan email kosong
 		w, err := repo.GetBySlug(ctx, "budi-ac-jakarta")
 		require.NoError(t, err)
 		assert.Equal(t, "Budi Santoso", w.Name)
 		assert.Equal(t, 75000.0, w.BasePrice)
+		assert.Empty(t, w.Email)
 		assert.False(t, w.IsActive)
 
 		// Verifikasi jadwal kerja terbuat untuk 7 hari
@@ -1077,6 +1126,13 @@ func TestWorkerService_Authenticate_LockoutAndAdminPIN(t *testing.T) {
 		token := strings.Split(regResp.ActivationURL, "token=")[1]
 		_, errAct := svc.ActivateWorkerByToken(ctx, token)
 		require.NoError(t, errAct)
+
+		// Mitra mengisi email di profil
+		_, errUpdateProfile := svc.UpdateWorkerProfile(ctx, "hendra-teknisi", &domain.WorkerProfileUpdate{
+			Name:  "Hendra Teknisi",
+			Email: "hendra-teknisi@tuwaktu.com",
+		})
+		require.NoError(t, errUpdateProfile)
 
 		// 4 kali gagal via WhatsApp
 		for i := 1; i <= 4; i++ {

@@ -259,6 +259,7 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly workerRecordId = signal<string>('');
   readonly workerSlugIdentifier = signal<string>('');
   readonly workerFullName = signal<string>('');
+  readonly workerEmail = signal<string>('');
   readonly workerProfessionZone = signal<string>('');
   readonly workerBioDescription = signal<string>('');
   readonly workerAvatarUrl = signal<string>('');
@@ -1090,6 +1091,7 @@ export class WorkerDashboardStore implements OnDestroy {
     profile: {
       slug: string;
       name: string;
+      email?: string;
       zone: string;
       bio?: string;
       avatar_url?: string;
@@ -1107,6 +1109,8 @@ export class WorkerDashboardStore implements OnDestroy {
     this.workerRecordId.set(id);
     this.workerSlugIdentifier.set(profile.slug);
     this.workerFullName.set(profile.name);
+    const sessionEmail = this.authService?.currentUser()?.email || '';
+    this.workerEmail.set(profile.email || sessionEmail);
     this.workerProfessionZone.set(profile.zone);
     if (profile.zone && profile.zone.trim()) {
       this.workerBasecampAddress.set(`Basecamp Area ${profile.zone.trim()}`);
@@ -1288,6 +1292,7 @@ export class WorkerDashboardStore implements OnDestroy {
       : '';
     const payload: WorkerProfileUpdatePayload = {
       name: this.workerFullName().trim(),
+      email: this.workerEmail().trim(),
       zone: this.workerProfessionZone().trim(),
       bio: this.workerBioDescription().trim(),
       avatar_url: this.workerAvatarUrl().trim(),
@@ -1301,6 +1306,9 @@ export class WorkerDashboardStore implements OnDestroy {
           this.profileFeedbackSuccess.set(
             'Profil pekerja berhasil diperbarui!',
           );
+          if (this.authService && payload.email) {
+            this.authService.updateSessionEmail(payload.email);
+          }
           if (response.data) {
             this.workerFullName.set(response.data.name);
             this.workerProfessionZone.set(response.data.zone);

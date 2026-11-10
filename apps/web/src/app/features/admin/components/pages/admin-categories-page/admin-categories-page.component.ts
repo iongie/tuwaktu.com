@@ -10,6 +10,7 @@ import { AdminCategoryStore } from '../../../services/admin-category.store';
 import { AdminCategoriesTableComponent } from '../../organisms/admin-categories-table/admin-categories-table.component';
 import { AdminCategoryModalComponent } from '../../organisms/admin-category-modal/admin-category-modal.component';
 import { AdminCategoryFilterBarComponent } from '../../molecules/admin-category-filter-bar/admin-category-filter-bar.component';
+import { FeedbackAlertBannerComponent } from '../../../../worker-dashboard/components/molecules/feedback-alert-banner/feedback-alert-banner.component';
 import {
   AdminCategory,
   CreateAdminCategoryPayload,
@@ -24,6 +25,7 @@ import {
     AdminCategoryFilterBarComponent,
     AdminCategoriesTableComponent,
     AdminCategoryModalComponent,
+    FeedbackAlertBannerComponent,
   ],
   templateUrl: './admin-categories-page.component.html',
 })

@@ -8,6 +8,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AdminWorkerStore } from '../../../services/admin-worker.store';
 import { AdminWorkerFilterBarComponent } from '../../molecules/admin-worker-filter-bar/admin-worker-filter-bar.component';
 import { AdminWorkersTableComponent } from '../../organisms/admin-workers-table/admin-workers-table.component';
+import { FeedbackAlertBannerComponent } from '../../../../worker-dashboard/components/molecules/feedback-alert-banner/feedback-alert-banner.component';
 
 @Component({
   selector: 'app-admin-workers-page',
@@ -17,6 +18,7 @@ import { AdminWorkersTableComponent } from '../../organisms/admin-workers-table/
     RouterLink,
     AdminWorkerFilterBarComponent,
     AdminWorkersTableComponent,
+    FeedbackAlertBannerComponent,
   ],
   templateUrl: './admin-workers-page.component.html',
 })

@@ -113,4 +113,38 @@ describe('AdminCategoriesPageComponent', () => {
     component.handleToggleStatus(mockCategories[0]);
     expect(mockStore.toggleStatus).toHaveBeenCalledWith(mockCategories[0]);
   });
+
+  it('merender floating toast feedback sukses saat store.feedbackMessage memiliki nilai', () => {
+    (mockStore.feedbackMessage as any).set('Kategori berhasil diperbarui');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('[data-testid="category-feedback-banner"]');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Kategori berhasil diperbarui');
+
+    const dismissBtn = fixture.nativeElement.querySelector('[data-testid="category-feedback-dismiss-btn"]');
+    expect(dismissBtn).toBeTruthy();
+    dismissBtn.click();
+    expect(mockStore.clearFeedback).toHaveBeenCalled();
+  });
+
+  it('merender floating toast error saat store.errorMessage memiliki nilai', () => {
+    (mockStore.errorMessage as any).set('Gagal memuat kategori dari server');
+    fixture.detectChanges();
+
+    const banner = fixture.nativeElement.querySelector('[data-testid="category-error-banner"]');
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Kendala Operasi Kategori');
+    expect(banner.textContent).toContain('Gagal memuat kategori dari server');
+
+    const retryBtn = fixture.nativeElement.querySelector('[data-testid="category-retry-btn"]');
+    expect(retryBtn).toBeTruthy();
+    retryBtn.click();
+    expect(mockStore.loadCategories).toHaveBeenCalled();
+
+    const dismissBtn = fixture.nativeElement.querySelector('[data-testid="category-error-dismiss-btn"]');
+    expect(dismissBtn).toBeTruthy();
+    dismissBtn.click();
+    expect(mockStore.clearError).toHaveBeenCalled();
+  });
 });

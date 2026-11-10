@@ -14,67 +14,32 @@
     </div>
   </header>
 
-  <!-- Banner Notifikasi Error -->
+  <!-- Notifikasi Error Floating Toast -->
   @if (store.errorMessage()) {
-    <div
-      role="alert"
-      class="p-4 rounded-[10px] bg-red-50 border border-red-200 text-red-950 text-xs flex items-center justify-between gap-4 transition-all shadow-none"
-      data-testid="admin-error-banner"
-    >
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[18px]">error</span>
-        </div>
-        <div>
-          <div class="font-bold text-red-950 font-mono-rate uppercase tracking-wider text-[11px]">Kendala Koneksi atau Otentikasi API</div>
-          <p class="text-xs text-red-800 mt-0.5">{{ store.errorMessage() }}</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button
-          type="button"
-          class="min-h-[40px] px-3.5 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 text-xs font-bold uppercase tracking-wider font-mono-rate transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-none"
-          (click)="store.loadWorkers()"
-          aria-label="Coba lagi memuat data"
-          data-testid="admin-error-retry-btn"
-        >
-          <span class="material-symbols-outlined text-[16px]">sync</span>
-          <span>Coba Lagi</span>
-        </button>
-        <button
-          type="button"
-          class="min-w-[40px] min-h-[40px] flex items-center justify-center text-red-700 hover:text-red-900 cursor-pointer rounded hover:bg-red-100 transition-colors"
-          (click)="store.clearError()"
-          aria-label="Tutup pesan error"
-          data-testid="admin-error-dismiss-btn"
-        >
-          <span class="material-symbols-outlined text-[18px]">close</span>
-        </button>
-      </div>
-    </div>
+    <app-feedback-alert-banner
+      [message]="store.errorMessage()"
+      type="error"
+      title="Kendala Koneksi atau Otentikasi API"
+      [hasRetry]="true"
+      retryLabel="Coba Lagi"
+      testId="admin-error-banner"
+      retryTestId="admin-error-retry-btn"
+      dismissTestId="admin-error-dismiss-btn"
+      (retryAction)="store.loadWorkers()"
+      (dismiss)="store.clearError()"
+    />
   }
 
-  <!-- System Feedback Banner (Sinkronisasi & Notifikasi Sukses) -->
+  <!-- Notifikasi Sukses Floating Toast (Auto-dismiss 4 detik) -->
   @if (store.feedbackMessage()) {
-    <div class="flex items-center justify-between p-3.5 bg-whatsapp-surface border border-whatsapp-green/30 rounded-[10px] text-whatsapp-ink text-xs transition-all duration-200">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-8 h-8 rounded bg-whatsapp-surface flex items-center justify-center shrink-0 border border-whatsapp-green/20">
-          <span class="material-symbols-outlined text-whatsapp-green text-[18px]">check_circle</span>
-        </div>
-        <div class="flex flex-col min-w-0">
-          <span class="font-bold text-whatsapp-ink font-mono-rate uppercase tracking-wider text-[11px]">Status Sinkronisasi</span>
-          <span class="text-xs text-whatsapp-ink/90 truncate">{{ store.feedbackMessage() }}</span>
-        </div>
-      </div>
-      <button
-        type="button"
-        class="min-w-[36px] min-h-[36px] flex items-center justify-center hover:bg-whatsapp-green/10 rounded transition-colors shrink-0 text-whatsapp-ink cursor-pointer"
-        (click)="store.clearFeedback()"
-        aria-label="Tutup notifikasi"
-      >
-        <span class="material-symbols-outlined text-[18px]">close</span>
-      </button>
-    </div>
+    <app-feedback-alert-banner
+      [message]="store.feedbackMessage()"
+      type="success"
+      title="Status Sinkronisasi"
+      testId="admin-feedback-banner"
+      dismissTestId="admin-feedback-dismiss-btn"
+      (dismiss)="store.clearFeedback()"
+    />
   }
 
   <!-- SECTION 2: BENTO GRID HEADER & PRIMARY KPIS -->

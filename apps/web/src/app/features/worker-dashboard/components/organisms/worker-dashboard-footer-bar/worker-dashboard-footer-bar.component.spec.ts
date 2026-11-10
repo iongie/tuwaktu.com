@@ -30,77 +30,46 @@ describe('WorkerDashboardFooterBarComponent', () => {
     fixture.detectChanges();
   });
 
-  it('harus merender tombol Simpan Perubahan dan Batal sesuai rancangan Stitch', () => {
+  it('harus merender status tersinkronisasi dan tombol Lihat Halaman Publik', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Simpan Perubahan');
-    expect(el.textContent).toContain('Batal');
-    expect(el.textContent).toContain('Perubahan tersimpan otomatis ke profil publik');
+    expect(el.textContent).toContain('Tersinkronisasi ke Profil Publik');
+    expect(el.textContent).toContain('Lihat Halaman Publik');
+    expect(el.textContent).toContain('Sinkronisasi terakhir:');
+
+    // Memastikan tidak ada lagi tombol simpan ganda di footer
+    expect(el.textContent).not.toContain('Simpan Perubahan');
+    expect(el.textContent).not.toContain('Batal');
+
+    const linkEl = el.querySelector('#btn-footer-view-public-profile') as HTMLAnchorElement;
+    expect(linkEl).toBeTruthy();
+    expect(linkEl.getAttribute('target')).toBe('_blank');
   });
 
-  it('harus memancarkan resetSelection saat tombol Batal diklik di luar rute logistik', () => {
-    let resetEmitted = false;
-    component.resetSelection.subscribe(() => {
-      resetEmitted = true;
-    });
+  it('harus mengarahkan tombol Lihat Halaman Publik ke URL slug profil pekerja yang aktif', () => {
+    store.workerSlugIdentifier.set('sarah-cleaner');
+    fixture.detectChanges();
 
-    const batalBtn: HTMLButtonElement = fixture.nativeElement.querySelectorAll('button')[0];
-    batalBtn.click();
-    expect(resetEmitted).toBe(true);
+    const linkEl = fixture.nativeElement.querySelector('#btn-footer-view-public-profile') as HTMLAnchorElement;
+    expect(linkEl.href).toContain('sarah-cleaner');
   });
 
-  it('harus memanggil submitRatesUpdate saat simpan diklik pada rute tarif', () => {
-    jest.spyOn(store, 'submitRatesUpdate');
-    component.saveChanges();
-    expect(store.submitRatesUpdate).toHaveBeenCalled();
-  });
-
-  it('harus memanggil submitLocationSettingsUpdate saat simpan diklik pada rute logistik', () => {
+  it('harus menampilkan timestamp logistik saat berada di rute logistik', () => {
     mockRouter.url = '/dashboard/logistik-radius';
-    fixture.detectChanges();
-
-    jest.spyOn(store, 'submitLocationSettingsUpdate');
-    component.saveChanges();
-    expect(store.submitLocationSettingsUpdate).toHaveBeenCalled();
-  });
-
-  it('harus memanggil resetLocationToDefault saat Batal diklik pada rute logistik', () => {
-    mockRouter.url = '/dashboard/logistik-radius';
-    fixture.detectChanges();
-
-    jest.spyOn(store, 'resetLocationToDefault');
-    component.cancelChanges();
-    expect(store.resetLocationToDefault).toHaveBeenCalled();
-  });
-
-  it('harus memanggil submitScheduleUpdate saat simpan diklik pada rute kalender', () => {
-    mockRouter.url = '/dashboard/kalender-slot';
-    fixture.detectChanges();
-
-    jest.spyOn(store, 'submitScheduleUpdate');
-    component.saveChanges();
-    expect(store.submitScheduleUpdate).toHaveBeenCalled();
-  });
-
-  it('harus memanggil resetScheduleToDefault saat Batal diklik pada rute kalender', () => {
-    mockRouter.url = '/dashboard/kalender-slot';
-    fixture.detectChanges();
-
-    jest.spyOn(store, 'resetScheduleToDefault');
-    component.cancelChanges();
-    expect(store.resetScheduleToDefault).toHaveBeenCalled();
-  });
-
-  it('harus menampilkan teks dan tombol operasional presisi Stitch saat berada di rute kalender-slot', () => {
-    mockRouter.url = '/dashboard/kalender-slot';
+    store.lastLocationSyncTimestamp.set('Kemarin, 10:00 WIB');
     component.cdr.markForCheck();
     fixture.detectChanges();
 
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Sinkronisasi Instan ke WhatsApp Pemesan');
-    expect(el.textContent).toContain('Atur Ulang Default');
-    expect(el.textContent).toContain('Simpan Perubahan Jadwal');
+    expect(el.textContent).toContain('Kemarin, 10:00 WIB');
+  });
 
-    const saveBtn = el.querySelector('#saveScheduleBtn');
-    expect(saveBtn).toBeTruthy();
+  it('harus menampilkan timestamp jadwal saat berada di rute kalender-slot', () => {
+    mockRouter.url = '/dashboard/kalender-slot';
+    store.lastScheduleSyncTimestamp.set('Hari ini, 09:15 WIB');
+    component.cdr.markForCheck();
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('Hari ini, 09:15 WIB');
   });
 });

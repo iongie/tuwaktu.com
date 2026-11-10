@@ -56,6 +56,14 @@ describe('WorkerDashboardScheduleComponent', () => {
     expect(component.isSaveScheduleSuccess()).toBe(true);
   });
 
+  it('harus merender tombol Simpan Perubahan Jadwal di header dan memanggil submitSchedule saat diklik', () => {
+    const saveBtn = fixture.nativeElement.querySelector('#btn-header-sync-schedule') as HTMLButtonElement;
+    expect(saveBtn).toBeTruthy();
+    const spy = jest.spyOn(component, 'submitSchedule');
+    saveBtn.click();
+    expect(spy).toHaveBeenCalled();
+  });
+
   it('harus mengubah emergency lock saat toggleEmergencyLock dipanggil', () => {
     expect(store.isTodayEmergencyLocked()).toBe(false);
 

@@ -530,7 +530,7 @@ export class WorkerServiceEditorPageComponent implements OnInit {
   readonly isEditMode = computed(() => !!this.serviceId());
 
   readonly name = signal<string>('');
-  readonly categoryId = signal<string>('11111111-1111-4111-8111-111111111111');
+  readonly categoryId = signal<string>('');
   readonly rateType = signal<'HOURLY' | 'UNIT'>('HOURLY');
   readonly price = signal<number>(75000);
   readonly durationMinutes = signal<number>(60);
@@ -540,21 +540,17 @@ export class WorkerServiceEditorPageComponent implements OnInit {
   readonly isSubmitting = signal<boolean>(false);
   readonly formErrorMessage = signal<string | null>(null);
 
-  readonly categoriesList = signal<{ id: string; name: string }[]>([
-    { id: '11111111-1111-4111-8111-111111111111', name: 'Servis & Pasang AC' },
-    { id: '22222222-2222-4222-8222-222222222222', name: 'Sanitasi & Deep Clean' },
-    { id: '33333333-3333-4333-8333-333333333333', name: 'Instalasi Listrik Presisi' },
-    { id: '44444444-4444-4444-8444-444444444444', name: 'Reparasi Elektronik' },
-  ]);
+  readonly categoriesList = signal<{ id: string; name: string }[]>([]);
 
   readonly selectedCategoryName = computed<string>(() => {
     const cat = this.categoriesList().find((c) => c.id === this.categoryId());
-    return cat ? cat.name : 'Servis & Pasang AC';
+    return cat ? cat.name : 'Belum Dipilih';
   });
 
   readonly isFormValid = computed<boolean>(() => {
     return (
       this.name().trim().length >= 3 &&
+      this.categoryId().trim().length > 0 &&
       this.price() > 0 &&
       this.durationMinutes() >= 15
     );
@@ -606,7 +602,11 @@ export class WorkerServiceEditorPageComponent implements OnInit {
 
   handleSaveService(): void {
     if (!this.isFormValid()) {
-      this.formErrorMessage.set('Mohon lengkapi nama layanan (min. 3 karakter) dan nominal tarif.');
+      if (!this.categoryId().trim()) {
+        this.formErrorMessage.set('Mohon pilih kategori keahlian untuk layanan ini.');
+      } else {
+        this.formErrorMessage.set('Mohon lengkapi nama layanan (min. 3 karakter) dan nominal tarif.');
+      }
       return;
     }
 

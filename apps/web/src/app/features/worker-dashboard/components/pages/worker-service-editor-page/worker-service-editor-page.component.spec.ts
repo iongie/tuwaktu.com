@@ -82,6 +82,7 @@ describe('WorkerServiceEditorPageComponent', () => {
 
   it('harus menolak simpan jika nama layanan kurang dari 3 karakter', () => {
     component.name.set('AC');
+    component.categoryId.set('cat-123');
     expect(component.isFormValid()).toBe(false);
 
     component.handleSaveService();
@@ -89,8 +90,19 @@ describe('WorkerServiceEditorPageComponent', () => {
     expect(component.formErrorMessage()).toContain('nama layanan');
   });
 
+  it('harus menolak simpan jika kategori belum dipilih', () => {
+    component.name.set('Servis Berkala');
+    component.categoryId.set('');
+    expect(component.isFormValid()).toBe(false);
+
+    component.handleSaveService();
+    expect(mockStore.addNewCatalogService).not.toHaveBeenCalled();
+    expect(component.formErrorMessage()).toContain('kategori');
+  });
+
   it('harus memanggil addNewCatalogService dan bernavigasi balik saat form valid', () => {
     component.name.set('Instalasi Stop Kontak Baru');
+    component.categoryId.set('cat-123');
     component.price.set(50000);
     component.durationMinutes.set(45);
     fixture.detectChanges();

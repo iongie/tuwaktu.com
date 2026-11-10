@@ -43,7 +43,11 @@ export class AuthService {
     }
   })();
 
-  readonly specialtyOptions: readonly SpecialtyOption[] = INITIAL_SPECIALTY_OPTIONS;
+  private readonly _specialtyOptions = signal<readonly SpecialtyOption[]>(INITIAL_SPECIALTY_OPTIONS);
+
+  get specialtyOptions(): readonly SpecialtyOption[] {
+    return this._specialtyOptions();
+  }
 
   readonly selectedSpecialty = signal<SpecialtyOption>(INITIAL_SPECIALTY_OPTIONS[0]);
   readonly otpStatus = signal<OtpDispatchStatus>('idle');
@@ -60,6 +64,9 @@ export class AuthService {
   private get normalizedBaseUrl(): string {
     return (this.configuredBaseUrl || 'http://localhost:3000').replace(/\/+$/, '');
   }
+
+  private hasLoadedSpecialties = false;
+  private isLoadingSpecialties = false;
 
   hasHttpClient(): boolean {
     return Boolean(this.httpClient);
@@ -510,6 +517,56 @@ export class AuthService {
     }
   }
 
+  loadSpecialties(force = false): void {
+    if (!this.httpClient) return;
+    if (this.hasLoadedSpecialties && !force) return;
+    if (this.isLoadingSpecialties) return;
+
+    this.isLoadingSpecialties = true;
+    this.httpClient
+      .get<{ success: boolean; data: Array<{ id: string; name?: string; title?: string }> }>(
+        `${this.normalizedBaseUrl}/api/v1/public/categories`
+      )
+      .pipe(
+        catchError(() =>
+          this.httpClient!.get<{ success: boolean; data: Array<{ id: string; name?: string; title?: string }> }>(
+            `${this.normalizedBaseUrl}/api/public/categories`
+          )
+        ),
+        catchError(() => of(null)),
+        finalize(() => {
+          this.isLoadingSpecialties = false;
+        })
+      )
+      .subscribe({
+        next: (resp) => {
+          if (resp && resp.success && Array.isArray(resp.data) && resp.data.length > 0) {
+            this.hasLoadedSpecialties = true;
+            const dynamicList: SpecialtyOption[] = resp.data.map((item) => ({
+              id: item.id,
+              label: item.title || item.name || 'Spesialisasi',
+              colSpan: false,
+            }));
+            dynamicList.push({
+              id: 'general',
+              label: 'Lainnya / Teknisi Multitalenta',
+              colSpan: true,
+            });
+            this._specialtyOptions.set(dynamicList);
+
+            const current = this.selectedSpecialty();
+            const exists = dynamicList.find((opt) => opt.id === current.id);
+            if (!exists && dynamicList.length > 0) {
+              this.selectedSpecialty.set(dynamicList[0]);
+            }
+          }
+        },
+        error: () => {
+          // Tetap mempertahankan INITIAL_SPECIALTY_OPTIONS
+        },
+      });
+  }
+
   validateSlug(slug: string): SlugValidationState {
     const clean = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
     if (!clean) {
@@ -852,7 +909,7 @@ export class AuthService {
           whatsapp_share_url: 'https://wa.me/6281234567890',
           whatsapp_web_url: 'https://web.whatsapp.com/send?phone=6281234567890',
           whatsapp_message: 'Halo Mitra Tuwaktu',
-          execution_url: 'http://localhost:4200/reset-credential?token=mock_exec',
+          execution_url: 'https://tuwaktu.com/reset-credential?token=mock_exec',
           expires_in_minutes: 10,
         },
       });

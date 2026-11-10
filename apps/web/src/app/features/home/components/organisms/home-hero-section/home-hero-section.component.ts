@@ -321,26 +321,46 @@ export class HomeHeroSectionComponent implements OnInit {
       .slice(0, 4);
   });
 
+  readonly dynamicCategories = signal<string[]>([]);
+
   readonly filteredCategorySuggestions = computed<string[]>(() => {
     const q = this.specialtyQuery().trim().toLowerCase();
     if (!q) return [];
 
-    const baseCategories = [
-      'Servis AC',
-      'Instalasi Listrik',
-      'Sanitasi Deep Clean',
-      'Elektronik & Audio',
-      'Service Kulkas',
-      'Pipa & Saluran Air',
-    ];
+    const categoriesPool = this.dynamicCategories().length > 0
+      ? this.dynamicCategories()
+      : [
+          'Servis AC',
+          'Instalasi Listrik',
+          'Sanitasi Deep Clean',
+          'Elektronik & Audio',
+          'Service Kulkas',
+          'Pipa & Saluran Air',
+        ];
 
-    return baseCategories
+    return categoriesPool
       .filter((cat) => cat.toLowerCase().includes(q))
       .slice(0, 3);
   });
 
   ngOnInit(): void {
     this.loadWorkers();
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    if (this.homeApiService && typeof this.homeApiService.fetchPublicCategories === 'function') {
+      this.homeApiService.fetchPublicCategories().subscribe({
+        next: (cats) => {
+          if (Array.isArray(cats) && cats.length > 0) {
+            this.dynamicCategories.set(cats.map((c) => c.title));
+          }
+        },
+        error: () => {
+          // Fallback gracefully jika ada kendala jaringan
+        },
+      });
+    }
   }
 
   loadWorkers(): void {

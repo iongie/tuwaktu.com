@@ -239,8 +239,13 @@ export class WorkerDashboardReviewsComponent implements OnInit {
   loadReviews(): void {
     const workerId =
       this.store.workerRecordId() ||
-      this.store.workerSlugIdentifier() ||
-      'budi-santoso';
+      this.store.workerSlugIdentifier();
+
+    if (!workerId) {
+      this.isLoading.set(false);
+      this.reviews.set([]);
+      return;
+    }
 
     this.isLoading.set(true);
     this.apiService.fetchWorkerReviews(workerId, 50, 0).subscribe({

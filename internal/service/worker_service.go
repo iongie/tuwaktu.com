@@ -859,7 +859,7 @@ func (s *workerService) RegisterWorker(ctx context.Context, payload *domain.Auth
 	adminWA := normalizeAdminWhatsAppNumber(os.Getenv("ADMIN_WHATSAPP_NUMBER"))
 	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("APP_BASE_URL")), "/")
 	if baseURL == "" {
-		baseURL = "http://localhost:3000"
+		baseURL = "https://tuwaktu.com"
 	}
 
 	activationURL := fmt.Sprintf("%s/api/admin/workers/activate?token=%s", baseURL, rawToken)
@@ -1446,7 +1446,7 @@ func getWebBaseURL() string {
 		webBaseURL = strings.TrimRight(strings.TrimSpace(os.Getenv("APP_BASE_URL")), "/")
 	}
 	if webBaseURL == "" {
-		webBaseURL = "http://localhost:4200"
+		webBaseURL = "https://tuwaktu.com"
 	}
 	return webBaseURL
 }

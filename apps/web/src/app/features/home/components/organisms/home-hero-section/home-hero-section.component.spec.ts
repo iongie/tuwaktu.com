@@ -50,6 +50,7 @@ describe('HomeHeroSectionComponent', () => {
   beforeEach(async () => {
     mockHomeApiService = {
       fetchPublicWorkers: jest.fn().mockReturnValue(of(mockWorkers)),
+      fetchPublicCategories: jest.fn().mockReturnValue(of([])),
     };
 
     const mockAnalyticsService = {

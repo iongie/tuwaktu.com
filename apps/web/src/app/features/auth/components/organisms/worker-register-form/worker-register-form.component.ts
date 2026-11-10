@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   OnDestroy,
+  OnInit,
   output,
   signal,
 } from '@angular/core';
@@ -400,13 +401,17 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WorkerRegisterFormComponent implements OnDestroy {
+export class WorkerRegisterFormComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private redirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private userManuallyEditedSlug = false;
 
   readonly basecampChange = output<string>();
+
+  ngOnInit(): void {
+    this.authService.loadSpecialties();
+  }
 
   fullName = '';
   waNumber = '';

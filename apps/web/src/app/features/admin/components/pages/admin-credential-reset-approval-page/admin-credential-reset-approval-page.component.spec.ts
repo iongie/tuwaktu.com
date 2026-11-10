@@ -72,7 +72,7 @@ describe('AdminCredentialResetApprovalPageComponent', () => {
       whatsapp_share_url: 'https://wa.me/6281234567890',
       whatsapp_web_url: 'https://web.whatsapp.com/send',
       whatsapp_message: 'Halo Budi',
-      execution_url: 'http://localhost:4200/reset-credential?token=exec-123',
+      execution_url: 'https://tuwaktu.com/reset-credential?token=exec-123',
       expires_in_minutes: 10,
     };
 

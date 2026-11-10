@@ -110,7 +110,8 @@ export const INITIAL_SPECIALTY_OPTIONS: readonly SpecialtyOption[] = [
   { id: 'ac-electric', label: 'Teknisi AC & Kelistrikan' },
   { id: 'audio-acoustic', label: 'Servis Audio Akustik' },
   { id: 'electronics', label: 'Servis Elektronik Presisi' },
-  { id: 'landscape', label: 'Perawatan Taman & Landscape Urban', colSpan: true },
+  { id: 'landscape', label: 'Perawatan Taman & Landscape Urban' },
+  { id: 'general', label: 'Lainnya / Teknisi Multitalenta', colSpan: true },
 ];
 
 export type CredentialResetType = 'RESET_PIN' | 'CHANGE_PHONE';

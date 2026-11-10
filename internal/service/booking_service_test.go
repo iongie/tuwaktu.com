@@ -823,6 +823,44 @@ func TestBookingService_TransitBufferAndAvailableSlots(t *testing.T) {
 		}
 	})
 
+	t.Run("date override marked as holiday marks all slots unavailable with holiday reason", func(t *testing.T) {
+		repo, worker := setupWorkerWithSlots()
+		require.NoError(t, repo.UpsertWorkerDateOverride(ctx, &domain.WorkerDateOverride{
+			WorkerID:     worker.ID,
+			DateStr:      targetDate,
+			IsHoliday:    true,
+		}))
+
+		svc := service.NewBookingService(repo)
+		res, err := svc.GetAvailableSlots(ctx, worker.Slug, targetDate, "")
+		require.NoError(t, err)
+		assert.False(t, res.IsWorkingDay)
+		for _, s := range res.Slots {
+			assert.False(t, s.Available)
+			assert.Equal(t, "Mitra sedang libur pada tanggal ini", s.Reason)
+		}
+	})
+
+	t.Run("date override with slot locked marks only that slot unavailable with locked reason", func(t *testing.T) {
+		repo, worker := setupWorkerWithSlots()
+		require.NoError(t, repo.UpsertWorkerDateOverride(ctx, &domain.WorkerDateOverride{
+			WorkerID:      worker.ID,
+			DateStr:       targetDate,
+			IsHoliday:     false,
+			IsSlot1Locked: true, // Pagi terkunci
+		}))
+
+		svc := service.NewBookingService(repo)
+		res, err := svc.GetAvailableSlots(ctx, worker.Slug, targetDate, "")
+		require.NoError(t, err)
+		for _, s := range res.Slots {
+			if s.SlotType == domain.SlotMorning {
+				assert.False(t, s.Available)
+				assert.Equal(t, "Slot sedang dinonaktifkan oleh mitra pada tanggal ini", s.Reason)
+			}
+		}
+	})
+
 	t.Run("returns error on invalid date format", func(t *testing.T) {
 		repo, worker := setupWorkerWithSlots()
 		svc := service.NewBookingService(repo)

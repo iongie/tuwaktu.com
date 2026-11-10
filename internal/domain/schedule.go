@@ -222,3 +222,69 @@ type AvailableSlotsResponse struct {
 	IsWorkingDay bool                `json:"is_working_day"`
 	Slots        []AvailableTimeSlot `json:"slots"`
 }
+
+// WorkerDateOverride represents a date-specific override for full-day holidays or locked slots
+type WorkerDateOverride struct {
+	ID            string    `json:"id" db:"id" gorm:"primaryKey;type:uuid"`
+	WorkerID      string    `json:"worker_id" db:"worker_id" gorm:"type:uuid;not null;index"`
+	OverrideDate  time.Time `json:"-" db:"override_date" gorm:"type:date;not null"`
+	DateStr       string    `json:"override_date" gorm:"-"`
+	IsHoliday     bool      `json:"is_holiday" db:"is_holiday" gorm:"type:boolean;not null;default:false"`
+	IsSlot1Locked bool      `json:"is_slot1_locked" db:"is_slot1_locked" gorm:"type:boolean;not null;default:false"`
+	IsSlot2Locked bool      `json:"is_slot2_locked" db:"is_slot2_locked" gorm:"type:boolean;not null;default:false"`
+	IsSlot3Locked bool      `json:"is_slot3_locked" db:"is_slot3_locked" gorm:"type:boolean;not null;default:false"`
+	Note          string    `json:"note,omitempty" db:"note" gorm:"type:varchar(255)"`
+	CreatedAt     time.Time `json:"created_at" db:"created_at;default:CURRENT_TIMESTAMP"`
+	UpdatedAt     time.Time `json:"updated_at" db:"updated_at;default:CURRENT_TIMESTAMP"`
+}
+
+func (WorkerDateOverride) TableName() string {
+	return "worker_date_overrides"
+}
+
+// BeforeCreate ensures ID is generated as UUIDv7 if not already specified
+func (o *WorkerDateOverride) BeforeCreate(tx *gorm.DB) error {
+	if strings.TrimSpace(o.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for worker_date_override: %w", err)
+		}
+		o.ID = id.String()
+	}
+	return nil
+}
+
+// AfterFind formats OverrideDate to DateStr as YYYY-MM-DD
+func (o *WorkerDateOverride) AfterFind(tx *gorm.DB) error {
+	if !o.OverrideDate.IsZero() {
+		o.DateStr = o.OverrideDate.Format("2006-01-02")
+	}
+	return nil
+}
+
+func (o WorkerDateOverride) MarshalJSON() ([]byte, error) {
+	type Alias WorkerDateOverride
+	dateStr := o.DateStr
+	if dateStr == "" && !o.OverrideDate.IsZero() {
+		dateStr = o.OverrideDate.Format("2006-01-02")
+	}
+	return json.Marshal(&struct {
+		Alias
+		OverrideDate string `json:"override_date"`
+	}{
+		Alias:        (Alias)(o),
+		OverrideDate: dateStr,
+	})
+}
+
+// UpsertWorkerDateOverrideRequest represents request body to create/update date override
+type UpsertWorkerDateOverrideRequest struct {
+	WorkerID      string `json:"worker_id"`
+	OverrideDate  string `json:"override_date"`
+	IsHoliday     bool   `json:"is_holiday"`
+	IsSlot1Locked bool   `json:"is_slot1_locked"`
+	IsSlot2Locked bool   `json:"is_slot2_locked"`
+	IsSlot3Locked bool   `json:"is_slot3_locked"`
+	Note          string `json:"note,omitempty"`
+}
+

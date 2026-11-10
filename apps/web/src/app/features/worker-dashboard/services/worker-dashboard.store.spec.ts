@@ -108,6 +108,32 @@ describe('WorkerDashboardStore', () => {
           ],
         })
       ),
+      fetchWorkerDateOverrides: jest.fn().mockReturnValue(
+        of({
+          success: true,
+          message: 'Data tanggal libur pekerja berhasil diambil',
+          data: [
+            {
+              worker_id: 'worker-uuid-123',
+              override_date: '2026-12-25',
+              is_holiday: true,
+              is_slot1_locked: false,
+              is_slot2_locked: false,
+              is_slot3_locked: false,
+            },
+          ],
+        })
+      ),
+      upsertWorkerDateOverride: jest.fn().mockImplementation((payload) =>
+        of({
+          success: true,
+          message: 'Status tanggal libur dan kunci slot berhasil disimpan',
+          data: {
+            id: 'override-uuid-1',
+            ...payload,
+          },
+        })
+      ),
       createWorkerService: jest.fn().mockReturnValue(
         of({
           success: true,
@@ -566,6 +592,43 @@ describe('WorkerDashboardStore', () => {
       is_active: false,
     });
     expect(store.ratesFeedbackSuccess()).toBe('Paket layanan berhasil diperbarui');
+  });
+
+  it('harus memuat worker date overrides saat loadWorkerSchedules dipanggil', () => {
+    store.loadWorkerSchedules('worker-uuid-123');
+    expect(mockApiService.fetchWorkerDateOverrides).toHaveBeenCalledWith('worker-uuid-123');
+    expect(store.specialHolidays()).toContain('2026-12-25');
+  });
+
+  it('harus memanggil apiService.upsertWorkerDateOverride saat toggleSpecialHoliday dipanggil', () => {
+    store.workerRecordId.set('worker-uuid-123');
+    store.toggleSpecialHoliday('2026-12-31');
+
+    expect(mockApiService.upsertWorkerDateOverride).toHaveBeenCalledWith(
+      expect.objectContaining({
+        worker_id: 'worker-uuid-123',
+        override_date: '2026-12-31',
+        is_holiday: true,
+      })
+    );
+    expect(store.specialHolidays()).toContain('2026-12-31');
+    expect(store.scheduleFeedbackSuccess()).toContain('tersimpan di database');
+  });
+
+  it('harus memanggil apiService.upsertWorkerDateOverride saat toggleSlotLock dipanggil', () => {
+    store.workerRecordId.set('worker-uuid-123');
+    store.selectedScheduleCalendarDate.set('2026-12-31');
+    store.toggleSlotLock('slot-01');
+
+    expect(mockApiService.upsertWorkerDateOverride).toHaveBeenCalledWith(
+      expect.objectContaining({
+        worker_id: 'worker-uuid-123',
+        override_date: '2026-12-31',
+        is_slot1_locked: true,
+      })
+    );
+    expect(store.isSlot1Locked()).toBe(true);
+    expect(store.scheduleFeedbackSuccess()).toContain('tersimpan di database');
   });
 });
 

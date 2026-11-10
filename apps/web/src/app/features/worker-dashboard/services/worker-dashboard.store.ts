@@ -7,6 +7,7 @@ import {
   WorkerRateUpdatePayload,
   WorkerLocationSettingsUpdatePayload,
   WorkerScheduleItem,
+  WorkerDateOverrideItem,
   WorkerServiceCatalogItem,
   CreateWorkerServicePayload,
   UpdateWorkerServicePayload,
@@ -355,6 +356,10 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly isSlot2Locked = signal<boolean>(false);
   readonly isSlot3Locked = signal<boolean>(false);
   readonly specialHolidays = signal<string[]>([]);
+  readonly dateOverridesMap = signal<Record<string, WorkerDateOverrideItem>>({});
+  readonly selectedScheduleCalendarDate = signal<string>(
+    new Date().toISOString().split('T')[0],
+  );
 
   readonly isProfileLoading = signal<boolean>(false);
   readonly isProfileSubmitting = signal<boolean>(false);
@@ -1467,6 +1472,7 @@ export class WorkerDashboardStore implements OnDestroy {
     const sanitized = workerIdOrSlug.trim();
     if (!sanitized) return;
 
+    this.loadWorkerDateOverrides(sanitized);
     this.isScheduleLoading.set(true);
     this.scheduleFeedbackError.set(null);
 
@@ -1486,6 +1492,45 @@ export class WorkerDashboardStore implements OnDestroy {
         this.workerSchedules.set(this.createDefaultWeeklySchedule());
       },
     });
+  }
+
+  loadWorkerDateOverrides(workerIdOrSlug: string): void {
+    const sanitized = workerIdOrSlug.trim();
+    if (!sanitized) return;
+
+    this.apiService.fetchWorkerDateOverrides(sanitized).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const map: Record<string, WorkerDateOverrideItem> = {};
+          const holidays: string[] = [];
+          for (const item of response.data) {
+            map[item.override_date] = item;
+            if (item.is_holiday) {
+              holidays.push(item.override_date);
+            }
+          }
+          this.dateOverridesMap.set(map);
+          this.specialHolidays.set(holidays);
+          this.syncSlotLocksForSelectedDate();
+        }
+      },
+      error: () => {
+        // Silently preserve local signals if fetch fails
+      },
+    });
+  }
+
+  setSelectedCalendarDate(isoDate: string): void {
+    this.selectedScheduleCalendarDate.set(isoDate);
+    this.syncSlotLocksForSelectedDate();
+  }
+
+  syncSlotLocksForSelectedDate(): void {
+    const activeDate = this.selectedScheduleCalendarDate();
+    const override = this.dateOverridesMap()[activeDate];
+    this.isSlot1Locked.set(override?.is_slot1_locked ?? false);
+    this.isSlot2Locked.set(override?.is_slot2_locked ?? false);
+    this.isSlot3Locked.set(override?.is_slot3_locked ?? false);
   }
 
   createDefaultWeeklySchedule(): WorkerScheduleItem[] {
@@ -1717,47 +1762,131 @@ export class WorkerDashboardStore implements OnDestroy {
     this.toggleSlotLock('slot-03');
   }
 
-  toggleSlotLock(slotId: string): void {
+  toggleSlotLock(slotId: string, targetIsoDate?: string): void {
+    const workerId = this.workerRecordId().trim();
+    const isoDate = targetIsoDate || this.selectedScheduleCalendarDate();
+    let nextVal = false;
+
     if (slotId === 'slot-01') {
-      const nextVal = !this.isSlot1Locked();
+      nextVal = !this.isSlot1Locked();
       this.isSlot1Locked.set(nextVal);
-      this.scheduleFeedbackSuccess.set(
-        nextVal
-          ? 'Slot 1 (Pagi 08:00 - 11:30) ditutup sementara dari pemesanan publik.'
-          : 'Slot 1 (Pagi 08:00 - 11:30) dibuka kembali untuk pemesanan publik.',
-      );
     } else if (slotId === 'slot-02') {
-      const nextVal = !this.isSlot2Locked();
+      nextVal = !this.isSlot2Locked();
       this.isSlot2Locked.set(nextVal);
-      this.scheduleFeedbackSuccess.set(
-        nextVal
-          ? 'Slot 2 (Siang 13:00 - 16:30) ditutup sementara dari pemesanan publik.'
-          : 'Slot 2 (Siang 13:00 - 16:30) dibuka kembali untuk pemesanan publik.',
-      );
     } else {
-      const nextVal = !this.isSlot3Locked();
+      nextVal = !this.isSlot3Locked();
       this.isSlot3Locked.set(nextVal);
-      this.scheduleFeedbackSuccess.set(
-        nextVal
-          ? 'Slot 3 (Sore 17:30 - 20:00) ditutup sementara dari pemesanan publik.'
-          : 'Slot 3 (Sore 17:30 - 20:00) dibuka kembali untuk pemesanan publik.',
-      );
     }
+
+    if (!workerId) {
+      return;
+    }
+
+    const existing = this.dateOverridesMap()[isoDate];
+    const isHoliday = this.specialHolidays().includes(isoDate);
+    const payload: WorkerDateOverrideItem = {
+      worker_id: workerId,
+      override_date: isoDate,
+      is_holiday: isHoliday,
+      is_slot1_locked: this.isSlot1Locked(),
+      is_slot2_locked: this.isSlot2Locked(),
+      is_slot3_locked: this.isSlot3Locked(),
+      note: existing?.note,
+    };
+
+    this.apiService.upsertWorkerDateOverride(payload).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          const currentMap = { ...this.dateOverridesMap() };
+          currentMap[isoDate] = res.data;
+          this.dateOverridesMap.set(currentMap);
+          const slotLabel =
+            slotId === 'slot-01'
+              ? 'Slot 1 (Pagi)'
+              : slotId === 'slot-02'
+                ? 'Slot 2 (Siang)'
+                : 'Slot 3 (Sore)';
+          this.scheduleFeedbackSuccess.set(
+            nextVal
+              ? `${slotLabel} pada tanggal ${isoDate} berhasil dikunci dan tersimpan di database.`
+              : `${slotLabel} pada tanggal ${isoDate} berhasil dibuka kembali dan tersimpan di database.`,
+          );
+        }
+      },
+      error: (err) => {
+        // Rollback status lokal jika gagal simpan
+        if (slotId === 'slot-01') this.isSlot1Locked.set(!nextVal);
+        if (slotId === 'slot-02') this.isSlot2Locked.set(!nextVal);
+        if (slotId === 'slot-03') this.isSlot3Locked.set(!nextVal);
+        const serverMsg = err?.error?.message;
+        this.scheduleFeedbackError.set(
+          serverMsg || 'Gagal menyimpan status kunci slot ke database.',
+        );
+      },
+    });
   }
 
   toggleSpecialHoliday(isoDate: string): void {
+    const workerId = this.workerRecordId().trim();
     const holidays = this.specialHolidays();
-    if (holidays.includes(isoDate)) {
-      this.specialHolidays.set(holidays.filter((d) => d !== isoDate));
-      this.scheduleFeedbackSuccess.set(
-        `Tanggal ${isoDate} berhasil dibuka kembali untuk operasional pemesanan.`,
-      );
-    } else {
+    const isNowHoliday = !holidays.includes(isoDate);
+
+    // Update optimis UI
+    if (isNowHoliday) {
       this.specialHolidays.set([...holidays, isoDate]);
       this.scheduleFeedbackSuccess.set(
-        `Tanggal ${isoDate} berhasil ditandai sebagai libur khusus / cuti.`,
+        `Menyimpan: Tanggal ${isoDate} ditandai sebagai hari libur...`,
+      );
+    } else {
+      this.specialHolidays.set(holidays.filter((d) => d !== isoDate));
+      this.scheduleFeedbackSuccess.set(
+        `Menyimpan: Tanggal ${isoDate} dibuka kembali untuk operasional...`,
       );
     }
+
+    if (!workerId) {
+      return;
+    }
+
+    const existing = this.dateOverridesMap()[isoDate];
+    const payload: WorkerDateOverrideItem = {
+      worker_id: workerId,
+      override_date: isoDate,
+      is_holiday: isNowHoliday,
+      is_slot1_locked: existing?.is_slot1_locked ?? false,
+      is_slot2_locked: existing?.is_slot2_locked ?? false,
+      is_slot3_locked: existing?.is_slot3_locked ?? false,
+      note: existing?.note,
+    };
+
+    this.apiService.upsertWorkerDateOverride(payload).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          const currentMap = { ...this.dateOverridesMap() };
+          currentMap[isoDate] = res.data;
+          this.dateOverridesMap.set(currentMap);
+          this.scheduleFeedbackSuccess.set(
+            isNowHoliday
+              ? `Tanggal ${isoDate} berhasil ditandai sebagai hari libur dan tersimpan di database.`
+              : `Tanggal ${isoDate} berhasil dibuka kembali untuk operasional dan tersimpan di database.`,
+          );
+        }
+      },
+      error: (err) => {
+        // Rollback jika request error
+        if (isNowHoliday) {
+          this.specialHolidays.set(
+            this.specialHolidays().filter((d) => d !== isoDate),
+          );
+        } else {
+          this.specialHolidays.set([...this.specialHolidays(), isoDate]);
+        }
+        const serverMsg = err?.error?.message;
+        this.scheduleFeedbackError.set(
+          serverMsg || `Gagal menyimpan status libur tanggal ${isoDate} ke database.`,
+        );
+      },
+    });
   }
 
   resetScheduleToDefault(): void {

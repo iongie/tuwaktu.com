@@ -138,6 +138,25 @@ func (s *bookingService) CreateBooking(ctx context.Context, req domain.CreateBoo
 	// Check for collision with existing worker bookings (including 60 min transit buffer)
 	// only when booking_date was explicitly specified by the client
 	if strings.TrimSpace(req.BookingDate) != "" {
+		locWIB := time.FixedZone("WIB", 7*3600)
+		dateStr := bookingDate.In(locWIB).Format("2006-01-02")
+		override, err := s.repo.GetWorkerDateOverrideByDate(ctx, worker.ID, dateStr)
+		if err == nil && override != nil {
+			if override.IsHoliday {
+				return nil, fmt.Errorf("%w: mitra sedang libur pada tanggal ini", domain.ErrSlotUnavailable)
+			}
+			wibHour := bookingDate.In(locWIB).Hour()
+			if wibHour >= 8 && wibHour < 12 && override.IsSlot1Locked {
+				return nil, fmt.Errorf("%w: slot pagi sedang dinonaktifkan oleh mitra pada tanggal ini", domain.ErrSlotUnavailable)
+			}
+			if wibHour >= 13 && wibHour < 17 && override.IsSlot2Locked {
+				return nil, fmt.Errorf("%w: slot siang sedang dinonaktifkan oleh mitra pada tanggal ini", domain.ErrSlotUnavailable)
+			}
+			if wibHour >= 17 && wibHour < 21 && override.IsSlot3Locked {
+				return nil, fmt.Errorf("%w: slot sore sedang dinonaktifkan oleh mitra pada tanggal ini", domain.ErrSlotUnavailable)
+			}
+		}
+
 		buffer := domain.TransitBufferDuration
 		existingBookings, err := s.repo.GetBookingsByWorkerAndDateRange(ctx, worker.ID, startTime.Add(-buffer-4*time.Hour), endTime.Add(buffer+4*time.Hour))
 		if err == nil {
@@ -405,6 +424,33 @@ func (s *bookingService) GetAvailableSlots(ctx context.Context, workerSlug strin
 		}
 	}
 
+	// Fetch date-specific overrides (holidays and locked slots)
+	var isDateHoliday bool
+	var isDateSlot1Locked, isDateSlot2Locked, isDateSlot3Locked bool
+	override, err := s.repo.GetWorkerDateOverrideByDate(ctx, worker.ID, dateStr)
+	if err == nil && override != nil {
+		if override.IsHoliday {
+			isDateHoliday = true
+			isWorkingDay = false
+			slotMorningActive = false
+			slotAfternoonActive = false
+			slotEveningActive = false
+		} else {
+			if override.IsSlot1Locked {
+				isDateSlot1Locked = true
+				slotMorningActive = false
+			}
+			if override.IsSlot2Locked {
+				isDateSlot2Locked = true
+				slotAfternoonActive = false
+			}
+			if override.IsSlot3Locked {
+				isDateSlot3Locked = true
+				slotEveningActive = false
+			}
+		}
+	}
+
 	// Fetch existing bookings for this worker around this date
 	dayStart := time.Date(dateInLoc.Year(), dateInLoc.Month(), dateInLoc.Day(), 0, 0, 0, 0, loc)
 	dayEnd := time.Date(dateInLoc.Year(), dateInLoc.Month(), dateInLoc.Day(), 23, 59, 59, 999999999, loc)
@@ -470,12 +516,21 @@ func (s *bookingService) GetAvailableSlots(ctx context.Context, workerSlug strin
 			Reason:    "Tersedia",
 		}
 
-		if !isWorkingDay {
+		if isDateHoliday {
+			slot.Available = false
+			slot.Reason = "Mitra sedang libur pada tanggal ini"
+		} else if !isWorkingDay {
 			slot.Available = false
 			slot.Reason = "Pekerja libur pada hari yang dipilih"
 		} else if !cfg.IsActive {
 			slot.Available = false
-			slot.Reason = "Slot tidak diaktifkan oleh pekerja"
+			if (cfg.SlotType == domain.SlotMorning && isDateSlot1Locked) ||
+				(cfg.SlotType == domain.SlotAfternoon && isDateSlot2Locked) ||
+				(cfg.SlotType == domain.SlotEvening && isDateSlot3Locked) {
+				slot.Reason = "Slot sedang dinonaktifkan oleh mitra pada tanggal ini"
+			} else {
+				slot.Reason = "Slot tidak diaktifkan oleh pekerja"
+			}
 		} else if slotStart.Before(now) {
 			slot.Available = false
 			slot.Reason = "Waktu slot telah berlalu"

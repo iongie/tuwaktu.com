@@ -11,6 +11,9 @@ import {
   WorkerLocationSettingsApiResponse,
   WorkerScheduleItem,
   WorkerSchedulesApiResponse,
+  WorkerDateOverrideItem,
+  WorkerDateOverridesApiResponse,
+  UpsertWorkerDateOverrideApiResponse,
   CreateWorkerServicePayload,
   UpdateWorkerServicePayload,
   WorkerServiceItemApiResponse,
@@ -112,6 +115,34 @@ export class WorkerDashboardApiService {
         worker_id: workerId.trim(),
         schedules,
       },
+      { withCredentials: true }
+    );
+  }
+
+  fetchWorkerDateOverrides(
+    workerIdOrSlug: string,
+    fromDate?: string,
+    toDate?: string
+  ): Observable<WorkerDateOverridesApiResponse> {
+    const sanitizedId = encodeURIComponent(workerIdOrSlug.trim());
+    let url = `${this.normalizedBaseUrl}/api/v1/worker/date-overrides?worker_id=${sanitizedId}`;
+    if (fromDate) {
+      url += `&from=${encodeURIComponent(fromDate.trim())}`;
+    }
+    if (toDate) {
+      url += `&to=${encodeURIComponent(toDate.trim())}`;
+    }
+    return this.httpClient.get<WorkerDateOverridesApiResponse>(url, {
+      withCredentials: true,
+    });
+  }
+
+  upsertWorkerDateOverride(
+    payload: WorkerDateOverrideItem
+  ): Observable<UpsertWorkerDateOverrideApiResponse> {
+    return this.httpClient.put<UpsertWorkerDateOverrideApiResponse>(
+      `${this.normalizedBaseUrl}/api/v1/worker/date-overrides`,
+      payload,
       { withCredentials: true }
     );
   }

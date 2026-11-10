@@ -457,6 +457,141 @@ func (r *PostgresWorkerRepository) UpdateWorkerSchedules(ctx context.Context, id
 	return r.GetWorkerSchedules(ctx, worker.ID)
 }
 
+// GetWorkerDateOverrides returns date-specific overrides (holidays/slot locks) for a worker
+func (r *PostgresWorkerRepository) GetWorkerDateOverrides(ctx context.Context, idOrSlug string, fromDate, toDate string) ([]domain.WorkerDateOverride, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying date overrides: %w", err)
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	worker, err := r.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = r.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	query := r.db.WithContext(ctx).Where("worker_id = ?", worker.ID)
+	if strings.TrimSpace(fromDate) != "" {
+		query = query.Where("override_date >= ?", strings.TrimSpace(fromDate))
+	}
+	if strings.TrimSpace(toDate) != "" {
+		query = query.Where("override_date <= ?", strings.TrimSpace(toDate))
+	}
+
+	var list []domain.WorkerDateOverride
+	if err := query.Order("override_date ASC").Find(&list).Error; err != nil {
+		return nil, fmt.Errorf("querying worker date overrides: %w", err)
+	}
+
+	for i := range list {
+		if !list[i].OverrideDate.IsZero() {
+			list[i].DateStr = list[i].OverrideDate.Format("2006-01-02")
+		}
+	}
+	return list, nil
+}
+
+// GetWorkerDateOverrideByDate finds an override record for a worker on a specific date (YYYY-MM-DD)
+func (r *PostgresWorkerRepository) GetWorkerDateOverrideByDate(ctx context.Context, workerID string, date string) (*domain.WorkerDateOverride, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying worker date override: %w", err)
+	}
+	workerID = strings.TrimSpace(workerID)
+	date = strings.TrimSpace(date)
+	if workerID == "" || date == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	var override domain.WorkerDateOverride
+	err := r.db.WithContext(ctx).
+		Where("worker_id = ? AND override_date = ?", workerID, date).
+		First(&override).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("querying worker date override: %w", err)
+	}
+
+	if !override.OverrideDate.IsZero() {
+		override.DateStr = override.OverrideDate.Format("2006-01-02")
+	}
+	return &override, nil
+}
+
+// UpsertWorkerDateOverride creates or updates a date override entry using ON CONFLICT DO UPDATE
+func (r *PostgresWorkerRepository) UpsertWorkerDateOverride(ctx context.Context, override *domain.WorkerDateOverride) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("upserting worker date override: %w", err)
+	}
+	if override == nil {
+		return domain.ErrInvalidInput
+	}
+	override.WorkerID = strings.TrimSpace(override.WorkerID)
+	if override.WorkerID == "" {
+		return fmt.Errorf("%w: worker_id wajib diisi", domain.ErrInvalidInput)
+	}
+
+	if override.OverrideDate.IsZero() && strings.TrimSpace(override.DateStr) != "" {
+		parsed, err := time.Parse("2006-01-02", strings.TrimSpace(override.DateStr))
+		if err != nil {
+			return fmt.Errorf("%w: format override_date tidak valid (YYYY-MM-DD)", domain.ErrInvalidInput)
+		}
+		override.OverrideDate = parsed
+	}
+	if override.OverrideDate.IsZero() {
+		return fmt.Errorf("%w: override_date wajib diisi", domain.ErrInvalidInput)
+	}
+
+	now := time.Now().UTC()
+	if strings.TrimSpace(override.ID) == "" {
+		id, err := uuid.NewV7()
+		if err != nil {
+			return fmt.Errorf("generating uuidv7 for worker_date_override: %w", err)
+		}
+		override.ID = id.String()
+	}
+	if override.CreatedAt.IsZero() {
+		override.CreatedAt = now
+	}
+	override.UpdatedAt = now
+
+	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "worker_id"}, {Name: "override_date"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"is_holiday",
+			"is_slot1_locked",
+			"is_slot2_locked",
+			"is_slot3_locked",
+			"note",
+			"updated_at",
+		}),
+	}).Create(override).Error
+}
+
+// DeleteWorkerDateOverride removes an override entry for a specific date
+func (r *PostgresWorkerRepository) DeleteWorkerDateOverride(ctx context.Context, workerID string, date string) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("deleting worker date override: %w", err)
+	}
+	workerID = strings.TrimSpace(workerID)
+	date = strings.TrimSpace(date)
+	if workerID == "" || date == "" {
+		return domain.ErrInvalidInput
+	}
+
+	return r.db.WithContext(ctx).
+		Where("worker_id = ? AND override_date = ?", workerID, date).
+		Delete(&domain.WorkerDateOverride{}).Error
+}
+
 // CreateWorkerWithAccountTx membuat worker, worker_schedules, dan worker_accounts dalam satu transaksi atomik
 func (r *PostgresWorkerRepository) CreateWorkerWithAccountTx(ctx context.Context, worker *domain.Worker, schedules []domain.WorkerSchedule, account *domain.WorkerAccount) error {
 	if err := ctx.Err(); err != nil {

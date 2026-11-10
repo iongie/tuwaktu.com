@@ -698,6 +698,7 @@ export class ScheduleSlotTimelineCardComponent {
 
   // Outputs
   readonly toggleHoliday = output<string>();
+  readonly dateChange = output<string>();
   readonly viewOrderDetails = output<string>();
   readonly editSlotTime = output<string>();
   readonly toggleSlotLock = output<string>();
@@ -868,6 +869,7 @@ export class ScheduleSlotTimelineCardComponent {
 
   selectCalendarDate(date: Date): void {
     this.selectedDate.set(new Date(date));
+    this.dateChange.emit(this.selectedIsoDate());
   }
 
   previousMonth(): void {
@@ -888,6 +890,7 @@ export class ScheduleSlotTimelineCardComponent {
     const today = new Date();
     this.calendarViewDate.set(new Date(today));
     this.selectedDate.set(new Date(today));
+    this.dateChange.emit(this.selectedIsoDate());
   }
 
   handleToggleHoliday(): void {

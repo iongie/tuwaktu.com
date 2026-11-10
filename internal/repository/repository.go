@@ -19,6 +19,10 @@ type WorkerRepository interface {
 	UpdateLocationSettings(ctx context.Context, idOrSlug string, update *domain.WorkerLocationSettingsUpdate) (*domain.Worker, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error)
 	UpdateWorkerSchedules(ctx context.Context, idOrSlug string, schedules []domain.WorkerSchedule) ([]domain.WorkerSchedule, error)
+	GetWorkerDateOverrides(ctx context.Context, idOrSlug string, fromDate, toDate string) ([]domain.WorkerDateOverride, error)
+	GetWorkerDateOverrideByDate(ctx context.Context, workerID string, date string) (*domain.WorkerDateOverride, error)
+	UpsertWorkerDateOverride(ctx context.Context, override *domain.WorkerDateOverride) error
+	DeleteWorkerDateOverride(ctx context.Context, workerID string, date string) error
 	ListPublicWorkers(ctx context.Context) ([]domain.Worker, error)
 	GetWorkerBookings(ctx context.Context, workerID string, limit int) ([]domain.Booking, error)
 	UpdateBookingStatus(ctx context.Context, workerID string, bookingID string, status string) (*domain.Booking, error)
@@ -56,6 +60,7 @@ type BookingRepository interface {
 	GetBookingByCode(ctx context.Context, bookingCode string) (*domain.Booking, error)
 	GetBookingsByWorkerAndDateRange(ctx context.Context, workerID string, startTime, endTime time.Time) ([]domain.Booking, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerSchedule, error)
+	GetWorkerDateOverrideByDate(ctx context.Context, workerID string, date string) (*domain.WorkerDateOverride, error)
 }
 
 type ReviewRepository interface {

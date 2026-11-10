@@ -43,6 +43,9 @@ type WorkerService interface {
 	UpdateWorkerLocationSettings(ctx context.Context, req *domain.WorkerLocationSettingsUpdate) (*domain.PublicWorkerProfile, error)
 	GetWorkerSchedules(ctx context.Context, idOrSlug string) ([]domain.WorkerScheduleItem, error)
 	UpdateWorkerSchedules(ctx context.Context, idOrSlug string, req []domain.WorkerScheduleItem) ([]domain.WorkerScheduleItem, error)
+	GetWorkerDateOverrides(ctx context.Context, idOrSlug string, fromDate, toDate string) ([]domain.WorkerDateOverride, error)
+	UpsertWorkerDateOverride(ctx context.Context, idOrSlug string, req *domain.UpsertWorkerDateOverrideRequest) (*domain.WorkerDateOverride, error)
+	DeleteWorkerDateOverride(ctx context.Context, idOrSlug string, date string) error
 	CreateService(ctx context.Context, idOrSlug string, payload *domain.CreateServicePayload) (*domain.Service, error)
 	UpdateService(ctx context.Context, idOrSlug string, serviceID string, payload *domain.UpdateServicePayload) (*domain.Service, error)
 	DeleteService(ctx context.Context, idOrSlug string, serviceID string) error
@@ -452,6 +455,103 @@ func (s *workerService) UpdateWorkerSchedules(ctx context.Context, idOrSlug stri
 	}
 
 	return items, nil
+}
+
+func (s *workerService) GetWorkerDateOverrides(ctx context.Context, idOrSlug string, fromDate, toDate string) ([]domain.WorkerDateOverride, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+	return s.repo.GetWorkerDateOverrides(ctx, idOrSlug, fromDate, toDate)
+}
+
+func (s *workerService) UpsertWorkerDateOverride(ctx context.Context, idOrSlug string, req *domain.UpsertWorkerDateOverrideRequest) (*domain.WorkerDateOverride, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		idOrSlug = strings.TrimSpace(req.WorkerID)
+	}
+	if idOrSlug == "" {
+		return nil, fmt.Errorf("%w: ID atau slug pekerja wajib diisi", domain.ErrInvalidInput)
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	dateStr := strings.TrimSpace(req.OverrideDate)
+	if dateStr == "" {
+		return nil, fmt.Errorf("%w: parameter tanggal (override_date) wajib diisi dengan format YYYY-MM-DD", domain.ErrInvalidInput)
+	}
+
+	parsedDate, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return nil, fmt.Errorf("%w: format tanggal tidak valid, gunakan format YYYY-MM-DD (contoh: 2026-11-25)", domain.ErrInvalidInput)
+	}
+
+	// Validasi WIB: tanggal tidak boleh di masa lalu
+	loc := time.FixedZone("WIB", 7*3600)
+	nowWIB := time.Now().In(loc)
+	todayWIB := time.Date(nowWIB.Year(), nowWIB.Month(), nowWIB.Day(), 0, 0, 0, 0, loc)
+	targetWIB := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, loc)
+	if targetWIB.Before(todayWIB) {
+		return nil, fmt.Errorf("%w: tanggal libur tidak boleh di masa lalu", domain.ErrInvalidInput)
+	}
+
+	override := &domain.WorkerDateOverride{
+		WorkerID:      worker.ID,
+		OverrideDate:  parsedDate,
+		DateStr:       dateStr,
+		IsHoliday:     req.IsHoliday,
+		IsSlot1Locked: req.IsSlot1Locked,
+		IsSlot2Locked: req.IsSlot2Locked,
+		IsSlot3Locked: req.IsSlot3Locked,
+		Note:          strings.TrimSpace(req.Note),
+	}
+
+	if err := s.repo.UpsertWorkerDateOverride(ctx, override); err != nil {
+		return nil, fmt.Errorf("menyimpan override tanggal pekerja: %w", err)
+	}
+
+	return override, nil
+}
+
+func (s *workerService) DeleteWorkerDateOverride(ctx context.Context, idOrSlug string, date string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	date = strings.TrimSpace(date)
+	if idOrSlug == "" || date == "" {
+		return domain.ErrInvalidInput
+	}
+
+	worker, err := s.repo.GetByID(ctx, idOrSlug)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			worker, err = s.repo.GetBySlug(ctx, idOrSlug)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return s.repo.DeleteWorkerDateOverride(ctx, worker.ID, date)
 }
 
 func generateRandomPassword(length int) string {

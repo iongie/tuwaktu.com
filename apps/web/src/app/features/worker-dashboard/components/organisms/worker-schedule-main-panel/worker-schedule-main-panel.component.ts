@@ -42,6 +42,7 @@ import { ScheduleWeeklyMatrixTableComponent } from '../../molecules/schedule-wee
         [bufferMinutes]="selectedBufferMinutes()"
         [isTodayEmergencyLocked]="isTodayEmergencyLocked()"
         (toggleHoliday)="toggleHoliday.emit($event)"
+        (dateChange)="dateChange.emit($event)"
         (viewOrderDetails)="viewOrderDetails.emit($event)"
         (editSlotTime)="editSlotTime.emit($event)"
         (toggleSlotLock)="toggleSlotLock.emit($event)"
@@ -78,6 +79,7 @@ export class WorkerScheduleMainPanelComponent {
   readonly toggleLunchBreak = output<void>();
   readonly segmentChange = output<string>();
   readonly toggleHoliday = output<string>();
+  readonly dateChange = output<string>();
   readonly viewOrderDetails = output<string>();
   readonly editSlotTime = output<string>();
   readonly toggleSlotLock = output<string>();

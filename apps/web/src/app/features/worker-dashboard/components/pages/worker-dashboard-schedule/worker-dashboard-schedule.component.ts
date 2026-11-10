@@ -90,6 +90,10 @@ export class WorkerDashboardScheduleComponent implements OnDestroy {
     this.store.toggleSpecialHoliday(isoDate);
   }
 
+  onCalendarDateChange(isoDate: string): void {
+    this.store.setSelectedCalendarDate(isoDate);
+  }
+
   toggleSlotLock(slotId: string): void {
     this.store.toggleSlotLock(slotId);
   }

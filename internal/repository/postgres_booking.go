@@ -212,4 +212,33 @@ func (r *PostgresBookingRepository) GetWorkerSchedules(ctx context.Context, idOr
 	return schedules, nil
 }
 
+// GetWorkerDateOverrideByDate queries a date-specific override for worker on specified date (YYYY-MM-DD)
+func (r *PostgresBookingRepository) GetWorkerDateOverrideByDate(ctx context.Context, workerID string, date string) (*domain.WorkerDateOverride, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("querying worker date override: %w", err)
+	}
+	workerID = strings.TrimSpace(workerID)
+	date = strings.TrimSpace(date)
+	if workerID == "" || date == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	var override domain.WorkerDateOverride
+	err := r.db.WithContext(ctx).
+		Where("worker_id = ? AND override_date = ?", workerID, date).
+		First(&override).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("querying worker date override: %w", err)
+	}
+
+	if !override.OverrideDate.IsZero() {
+		override.DateStr = override.OverrideDate.Format("2006-01-02")
+	}
+	return &override, nil
+}
+
+
 

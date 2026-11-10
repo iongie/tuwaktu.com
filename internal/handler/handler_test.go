@@ -1524,6 +1524,78 @@ func TestWorkerHandler_SchedulesEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
+
+	t.Run("200 OK - PUT & GET /api/v1/worker/date-overrides", func(t *testing.T) {
+		app, repo := setupTestApp()
+		worker := &domain.Worker{
+			ID:       "worker-holiday-01",
+			Slug:     "worker-holiday",
+			Name:     "Teknisi Holiday",
+			IsActive: true,
+		}
+		repo.SeedWorker(worker)
+
+		futureDate := time.Now().AddDate(0, 1, 0).Format("2006-01-02")
+		putPayload := domain.UpsertWorkerDateOverrideRequest{
+			WorkerID:      worker.ID,
+			OverrideDate:  futureDate,
+			IsHoliday:     true,
+			IsSlot1Locked: false,
+			IsSlot2Locked: false,
+			IsSlot3Locked: false,
+			Note:          "Cuti bersama",
+		}
+		putBytes, _ := json.Marshal(putPayload)
+		putReq := httptest.NewRequest(http.MethodPut, "/api/v1/worker/date-overrides", bytes.NewReader(putBytes))
+		putReq.Header.Set("Content-Type", "application/json")
+
+		putResp, err := app.Test(putReq)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, putResp.StatusCode)
+
+		// GET overrides
+		getReq := httptest.NewRequest(http.MethodGet, "/api/v1/worker/date-overrides?worker_id="+worker.ID, nil)
+		getResp, err := app.Test(getReq)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, getResp.StatusCode)
+
+		var getBody struct {
+			Success bool                        `json:"success"`
+			Message string                      `json:"message"`
+			Data    []domain.WorkerDateOverride `json:"data"`
+		}
+		err = json.NewDecoder(getResp.Body).Decode(&getBody)
+		require.NoError(t, err)
+		assert.True(t, getBody.Success)
+		require.Len(t, getBody.Data, 1)
+		assert.Equal(t, futureDate, getBody.Data[0].DateStr)
+		assert.True(t, getBody.Data[0].IsHoliday)
+	})
+
+	t.Run("400 Bad Request - PUT /api/v1/worker/date-overrides past date rejected", func(t *testing.T) {
+		app, repo := setupTestApp()
+		worker := &domain.Worker{
+			ID:       "worker-holiday-past",
+			Slug:     "worker-holiday-past",
+			Name:     "Teknisi Past",
+			IsActive: true,
+		}
+		repo.SeedWorker(worker)
+
+		pastDate := time.Now().AddDate(0, 0, -5).Format("2006-01-02")
+		putPayload := domain.UpsertWorkerDateOverrideRequest{
+			WorkerID:     worker.ID,
+			OverrideDate: pastDate,
+			IsHoliday:    true,
+		}
+		putBytes, _ := json.Marshal(putPayload)
+		putReq := httptest.NewRequest(http.MethodPut, "/api/v1/worker/date-overrides", bytes.NewReader(putBytes))
+		putReq.Header.Set("Content-Type", "application/json")
+
+		putResp, err := app.Test(putReq)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, putResp.StatusCode)
+	})
 }
 
 func TestBookingHandler_GetAvailableSlots(t *testing.T) {

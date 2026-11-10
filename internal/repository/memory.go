@@ -23,6 +23,7 @@ type MemoryRepository struct {
 	events           []*domain.AnalyticsEvent
 	activationTokens map[string]*domain.WorkerActivationToken
 	resetTokens      map[string]*domain.WorkerCredentialResetToken
+	dateOverrides    map[string]map[string]*domain.WorkerDateOverride
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -36,6 +37,7 @@ func NewMemoryRepository() *MemoryRepository {
 		events:           make([]*domain.AnalyticsEvent, 0),
 		activationTokens: make(map[string]*domain.WorkerActivationToken),
 		resetTokens:      make(map[string]*domain.WorkerCredentialResetToken),
+		dateOverrides:    make(map[string]map[string]*domain.WorkerDateOverride),
 	}
 }
 
@@ -501,6 +503,141 @@ func (m *MemoryRepository) UpdateWorkerSchedules(ctx context.Context, idOrSlug s
 	}
 
 	return updated, nil
+}
+
+func (m *MemoryRepository) GetWorkerDateOverrides(ctx context.Context, idOrSlug string, fromDate, toDate string) ([]domain.WorkerDateOverride, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	idOrSlug = strings.TrimSpace(idOrSlug)
+	if idOrSlug == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	w, exists := m.workers[idOrSlug]
+	if !exists {
+		for _, worker := range m.workers {
+			if strings.EqualFold(worker.Slug, idOrSlug) {
+				w = worker
+				exists = true
+				break
+			}
+		}
+	}
+	if !exists {
+		return nil, domain.ErrWorkerNotFound
+	}
+
+	var results []domain.WorkerDateOverride
+	mDates, ok := m.dateOverrides[w.ID]
+	if !ok {
+		return results, nil
+	}
+
+	for dStr, item := range mDates {
+		if strings.TrimSpace(fromDate) != "" && dStr < strings.TrimSpace(fromDate) {
+			continue
+		}
+		if strings.TrimSpace(toDate) != "" && dStr > strings.TrimSpace(toDate) {
+			continue
+		}
+		itemCopy := *item
+		itemCopy.DateStr = dStr
+		results = append(results, itemCopy)
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].DateStr < results[j].DateStr
+	})
+
+	return results, nil
+}
+
+func (m *MemoryRepository) GetWorkerDateOverrideByDate(ctx context.Context, workerID string, date string) (*domain.WorkerDateOverride, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	workerID = strings.TrimSpace(workerID)
+	date = strings.TrimSpace(date)
+	if workerID == "" || date == "" {
+		return nil, domain.ErrInvalidInput
+	}
+
+	mDates, ok := m.dateOverrides[workerID]
+	if !ok {
+		return nil, nil
+	}
+
+	item, exists := mDates[date]
+	if !exists {
+		return nil, nil
+	}
+
+	itemCopy := *item
+	itemCopy.DateStr = date
+	return &itemCopy, nil
+}
+
+func (m *MemoryRepository) UpsertWorkerDateOverride(ctx context.Context, override *domain.WorkerDateOverride) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if override == nil {
+		return domain.ErrInvalidInput
+	}
+	workerID := strings.TrimSpace(override.WorkerID)
+	if workerID == "" {
+		return fmt.Errorf("%w: worker_id wajib diisi", domain.ErrInvalidInput)
+	}
+
+	dateStr := strings.TrimSpace(override.DateStr)
+	if dateStr == "" && !override.OverrideDate.IsZero() {
+		dateStr = override.OverrideDate.Format("2006-01-02")
+	}
+	if dateStr == "" {
+		return fmt.Errorf("%w: override_date wajib diisi", domain.ErrInvalidInput)
+	}
+
+	if _, ok := m.dateOverrides[workerID]; !ok {
+		m.dateOverrides[workerID] = make(map[string]*domain.WorkerDateOverride)
+	}
+
+	now := time.Now().UTC()
+	item := *override
+	if strings.TrimSpace(item.ID) == "" {
+		if id, err := uuid.NewV7(); err == nil {
+			item.ID = id.String()
+		}
+	}
+	if item.CreatedAt.IsZero() {
+		item.CreatedAt = now
+	}
+	item.UpdatedAt = now
+	item.DateStr = dateStr
+	if item.OverrideDate.IsZero() {
+		if parsed, err := time.Parse("2006-01-02", dateStr); err == nil {
+			item.OverrideDate = parsed
+		}
+	}
+
+	m.dateOverrides[workerID][dateStr] = &item
+	return nil
+}
+
+func (m *MemoryRepository) DeleteWorkerDateOverride(ctx context.Context, workerID string, date string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	workerID = strings.TrimSpace(workerID)
+	date = strings.TrimSpace(date)
+	if workerID == "" || date == "" {
+		return domain.ErrInvalidInput
+	}
+
+	if mDates, ok := m.dateOverrides[workerID]; ok {
+		delete(mDates, date)
+	}
+	return nil
 }
 
 func (m *MemoryRepository) GetBookingsByWorkerAndDateRange(ctx context.Context, workerID string, startTime, endTime time.Time) ([]domain.Booking, error) {

@@ -434,6 +434,94 @@ func (h *WorkerHandler) UpdateWorkerSchedules(c *fiber.Ctx) error {
 	return SuccessResponse(c, fiber.StatusOK, "Konfigurasi jadwal kerja berhasil disimpan", schedules)
 }
 
+// GetWorkerDateOverrides handles GET /api/v1/worker/date-overrides
+func (h *WorkerHandler) GetWorkerDateOverrides(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_slug"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("slug"))
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID atau slug pekerja wajib diisi", nil)
+	}
+
+	fromDate := strings.TrimSpace(c.Query("from"))
+	toDate := strings.TrimSpace(c.Query("to"))
+
+	overrides, err := h.service.GetWorkerDateOverrides(c.UserContext(), workerID, fromDate, toDate)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal mengambil data tanggal libur pekerja", err.Error())
+	}
+
+	if overrides == nil {
+		overrides = []domain.WorkerDateOverride{}
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, "Data tanggal libur pekerja berhasil diambil", overrides)
+}
+
+// UpsertWorkerDateOverride handles PUT /api/v1/worker/date-overrides
+func (h *WorkerHandler) UpsertWorkerDateOverride(c *fiber.Ctx) error {
+	rawID := c.Params("id")
+	if unescaped, err := url.PathUnescape(rawID); err == nil {
+		rawID = unescaped
+	}
+	workerID := strings.TrimSpace(rawID)
+
+	var req domain.UpsertWorkerDateOverrideRequest
+	if err := c.BodyParser(&req); err != nil {
+		return ErrorResponse(c, fiber.StatusBadRequest, "Format payload override tanggal tidak valid", err.Error())
+	}
+
+	if workerID == "" {
+		workerID = strings.TrimSpace(req.WorkerID)
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_id"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("worker_slug"))
+	}
+	if workerID == "" {
+		workerID = strings.TrimSpace(c.Query("slug"))
+	}
+	if workerID == "" {
+		return ErrorResponse(c, fiber.StatusBadRequest, "ID pekerja wajib diisi", nil)
+	}
+
+	override, err := h.service.UpsertWorkerDateOverride(c.UserContext(), workerID, &req)
+	if err != nil {
+		if errors.Is(err, domain.ErrWorkerNotFound) {
+			return ErrorResponse(c, fiber.StatusNotFound, "Pekerja tidak ditemukan", nil)
+		}
+		if errors.Is(err, domain.ErrInvalidInput) {
+			return ErrorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+		}
+		return ErrorResponse(c, fiber.StatusInternalServerError, "Gagal menyimpan status tanggal libur atau kunci slot", err.Error())
+	}
+
+	msg := "Status tanggal libur dan kunci slot berhasil disimpan"
+	if override.IsHoliday {
+		msg = "Tanggal berhasil ditandai sebagai hari libur"
+	} else {
+		msg = "Status operasional dan kunci slot tanggal berhasil diperbarui"
+	}
+
+	return SuccessResponse(c, fiber.StatusOK, msg, override)
+}
+
 // CreateService handles POST /api/v1/workers/:id/services and POST /api/v1/worker/services
 func (h *WorkerHandler) CreateService(c *fiber.Ctx) error {
 	rawID := c.Params("id")

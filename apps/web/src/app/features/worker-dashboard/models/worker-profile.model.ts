@@ -69,6 +69,33 @@ export interface UpdateWorkerSchedulesPayload {
   schedules: WorkerScheduleItem[];
 }
 
+export interface WorkerDateOverrideItem {
+  id?: string;
+  worker_id: string;
+  override_date: string; // YYYY-MM-DD
+  is_holiday: boolean;
+  is_slot1_locked: boolean;
+  is_slot2_locked: boolean;
+  is_slot3_locked: boolean;
+  note?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkerDateOverridesApiResponse {
+  success: boolean;
+  message: string;
+  data: WorkerDateOverrideItem[];
+  error?: unknown;
+}
+
+export interface UpsertWorkerDateOverrideApiResponse {
+  success: boolean;
+  message: string;
+  data: WorkerDateOverrideItem;
+  error?: unknown;
+}
+
 export interface WorkerServiceCatalogItem {
   id: string;
   code: string;

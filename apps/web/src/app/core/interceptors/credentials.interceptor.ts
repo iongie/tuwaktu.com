@@ -16,20 +16,26 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   const platformId = inject(PLATFORM_ID);
   if (isPlatformServer(platformId)) {
-    try {
-      const serverRequest = inject(REQUEST, { optional: true });
-      if (serverRequest) {
-        const cookie = serverRequest.headers.get('cookie');
-        if (cookie && !headers.has('cookie')) {
-          headers = headers.set('cookie', cookie);
+    const isPublicGet =
+      req.method === 'GET' &&
+      (req.url.includes('/public/') || req.url.includes('/categories'));
+
+    if (!isPublicGet) {
+      try {
+        const serverRequest = inject(REQUEST, { optional: true });
+        if (serverRequest) {
+          const cookie = serverRequest.headers.get('cookie');
+          if (cookie && !headers.has('cookie')) {
+            headers = headers.set('cookie', cookie);
+          }
+          const authorization = serverRequest.headers.get('authorization');
+          if (authorization && !headers.has('authorization')) {
+            headers = headers.set('authorization', authorization);
+          }
         }
-        const authorization = serverRequest.headers.get('authorization');
-        if (authorization && !headers.has('authorization')) {
-          headers = headers.set('authorization', authorization);
-        }
+      } catch {
+        // Abaikan jika token REQUEST tidak tersedia di lingkungan eksekusi
       }
-    } catch {
-      // Abaikan jika token REQUEST tidak tersedia di lingkungan eksekusi
     }
   }
 

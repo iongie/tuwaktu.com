@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { AuthService } from './auth.service';
-import { LoginFormData, RegisterFormData } from '../models/auth.models';
+import { TransferState } from '@angular/core';
+import { AuthService, SPECIALTIES_TRANSFER_KEY } from './auth.service';
+import { LoginFormData, RegisterFormData, SpecialtyOption } from '../models/auth.models';
 import { API_BASE_URL } from '../../../../environments/environment.model';
 
 describe('AuthService', () => {
@@ -732,6 +733,91 @@ describe('AuthService', () => {
           configurable: true,
         });
       }
+    });
+
+    describe('loadSpecialties (Deduplication & TransferState SSR Cache)', () => {
+      it('harus memanggil GET /api/v1/public/categories dan memperbarui specialtyOptions', () => {
+        service.loadSpecialties().subscribe((options) => {
+          expect(options.length).toBe(3); // 2 dari API + 1 'general'
+          expect(options[0].id).toBe('cat-1');
+          expect(options[0].label).toBe('Servis AC');
+          expect(options[2].id).toBe('general');
+        });
+
+        const req = httpTestingController.expectOne('http://localhost:3000/api/v1/public/categories');
+        expect(req.request.method).toBe('GET');
+
+        req.flush({
+          success: true,
+          message: 'Daftar kategori berhasil diambil',
+          data: [
+            { id: 'cat-1', name: 'Servis AC' },
+            { id: 'cat-2', name: 'Instalasi Listrik' },
+          ],
+        });
+
+        expect(service.specialtyOptions.length).toBe(3);
+        expect(service.selectedSpecialty().id).toBe('cat-1');
+      });
+
+      it('harus menduplikasi pemanggilan simultan loadSpecialties menjadi tepat satu HTTP request', () => {
+        let callCount = 0;
+        service.loadSpecialties().subscribe(() => callCount++);
+        service.loadSpecialties().subscribe(() => callCount++);
+
+        const reqs = httpTestingController.match('http://localhost:3000/api/v1/public/categories');
+        expect(reqs.length).toBe(1);
+
+        reqs[0].flush({
+          success: true,
+          data: [{ id: 'cat-1', name: 'Servis AC' }],
+        });
+
+        expect(callCount).toBe(2);
+      });
+
+      it('tidak boleh melakukan request HTTP ulang jika data sudah pernah dimuat (hasLoadedSpecialties)', () => {
+        // Panggilan pertama
+        service.loadSpecialties().subscribe();
+        const req = httpTestingController.expectOne('http://localhost:3000/api/v1/public/categories');
+        req.flush({
+          success: true,
+          data: [{ id: 'cat-1', name: 'Servis AC' }],
+        });
+
+        // Panggilan kedua tidak boleh memicu request HTTP lagi
+        let secondCallEmitted = false;
+        service.loadSpecialties().subscribe((opts) => {
+          secondCallEmitted = true;
+          expect(opts.length).toBeGreaterThan(0);
+        });
+
+        expect(secondCallEmitted).toBe(true);
+        httpTestingController.expectNone('http://localhost:3000/api/v1/public/categories');
+        httpTestingController.expectNone('http://localhost:3000/api/public/categories');
+      });
+
+      it('harus membaca data dari TransferState saat tersedia tanpa melakukan request HTTP ke jaringan', () => {
+        const transferState = TestBed.inject(TransferState);
+        const mockTransferData: SpecialtyOption[] = [
+          { id: 'cat-ssr', label: 'Teknisi Elektronik SSR', colSpan: false },
+          { id: 'general', label: 'Lainnya / Teknisi Multitalenta', colSpan: true },
+        ];
+        transferState.set(SPECIALTIES_TRANSFER_KEY, mockTransferData);
+
+        let resultOptions: readonly SpecialtyOption[] = [];
+        service.loadSpecialties().subscribe((opts) => {
+          resultOptions = opts;
+        });
+
+        expect(resultOptions.length).toBe(2);
+        expect(resultOptions[0].id).toBe('cat-ssr');
+        expect(service.specialtyOptions[0].id).toBe('cat-ssr');
+        expect(transferState.hasKey(SPECIALTIES_TRANSFER_KEY)).toBe(false);
+
+        // Pastikan tidak ada satupun request HTTP yang terkirim ke jaringan
+        httpTestingController.expectNone('http://localhost:3000/api/v1/public/categories');
+      });
     });
   });
 });

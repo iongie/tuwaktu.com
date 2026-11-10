@@ -1,6 +1,7 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, makeStateKey, PLATFORM_ID, signal, TransferState } from '@angular/core';
+import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { catchError, finalize, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from '../../../../environments/environment.model';
 import {
   AdminApproveResetResponse,
@@ -24,6 +25,8 @@ import {
   SpecialtyOption,
 } from '../models/auth.models';
 
+export const SPECIALTIES_TRANSFER_KEY = makeStateKey<SpecialtyOption[]>('tuwaktu_specialties_cache');
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,6 +43,20 @@ export class AuthService {
       return inject(API_BASE_URL, { optional: true });
     } catch {
       return null;
+    }
+  })();
+  private readonly transferState = (() => {
+    try {
+      return inject(TransferState, { optional: true });
+    } catch {
+      return null;
+    }
+  })();
+  private readonly platformId = (() => {
+    try {
+      return inject(PLATFORM_ID);
+    } catch {
+      return 'browser';
     }
   })();
 
@@ -67,6 +84,7 @@ export class AuthService {
 
   private hasLoadedSpecialties = false;
   private isLoadingSpecialties = false;
+  private specialtiesInFlight$: Observable<readonly SpecialtyOption[]> | null = null;
 
   hasHttpClient(): boolean {
     return Boolean(this.httpClient);
@@ -224,6 +242,10 @@ export class AuthService {
     if (!this.httpClient) {
       this.isInitialized.set(true);
       return of(this.currentUser());
+    }
+
+    if (!force && this.isInitialized() && this.currentUser() === null) {
+      return of(null);
     }
 
     if (!force && this.inFlightSession$) {
@@ -527,13 +549,47 @@ export class AuthService {
     }
   }
 
-  loadSpecialties(force = false): void {
-    if (!this.httpClient) return;
-    if (this.hasLoadedSpecialties && !force) return;
-    if (this.isLoadingSpecialties) return;
+  private syncSelectedSpecialty(dynamicList: readonly SpecialtyOption[]): void {
+    const current = this.selectedSpecialty();
+    const exists = dynamicList.find((opt) => opt.id === current.id);
+    if (!exists && dynamicList.length > 0) {
+      this.selectedSpecialty.set(dynamicList[0]);
+    }
+  }
+
+  loadSpecialties(force = false): Observable<readonly SpecialtyOption[]> {
+    if (this.hasLoadedSpecialties && !force) {
+      return of(this.specialtyOptions);
+    }
+
+    // 1. Cek TransferState dari hasil render SSR
+    if (
+      this.transferState &&
+      isPlatformBrowser(this.platformId) &&
+      this.transferState.hasKey(SPECIALTIES_TRANSFER_KEY)
+    ) {
+      const cached = this.transferState.get(SPECIALTIES_TRANSFER_KEY, null);
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        this.transferState.remove(SPECIALTIES_TRANSFER_KEY);
+        this._specialtyOptions.set(cached);
+        this.hasLoadedSpecialties = true;
+        this.syncSelectedSpecialty(cached);
+        return of(this.specialtyOptions);
+      }
+    }
+
+    if (!this.httpClient) {
+      this.hasLoadedSpecialties = true;
+      return of(this.specialtyOptions);
+    }
+
+    // 2. Cegah request ganda simultan menggunakan in-flight observable yang sama
+    if (!force && this.specialtiesInFlight$) {
+      return this.specialtiesInFlight$;
+    }
 
     this.isLoadingSpecialties = true;
-    this.httpClient
+    this.specialtiesInFlight$ = this.httpClient
       .get<{ success: boolean; data: Array<{ id: string; name?: string; title?: string }> }>(
         `${this.normalizedBaseUrl}/api/v1/public/categories`
       )
@@ -543,15 +599,8 @@ export class AuthService {
             `${this.normalizedBaseUrl}/api/public/categories`
           )
         ),
-        catchError(() => of(null)),
-        finalize(() => {
-          this.isLoadingSpecialties = false;
-        })
-      )
-      .subscribe({
-        next: (resp) => {
+        map((resp) => {
           if (resp && resp.success && Array.isArray(resp.data) && resp.data.length > 0) {
-            this.hasLoadedSpecialties = true;
             const dynamicList: SpecialtyOption[] = resp.data.map((item) => ({
               id: item.id,
               label: item.title || item.name || 'Spesialisasi',
@@ -562,19 +611,35 @@ export class AuthService {
               label: 'Lainnya / Teknisi Multitalenta',
               colSpan: true,
             });
-            this._specialtyOptions.set(dynamicList);
-
-            const current = this.selectedSpecialty();
-            const exists = dynamicList.find((opt) => opt.id === current.id);
-            if (!exists && dynamicList.length > 0) {
-              this.selectedSpecialty.set(dynamicList[0]);
-            }
+            return dynamicList;
           }
-        },
-        error: () => {
-          // Tetap mempertahankan INITIAL_SPECIALTY_OPTIONS
-        },
-      });
+          return [...INITIAL_SPECIALTY_OPTIONS];
+        }),
+        catchError(() => of([...INITIAL_SPECIALTY_OPTIONS])),
+        tap((options) => {
+          this.hasLoadedSpecialties = true;
+          this._specialtyOptions.set(options);
+          this.syncSelectedSpecialty(options);
+
+          // Simpan ke TransferState jika sedang dirender di server SSR
+          if (this.transferState && isPlatformServer(this.platformId)) {
+            this.transferState.set(SPECIALTIES_TRANSFER_KEY, options as SpecialtyOption[]);
+          }
+        }),
+        finalize(() => {
+          this.isLoadingSpecialties = false;
+          this.specialtiesInFlight$ = null;
+        }),
+        shareReplay(1)
+      );
+
+    this.specialtiesInFlight$.subscribe({
+      error: () => {
+        // Fallback tetap aman pada INITIAL_SPECIALTY_OPTIONS
+      },
+    });
+
+    return this.specialtiesInFlight$;
   }
 
   validateSlug(slug: string): SlugValidationState {

@@ -86,6 +86,16 @@ describe('credentialsInterceptor', () => {
       expect(req.request.withCredentials).toBe(true);
       req.flush({ success: true });
     });
+
+    it('tidak boleh meneruskan cookie ke public GET endpoint di platform server agar TransferCache key konsisten', () => {
+      httpClient.get('http://localhost:3000/api/v1/public/categories').subscribe();
+
+      const req = httpTestingController.expectOne('http://localhost:3000/api/v1/public/categories');
+      expect(req.request.headers.has('cookie')).toBe(false);
+      expect(req.request.headers.has('authorization')).toBe(false);
+      expect(req.request.withCredentials).toBe(true);
+      req.flush({ success: true });
+    });
   });
 });
 

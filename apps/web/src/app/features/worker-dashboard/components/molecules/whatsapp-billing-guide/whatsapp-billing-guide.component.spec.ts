@@ -19,9 +19,9 @@ describe('WhatsAppBillingGuideComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('harus menampilkan judul protokol penagihan mandiri', () => {
+  it('harus menampilkan judul tips transaksi dan penagihan bebas komisi', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Protokol Penagihan Mandiri');
+    expect(compiled.textContent).toContain('Tips Transaksi & Penagihan Bebas Komisi');
     expect(compiled.textContent).toContain('Konfirmasi Ketersediaan');
     expect(compiled.textContent).toContain('Kirim Rekening Bank / QRIS Pribadi');
   });

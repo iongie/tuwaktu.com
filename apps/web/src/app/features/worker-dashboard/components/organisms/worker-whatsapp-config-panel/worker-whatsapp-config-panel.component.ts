@@ -40,7 +40,7 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
             [class.bg-amber-600]="!store.workerWhatsAppNumber()"
           ></span>
           <span>
-            {{ store.workerWhatsAppNumber() ? 'Terhubung & Terverifikasi OTP' : 'Belum Dikonfigurasi' }}
+            {{ store.workerWhatsAppNumber() ? 'Nomor Aktif' : 'Belum Dikonfigurasi' }}
           </span>
         </span>
       </div>
@@ -66,16 +66,6 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
           </div>
 
           <div class="sm:col-span-4 flex items-center gap-2">
-            <button
-              type="button"
-              id="btn-otp-test"
-              (click)="store.triggerOtpTest()"
-              class="w-full py-2.5 px-3 bg-surface-container-low hover:bg-surface-container-high text-primary rounded font-button-label text-caption transition-colors text-center min-h-[44px] cursor-pointer"
-              [class.text-success]="store.otpFeedbackMessage()"
-              [class.font-bold]="store.otpFeedbackMessage()"
-            >
-              {{ store.otpFeedbackMessage() || 'Uji OTP' }}
-            </button>
             <button
               type="button"
               id="btn-change-number"
@@ -120,35 +110,6 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
           </div>
         </div>
       }
-
-      <!-- Backup Notification Toggle Card -->
-      <div
-        class="pt-3 bg-surface-highlight/50 p-4 rounded-lg flex items-center justify-between border border-hairline-subtle"
-      >
-        <div class="flex flex-col">
-          <span class="font-body-strong text-body-strong text-primary">
-            Kirim Notifikasi Cadangan
-          </span>
-          <span class="font-caption text-caption text-ink-secondary">
-            Kirim salinan ringkasan order via SMS/Email jika WhatsApp offline
-          </span>
-        </div>
-        <label
-          class="relative inline-flex items-center cursor-pointer min-h-[44px]"
-          aria-label="Toggle notifikasi cadangan"
-        >
-          <input
-            type="checkbox"
-            id="toggle-backup-notif"
-            class="sr-only peer"
-            [checked]="store.isBackupNotificationEnabled()"
-            (change)="store.toggleBackupNotification()"
-          />
-          <div
-            class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-voltage-orange"
-          ></div>
-        </label>
-      </div>
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

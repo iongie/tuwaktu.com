@@ -27,10 +27,10 @@ import { WhatsAppVariableChipsComponent } from '../../molecules/whatsapp-variabl
           </div>
           <div>
             <h2 class="font-heading-3 text-heading-3 text-ink-on-light">
-              Handoff Dispatch Protocol
+              Format Template Pesan
             </h2>
             <span class="font-caption text-caption text-ink-secondary">
-              Format sintaks payload yang disusun sistem saat klien checkout
+              Format teks yang otomatis terisi saat klien memesan layanan Anda
             </span>
           </div>
         </div>
@@ -38,7 +38,7 @@ import { WhatsAppVariableChipsComponent } from '../../molecules/whatsapp-variabl
         <span
           class="font-micro-uppercase text-micro-uppercase text-ink-secondary tracking-wider bg-surface-highlight px-3 py-1 rounded"
         >
-          TUWAKTU PROTOCOL v2
+          FORMAT PESAN OTOMATIS
         </span>
       </div>
 
@@ -54,7 +54,7 @@ import { WhatsAppVariableChipsComponent } from '../../molecules/whatsapp-variabl
       <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between">
           <label for="template-editor" class="font-body-strong text-body-strong text-primary">
-            Isi Struktur Pesan WhatsApp
+            Isi Template Pesan WhatsApp
           </label>
           <span class="font-caption text-caption text-ink-secondary" id="char-count">
             {{ store.whatsappMessageCharacterCount() }} Karakter

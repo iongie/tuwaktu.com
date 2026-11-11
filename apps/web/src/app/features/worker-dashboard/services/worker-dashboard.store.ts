@@ -391,8 +391,6 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly includeGmapsLocation = signal<boolean>(true);
   readonly includeCostBreakdown = signal<boolean>(true);
   readonly includeSpecialNotes = signal<boolean>(true);
-  readonly isBackupNotificationEnabled = signal<boolean>(true);
-  readonly otpFeedbackMessage = signal<string | null>(null);
   readonly isEditingWhatsAppNumber = signal<boolean>(false);
   readonly editWhatsAppNumberInput = signal<string>('');
 
@@ -401,7 +399,6 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly locationValidationErrors = signal<Record<string, string>>({});
 
   private clipboardTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private otpTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly hasActiveWorker = computed(() => !!this.workerRecordId().trim());
 
@@ -449,7 +446,6 @@ export class WorkerDashboardStore implements OnDestroy {
         includeGmaps: this.includeGmapsLocation(),
         includeBreakdown: this.includeCostBreakdown(),
         includeNotes: this.includeSpecialNotes(),
-        backupNotification: this.isBackupNotificationEnabled(),
       };
       localStorage.setItem(key, JSON.stringify(config));
     } catch {
@@ -479,9 +475,6 @@ export class WorkerDashboardStore implements OnDestroy {
       }
       if (typeof config?.includeNotes === 'boolean') {
         this.includeSpecialNotes.set(config.includeNotes);
-      }
-      if (typeof config?.backupNotification === 'boolean') {
-        this.isBackupNotificationEnabled.set(config.backupNotification);
       }
       return true;
     } catch {
@@ -573,35 +566,6 @@ export class WorkerDashboardStore implements OnDestroy {
     this.saveWhatsAppSettingsToStorage();
   }
 
-  toggleBackupNotification(): void {
-    this.isBackupNotificationEnabled.update((val) => !val);
-    this.saveWhatsAppSettingsToStorage();
-  }
-
-  triggerOtpTest(): void {
-    this.clearOtpTimer();
-    this.otpFeedbackMessage.set('Kode Dikirim ✓');
-    this.otpTimeoutId = setTimeout(() => {
-      this.otpFeedbackMessage.set(null);
-      this.otpTimeoutId = null;
-    }, 3000);
-    const timerObj = this.otpTimeoutId as unknown;
-    if (
-      timerObj &&
-      typeof timerObj === 'object' &&
-      'unref' in timerObj &&
-      typeof (timerObj as { unref: () => void }).unref === 'function'
-    ) {
-      (timerObj as { unref: () => void }).unref();
-    }
-  }
-
-  clearOtpTimer(): void {
-    if (this.otpTimeoutId) {
-      clearTimeout(this.otpTimeoutId);
-      this.otpTimeoutId = null;
-    }
-  }
 
   startEditingWhatsAppNumber(): void {
     this.editWhatsAppNumberInput.set(
@@ -1273,7 +1237,6 @@ export class WorkerDashboardStore implements OnDestroy {
     this.locationValidationErrors.set({});
     this.resetWhatsAppTemplateToDefault();
     this.isEditingWhatsAppNumber.set(false);
-    this.clearOtpTimer();
     this.clearAllFeedbacks();
   }
 
@@ -2022,7 +1985,6 @@ export class WorkerDashboardStore implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.clearOtpTimer();
     if (this.clipboardTimeoutId) {
       clearTimeout(this.clipboardTimeoutId);
       this.clipboardTimeoutId = null;

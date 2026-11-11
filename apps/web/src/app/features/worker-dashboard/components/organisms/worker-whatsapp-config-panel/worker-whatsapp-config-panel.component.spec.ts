@@ -42,10 +42,6 @@ describe('WorkerWhatsAppConfigPanelComponent', () => {
     fixture.detectChanges();
   });
 
-  afterEach(() => {
-    store.clearOtpTimer();
-  });
-
   it('harus membuat instance organism panel konfigurasi whatsapp', () => {
     expect(component).toBeTruthy();
   });
@@ -59,16 +55,12 @@ describe('WorkerWhatsAppConfigPanelComponent', () => {
     expect(input.value).toBe('+62 812-8899-2211');
   });
 
-  it('harus memicu simulasi pesan OTP saat tombol Uji OTP diklik', () => {
-    jest.useFakeTimers();
-    store.triggerOtpTest();
+  it('harus menampilkan status nomor aktif saat nomor whatsapp terisi', () => {
+    store.workerWhatsAppNumber.set('6281288992211');
     fixture.detectChanges();
 
-    expect(store.otpFeedbackMessage()).toBe('Kode Dikirim ✓');
-
-    jest.advanceTimersByTime(3000);
-    expect(store.otpFeedbackMessage()).toBeNull();
-    jest.useRealTimers();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Nomor Aktif');
   });
 
   it('harus beralih ke mode edit nomor whatsapp dan dapat membatalkan', () => {

@@ -115,17 +115,17 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-voltage-orange text-[20px]">bolt</span>
+            <span class="material-symbols-outlined text-whatsapp-green text-[20px]">chat</span>
             <span class="font-body-strong text-body-strong text-primary">
-              Simulasi Endpoint wa.me
+              Tes Tautan WhatsApp
             </span>
           </div>
           <span class="font-mono-rate text-caption text-success font-semibold">
-            200 OK READY
+            SIAP DIGUNAKAN
           </span>
         </div>
         <p class="font-caption text-caption text-ink-secondary leading-relaxed">
-          Klik tombol di bawah untuk menguji tautan deep link WhatsApp yang akan diakses oleh calon klien dari laman profil publik Anda:
+          Klik tombol di bawah untuk mencoba tautan WhatsApp (wa.me) yang akan diakses calon klien dari profil Anda:
         </p>
         <a
           id="deep-link-trigger"
@@ -134,8 +134,8 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
           rel="noopener noreferrer"
           class="w-full py-3 px-4 bg-whatsapp-green hover:bg-whatsapp-green-hover text-on-primary rounded text-center font-button-label text-button-label flex items-center justify-center gap-2 transition-all shadow-xs min-h-[44px] font-semibold"
         >
-          <span class="material-symbols-outlined text-[20px]">chat</span>
-          <span>Buka Deep Link WhatsApp Uji Coba</span>
+          <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+          <span>Buka Chat Percobaan</span>
         </a>
       </div>
     </div>

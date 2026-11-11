@@ -185,7 +185,6 @@ describe('WorkerDashboardStore', () => {
   });
 
   afterEach(() => {
-    store.clearOtpTimer();
     localStorage.clear();
   });
 
@@ -380,16 +379,6 @@ describe('WorkerDashboardStore', () => {
     const link = store.generatedWhatsAppDeepLink();
 
     expect(link.startsWith('https://wa.me/6281288992211?text=')).toBe(true);
-  });
-
-  it('harus menjalankan simulasi OTP dengan timeout otomatis', () => {
-    jest.useFakeTimers();
-    store.triggerOtpTest();
-    expect(store.otpFeedbackMessage()).toBe('Kode Dikirim ✓');
-
-    jest.advanceTimersByTime(3000);
-    expect(store.otpFeedbackMessage()).toBeNull();
-    jest.useRealTimers();
   });
 
   it('harus menormalisasi format nomor telepon Indonesia 08... menjadi 628... pada deep link', () => {

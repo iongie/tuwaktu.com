@@ -34,18 +34,12 @@ import { WhatsAppVariableChipsComponent } from '../../molecules/whatsapp-variabl
             </span>
           </div>
         </div>
-
-        <span
-          class="font-micro-uppercase text-micro-uppercase text-ink-secondary tracking-wider bg-surface-highlight px-3 py-1 rounded"
-        >
-          FORMAT PESAN OTOMATIS
-        </span>
       </div>
 
       <!-- Variable Chips Insertion Molecule -->
       <div class="flex flex-col gap-2">
         <span class="font-micro-uppercase text-micro-uppercase text-ink-secondary uppercase tracking-wider">
-          Variabel Dinamis Tersedia (Klik untuk Menyisipkan)
+          Sisipkan Data Otomatis (Klik untuk Menambah ke Pesan)
         </span>
         <app-whatsapp-variable-chips (tokenSelected)="insertTokenAtCursor($event)" />
       </div>

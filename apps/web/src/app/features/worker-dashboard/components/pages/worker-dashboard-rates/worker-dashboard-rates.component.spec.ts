@@ -73,7 +73,7 @@ describe('WorkerDashboardRatesComponent', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('Katalog & Model Tarif Mandiri');
     expect(el.textContent).toContain(
-      'Arsitektur Pendapatan • 0% Potongan Platform',
+      'Katalog Tarif • 0% Potongan Platform',
     );
     expect(el.textContent).toContain('Simulasi Pendapatan');
     expect(el.textContent).toContain('Tambah Layanan Baru');

@@ -55,8 +55,8 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
           <div
             class="self-center bg-[#ffeecd] text-[#554625] text-center font-caption text-caption px-3 py-1 rounded-md max-w-xs shadow-xs mb-6 text-xs border border-[#e8d7b3]"
           >
-            <span class="material-symbols-outlined text-[12px] inline align-middle mr-1">lock</span>
-            Pesan dan panggilan terenkripsi secara end-to-end. Langsung ke pemilik profil.
+            <span class="material-symbols-outlined text-[12px] inline align-middle mr-1">visibility</span>
+            Contoh tampilan pesan pesanan yang akan masuk ke WhatsApp Anda.
           </div>
 
           <!-- Inbound Incoming Message Bubble (Client to Worker) -->
@@ -69,7 +69,7 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
                 class="font-micro-uppercase text-micro-uppercase text-whatsapp-green font-bold flex items-center gap-1"
               >
                 <span class="material-symbols-outlined text-[14px]">link</span>
-                INQUIRY PESANAN TUWAKTU
+                PRATINJAU PESAN MASUK
               </span>
               <span class="font-mono-rate text-caption text-ink-secondary">13:42</span>
             </div>
@@ -120,12 +120,9 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
               Tes Tautan WhatsApp
             </span>
           </div>
-          <span class="font-mono-rate text-caption text-success font-semibold">
-            SIAP DIGUNAKAN
-          </span>
         </div>
         <p class="font-caption text-caption text-ink-secondary leading-relaxed">
-          Klik tombol di bawah untuk mencoba tautan WhatsApp (wa.me) yang akan diakses calon klien dari profil Anda:
+          Coba buka tautan WhatsApp yang akan dipakai klien dari halaman profil Anda:
         </p>
         <a
           id="deep-link-trigger"

@@ -172,10 +172,9 @@ export function buildDefaultWhatsAppTemplate(workerFullName?: string): string {
 • Alamat: {{ALAMAT}} ({{JARAK_KM}})
 • Catatan: {{CATATAN}}
 • Rincian: {{ONGKOS_JALAN}}
-• Total: {{TOTAL_BIAYA}} (Bebas Biaya Admin)
+• Total: {{TOTAL_BIAYA}}
 
-Mohon konfirmasinya ya Kak ${firstName}, terima kasih!
-[VERIFIKASI SISTEM TUWAKTU ✓✓]`;
+Mohon konfirmasinya ya Kak ${firstName}, terima kasih!`;
 }
 
 export function formatWhatsAppDisplay(phone: string): string {

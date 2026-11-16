@@ -22,7 +22,7 @@ import { WorkerDashboardStore } from '../../../services/worker-dashboard.store';
           <div>
             <h2 class="font-heading-3 text-heading-3 text-ink-on-light">Nomor WhatsApp Aktif</h2>
             <span class="font-caption text-caption text-ink-secondary">
-              Saluran penerimaan inquiry calon klien
+              Nomor tujuan pesan pesanan dari klien
             </span>
           </div>
         </div>

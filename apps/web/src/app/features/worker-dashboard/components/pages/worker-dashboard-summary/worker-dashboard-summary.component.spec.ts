@@ -50,7 +50,7 @@ describe('WorkerDashboardSummaryComponent', () => {
     expect(el.querySelector('app-summary-schedule-hub')).toBeTruthy();
     expect(el.querySelector('app-summary-logistics-services-hub')).toBeTruthy();
     expect(el.querySelector('app-summary-recent-transactions-table')).toBeTruthy();
-    expect(el.textContent).toContain('Prinsip Kedaulatan Mitra Tuwaktu');
+    expect(el.textContent).toContain('Keuntungan Mitra Tuwaktu');
   });
 
   it('harus memanggil fetchWorkerProfile saat loadProfileByLookupInput dipanggil', () => {

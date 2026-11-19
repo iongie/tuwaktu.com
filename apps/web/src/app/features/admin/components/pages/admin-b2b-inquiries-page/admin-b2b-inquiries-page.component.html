@@ -1,0 +1,174 @@
+<div class="space-y-6">
+  <!-- Header Halaman Admin -->
+  <header class="bg-hero-canvas text-ink-on-dark rounded-[10px] p-5 sm:p-7 flex flex-col md:flex-row md:items-end justify-between gap-5">
+    <div class="max-w-2xl flex flex-col gap-1.5">
+      <span class="font-mono-rate text-[11px] font-bold uppercase tracking-wider text-voltage-orange">
+        PENGELOLAAN KLIEN BISNIS (B2B)
+      </span>
+      <h1 class="text-2xl sm:text-3xl font-bold text-ink-on-dark tracking-tight">
+        Pengajuan Perawatan Properti &amp; Kantor
+      </h1>
+      <p class="text-xs sm:text-sm text-ink-disabled leading-relaxed">
+        Pantau pengajuan masuk dari kos, ruko, dan kantor, tetapkan tarif final hasil survei, dan catat status pembayaran bulanan secara manual.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="store.loadInquiries()"
+      class="min-h-11 px-4 py-2 rounded-lg bg-surface-elevated-dark hover:bg-neutral-700 text-white border border-white/10 text-xs font-bold font-mono-rate inline-flex items-center gap-2 cursor-pointer self-start md:self-auto shrink-0"
+    >
+      <span class="material-symbols-outlined text-[18px]">refresh</span>
+      <span>Muat Ulang Data</span>
+    </button>
+  </header>
+
+  @if (store.feedbackMessage()) {
+    <app-feedback-alert-banner
+      [message]="store.feedbackMessage()"
+      type="success"
+      (dismiss)="store.clearFeedback()"
+    />
+  }
+
+  @if (store.errorMessage()) {
+    <app-feedback-alert-banner
+      [message]="store.errorMessage()"
+      type="error"
+      title="Kendala Data Klien Bisnis"
+      [hasRetry]="true"
+      retryLabel="Coba Lagi"
+      (retryAction)="store.loadInquiries()"
+      (dismiss)="store.clearError()"
+    />
+  }
+
+  <!-- 4 Kartu Statistik Riil dari Database -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Ringkasan Klien Bisnis">
+    <div class="bg-body-canvas p-5 rounded-[10px] border border-hairline-light flex flex-col justify-between gap-2">
+      <span class="text-[11px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+        TOTAL PENGAJUAN
+      </span>
+      <span class="text-3xl font-extrabold font-mono-rate text-ink-on-light tabular-nums" data-testid="b2b-stat-total">
+        {{ store.stats().total_count }}
+      </span>
+      <span class="text-xs text-ink-secondary">Seluruh pengajuan properti B2B tercatat</span>
+    </div>
+
+    <div class="bg-body-canvas p-5 rounded-[10px] border border-hairline-light flex flex-col justify-between gap-2">
+      <span class="text-[11px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+        PERLU TINDAK LANJUT
+      </span>
+      <span class="text-3xl font-extrabold font-mono-rate text-voltage-orange tabular-nums" data-testid="b2b-stat-pending">
+        {{ store.stats().pending_follow_up_count }}
+      </span>
+      <span class="text-xs text-ink-secondary">Status baru, dihubungi, atau penawaran dikirim</span>
+    </div>
+
+    <div class="bg-body-canvas p-5 rounded-[10px] border border-hairline-light flex flex-col justify-between gap-2">
+      <span class="text-[11px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+        KONTRAK AKTIF
+      </span>
+      <span class="text-3xl font-extrabold font-mono-rate text-whatsapp-green tabular-nums" data-testid="b2b-stat-active">
+        {{ store.stats().active_contract_count }}
+      </span>
+      <span class="text-xs text-ink-secondary">Properti dengan jadwal perawatan berjalan</span>
+    </div>
+
+    <div class="bg-body-canvas p-5 rounded-[10px] border border-hairline-light flex flex-col justify-between gap-2">
+      <span class="text-[11px] font-bold uppercase tracking-wider font-mono-rate text-ink-secondary">
+        PENDAPATAN BULANAN LUNAS
+      </span>
+      <span class="text-2xl sm:text-3xl font-extrabold font-mono-rate text-ink-on-light tabular-nums" data-testid="b2b-stat-revenue">
+        {{ formatRupiah(store.stats().paid_monthly_revenue) }}
+      </span>
+      <span class="text-xs text-ink-secondary">Total dari kontrak berstatus Lunas (PAID)</span>
+    </div>
+  </section>
+
+  <!-- Filter & Pencarian -->
+  <section class="bg-body-canvas p-4 rounded-[10px] border border-hairline-light flex flex-col lg:flex-row gap-3 lg:items-end">
+    <div class="flex-1 flex flex-col gap-1">
+      <label for="b2bSearchInput" class="text-xs font-bold text-ink-on-light">
+        Cari Kode, Usaha, PIC, atau Kota
+      </label>
+      <div class="flex gap-2">
+        <input
+          id="b2bSearchInput"
+          type="text"
+          [ngModel]="store.searchQuery()"
+          (ngModelChange)="store.setSearchQuery($event)"
+          (keydown.enter)="store.applySearch()"
+          placeholder="Contoh: B2B-, Kos Melati, Jakarta Selatan"
+          class="flex-1 min-h-11 px-3.5 rounded-lg bg-surface-highlight border border-hairline-light text-sm text-ink-on-light focus:bg-body-canvas focus:border-accent-link focus:outline-none"
+        />
+        <button
+          type="button"
+          (click)="store.applySearch()"
+          class="min-h-11 px-4 rounded-lg bg-hero-canvas hover:bg-neutral-800 text-white text-xs font-bold cursor-pointer shrink-0"
+        >
+          Cari
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:w-96">
+      <div class="flex flex-col gap-1">
+        <label for="b2bStatusFilter" class="text-xs font-bold text-ink-on-light">
+          Filter Status Kontrak
+        </label>
+        <select
+          id="b2bStatusFilter"
+          [ngModel]="store.statusFilter()"
+          (ngModelChange)="store.setStatusFilter($event)"
+          class="w-full min-h-11 px-3 rounded-lg bg-surface-highlight border border-hairline-light text-sm text-ink-on-light cursor-pointer"
+        >
+          <option value="ALL">Semua Status</option>
+          <option value="NEW">Pengajuan Baru</option>
+          <option value="CONTACTED">Sudah Dihubungi</option>
+          <option value="PROPOSAL_SENT">Penawaran Dikirim</option>
+          <option value="ACTIVE">Kontrak Aktif</option>
+          <option value="PAUSED">Dijeda</option>
+          <option value="REJECTED">Ditolak / Batal</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="b2bPaymentFilter" class="text-xs font-bold text-ink-on-light">
+          Filter Pembayaran
+        </label>
+        <select
+          id="b2bPaymentFilter"
+          [ngModel]="store.paymentStatusFilter()"
+          (ngModelChange)="store.setPaymentStatusFilter($event)"
+          class="w-full min-h-11 px-3 rounded-lg bg-surface-highlight border border-hairline-light text-sm text-ink-on-light cursor-pointer"
+        >
+          <option value="ALL">Semua Pembayaran</option>
+          <option value="UNPAID">Belum Dibayar</option>
+          <option value="WAITING_CONFIRMATION">Menunggu Konfirmasi</option>
+          <option value="PAID">Lunas</option>
+          <option value="OVERDUE">Jatuh Tempo</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daftar Pengajuan (Kartu Mobile & Tabel Desktop) -->
+  <app-admin-b2b-inquiry-list
+    [inquiries]="store.inquiries()"
+    [isLoading]="store.isLoading()"
+    [hasActiveFilter]="store.hasActiveFilter()"
+    (manageClick)="store.openManageModal($event)"
+    (resetFilters)="store.resetFilters()"
+  />
+
+  <!-- Modal Kelola Pengajuan & Pembayaran -->
+  <app-admin-b2b-inquiry-modal
+    [isOpen]="store.isModalOpen()"
+    [inquiry]="store.selectedInquiry()"
+    [isSubmitting]="store.isUpdating()"
+    (closeModal)="store.closeManageModal()"
+    (saveUpdate)="store.saveInquiryUpdate($event.id, $event.payload)"
+  />
+</div>
+

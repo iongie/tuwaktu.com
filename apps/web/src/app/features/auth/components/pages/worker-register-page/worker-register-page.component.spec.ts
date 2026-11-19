@@ -18,13 +18,13 @@ describe('WorkerRegisterPageComponent', () => {
 
   it('harus merender seluruh elemen halaman registrasi mandiri pekerja', () => {
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Mulai Bisnis Jasa Mandiri Anda');
-    expect(text).toContain('Direct Sovereign Onboarding');
-    expect(text).toContain('FASE 01');
-    expect(text).toContain('FASE 02');
-    expect(text).toContain('FASE 03');
-    expect(text).toContain('0% Biaya Komisi Layanan');
-    expect(text).toContain('Anti-Bentrok & Buffer Otomatis');
-    expect(text).toContain('Direct WhatsApp Handoff');
+    expect(text).toContain('Daftar Jadi Mitra Jasa Mandiri');
+    expect(text).toContain('PENDAFTARAN MITRA TUWAKTU');
+    expect(text).toContain('LANGKAH 01');
+    expect(text).toContain('LANGKAH 02');
+    expect(text).toContain('LANGKAH 03');
+    expect(text).toContain('0% Biaya Komisi');
+    expect(text).toContain('Jeda Waktu Otomatis');
+    expect(text).toContain('Pesanan Masuk ke WhatsApp');
   });
 });

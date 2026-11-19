@@ -39,20 +39,11 @@ import {
   template: `
     <div class="flex flex-col gap-6 max-w-xl mx-auto w-full">
       <div class="flex flex-col gap-1.5">
-        <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container rounded w-max"
-        >
-          <span class="material-symbols-outlined text-ink-on-light text-[14px]">shield_person</span>
-          <span class="font-micro-uppercase text-micro-uppercase text-on-surface-variant uppercase font-semibold">
-            AUTENTIKASI PEKERJA TERVERIFIKASI
-          </span>
-        </div>
         <h2 class="font-heading-h2 text-heading-h2 text-ink-on-light font-bold">
-          Masuk ke Konsol Mandiri
+          Masuk ke Dasbor Mitra
         </h2>
         <p class="font-body-default text-body-default text-ink-secondary">
-          Akses panel pengaturan tarif, buffer operasional, ketersediaan slot, dan integrasi nomor
-          dispatch.
+          Kelola layanan, tarif, jadwal kerja, dan nomor WhatsApp Anda.
         </p>
       </div>
 
@@ -65,10 +56,10 @@ import {
           <span class="material-symbols-outlined text-amber-700 text-[20px] shrink-0">admin_panel_settings</span>
           <div class="flex flex-col gap-0.5">
             <span class="font-body-strong text-body-strong font-semibold text-amber-950">
-              Akses Panel Admin Memerlukan Autentikasi
+              Masuk untuk Mengakses Admin
             </span>
             <span class="font-caption text-caption text-amber-800 leading-relaxed">
-              Halaman yang Anda tuju memerlukan wewenang administrator. Silakan masuk menggunakan akun pengelola yang terverifikasi.
+              Silakan masuk menggunakan akun admin yang terdaftar untuk melanjutkan.
             </span>
           </div>
         </div>
@@ -81,10 +72,10 @@ import {
           <span class="material-symbols-outlined text-amber-700 text-[20px] shrink-0">lock</span>
           <div class="flex flex-col gap-0.5">
             <span class="font-body-strong text-body-strong font-semibold text-amber-950">
-              Akses Konsol Dasbor Memerlukan Autentikasi
+              Silakan Masuk Terlebih Dahulu
             </span>
             <span class="font-caption text-caption text-amber-800 leading-relaxed">
-              Halaman konsol kerja mandiri yang Anda tuju memerlukan sesi masuk aktif. Silakan masuk terlebih dahulu untuk melanjutkan.
+              Anda perlu masuk ke akun mitra untuk membuka halaman dasbor.
             </span>
           </div>
         </div>

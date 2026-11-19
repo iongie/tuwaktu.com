@@ -202,6 +202,11 @@ export class AdminSidebarComponent {
       label: 'Katalog Keahlian',
       icon: 'category',
     },
+    {
+      route: '/admin/b2b-inquiries',
+      label: 'Klien Bisnis (B2B)',
+      icon: 'apartment',
+    },
   ];
 
   handleConfirmLogout(): void {

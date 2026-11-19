@@ -36,6 +36,7 @@ describe('AdminSidebarComponent', () => {
     expect(el.textContent).toContain('Analitik Platform');
     expect(el.textContent).toContain('Kelola Mitra');
     expect(el.textContent).toContain('Katalog Keahlian');
+    expect(el.textContent).toContain('Klien Bisnis (B2B)');
     expect(el.textContent).toContain('Lihat Web Publik');
     expect(el.textContent).toContain('Dashboard Teknisi');
     expect(el.textContent).toContain('Keluar Akun');

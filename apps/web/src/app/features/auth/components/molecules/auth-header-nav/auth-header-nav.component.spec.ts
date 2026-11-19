@@ -39,6 +39,25 @@ describe('AuthHeaderNavComponent', () => {
     expect(navTexts).toContain('Jelajah Pekerja');
     expect(navTexts).toContain('Katalog Layanan');
     expect(navTexts).toContain('Tentang Mandiri');
+    expect(navTexts).toContain('Untuk Bisnis');
+  });
+
+  it('harus dapat membuka dan menutup menu navigasi mobile termasuk link Untuk Bisnis', () => {
+    const menuBtn = fixture.nativeElement.querySelector(
+      '[data-testid="mobile-nav-menu-btn"]',
+    ) as HTMLButtonElement;
+    expect(menuBtn).toBeTruthy();
+
+    menuBtn.click();
+    fixture.detectChanges();
+
+    const mobileNav = fixture.nativeElement.querySelector('#mobile-primary-nav');
+    expect(mobileNav).toBeTruthy();
+    expect(mobileNav.textContent).toContain('Untuk Bisnis');
+
+    component.closeMobileMenu();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#mobile-primary-nav')).toBeNull();
   });
 
   it('harus merender komponen dropdown profil akun pengguna (BookingNavAccountMenuComponent)', () => {

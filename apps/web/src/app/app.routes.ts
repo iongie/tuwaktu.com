@@ -235,6 +235,17 @@ export const appRoutes: Route[] = [
             './features/admin/components/pages/admin-credential-reset-approval-page/admin-credential-reset-approval-page.component'
           ).then((m) => m.AdminCredentialResetApprovalPageComponent),
       },
+      {
+        path: 'b2b-inquiries',
+        loadComponent: () =>
+          import(
+            './features/admin/components/pages/admin-b2b-inquiries-page/admin-b2b-inquiries-page.component'
+          ).then((m) => m.AdminB2BInquiriesPageComponent),
+      },
+      {
+        path: 'klien-bisnis',
+        redirectTo: 'b2b-inquiries',
+      },
     ],
   },
   {
@@ -243,6 +254,17 @@ export const appRoutes: Route[] = [
       import(
         './features/client-review/components/pages/client-review-page/client-review-page.component'
       ).then((m) => m.ClientReviewPageComponent),
+  },
+  {
+    path: 'bisnis',
+    loadComponent: () =>
+      import(
+        './features/business-client/components/pages/business-client-page/business-client-page.component'
+      ).then((m) => m.BusinessClientPageComponent),
+  },
+  {
+    path: 'properti',
+    redirectTo: 'bisnis',
   },
   {
     path: ':slug',

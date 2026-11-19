@@ -23,8 +23,8 @@ describe('WorkerLoginPageComponent', () => {
 
     const loader = fixture.nativeElement.querySelector('[data-testid="session-initializing-loader"]');
     expect(loader).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain('Memverifikasi Sesi...');
-    expect(fixture.nativeElement.textContent).not.toContain('Masuk ke Konsol Mandiri');
+    expect(fixture.nativeElement.textContent).toContain('Memeriksa Sesi...');
+    expect(fixture.nativeElement.textContent).not.toContain('Masuk ke Dasbor Mitra');
   });
 
   it('harus merender form login lengkap saat isInitialized bernilai true', () => {
@@ -32,12 +32,11 @@ describe('WorkerLoginPageComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Akses Langsung Mitra Mandiri.');
-    expect(text).toContain('PORTAL AKSES PEKERJA MANDIRI');
-    expect(text).toContain('STATUS SISTEM DISPATCH');
-    expect(text).toContain('Keamanan Akses Terenkripsi');
-    expect(text).toContain('Sinkronisasi Slot Kalender Seketika');
-    expect(text).toContain('Jalur Cepat WhatsApp Dispatch');
-    expect(text).toContain('Masuk ke Konsol Mandiri');
+    expect(text).toContain('Kelola Jadwal & Pesanan Anda.');
+    expect(text).toContain('MASUK MITRA TUWAKTU');
+    expect(text).toContain('0% Potongan Komisi');
+    expect(text).toContain('Jadwal Kerja Teratur');
+    expect(text).toContain('Pesanan Langsung ke WhatsApp');
+    expect(text).toContain('Masuk ke Dasbor Mitra');
   });
 });

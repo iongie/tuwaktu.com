@@ -1,0 +1,71 @@
+<div class="min-h-screen bg-surface font-body-default text-on-surface antialiased flex flex-col">
+  <app-auth-header-nav />
+
+  <main class="w-full flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12 space-y-8 sm:space-y-10">
+      <!-- Header Penawaran -->
+      <header class="max-w-3xl space-y-3">
+        <span class="font-mono-rate text-xs font-bold uppercase tracking-wider text-voltage-orange block">
+          KHUSUS PENGELOLA PROPERTI &amp; KANTOR
+        </span>
+        <h1 class="font-heading-h1 text-[26px] sm:text-[34px] lg:text-[40px] font-bold text-ink-on-light tracking-tight leading-tight">
+          Perawatan Rutin Properti &amp; Kantor Tanpa Repot.
+        </h1>
+        <p class="font-body-default sm:text-lead-body text-on-surface-variant leading-relaxed">
+          Atur jadwal servis AC, pengecekan listrik, atau pembersihan berkala untuk kos, ruko, kafe, dan kantor Anda dalam satu tagihan bulanan yang rapi. Teknisi tetap menerima upah penuh tanpa potongan komisi.
+        </p>
+      </header>
+
+      <!-- Tata Letak 3 State: Mobile (1 kol), Tablet (2 kol paket), Desktop Asimetris (5 / 7) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <!-- Kolom Kiri (5 cols desktop): Pilihan Paket + Alur Singkat -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            @for (plan of planOptions; track plan.tier) {
+              <app-business-plan-option-card
+                [plan]="plan"
+                [isSelected]="store.selectedPlanTier() === plan.tier"
+                (selected)="store.selectPlanTier($event)"
+              />
+            }
+          </div>
+
+          <section
+            class="rounded-xl p-5 bg-surface-container-low border border-hairline-subtle space-y-3"
+            aria-label="Alur Pengajuan Kerja Sama"
+          >
+            <h2 class="font-heading-h3 text-base font-bold text-ink-on-light">
+              Alur Pengajuan Sampai Berjalan
+            </h2>
+            <ol class="space-y-2.5 text-xs sm:text-sm text-on-surface-variant leading-relaxed list-decimal pl-4">
+              <li>
+                Kirim data properti beserta perkiraan jumlah unit melalui formulir di halaman ini.
+              </li>
+              <li>
+                Admin Tuwaktu menghubungi penanggung jawab Anda via WhatsApp untuk survei atau penyesuaian rincian biaya akhir.
+              </li>
+              <li>
+                Setelah disepakati, lakukan transfer atau QRIS bulanan dan jadwal teknisi langsung diatur sesuai siklus kunjungan Anda.
+              </li>
+            </ol>
+          </section>
+        </div>
+
+        <!-- Kolom Kanan (7 cols desktop): Formulir atau Tanda Terima -->
+        <div class="lg:col-span-7">
+          @if (store.createdReceipt(); as receipt) {
+            <app-business-inquiry-receipt-card
+              [receipt]="receipt"
+              (createAnother)="store.resetForNewInquiry()"
+            />
+          } @else {
+            <app-business-inquiry-form />
+          }
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-home-footer-section />
+</div>
+

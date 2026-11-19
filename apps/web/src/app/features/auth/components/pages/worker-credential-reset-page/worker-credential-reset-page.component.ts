@@ -35,70 +35,27 @@ import { AuthFooterBarComponent } from '../../molecules/auth-footer-bar/auth-foo
           <div
             class="grid grid-cols-1 lg:grid-cols-12 rounded-[10px] overflow-hidden border border-hairline-light bg-body-canvas shadow-none"
           >
-            <!-- Sisi Kiri: Nocturne Manifest Canvas (5 Cols) -->
+            <!-- Sisi Kiri: Informasi Pembaruan PIN (5 Cols) -->
             <div
-              class="lg:col-span-5 bg-hero-canvas p-6 sm:p-8 lg:p-10 flex flex-col justify-between text-ink-on-dark relative overflow-hidden"
+              class="lg:col-span-5 bg-hero-canvas p-6 sm:p-8 lg:p-10 flex flex-col justify-between text-ink-on-dark"
             >
-              <div
-                class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-voltage-orange/10 blur-3xl pointer-events-none"
-              ></div>
-              <div
-                class="absolute -left-12 bottom-12 w-48 h-48 rounded-full bg-whatsapp-green/20 blur-2xl pointer-events-none"
-              ></div>
-
-              <div class="flex flex-col gap-6 relative z-10">
-                <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-voltage-orange animate-pulse"></span>
-                  <span
-                    class="font-mono-rate text-[10px] uppercase tracking-widest text-voltage-orange font-bold"
-                  >
-                    PEMBARUAN KREDENSIAL MITRA
-                  </span>
-                </div>
+              <div class="flex flex-col gap-6">
+                <span
+                  class="font-mono-rate text-[10px] uppercase tracking-widest text-voltage-orange font-bold"
+                >
+                  ATUR ULANG PIN MITRA
+                </span>
 
                 <div class="flex flex-col gap-2.5">
                   <h1 class="font-heading-h1 text-heading-h1 text-ink-on-dark font-bold leading-tight">
-                    Kedaulatan Penuh Akses Pekerja Mandiri.
+                    Perbarui PIN &amp; Nomor WhatsApp Anda.
                   </h1>
                   <p class="font-body-default text-xs text-gray-400 leading-relaxed">
-                    0% Potongan Komisi, 100% Kontrol Data di Tangan Anda. Pembaruan PIN keamanan dan kontak WhatsApp diverifikasi langsung via tautan aman tanpa perantara.
+                    Gunakan tautan khusus dari Admin Tuwaktu untuk mengganti PIN masuk atau memperbarui nomor WhatsApp terdaftar Anda.
                   </p>
                 </div>
 
-                <!-- Metrik & Visual Telemetri -->
-                <div class="p-4 bg-surface-elevated-dark rounded border border-white/10 flex flex-col gap-2.5">
-                  <div
-                    class="flex items-center justify-between font-mono-rate text-xs uppercase"
-                  >
-                    <span class="text-gray-400">STATUS PROTOKOL KEAMANAN</span>
-                    <span class="text-whatsapp-surface flex items-center gap-1.5 font-bold">
-                      <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
-                      VERIFIKASI 2-TIER AKTIF
-                    </span>
-                  </div>
-
-                  <div
-                    class="w-full h-10 flex items-center justify-between px-2 bg-hero-canvas/80 rounded border border-white/5"
-                    aria-hidden="true"
-                  >
-                    <svg class="w-full h-6 text-voltage-orange" fill="none" viewBox="0 0 260 24">
-                      <path
-                        d="M0 12 Q 20 2, 40 12 T 80 12 T 120 4 T 160 20 T 200 12 T 240 6 T 260 12"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      />
-                    </svg>
-                  </div>
-
-                  <div class="flex justify-between font-mono-rate text-[11px] text-gray-400">
-                    <span>Enkripsi Kriptografi Argon2id</span>
-                    <span>Tautan Sekali Pakai 10 Menit</span>
-                  </div>
-                </div>
-
-                <!-- Kredensial Pilar Keamanan -->
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 pt-2">
                   <div class="flex items-start gap-3">
                     <div
                       class="w-7 h-7 rounded bg-surface-elevated-dark border border-white/10 flex items-center justify-center shrink-0 text-whatsapp-surface"
@@ -107,10 +64,10 @@ import { AuthFooterBarComponent } from '../../molecules/auth-footer-bar/auth-foo
                     </div>
                     <div class="flex flex-col">
                       <span class="font-body-strong text-xs text-ink-on-dark font-bold">
-                        Enkripsi PIN Mandiri
+                        Buat PIN Baru
                       </span>
                       <span class="font-body-default text-caption text-gray-400 text-xs">
-                        PIN disimpan dengan derivasi kunci Argon2id resisten brute-force.
+                        Pilih 6 digit angka yang mudah Anda ingat untuk masuk ke dasbor mitra.
                       </span>
                     </div>
                   </div>
@@ -123,10 +80,10 @@ import { AuthFooterBarComponent } from '../../molecules/auth-footer-bar/auth-foo
                     </div>
                     <div class="flex flex-col">
                       <span class="font-body-strong text-xs text-ink-on-dark font-bold">
-                        Verifikasi WhatsApp Dua Tahap
+                        Tautan Berlaku 10 Menit
                       </span>
                       <span class="font-body-default text-caption text-gray-400 text-xs">
-                        Setiap permohonan tervalidasi dengan Admin sebelum tautan diterbitkan.
+                        Tautan ini hanya dapat digunakan satu kali untuk menjaga keamanan akun Anda.
                       </span>
                     </div>
                   </div>
@@ -135,8 +92,8 @@ import { AuthFooterBarComponent } from '../../molecules/auth-footer-bar/auth-foo
 
               <!-- Footer Box Sisi Kiri -->
               <div class="pt-6 border-t border-white/10 mt-6 flex items-center justify-between text-[11px] font-mono-rate text-gray-400">
-                <span>Tuwaktu Protocol v2.4</span>
-                <span class="text-voltage-orange font-bold">0% KOMISI PLATFORM</span>
+                <span>Tuwaktu Mitra</span>
+                <span class="text-voltage-orange font-bold">0% KOMISI</span>
               </div>
             </div>
 
@@ -145,19 +102,11 @@ import { AuthFooterBarComponent } from '../../molecules/auth-footer-bar/auth-foo
               <div class="max-w-xl mx-auto w-full flex flex-col gap-6">
                 <!-- Header Form -->
                 <div class="flex flex-col gap-1.5">
-                  <div
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-highlight border border-hairline-light rounded w-max"
-                  >
-                    <span class="material-symbols-outlined text-voltage-orange text-[14px]">lock_reset</span>
-                    <span class="font-mono-rate text-[10px] uppercase font-bold text-ink-on-light tracking-wider">
-                      AUTENTIKASI &amp; KEAMANAN AKUN
-                    </span>
-                  </div>
                   <h2 class="font-heading-h2 text-heading-h2 text-ink-on-light font-bold">
-                    Pembaruan Kredensial Mitra
+                    Buat PIN Masuk Baru
                   </h2>
                   <p class="font-body-default text-xs text-ink-secondary">
-                    Tautan persetujuan admin terverifikasi. Masukkan nomor WhatsApp terdaftar Anda dan tetapkan PIN baru.
+                    Masukkan nomor WhatsApp terdaftar Anda lalu tetapkan PIN baru.
                   </p>
                 </div>
 

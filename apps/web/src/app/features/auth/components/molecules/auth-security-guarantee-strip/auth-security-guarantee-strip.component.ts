@@ -22,7 +22,7 @@ import { CommonModule } from '@angular/common';
             Data Klien Milik Anda Sepenuhnya
           </span>
           <span class="font-caption text-caption text-ink-secondary">
-            Tuwaktu tidak mengumpulkan atau memonetisasi riwayat transaksi dan nomor pelanggan Anda.
+            Nomor pelanggan dan riwayat pesanan Anda tetap menjadi milik Anda.
           </span>
         </div>
       </div>

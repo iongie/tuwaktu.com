@@ -264,4 +264,35 @@ func RegisterRoutes(
 	}
 }
 
+// RegisterB2BRoutes mendaftarkan endpoint publik dan admin untuk Pengajuan Klien Bisnis / Pengelola Properti (B2B)
+func RegisterB2BRoutes(
+	app *fiber.App,
+	b2bHandler *B2BInquiryHandler,
+	authMiddleware *AuthMiddleware,
+) {
+	if app == nil || b2bHandler == nil {
+		return
+	}
+
+	api := app.Group("/api")
+	pub := api.Group("/public")
+	v1 := api.Group("/v1")
+	v1Pub := v1.Group("/public")
+
+	pub.Post("/b2b-inquiries", b2bHandler.CreatePublicInquiry)
+	v1Pub.Post("/b2b-inquiries", b2bHandler.CreatePublicInquiry)
+
+	if authMiddleware != nil {
+		adminV1 := v1.Group("/admin", authMiddleware.RequireAuth, authMiddleware.RequireAdmin)
+		adminV1.Get("/b2b-inquiries", b2bHandler.ListAdminInquiries)
+		adminV1.Get("/b2b-inquiries/:id", b2bHandler.GetAdminInquiry)
+		adminV1.Patch("/b2b-inquiries/:id", b2bHandler.UpdateAdminInquiry)
+
+		adminLegacy := api.Group("/admin", authMiddleware.RequireAuth, authMiddleware.RequireAdmin)
+		adminLegacy.Get("/b2b-inquiries", b2bHandler.ListAdminInquiries)
+		adminLegacy.Get("/b2b-inquiries/:id", b2bHandler.GetAdminInquiry)
+		adminLegacy.Patch("/b2b-inquiries/:id", b2bHandler.UpdateAdminInquiry)
+	}
+}
+
 

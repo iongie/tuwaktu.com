@@ -114,6 +114,14 @@ import { RouterLink } from '@angular/router';
               </li>
               <li>
                 <a
+                  routerLink="/bisnis"
+                  class="hover:text-on-surface transition-colors font-semibold text-ink-on-light"
+                >
+                  Paket Klien Bisnis &amp; Properti
+                </a>
+              </li>
+              <li>
+                <a
                   routerLink="/"
                   fragment="kalkulator-hemat"
                   class="hover:text-on-surface transition-colors"

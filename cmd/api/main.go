@@ -35,6 +35,7 @@ func main() {
 	var categoryRepo repository.CategoryRepository
 	var reviewRepo repository.ReviewRepository
 	var analyticsRepo repository.AnalyticsRepository
+	var b2bRepo repository.B2BInquiryRepository
 
 	gormDB, err := database.NewGormDBWithConfig(cfg)
 	if err != nil {
@@ -51,6 +52,7 @@ func main() {
 		categoryRepo = repository.NewMemoryCategoryRepository()
 		reviewRepo = memRepo
 		analyticsRepo = memRepo
+		b2bRepo = repository.NewMemoryB2BInquiryRepository()
 	} else {
 		sqlDB, _ := gormDB.DB()
 		if sqlDB != nil {
@@ -77,6 +79,7 @@ func main() {
 		categoryRepo = repository.NewGormCategoryRepository(gormDB)
 		reviewRepo = repository.NewPostgresReviewRepository(gormDB)
 		analyticsRepo = repository.NewPostgresAnalyticsRepository(gormDB)
+		b2bRepo = repository.NewPostgresB2BInquiryRepository(gormDB)
 	}
 
 	// Initialize Services
@@ -85,6 +88,7 @@ func main() {
 	categorySvc := service.NewCategoryService(categoryRepo)
 	reviewSvc := service.NewReviewService(reviewRepo, bookingRepo, workerRepo)
 	analyticsSvc := service.NewAnalyticsService(analyticsRepo)
+	b2bSvc := service.NewB2BInquiryService(b2bRepo)
 
 	// Initialize Handlers
 	workerHandler := handler.NewWorkerHandler(workerSvc)
@@ -95,6 +99,7 @@ func main() {
 	categoryHandler := handler.NewCategoryHandler(categorySvc)
 	reviewHandler := handler.NewReviewHandler(reviewSvc)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsSvc)
+	b2bHandler := handler.NewB2BInquiryHandler(b2bSvc)
 
 	// Initialize Fiber App with environment-aware settings and 1MB body limit protection
 	app := fiber.New(fiber.Config{
@@ -154,6 +159,7 @@ func main() {
 
 	// Register Routes
 	handler.RegisterRoutes(app, workerHandler, bookingHandler, adminHandler, authHandler, authMiddleware, categoryHandler, reviewHandler, analyticsHandler)
+	handler.RegisterB2BRoutes(app, b2bHandler, authMiddleware)
 
 	// Channel to listen for shutdown signals
 	quit := make(chan os.Signal, 1)

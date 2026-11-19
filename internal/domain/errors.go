@@ -26,6 +26,9 @@ var (
 	ErrBookingNotCompleted   = errors.New("ulasan hanya dapat diberikan untuk pesanan yang telah selesai dikerjakan")
 	ErrBookingAlreadyReviewed = errors.New("pesanan ini sudah pernah diulas sebelumnya")
 	ErrInvalidRating         = errors.New("rating harus bernilai antara 1 sampai 5 bintang")
-	ErrReviewCommentTooShort = errors.New("komentar ulasan minimal harus 5 karakter")
+	ErrReviewCommentTooShort  = errors.New("komentar ulasan minimal harus 5 karakter")
+	ErrB2BInquiryNotFound     = errors.New("pengajuan klien bisnis tidak ditemukan")
+	ErrInvalidB2BStatus       = errors.New("status pengajuan klien bisnis tidak valid")
+	ErrInvalidB2BPaymentStatus = errors.New("status pembayaran pengajuan tidak valid")
 )
 

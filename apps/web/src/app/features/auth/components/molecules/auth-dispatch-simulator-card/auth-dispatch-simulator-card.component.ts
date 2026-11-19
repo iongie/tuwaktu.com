@@ -12,14 +12,11 @@ import { CommonModule } from '@angular/common';
     >
       <div class="flex items-center justify-between border-b-0 pb-1">
         <div class="flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-whatsapp-green text-[18px]">terminal</span>
+          <span class="material-symbols-outlined text-whatsapp-green text-[18px]">chat</span>
           <span class="font-micro-uppercase text-micro-uppercase text-ink-disabled uppercase font-semibold">
-            SIMULASI FORMAT DISPATCH
+            CONTOH PESAN MASUK WHATSAPP
           </span>
         </div>
-        <span class="font-mono-rate text-mono-rate text-whatsapp-green text-xs font-bold">
-          READY STATUS
-        </span>
       </div>
 
       <div

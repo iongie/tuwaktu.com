@@ -20,7 +20,7 @@ describe('AuthDispatchSimulatorCardComponent', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Teknisi AC & Kelistrikan');
     expect(text).toContain('Kebayoran Baru');
-    expect(text).toContain('SIMULASI FORMAT DISPATCH');
+    expect(text).toContain('CONTOH PESAN MASUK WHATSAPP');
     expect(text).toContain('Komisi Tuwaktu: Rp 0');
   });
 

@@ -85,6 +85,9 @@ export class AdminHeaderComponent {
     if (url.includes('/admin/categories')) {
       return 'Katalog Keahlian';
     }
+    if (url.includes('/admin/b2b-inquiries') || url.includes('/admin/klien-bisnis')) {
+      return 'Klien Bisnis (B2B)';
+    }
     return 'Dashboard';
   });
 }

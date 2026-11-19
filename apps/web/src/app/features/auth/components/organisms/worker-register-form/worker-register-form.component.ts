@@ -25,18 +25,9 @@ import { AltchaCaptchaFieldComponent } from '../../molecules/altcha-captcha-fiel
     <div class="bg-body-canvas rounded-xl p-6 sm:p-8 shadow-sm flex flex-col gap-6">
       <div class="flex items-center justify-between pb-2 border-b border-hairline-subtle/40">
         <div class="flex flex-col">
-          <span class="font-micro-uppercase text-micro-uppercase text-on-surface-variant uppercase font-semibold">
-            REGISTRASI LANGSUNG
-          </span>
           <h2 class="font-heading-h2 text-heading-h2 text-ink-on-light font-bold">
-            Data Identitas & Akses Mandiri
+            Data Diri &amp; Nomor WhatsApp
           </h2>
-        </div>
-        <div
-          class="flex items-center gap-1.5 bg-whatsapp-surface text-whatsapp-ink px-2.5 py-1 rounded"
-        >
-          <span class="material-symbols-outlined text-whatsapp-green text-[18px]">verified</span>
-          <span class="font-caption text-caption font-semibold">Akses Mandiri</span>
         </div>
       </div>
 

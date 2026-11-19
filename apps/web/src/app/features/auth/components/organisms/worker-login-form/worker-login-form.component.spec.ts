@@ -148,7 +148,7 @@ describe('WorkerLoginFormComponent', () => {
 
     const banner = fixture.nativeElement.querySelector('#adminAuthNoticeBanner');
     expect(banner).toBeTruthy();
-    expect(banner.textContent).toContain('Akses Panel Admin Memerlukan Autentikasi');
+    expect(banner.textContent).toContain('Masuk untuk Mengakses Admin');
   });
 
   it('harus menampilkan banner peringatan dasbor jika returnUrl mengarah ke konsol dasbor', () => {
@@ -159,7 +159,7 @@ describe('WorkerLoginFormComponent', () => {
     const dashboardBanner = fixture.nativeElement.querySelector('#dashboardAuthNoticeBanner');
     expect(adminBanner).toBeFalsy();
     expect(dashboardBanner).toBeTruthy();
-    expect(dashboardBanner.textContent).toContain('Akses Konsol Dasbor Memerlukan Autentikasi');
+    expect(dashboardBanner.textContent).toContain('Silakan Masuk Terlebih Dahulu');
   });
 
   it('harus mengarahkan pekerja ke returnUrl dasbor spesifik setelah login berhasil', () => {

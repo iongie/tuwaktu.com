@@ -23,7 +23,7 @@ import {
   CreateServiceBookingPayload,
 } from '../../models/service-booking.model';
 import { APP_ENVIRONMENT } from '../../../../../environments/environment.model';
-import { BookingNavAccountMenuComponent } from '../molecules/booking-nav-account-menu/booking-nav-account-menu.component';
+import { AuthHeaderNavComponent } from '../../../auth/components/molecules/auth-header-nav/auth-header-nav.component';
 import { TechnicianSearchBarComponent } from '../molecules/technician-search-bar/technician-search-bar.component';
 import { TechnicianProfileHeaderComponent } from '../organisms/technician-profile-header/technician-profile-header.component';
 import {
@@ -42,12 +42,12 @@ import { AnalyticsService } from '../../../../core/services/analytics.service';
     CommonModule,
     FormsModule,
     RouterLink,
+    AuthHeaderNavComponent,
     TechnicianSearchBarComponent,
     TechnicianProfileHeaderComponent,
     ServiceBookingFormComponent,
     WorkerPublicReviewsSectionComponent,
     BookingSuccessModalComponent,
-    BookingNavAccountMenuComponent,
   ],
   templateUrl: './worker-booking-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

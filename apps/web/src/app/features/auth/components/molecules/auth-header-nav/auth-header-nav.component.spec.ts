@@ -1,12 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { AuthHeaderNavComponent } from './auth-header-nav.component';
 import { AuthService } from '../../../services/auth.service';
 
 describe('AuthHeaderNavComponent', () => {
   let component: AuthHeaderNavComponent;
   let fixture: ComponentFixture<AuthHeaderNavComponent>;
-  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -16,7 +15,6 @@ describe('AuthHeaderNavComponent', () => {
 
     fixture = TestBed.createComponent(AuthHeaderNavComponent);
     component = fixture.componentInstance;
-    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -27,22 +25,23 @@ describe('AuthHeaderNavComponent', () => {
     expect(brandLink.textContent).toContain('MANDIRI');
   });
 
-  it('harus merender badge Verifikasi Pekerja', () => {
-    const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Verifikasi Pekerja');
-  });
-
-  it('harus merender link navigasi utama yang selaras dengan beranda', () => {
+  it('harus merender 4 tautan navigasi utama desktop tanpa badge atau search dummy', () => {
     const navLinks = fixture.nativeElement.querySelectorAll('nav a');
     const navTexts = Array.from(navLinks).map((el: Element) => el.textContent?.trim());
 
     expect(navTexts).toContain('Jelajah Pekerja');
     expect(navTexts).toContain('Katalog Layanan');
-    expect(navTexts).toContain('Tentang Mandiri');
     expect(navTexts).toContain('Untuk Bisnis');
+    expect(navTexts).toContain('Tentang Mandiri');
+    expect(fixture.nativeElement.textContent).not.toContain('Verifikasi Pekerja');
   });
 
-  it('harus dapat membuka dan menutup menu navigasi mobile termasuk link Untuk Bisnis', () => {
+  it('harus dapat membuka dan menutup menu navigasi mobile serta tombol daftar saat tamu', () => {
+    const authService = TestBed.inject(AuthService);
+    authService.setSession(null);
+    authService.isInitialized.set(true);
+    fixture.detectChanges();
+
     const menuBtn = fixture.nativeElement.querySelector(
       '[data-testid="mobile-nav-menu-btn"]',
     ) as HTMLButtonElement;
@@ -54,6 +53,9 @@ describe('AuthHeaderNavComponent', () => {
     const mobileNav = fixture.nativeElement.querySelector('#mobile-primary-nav');
     expect(mobileNav).toBeTruthy();
     expect(mobileNav.textContent).toContain('Untuk Bisnis');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="mobile-drawer-register-btn"]'),
+    ).toBeTruthy();
 
     component.closeMobileMenu();
     fixture.detectChanges();
@@ -105,35 +107,5 @@ describe('AuthHeaderNavComponent', () => {
     expect(profileBtn).toBeTruthy();
     expect(profileBtn.textContent).toContain('Sarah Melinda');
     expect(loginBtn).toBeNull();
-  });
-
-  it('harus melakukan navigasi ke profil pekerja saat executeTechnicianLookup dipanggil', () => {
-    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-
-    component.searchTechnicianSlug.set('sarah-cleaning');
-    component.executeTechnicianLookup();
-
-    expect(navSpy).toHaveBeenCalledWith(['/', 'sarah-cleaning']);
-  });
-
-  it('harus melakukan navigasi cerdas ke profil pekerja spesifik atau katalog disiplin', () => {
-    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-
-    component.searchTechnicianSlug.set('budi');
-    component.executeTechnicianLookup();
-    expect(navSpy).toHaveBeenCalledWith(['/', 'budi-santoso']);
-
-    component.searchTechnicianSlug.set('ac');
-    component.executeTechnicianLookup();
-    expect(navSpy).toHaveBeenCalledWith(['/'], { fragment: 'katalog-disiplin' });
-  });
-
-  it('tidak boleh melakukan navigasi jika query pencarian kosong', () => {
-    const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-
-    component.searchTechnicianSlug.set('   ');
-    component.executeTechnicianLookup();
-
-    expect(navSpy).not.toHaveBeenCalled();
   });
 });

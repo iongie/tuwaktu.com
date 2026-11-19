@@ -311,21 +311,22 @@ it('harus menutup dialog sukses dan mereset form saat handleCloseSuccessModal di
   expect(component.clientFullName).toBe('');
 });
 
-it('harus mengarahkan tautan navigasi ke rute dashboard/integrasi-whatsapp bukan rute usang', () => {
+it('harus menggunakan AuthHeaderNavComponent tanpa link usang dashboard/profile', () => {
   const el = fixture.nativeElement as HTMLElement;
-  const links = Array.from(el.querySelectorAll('a'));
+  expect(el.querySelector('app-auth-header-nav')).toBeTruthy();
 
+  const links = Array.from(el.querySelectorAll('a'));
   const obsoleteLinks = links.filter((l) => {
     const href = l.getAttribute('href') || l.getAttribute('routerLink') || '';
     return href.includes('dashboard/profile');
   });
   expect(obsoleteLinks.length).toBe(0);
 
-  const navWhatsappLinks = links.filter((l) => {
+  const bisnisLinks = links.filter((l) => {
     const href = l.getAttribute('href') || l.getAttribute('routerLink') || '';
-    return href.includes('dashboard/integrasi-whatsapp');
+    return href.includes('/bisnis') || href === 'bisnis';
   });
-  expect(navWhatsappLinks.length).toBeGreaterThan(0);
+  expect(bisnisLinks.length).toBeGreaterThan(0);
 });
 
 it('harus menyediakan akses tombol Masuk dan Daftar Mitra di navbar atas', () => {

@@ -1,76 +1,7 @@
 <div class="min-h-screen bg-background text-on-surface antialiased font-body-default text-body-default">
-  <!-- Fixed Header: Tuwaktu Mandiri Top Navigation from Stitch Screen -->
-  <header class="fixed top-0 w-full z-50 bg-body-canvas/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-    <div class="h-16 max-w-7xl mx-auto px-margin-desktop flex items-center justify-between gap-gutter">
-      <div class="flex items-center gap-space-xl">
-        <a routerLink="/" class="flex items-center gap-space-sm cursor-pointer">
-          <span class="font-heading-h3 text-heading-h3 font-bold tracking-tight text-ink-on-light uppercase">TUWAKTU</span>
-          <span class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded">MANDIRI</span>
-        </a>
+  <app-auth-header-nav [activeWorker]="store.activeTechnicianProfile()" />
 
-        <div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 bg-surface-warm-promo text-promo-ink rounded">
-          <span class="material-symbols-outlined text-[14px] text-promo-ink">verified_user</span>
-          <span class="font-caption text-caption font-semibold uppercase tracking-wider">Verifikasi Pekerja</span>
-        </div>
-
-        <nav aria-label="Navigasi Utama" class="hidden md:flex items-center gap-space-xs">
-          <a
-            routerLink="/"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Jelajah Pekerja
-          </a>
-          <a
-            href="#formulir-reservasi"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Katalog Layanan
-          </a>
-          <a
-            routerLink="/dashboard/integrasi-whatsapp"
-            [queryParams]="store.activeTechnicianProfile() ? { slug: store.activeTechnicianProfile()!.slug } : null"
-            class="px-space-md py-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-button-label text-button-label rounded cursor-pointer"
-          >
-            Tentang Mandiri
-          </a>
-        </nav>
-      </div>
-
-      <!-- Quick Search & Actions from Stitch Screen 807105efcba440adba559c3039aa034a -->
-      <div class="flex items-center gap-space-md relative">
-        <!-- Search Input with Sleek Contrast -->
-        <div class="relative hidden lg:flex items-center">
-          <span class="material-symbols-outlined absolute left-3 text-ink-disabled text-[18px]">search</span>
-          <input
-            type="text"
-            [ngModel]="searchTechnicianSlug()"
-            (ngModelChange)="searchTechnicianSlug.set($event)"
-            (keydown.enter)="executeTechnicianLookup()"
-            placeholder="Cari keahlian atau area..."
-            class="w-52 h-9 pl-9 pr-3 bg-surface-highlight hover:bg-surface-container focus:bg-body-canvas text-on-surface placeholder:text-ink-disabled font-body-default text-caption rounded transition-all outline-none focus:ring-1 focus:ring-accent-focus"
-          />
-        </div>
-
-        <!-- Help Center Link -->
-        <a
-          routerLink="/"
-          class="p-2 text-ink-secondary hover:text-on-surface hover:bg-surface-highlight transition-colors rounded flex items-center justify-center cursor-pointer"
-          title="Pusat Bantuan"
-        >
-          <span class="material-symbols-outlined text-[20px]">help_outline</span>
-        </a>
-
-        <!-- Subtle Vertical Divider -->
-        <div class="h-5 w-px bg-hairline-subtle hidden sm:block"></div>
-
-        <!-- Authenticated User Profile Dropdown Component -->
-        <app-booking-nav-account-menu [activeWorker]="store.activeTechnicianProfile()" />
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Container with pt-16 for fixed header -->
-  <main class="w-full pt-16 bg-background min-h-screen">
+  <main class="w-full bg-background min-h-screen">
     <div class="flex flex-col w-full">
       <!-- Navigasi Breadcrumb Kembali ke Beranda & Direktori Spesialis -->
       <nav aria-label="Breadcrumb" class="bg-hero-canvas border-b border-white/10 py-1.5">

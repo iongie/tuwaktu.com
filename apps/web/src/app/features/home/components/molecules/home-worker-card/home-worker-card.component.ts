@@ -43,8 +43,14 @@ import { FeaturedWorker } from '../../../models/home.model';
               }
             </div>
             <span
-              class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-success ring-2 ring-body-canvas"
-              title="Status: Aktif Menerima Reservasi"
+              class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full ring-2 ring-body-canvas"
+              [class.bg-success]="!worker().isOnHolidayToday"
+              [class.bg-error]="worker().isOnHolidayToday"
+              [attr.title]="
+                worker().isOnHolidayToday
+                  ? 'Status: Jadwal Libur Hari Ini (Tidak Menerima Layanan)'
+                  : 'Status: Aktif Menerima Reservasi'
+              "
             ></span>
           </div>
 
@@ -62,6 +68,14 @@ import { FeaturedWorker } from '../../../models/home.model';
                   aria-label="Terverifikasi"
                 >
                   verified
+                </span>
+              }
+              @if (worker().isOnHolidayToday) {
+                <span
+                  class="px-1.5 py-0.5 rounded bg-error-surface text-error font-micro-uppercase text-[10px] font-bold uppercase tracking-wider"
+                  data-testid="worker-card-holiday-badge"
+                >
+                  Libur Hari Ini
                 </span>
               }
             </div>
@@ -142,12 +156,18 @@ import { FeaturedWorker } from '../../../models/home.model';
 
         <a
           [routerLink]="['/', worker().slug]"
-          class="m3-btn-whatsapp gap-space-xs text-caption font-bold shadow-sm hover:shadow group-hover:bg-whatsapp-green-hover"
+          [class]="
+            worker().isOnHolidayToday
+              ? 'm3-btn-outlined gap-space-xs text-caption font-bold'
+              : 'm3-btn-whatsapp gap-space-xs text-caption font-bold shadow-sm hover:shadow group-hover:bg-whatsapp-green-hover'
+          "
           [attr.aria-label]="
-            'Lihat jadwal dan pesan layanan dari ' + worker().name
+            worker().isOnHolidayToday
+              ? 'Lihat jadwal hari lain dari ' + worker().name
+              : 'Lihat jadwal dan pesan layanan dari ' + worker().name
           "
         >
-          <span>Lihat Jadwal &amp; Pesan</span>
+          <span>{{ worker().isOnHolidayToday ? 'Cek Jadwal Lain' : 'Lihat Jadwal & Pesan' }}</span>
           <span
             class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5"
           >

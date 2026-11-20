@@ -25,6 +25,7 @@ export interface PublicWorkerProfile {
   free_radius_km: number;
   extra_fee_per_km: number;
   whatsapp_number?: string;
+  is_on_holiday_today?: boolean;
   services: PublicWorkerServiceItem[];
 }
 
@@ -48,6 +49,7 @@ export interface FeaturedWorker {
   priceUnit: string;
   avatarUrl: string;
   isVerified: boolean;
+  isOnHolidayToday?: boolean;
   specialtyTags: string[];
   bufferMinutes: number;
 }

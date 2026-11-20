@@ -133,6 +133,7 @@ export class HomeApiService {
       priceUnit,
       avatarUrl: profile.avatar_url || '',
       isVerified: Boolean(profile.rating > 0 || profile.review_count > 0 || (profile.services && profile.services.length > 0)),
+      isOnHolidayToday: Boolean(profile.is_on_holiday_today),
       specialtyTags,
       bufferMinutes: 60,
     };

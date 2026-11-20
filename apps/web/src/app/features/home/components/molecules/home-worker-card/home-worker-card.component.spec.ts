@@ -69,4 +69,19 @@ describe('HomeWorkerCardComponent', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('SM');
   });
+
+  it('harus menampilkan lencana Libur Hari Ini dan tombol Cek Jadwal Lain saat isOnHolidayToday bernilai true', () => {
+    fixture.componentRef.setInput('worker', {
+      ...mockWorker,
+      isOnHolidayToday: true,
+    });
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const badge = el.querySelector('[data-testid="worker-card-holiday-badge"]');
+    expect(badge).toBeTruthy();
+    expect(badge?.textContent).toContain('Libur Hari Ini');
+    expect(el.textContent).toContain('Cek Jadwal Lain');
+    expect(el.textContent).not.toContain('Lihat Jadwal & Pesan');
+  });
 });

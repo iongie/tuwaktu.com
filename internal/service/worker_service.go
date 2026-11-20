@@ -113,6 +113,7 @@ func (s *workerService) GetPublicProfileBySlug(ctx context.Context, slug string)
 
 	profile := worker.ToPublic(publicServices)
 	profile.AvatarURL = s.formatAvatarURL(profile.AvatarURL)
+	profile.IsOnHolidayToday = s.isWorkerOnHolidayToday(ctx, worker.ID)
 	return &profile, nil
 }
 
@@ -162,10 +163,46 @@ func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicW
 
 		pub := w.ToPublic(publicServices)
 		pub.AvatarURL = s.formatAvatarURL(pub.AvatarURL)
+		pub.IsOnHolidayToday = s.isWorkerOnHolidayToday(ctx, w.ID)
 		profiles = append(profiles, pub)
 	}
 
 	return profiles, nil
+}
+
+func (s *workerService) isWorkerOnHolidayToday(ctx context.Context, workerID string) bool {
+	loc, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		loc = time.FixedZone("WIB", 7*3600)
+	}
+	nowWIB := time.Now().In(loc)
+	todayStr := nowWIB.Format("2006-01-02")
+	todayDOW := int(nowWIB.Weekday())
+
+	if override, err := s.repo.GetWorkerDateOverrideByDate(ctx, workerID, todayStr); err == nil && override != nil {
+		if override.IsHoliday || (override.IsSlot1Locked && override.IsSlot2Locked && override.IsSlot3Locked) {
+			return true
+		}
+	}
+
+	if schedules, err := s.repo.GetWorkerSchedules(ctx, workerID); err == nil && len(schedules) > 0 {
+		anyActiveDay := false
+		for _, sc := range schedules {
+			if sc.IsActive {
+				anyActiveDay = true
+			}
+			if sc.DayOfWeek == todayDOW {
+				if !sc.IsActive || (!sc.SlotMorning && !sc.SlotAfternoon && !sc.SlotEvening) {
+					return true
+				}
+			}
+		}
+		if !anyActiveDay {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *workerService) UpdateWorkerProfile(ctx context.Context, id string, req *domain.WorkerProfileUpdate) (*domain.PublicWorkerProfile, error) {

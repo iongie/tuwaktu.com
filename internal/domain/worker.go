@@ -74,9 +74,10 @@ type PublicWorkerProfile struct {
 	Lng            *float64        `json:"lng,omitempty"`
 	MaxRadiusKM    float64         `json:"max_radius_km"`
 	FreeRadiusKM   float64         `json:"free_radius_km"`
-	ExtraFeePerKM  int             `json:"extra_fee_per_km"`
-	WhatsAppNumber string          `json:"whatsapp_number,omitempty"`
-	Services       []PublicService `json:"services"`
+	ExtraFeePerKM    int             `json:"extra_fee_per_km"`
+	WhatsAppNumber   string          `json:"whatsapp_number,omitempty"`
+	IsOnHolidayToday bool            `json:"is_on_holiday_today"`
+	Services         []PublicService `json:"services"`
 }
 
 // EffectiveBasePrice menghitung tarif dasar terendah dari katalog layanan aktif pekerja

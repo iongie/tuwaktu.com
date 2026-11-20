@@ -6,7 +6,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     <!-- Kolom Kiri 7: Hub Jadwal & Status Slot Hari Ini -->
     <div class="lg:col-span-7">
-      <app-summary-schedule-hub />
+      <app-summary-schedule-hub [isHoliday]="store.isSelectedDateHoliday()" />
     </div>
 
     <!-- Kolom Kanan 5: Hub Logistik Basecamp & Layanan Dispatch -->

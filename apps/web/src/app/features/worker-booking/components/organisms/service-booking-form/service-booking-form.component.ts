@@ -382,6 +382,19 @@ export interface BookingFormDraft {
                   <div class="h-10 bg-surface-container-high/60 rounded-lg"></div>
                   <div class="h-16 bg-surface-container rounded-lg"></div>
                 </div>
+              } @else if (isHolidayDate()) {
+                <div
+                  role="status"
+                  data-testid="booking-holiday-banner"
+                  class="p-space-lg bg-error-surface/60 border border-error/30 rounded-xl text-center space-y-1"
+                >
+                  <div class="font-body-strong text-body-strong text-error font-bold">
+                    Jadwal Libur • Tidak Menerima Layanan
+                  </div>
+                  <p class="font-caption text-caption text-ink-secondary">
+                    Mitra sedang libur pada tanggal ini dan tidak menerima pesanan layanan. Silakan pilih tanggal operasional lainnya.
+                  </p>
+                </div>
               } @else if (availableSlots().length === 0) {
                 <div class="p-space-md bg-surface-highlight rounded-lg text-caption text-ink-secondary text-center">
                   Tidak ada jadwal operasional pada tanggal ini.
@@ -731,16 +744,18 @@ export interface BookingFormDraft {
 
                 <button
                   type="submit"
-                  [disabled]="isSubmitting() || isOutOfRadius() || !hasActiveProfile() || !hasAvailableServices()"
+                  [disabled]="isSubmitting() || isOutOfRadius() || !hasActiveProfile() || !hasAvailableServices() || isHolidayDate()"
                   class="w-full h-12 rounded font-button-label text-button-label font-bold flex items-center justify-center gap-space-sm transition-all shadow-md active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  [class.bg-whatsapp-green]="!isOutOfRadius() && hasAvailableServices()"
-                  [class.hover:bg-whatsapp-green-hover]="!isOutOfRadius() && hasAvailableServices()"
-                  [class.text-on-primary]="!isOutOfRadius() && hasAvailableServices()"
-                  [class.bg-surface-container]="isOutOfRadius() || !hasAvailableServices()"
-                  [class.text-ink-disabled]="isOutOfRadius() || !hasAvailableServices()"
+                  [class.bg-whatsapp-green]="!isOutOfRadius() && hasAvailableServices() && !isHolidayDate()"
+                  [class.hover:bg-whatsapp-green-hover]="!isOutOfRadius() && hasAvailableServices() && !isHolidayDate()"
+                  [class.text-on-primary]="!isOutOfRadius() && hasAvailableServices() && !isHolidayDate()"
+                  [class.bg-surface-container]="isOutOfRadius() || !hasAvailableServices() || isHolidayDate()"
+                  [class.text-ink-disabled]="isOutOfRadius() || !hasAvailableServices() || isHolidayDate()"
                 >
                   @if (isSubmitting()) {
                     <span>Menyimpan Reservasi...</span>
+                  } @else if (isHolidayDate()) {
+                    <span>Jadwal Libur • Tidak Menerima Layanan</span>
                   } @else if (isOutOfRadius()) {
                     <span>Di Luar Jangkauan</span>
                   } @else if (!hasAvailableServices()) {
@@ -845,6 +860,17 @@ export class ServiceBookingFormComponent {
 
   readonly hasValidationErrors = computed(() => Object.keys(this.validationErrors()).length > 0);
 
+  readonly isHolidayDate = computed(() => {
+    if (!this.isSelectedDateWorkingDay()) return true;
+    const slots = this.availableSlots();
+    return (
+      slots.length > 0 &&
+      slots.every(
+        (s) => !s.available && (s.reason || '').toLowerCase().includes('libur'),
+      )
+    );
+  });
+
   readonly isHourlyService = computed(() => {
     const service = this.selectedService();
     if (!service) return true;
@@ -948,6 +974,18 @@ export class ServiceBookingFormComponent {
   });
 
   readonly dateOptions = computed(() => {
+    const selectedDate = this.selectedBookingDate();
+    const holidaySelected = this.isHolidayDate();
+    const slots = this.availableSlots();
+    const availSlotCount = slots.filter((s) => s.available).length;
+    const resolveSelectedLabel = (fallbackLabel: string): string => {
+      if (holidaySelected) return 'Jadwal Libur';
+      if (slots.length > 0) {
+        return availSlotCount > 0 ? `${availSlotCount} Slot Siap` : 'Penuh';
+      }
+      return fallbackLabel;
+    };
+
     const options: Array<{
       dateStr: string;
       label: string;
@@ -962,7 +1000,7 @@ export class ServiceBookingFormComponent {
       dateStr: todayStr,
       label: 'HARI INI',
       dateFormatted: `${today.getDate()} ${this.getMonthName(today.getMonth())}`,
-      slotCountLabel: 'Penuh',
+      slotCountLabel: selectedDate === todayStr && holidaySelected ? 'Jadwal Libur' : 'Penuh',
       isFull: true,
     });
 
@@ -973,7 +1011,8 @@ export class ServiceBookingFormComponent {
       dateStr: tomorrowStr,
       label: 'BESOK',
       dateFormatted: `${tomorrow.getDate()} ${this.getMonthName(tomorrow.getMonth())}`,
-      slotCountLabel: '3 Slot Siap',
+      slotCountLabel:
+        selectedDate === tomorrowStr ? resolveSelectedLabel('3 Slot Siap') : '3 Slot Siap',
       isFull: false,
     });
 
@@ -984,7 +1023,8 @@ export class ServiceBookingFormComponent {
       dateStr: lusaStr,
       label: 'LUSA',
       dateFormatted: `${lusa.getDate()} ${this.getMonthName(lusa.getMonth())}`,
-      slotCountLabel: '4 Slot Siap',
+      slotCountLabel:
+        selectedDate === lusaStr ? resolveSelectedLabel('4 Slot Siap') : '4 Slot Siap',
       isFull: false,
     });
 
@@ -996,7 +1036,8 @@ export class ServiceBookingFormComponent {
       dateStr: day3Str,
       label: dayName.toUpperCase(),
       dateFormatted: `${day3.getDate()} ${this.getMonthName(day3.getMonth())}`,
-      slotCountLabel: '5 Slot Siap',
+      slotCountLabel:
+        selectedDate === day3Str ? resolveSelectedLabel('5 Slot Siap') : '5 Slot Siap',
       isFull: false,
     });
 
@@ -1022,6 +1063,9 @@ export class ServiceBookingFormComponent {
   });
 
   readonly selectedSlotTimeBadge = computed(() => {
+    if (this.isHolidayDate()) {
+      return 'Jadwal Libur (Tidak Menerima Layanan)';
+    }
     const slot = this.selectedTimeSlot();
     if (slot) {
       return `${slot.start_time} - ${slot.end_time} WIB`;

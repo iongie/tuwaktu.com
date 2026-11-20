@@ -140,6 +140,7 @@
         [workerName]="store.workerFullName() || 'Mitra Teknisi'"
         [publicProfileUrl]="publicProfileDisplayUrl()"
         [isSlot3Locked]="store.isSlot3Locked()"
+        [isHoliday]="store.isSelectedDateHoliday()"
         (openPublicSimulation)="openSimulationModal()"
       />
     </div>
@@ -149,6 +150,7 @@
   @if (isSimulationModalOpen()) {
     <app-schedule-simulation-modal
       [workerName]="store.workerFullName() || 'Mitra Teknisi'"
+      [isHoliday]="store.isSelectedDateHoliday()"
       (dismissModal)="isSimulationModalOpen.set(false)"
     />
   }

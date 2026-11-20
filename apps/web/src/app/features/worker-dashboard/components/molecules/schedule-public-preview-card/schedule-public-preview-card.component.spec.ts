@@ -46,4 +46,15 @@ describe('SchedulePublicPreviewCardComponent', () => {
     expect(el.textContent).toContain('TERKUNCI');
     expect(el.textContent).toContain('Semua Slot Besok Penuh / Terkunci');
   });
+
+  it('harus menampilkan status LIBUR dan Tidak Menerima Layanan saat isHoliday bernilai true', () => {
+    fixture.componentRef.setInput('isHoliday', true);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain('LIBUR');
+    expect(el.textContent).toContain('Jadwal Libur • Tidak Menerima Layanan pada Tanggal Ini');
+    expect(el.textContent).toContain('0 Slot Terbuka');
+    expect(el.textContent).not.toContain('TERSEDIA');
+  });
 });

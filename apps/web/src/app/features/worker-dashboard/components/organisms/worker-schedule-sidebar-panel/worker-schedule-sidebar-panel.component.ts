@@ -21,6 +21,7 @@ import { SchedulePublicPreviewCardComponent } from '../../molecules/schedule-pub
         [workerName]="workerName()"
         [publicProfileUrl]="publicProfileUrl()"
         [isSlot3Locked]="isSlot3Locked()"
+        [isHoliday]="isHoliday()"
         (openPublicSimulation)="openPublicSimulation.emit()"
       />
     </div>
@@ -31,6 +32,7 @@ export class WorkerScheduleSidebarPanelComponent {
   readonly workerName = input<string>('Mitra Teknisi');
   readonly publicProfileUrl = input<string>('tuwaktu.com/profil');
   readonly isSlot3Locked = input<boolean>(false);
+  readonly isHoliday = input<boolean>(false);
 
   readonly openPublicSimulation = output<void>();
 }

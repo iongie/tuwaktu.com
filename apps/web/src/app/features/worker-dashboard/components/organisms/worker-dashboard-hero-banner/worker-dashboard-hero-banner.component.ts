@@ -38,7 +38,8 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
               />
               <span
                 class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-hero-canvas"
-                [class.bg-emerald-400]="store.isStoreOnline()"
+                [class.bg-emerald-400]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+                [class.bg-red-400]="store.isStoreOnline() && store.isSelectedDateHoliday()"
                 [class.bg-gray-400]="!store.isStoreOnline()"
               ></span>
             </div>
@@ -51,15 +52,31 @@ import { DashboardMetricStatCardComponent } from '../../molecules/dashboard-metr
                   {{ workerBadgeCode() }}
                 </span>
                 <span
-                  class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                  class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full border"
+                  [class.bg-emerald-950/80]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+                  [class.text-emerald-300]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+                  [class.border-emerald-500/30]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+                  [class.bg-red-950/80]="store.isStoreOnline() && store.isSelectedDateHoliday()"
+                  [class.text-red-300]="store.isStoreOnline() && store.isSelectedDateHoliday()"
+                  [class.border-red-500/30]="store.isStoreOnline() && store.isSelectedDateHoliday()"
+                  [class.bg-white/10]="!store.isStoreOnline()"
+                  [class.text-white/70]="!store.isStoreOnline()"
+                  [class.border-white/20]="!store.isStoreOnline()"
                 >
                   <span
                     class="w-1.5 h-1.5 rounded-full"
-                    [class.bg-emerald-400]="store.isStoreOnline()"
+                    [class.bg-emerald-400]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+                    [class.bg-red-400]="store.isStoreOnline() && store.isSelectedDateHoliday()"
                     [class.bg-gray-400]="!store.isStoreOnline()"
-                    [class.animate-pulse]="store.isStoreOnline()"
+                    [class.animate-pulse]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
                   ></span>
-                  {{ store.isStoreOnline() ? 'ONLINE • SIAP ORDER' : 'OFFLINE' }}
+                  @if (!store.isStoreOnline()) {
+                    OFFLINE
+                  } @else if (store.isSelectedDateHoliday()) {
+                    JADWAL LIBUR • TIDAK MENERIMA LAYANAN
+                  } @else {
+                    ONLINE • SIAP ORDER
+                  }
                 </span>
                 <span
                   class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-white/10 text-white/80 border border-white/10"

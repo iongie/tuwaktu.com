@@ -197,7 +197,9 @@ export interface CalendarMonthDay {
             </span>
             <span class="font-caption text-caption text-ink-secondary">
               @if (isCurrentDateHoliday()) {
-                Status: <strong class="text-error">Libur / Tidak Menerima Pemesanan Publik</strong>
+                Status: <strong class="text-error">Libur / Tidak Menerima Layanan</strong>
+              } @else if (isAllSlotsLocked()) {
+                Status: <strong class="text-error">Semua Slot Terkunci / Tidak Menerima Layanan</strong>
               } @else {
                 Status: <strong class="text-success">Aktif Siap Menerima Pemesanan</strong>
               }
@@ -805,9 +807,18 @@ export class ScheduleSlotTimelineCardComponent {
   readonly isCurrentDateHoliday = computed(() => {
     const iso = this.selectedIsoDate();
     if (this.isSpecialHoliday(iso)) return true;
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    if (iso === todayIso && this.isTodayEmergencyLocked()) return true;
+    const scheds = this.schedules();
+    if (scheds.length > 0 && scheds.every((s) => !s.is_active)) return true;
     const dayOfWeek = this.selectedDate().getDay();
     return this.isWeeklyDayOff(dayOfWeek);
   });
+
+  readonly isAllSlotsLocked = computed(
+    () => this.isSlot1Locked() && this.isSlot2Locked() && this.isSlot3Locked(),
+  );
 
   // Slot Bookings Computed
   readonly slot1Booking = computed(

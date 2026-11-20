@@ -275,4 +275,29 @@ describe('ServiceBookingFormComponent', () => {
     expect(banner).toBeTruthy();
     expect(banner.textContent).toContain('Periksa Isian Formulir');
   });
+
+  it('harus menampilkan banner jadwal libur dan menonaktifkan tombol submit saat isSelectedDateWorkingDay bernilai false', () => {
+    componentRef.setInput('isSelectedDateWorkingDay', false);
+    componentRef.setInput('availableSlots', [
+      {
+        slot_type: 'MORNING',
+        name: 'Pagi',
+        start_time: '08:00',
+        end_time: '11:30',
+        available: false,
+        reason: 'Mitra sedang libur pada tanggal ini',
+      },
+    ]);
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    const holidayBanner = compiled.querySelector('[data-testid="booking-holiday-banner"]');
+    expect(holidayBanner).toBeTruthy();
+    expect(holidayBanner?.textContent).toContain('Jadwal Libur • Tidak Menerima Layanan');
+
+    const submitBtn: HTMLButtonElement | null = compiled.querySelector('button[type="submit"]');
+    expect(submitBtn).not.toBeNull();
+    expect(submitBtn?.disabled).toBe(true);
+    expect(submitBtn?.textContent).toContain('Jadwal Libur • Tidak Menerima Layanan');
+  });
 });

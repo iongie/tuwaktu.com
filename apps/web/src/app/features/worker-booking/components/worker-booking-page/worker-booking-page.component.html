@@ -47,7 +47,10 @@
           </div>
         </div>
       } @else if (store.activeTechnicianProfile(); as worker) {
-        <app-technician-profile-header [workerProfile]="worker" />
+        <app-technician-profile-header
+          [workerProfile]="worker"
+          [isWorkingDay]="store.isSelectedDateWorkingDay()"
+        />
       }
 
       <!-- TWO-COLUMN WORKSPACE: Pristine Body Canvas (#ffffff) -->

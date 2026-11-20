@@ -41,8 +41,10 @@ import { AuthService } from '../../../../auth/services/auth.service';
                   </div>
                 }
                 <span
-                  class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success ring-4 ring-hero-canvas"
-                  title="Status: Aktif Menerima Reservasi"
+                  class="absolute bottom-0 right-0 w-4 h-4 rounded-full ring-4 ring-hero-canvas"
+                  [class.bg-success]="isWorkingDay()"
+                  [class.bg-error]="!isWorkingDay()"
+                  [attr.title]="isWorkingDay() ? 'Status: Aktif Menerima Reservasi' : 'Status: Jadwal Libur (Tidak Menerima Layanan)'"
                 ></span>
               </div>
 
@@ -54,6 +56,11 @@ import { AuthService } from '../../../../auth/services/auth.service';
                   <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded bg-surface-warm-promo text-promo-ink font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider">
                     <span class="material-symbols-outlined text-[12px] font-bold">verified</span> VERIFIED PRO
                   </span>
+                  @if (!isWorkingDay()) {
+                    <span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded bg-error-surface text-error font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider">
+                      JADWAL LIBUR
+                    </span>
+                  }
                 </div>
 
                 <p class="font-lead-body text-lead-body text-ink-secondary text-surface-highlight font-medium">
@@ -180,6 +187,7 @@ import { AuthService } from '../../../../auth/services/auth.service';
 export class TechnicianProfileHeaderComponent {
   readonly authService = inject(AuthService);
   readonly workerProfile = input.required<PublicTechnicianProfile>();
+  readonly isWorkingDay = input<boolean>(true);
   readonly isCopied = signal<boolean>(false);
   readonly isAvatarBroken = signal<boolean>(false);
 

@@ -44,24 +44,40 @@ import { LogoutConfirmModalComponent } from '../../../../auth/components/molecul
           <!-- Status Operasional Pill from Stitch ae83d8c55bf6406ea67c57238d5b90f9 -->
           <div
             class="flex items-center gap-space-sm px-space-md py-space-xs h-8 rounded-full border shrink-0 select-none"
-            [class.bg-success-surface]="store.isStoreOnline()"
-            [class.text-success]="store.isStoreOnline()"
-            [class.border-success/20]="store.isStoreOnline()"
+            [class.bg-success-surface]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+            [class.text-success]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+            [class.border-success/20]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+            [class.bg-error-surface]="store.isStoreOnline() && store.isSelectedDateHoliday()"
+            [class.text-error]="store.isStoreOnline() && store.isSelectedDateHoliday()"
+            [class.border-error/20]="store.isStoreOnline() && store.isSelectedDateHoliday()"
             [class.bg-surface-highlight]="!store.isStoreOnline()"
             [class.text-ink-secondary]="!store.isStoreOnline()"
             [class.border-hairline-subtle]="!store.isStoreOnline()"
           >
             <span
               class="w-2.5 h-2.5 rounded-full shrink-0"
-              [class.bg-success]="store.isStoreOnline()"
+              [class.bg-success]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
+              [class.bg-error]="store.isStoreOnline() && store.isSelectedDateHoliday()"
               [class.bg-ink-disabled]="!store.isStoreOnline()"
-              [class.animate-pulse]="store.isStoreOnline()"
+              [class.animate-pulse]="store.isStoreOnline() && !store.isSelectedDateHoliday()"
             ></span>
             <span class="font-caption text-caption font-semibold hidden sm:inline">
-              {{ store.isStoreOnline() ? 'Menerima Pesanan' : 'Operasional Nonaktif' }}
+              @if (!store.isStoreOnline()) {
+                Operasional Nonaktif
+              } @else if (store.isSelectedDateHoliday()) {
+                Jadwal Libur • Tidak Menerima Layanan
+              } @else {
+                Menerima Pesanan
+              }
             </span>
             <span class="font-caption text-caption font-semibold sm:hidden">
-              {{ store.isStoreOnline() ? 'Aktif' : 'Off' }}
+              @if (!store.isStoreOnline()) {
+                Off
+              } @else if (store.isSelectedDateHoliday()) {
+                Libur
+              } @else {
+                Aktif
+              }
             </span>
           </div>
 

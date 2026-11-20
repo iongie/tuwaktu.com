@@ -357,7 +357,7 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly specialHolidays = signal<string[]>([]);
   readonly dateOverridesMap = signal<Record<string, WorkerDateOverrideItem>>({});
   readonly selectedScheduleCalendarDate = signal<string>(
-    new Date().toISOString().split('T')[0],
+    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`,
   );
 
   readonly isProfileLoading = signal<boolean>(false);
@@ -505,6 +505,38 @@ export class WorkerDashboardStore implements OnDestroy {
 
   readonly activeScheduleDaysCount = computed(() => {
     return this.workerSchedules().filter((item) => item.is_active).length;
+  });
+
+  readonly isSelectedDateHoliday = computed(() => {
+    if (!this.isStoreOnline()) return true;
+    const iso = this.selectedScheduleCalendarDate();
+    if (this.specialHolidays().includes(iso)) return true;
+
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    if (iso === todayIso && this.isTodayEmergencyLocked()) return true;
+
+    const schedules = this.workerSchedules();
+    if (schedules.length > 0 && schedules.every((item) => !item.is_active)) {
+      return true;
+    }
+
+    const parts = iso.split('-').map(Number);
+    if (parts.length === 3 && !parts.some(Number.isNaN)) {
+      const selectedDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      const daySchedule = schedules.find(
+        (item) => item.day_of_week === selectedDateObj.getDay(),
+      );
+      if (daySchedule && !daySchedule.is_active) {
+        return true;
+      }
+    }
+
+    if (this.isSlot1Locked() && this.isSlot2Locked() && this.isSlot3Locked()) {
+      return true;
+    }
+
+    return false;
   });
 
   toggleStoreStatus(): void {

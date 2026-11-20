@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SummarySlotTrackBarComponent } from '../../molecules/summary-slot-track-bar/summary-slot-track-bar.component';
 import {
@@ -43,23 +43,37 @@ import {
         </span>
       </div>
 
-      <!-- Molecule: Visual Multi-Segment Progress Track Bar -->
-      <app-summary-slot-track-bar />
+      <!-- Slot / Holiday State -->
+      @if (isHoliday()) {
+        <div
+          class="p-6 rounded-xl bg-error-surface/50 border border-error/20 text-center space-y-1"
+          data-testid="summary-holiday-banner"
+        >
+          <p class="font-bold text-error text-sm">Jadwal Libur • Tidak Menerima Layanan</p>
+          <p class="text-xs text-ink-secondary">
+            Seluruh slot pemesanan publik ditutup pada jadwal libur ini.
+          </p>
+        </div>
+      } @else {
+        <!-- Molecule: Visual Multi-Segment Progress Track Bar -->
+        <app-summary-slot-track-bar />
 
-      <!-- Timeline Schedule Items -->
-      <div class="space-y-3">
-        @for (item of timelineItems(); track item.id) {
-          <app-summary-slot-timeline-item
-            [item]="item"
-            (lockSlot)="handleLockToggle($event)"
-          />
-        }
-      </div>
+        <!-- Timeline Schedule Items -->
+        <div class="space-y-3">
+          @for (item of timelineItems(); track item.id) {
+            <app-summary-slot-timeline-item
+              [item]="item"
+              (lockSlot)="handleLockToggle($event)"
+            />
+          }
+        </div>
+      }
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SummaryScheduleHubComponent {
+  readonly isHoliday = input<boolean>(false);
   readonly todayFormattedDate = computed(() => {
     const now = new Date();
     const formatted = new Intl.DateTimeFormat('id-ID', {
@@ -124,6 +138,9 @@ export class SummaryScheduleHubComponent {
   ]);
 
   readonly activeSlotsBadge = computed(() => {
+    if (this.isHoliday()) {
+      return 'Hari Libur (0 Slot)';
+    }
     const slots = this.timelineItems().filter((item) => item.type === 'slot');
     const filledCount = slots.filter(
       (item) => item.statusVariant !== 'available' && !item.isLocked,

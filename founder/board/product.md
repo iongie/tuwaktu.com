@@ -1,0 +1,25 @@
+# Product lens
+Score: 6/10 | Vote: FUND IF
+
+## What is strong
+- **Mulai dari masalah nyata di titik interaksi (the first five minutes):** Bagi pelanggan yang biasanya harus bertanya-tanya tarif dan jadwal lewat chat WhatsApp yang panjang, melihat profil publik `tuwaktu.com/<nama>` dengan daftar layanan, ongkos kirim jarak, dan slot tersedia dalam satu halaman terasa jauh lebih jelas dan cepat.
+- **Detail produk yang memikirkan realitas lapangan:** Lensa Product melihat adanya perhatian pada detail yang sering dilupakan, seperti jeda waktu (buffer) untuk transit dan istirahat antar-pesanan, serta penolakan otomatis di luar radius layanan. Ini melindungi pengalaman pekerja agar tidak kelelahan atau terjebak pesanan yang merugikan.
+- **Pemanfaatan WhatsApp sebagai kanal yang sudah akrab:** Alih-alih memaksa pelanggan dan pekerja belajar sistem chat baru atau mengunduh aplikasi baru, produk ini langsung meneruskan ringkasan pesanan yang rapi ke WhatsApp yang sudah mereka gunakan setiap hari.
+
+## What would kill it (the top 3, most dangerous first)
+1. **Titik serah terima (seam) yang putus antara Web dan WhatsApp:** Pengalaman produk berhenti tepat saat pelanggan diarahkan ke WhatsApp. Jika pekerja terlambat membalas karena sedang bekerja di lapangan, atau jika pekerja menerima pesanan lewat chat langsung tanpa memperbarui kalender di Tuwaktu, jadwal "anti-bentrok" di web menjadi tidak akurat. Begitu pelanggan memesan slot yang tertulis "tersedia" lalu ditolak di WhatsApp, kepercayaan terhadap produk langsung runtuh.
+2. **Friksi berlebih bagi pelanggan yang sudah kenal teknisi langganan:** Pelanggan yang sudah memiliki nomor WhatsApp teknisi terbiasa langsung mengirim pesan singkat tanpa membuka browser, menentukan titik lokasi, mengisi formulir, lalu tetap berakhir di WhatsApp. Jika alur web terasa lebih merepotkan daripada sekadar chat biasa, pelanggan akan melewati tautan Tuwaktu dan kembali ke cara lama.
+3. **Beban pengaturan awal dan gerbang verifikasi manual untuk pekerja:** Pendaftaran pekerja mensyaratkan verifikasi via admin WhatsApp, lalu pekerja masih harus mengisi spesialisasi, basecamp, radius, tarif jarak, jam kerja mingguan, hari libur, dan layanan. Untuk pekerja lapangan yang sibuk, antrean verifikasi manual dan banyaknya langkah konfigurasi sebelum merasakan manfaat pertama bisa membuat mereka berhenti di tengah jalan. Terlebih lagi, rencana menambah pencarian lokal dan kerja sama B2B berisiko memecah fokus sebelum alur pemesanan inti ini benar-benar mulus.
+
+## The questions I would ask the founder
+- **Apa satu hal utama yang harus dikerjakan produk ini dengan sangat baik (the one thing)?** Apakah Tuwaktu adalah alat bantu kirim jadwal dan hitung tarif untuk klien lama si pekerja, atau direktori pencarian lokal untuk mendatangkan klien baru? Jika keduanya dikejar sekaligus sejak awal, mana yang rela dipotong terlebih dahulu?
+- **Bagaimana pengalaman 5 menit pertama pekerja saat mendaftar?** Mengapa harus ada verifikasi manual via admin WhatsApp saat mendaftar, dan berapa lama pekerja menunggu sampai profilnya aktif?
+- **Apa yang terjadi setelah tombol kirim ke WhatsApp ditekan?** Bagaimana sistem memastikan slot yang sudah dikirim ke WhatsApp tidak diambil klien lain sementara pekerja belum sempat membuka chat, dan bagaimana jika pekerja mendapat pesanan dari luar tautan Tuwaktu?
+- **Apakah klien benar-benar mau mengisi formulir web sebelum masuk ke WhatsApp?** Pertanyaan ini perlu diuji langsung ke pengguna nyata menggunakan `/founder-consumer` dan uji lapangan awal melalui `/founder-launch`.
+- **Bagian mana dari pengaturan jadwal dan kalkulator jarak yang paling sering membuat pekerja bingung?** Perlu diuji apakah pekerja AC dan kebersihan rumah memahami konsep radius, basecamp, dan buffer tanpa pendampingan manual (dapat ditindaklanjuti pada `/founder-ops`).
+
+## If FUND IF: the conditions
+1. **Tutup celah sinkronisasi Web ke WhatsApp:** Buat mekanisme status slot yang jelas saat ringkasan pesanan diteruskan ke WhatsApp (misalnya penahanan slot sementara atau tautan satu klik bagi pekerja di chat WhatsApp untuk langsung mengonfirmasi/mengunci jadwal di kalender web tanpa perlu masuk ke dashboard yang rumit).
+2. **Sederhanakan pengalaman 5 menit pertama pekerja dan pelanggan:** Hilangkan atau percepat hambatan verifikasi manual admin WhatsApp saat onboarding pekerja agar mereka bisa langsung melihat profil aktifnya dalam hitungan menit, serta pastikan formulir pemesanan klien sesingkat mungkin (cukup layanan, waktu, dan lokasi).
+3. **Tunda fitur pencarian lokal dan B2B hingga alur tautan pribadi terbukti dipakai berulang:** Fokus penuh pada satu hal terlebih dahulu, yaitu membuat alur `tuwaktu.com/<nama>` -> WhatsApp berjalan tanpa cela dan benar-benar menggantikan chat tawar-menawar bagi pekerja awal.
+4. **Uji validasi perilaku klien dan pekerja sebelum memperluas fitur:** Buktikan melalui `/founder-consumer` dan uji coba nyata di `/founder-launch` bahwa klien mau mengisi formulir web sebelum chat dan pekerja disiplin memperbarui jadwalnya.

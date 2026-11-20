@@ -177,12 +177,6 @@ export class WorkerDashboardSidebarComponent {
       label: 'Ulasan & Reputasi',
       icon: 'reviews',
     },
-    {
-      routePath: '/dashboard/plan',
-      label: 'Paket & Langganan',
-      icon: 'workspace_premium',
-    },
-    { routePath: '/dashboard/boost', label: 'Boost Visibilitas', icon: 'bolt' },
   ];
 
   openLogoutModal(): void {

@@ -43,8 +43,6 @@ export class WorkerDashboardLayoutComponent implements OnInit {
     { routePath: '/dashboard/logistik-radius', label: 'Logistik Basecamp & Radius', shortLabel: 'Logistik', icon: 'near_me' },
     { routePath: '/dashboard/kalender-slot', label: 'Kalender & Slot', shortLabel: 'Kalender', icon: 'calendar_month' },
     { routePath: '/dashboard/integrasi-whatsapp', label: 'Integrasi WhatsApp & Profil', shortLabel: 'WhatsApp & Profil', icon: 'chat' },
-    { routePath: '/dashboard/plan', label: 'Paket & Langganan', shortLabel: 'Plan Pro', icon: 'workspace_premium' },
-    { routePath: '/dashboard/boost', label: 'Boost Visibilitas', shortLabel: 'Boost Radar', icon: 'bolt' },
   ];
 
   ngOnInit(): void {

@@ -24,11 +24,7 @@ export function isDashboardUrl(url: string | null | undefined): boolean {
     sanitized === '/dashboard/' ||
     sanitized.startsWith('/dashboard/') ||
     sanitized.startsWith('/dashboard?') ||
-    sanitized.startsWith('/dashboard#') ||
-    sanitized === '/plan' ||
-    sanitized.startsWith('/plan?') ||
-    sanitized === '/boost' ||
-    sanitized.startsWith('/boost?')
+    sanitized.startsWith('/dashboard#')
   );
 }
 
@@ -59,12 +55,6 @@ export function normalizeDashboardUrl(url: string): string {
   }
   if (url === '/dashboard/profile' || url.startsWith('/dashboard/profile?')) {
     return '/dashboard/integrasi-whatsapp' + url.slice('/dashboard/profile'.length);
-  }
-  if (url === '/plan' || url.startsWith('/plan?')) {
-    return '/dashboard/plan' + url.slice('/plan'.length);
-  }
-  if (url === '/boost' || url.startsWith('/boost?')) {
-    return '/dashboard/boost' + url.slice('/boost'.length);
   }
   return url;
 }

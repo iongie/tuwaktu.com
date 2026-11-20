@@ -322,24 +322,6 @@ describe('WorkerDashboardStore', () => {
     expect(store.hasActiveWorker()).toBe(false);
   });
 
-  it('harus memilih paket kemitraan dan mengatur notifikasi sukses', () => {
-    expect(store.currentPlanTier()).toBe('PRO');
-    store.selectPlanTier('STARTER');
-    expect(store.currentPlanTier()).toBe('STARTER');
-    expect(store.planFeedbackSuccess()).toContain('Paket Starter');
-  });
-
-  it('harus mengaktifkan paket boost visibilitas dan mengubah status radar', () => {
-    store.activateBoost('FLASH_24H');
-    expect(store.activeBoostPackage()).toBe('FLASH_24H');
-    expect(store.isBoostActive()).toBe(true);
-    expect(store.boostFeedbackSuccess()).toContain('Boost Kilat 24 Jam');
-
-    store.toggleBoostStatus();
-    expect(store.isBoostActive()).toBe(false);
-    expect(store.boostFeedbackSuccess()).toContain('dinonaktifkan sementara');
-  });
-
   it('harus memformat nomor WhatsApp tampilan dengan awalan negara +62', () => {
     store.workerWhatsAppNumber.set('6281288992211');
     expect(store.displayFormattedWhatsAppNumber()).toBe('+62 812-8899-2211');

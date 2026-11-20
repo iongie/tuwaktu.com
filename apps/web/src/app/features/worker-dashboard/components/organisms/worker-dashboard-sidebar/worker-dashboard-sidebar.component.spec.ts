@@ -50,9 +50,7 @@ describe('WorkerDashboardSidebarComponent', () => {
     expect(el.textContent).toContain('Kalender & Slot');
     expect(el.textContent).toContain('Integrasi WhatsApp');
     expect(el.textContent).toContain('Ulasan & Reputasi');
-    expect(el.textContent).toContain('Paket & Langganan');
-    expect(el.textContent).toContain('Boost Visibilitas');
-    expect(component.menuItems.length).toBe(9);
+    expect(component.menuItems.length).toBe(7);
   });
 
   it('harus merespons pembukaan dan penutupan drawer navigasi mobile', () => {

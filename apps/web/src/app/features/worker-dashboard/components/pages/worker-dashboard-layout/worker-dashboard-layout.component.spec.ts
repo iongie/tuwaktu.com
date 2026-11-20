@@ -68,17 +68,15 @@ describe('WorkerDashboardLayoutComponent', () => {
     fixture.detectChanges();
   });
 
-  it('harus membuat instance layout dasbor dengan 7 item navigasi', () => {
+  it('harus membuat instance layout dasbor dengan 5 item navigasi', () => {
     expect(component).toBeTruthy();
-    expect(component.navMenuItems.length).toBe(7);
+    expect(component.navMenuItems.length).toBe(5);
     expect(component.navMenuItems.map((item) => item.icon)).toEqual([
       'space_dashboard',
       'payments',
       'near_me',
       'calendar_month',
       'chat',
-      'workspace_premium',
-      'bolt',
     ]);
   });
 

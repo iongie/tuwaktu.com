@@ -62,8 +62,6 @@ describe('authGuard and Dashboard Routing Helpers', () => {
       expect(isDashboardUrl('/dashboard/integrasi-whatsapp?slug=budi-santoso')).toBe(true);
       expect(isDashboardUrl('/dashboard?slug=budi-santoso')).toBe(true);
       expect(isDashboardUrl('/dashboard#main')).toBe(true);
-      expect(isDashboardUrl('/plan')).toBe(true);
-      expect(isDashboardUrl('/boost')).toBe(true);
     });
 
     it('harus menolak URL non-dasbor atau eksternal', () => {
@@ -108,8 +106,6 @@ describe('authGuard and Dashboard Routing Helpers', () => {
       expect(normalizeDashboardUrl('/dashboard/profile?slug=budi-santoso')).toBe(
         '/dashboard/integrasi-whatsapp?slug=budi-santoso'
       );
-      expect(normalizeDashboardUrl('/plan')).toBe('/dashboard/plan');
-      expect(normalizeDashboardUrl('/boost')).toBe('/dashboard/boost');
     });
   });
 

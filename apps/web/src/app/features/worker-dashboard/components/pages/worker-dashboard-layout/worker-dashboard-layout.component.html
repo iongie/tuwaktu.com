@@ -13,18 +13,14 @@
         store.profileFeedbackSuccess() ||
         store.ratesFeedbackSuccess() ||
         store.locationFeedbackSuccess() ||
-        store.scheduleFeedbackSuccess() ||
-        store.planFeedbackSuccess() ||
-        store.boostFeedbackSuccess()
+        store.scheduleFeedbackSuccess()
       ) {
         <app-feedback-alert-banner
           [message]="
             store.profileFeedbackSuccess() ||
             store.ratesFeedbackSuccess() ||
             store.locationFeedbackSuccess() ||
-            store.scheduleFeedbackSuccess() ||
-            store.planFeedbackSuccess() ||
-            store.boostFeedbackSuccess()
+            store.scheduleFeedbackSuccess()
           "
           [type]="'success'"
           (dismiss)="store.clearAllFeedbacks()"

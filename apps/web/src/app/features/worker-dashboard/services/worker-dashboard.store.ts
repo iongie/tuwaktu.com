@@ -375,13 +375,6 @@ export class WorkerDashboardStore implements OnDestroy {
   readonly locationFeedbackError = signal<string | null>(null);
   readonly scheduleFeedbackSuccess = signal<string | null>(null);
   readonly scheduleFeedbackError = signal<string | null>(null);
-  readonly planFeedbackSuccess = signal<string | null>(null);
-  readonly boostFeedbackSuccess = signal<string | null>(null);
-  readonly currentPlanTier = signal<'STARTER' | 'PRO' | 'FLEET'>('PRO');
-  readonly activeBoostPackage = signal<
-    'NONE' | 'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D'
-  >('WEEKEND_72H');
-  readonly isBoostActive = signal<boolean>(true);
   readonly clipboardFeedbackMessage = signal<string | null>(null);
 
   readonly whatsappMessageTemplate = signal<string>(
@@ -921,8 +914,6 @@ export class WorkerDashboardStore implements OnDestroy {
     this.locationFeedbackError.set(null);
     this.scheduleFeedbackSuccess.set(null);
     this.scheduleFeedbackError.set(null);
-    this.planFeedbackSuccess.set(null);
-    this.boostFeedbackSuccess.set(null);
   }
 
   validateProfileInput(): boolean {
@@ -1922,45 +1913,6 @@ export class WorkerDashboardStore implements OnDestroy {
       }, 3000);
     } else {
       this.clipboardFeedbackMessage.set('Gagal menyalin tautan');
-    }
-  }
-
-  selectPlanTier(tier: 'STARTER' | 'PRO' | 'FLEET'): void {
-    this.currentPlanTier.set(tier);
-    const tierLabels: Record<'STARTER' | 'PRO' | 'FLEET', string> = {
-      STARTER: 'Paket Starter (Bebas Komisi Dasar)',
-      PRO: 'Paket Mandiri Pro (Prioritas Radar & Verified)',
-      FLEET: 'Paket Bengkel & Tim (Studio Fleet)',
-    };
-    this.planFeedbackSuccess.set(
-      `Paket berhasil diubah ke ${tierLabels[tier]}!`,
-    );
-  }
-
-  activateBoost(pkg: 'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D'): void {
-    this.activeBoostPackage.set(pkg);
-    this.isBoostActive.set(true);
-    const packageLabels: Record<
-      'FLASH_24H' | 'WEEKEND_72H' | 'WEEKLY_7D',
-      string
-    > = {
-      FLASH_24H: 'Boost Kilat 24 Jam',
-      WEEKEND_72H: 'Boost Akhir Pekan (72 Jam)',
-      WEEKLY_7D: 'Boost Mingguan (7 Hari)',
-    };
-    this.boostFeedbackSuccess.set(
-      `Permintaan aktivasi ${packageLabels[pkg]} berhasil diaktifkan! Radar visibilitas Anda kini aktif.`,
-    );
-  }
-
-  toggleBoostStatus(): void {
-    this.isBoostActive.update((active) => !active);
-    if (!this.isBoostActive()) {
-      this.boostFeedbackSuccess.set(
-        'Boost visibilitas radar dinonaktifkan sementara.',
-      );
-    } else {
-      this.boostFeedbackSuccess.set('Boost visibilitas radar kembali aktif.');
     }
   }
 

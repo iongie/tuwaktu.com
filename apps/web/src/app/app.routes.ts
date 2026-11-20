@@ -106,20 +106,6 @@ export const appRoutes: Route[] = [
         redirectTo: 'profile',
       },
       {
-        path: 'plan',
-        loadComponent: () =>
-          import(
-            './features/worker-dashboard/components/pages/worker-dashboard-plan/worker-dashboard-plan.component'
-          ).then((m) => m.WorkerDashboardPlanComponent),
-      },
-      {
-        path: 'boost',
-        loadComponent: () =>
-          import(
-            './features/worker-dashboard/components/pages/worker-dashboard-boost/worker-dashboard-boost.component'
-          ).then((m) => m.WorkerDashboardBoostComponent),
-      },
-      {
         path: 'ulasan',
         loadComponent: () =>
           import(
@@ -127,14 +113,6 @@ export const appRoutes: Route[] = [
           ).then((m) => m.WorkerDashboardReviewsComponent),
       },
     ],
-  },
-  {
-    path: 'plan',
-    redirectTo: 'dashboard/plan',
-  },
-  {
-    path: 'boost',
-    redirectTo: 'dashboard/boost',
   },
   {
     path: 'register',

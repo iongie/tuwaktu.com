@@ -138,11 +138,11 @@ import { FeaturedWorker } from '../../../models/home.model';
 
       <!-- Footer Kartu: Tarif Mulai & Tombol CTA Pesan Langsung -->
       <div
-        class="mt-space-lg pt-space-md border-t border-hairline-subtle flex items-center justify-between gap-space-md"
+        class="mt-space-lg pt-space-md border-t border-hairline-subtle flex flex-wrap items-center justify-between gap-x-space-md gap-y-space-sm"
       >
         <div class="space-y-0.5">
           <span
-            class="font-micro-uppercase text-caption text-ink-disabled uppercase"
+            class="block whitespace-nowrap font-micro-uppercase text-caption text-ink-disabled uppercase"
           >
             Tarif Mulai dari
           </span>
@@ -158,8 +158,8 @@ import { FeaturedWorker } from '../../../models/home.model';
           [routerLink]="['/', worker().slug]"
           [class]="
             worker().isOnHolidayToday
-              ? 'm3-btn-outlined gap-space-xs text-caption font-bold'
-              : 'm3-btn-whatsapp gap-space-xs text-caption font-bold shadow-sm hover:shadow group-hover:bg-whatsapp-green-hover'
+              ? 'm3-btn-outlined shrink-0 whitespace-nowrap gap-space-xs text-caption font-bold'
+              : 'm3-btn-whatsapp shrink-0 whitespace-nowrap gap-space-xs text-caption font-bold shadow-sm hover:shadow group-hover:bg-whatsapp-green-hover'
           "
           [attr.aria-label]="
             worker().isOnHolidayToday
@@ -167,7 +167,7 @@ import { FeaturedWorker } from '../../../models/home.model';
               : 'Lihat jadwal dan pesan layanan dari ' + worker().name
           "
         >
-          <span>{{ worker().isOnHolidayToday ? 'Cek Jadwal Lain' : 'Lihat Jadwal & Pesan' }}</span>
+          <span>{{ worker().isOnHolidayToday ? 'Cek Jadwal Lain' : 'Lihat Jadwal' }}</span>
           <span
             class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5"
           >

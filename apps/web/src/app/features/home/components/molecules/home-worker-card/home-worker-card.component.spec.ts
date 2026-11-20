@@ -55,7 +55,7 @@ describe('HomeWorkerCardComponent', () => {
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('a');
     expect(link).toBeTruthy();
     expect(link.getAttribute('href')).toBe('/sarah-cleaning');
-    expect(link.textContent).toContain('Lihat Jadwal & Pesan');
+    expect(link.textContent).toContain('Lihat Jadwal');
   });
 
   it('harus menampilkan inisial yang tepat jika avatar tidak ada', () => {

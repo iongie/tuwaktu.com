@@ -8,32 +8,26 @@ import { CommonModule } from '@angular/common';
   template: `
     <section
       id="alur-pemesanan"
-      class="w-full bg-surface-container-low py-space-3xl border-b border-hairline-subtle"
+      class="w-full bg-surface-container-low py-12 sm:py-16 border-b border-hairline-subtle"
       aria-labelledby="workflow-heading"
     >
-      <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="text-center max-w-2xl mx-auto space-y-space-xs">
-          <span
-            class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider inline-block"
-          >
-            Alur Pemesanan
-          </span>
-
+        <div class="text-center max-w-2xl mx-auto space-y-2">
           <h2
             id="workflow-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
           >
-            Reservasi Cerdas dalam 3 Langkah
+            Cara Pesan dalam 3 Langkah
           </h2>
 
           <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-            Tanpa repot membuat akun baru, tanpa deposit saldo tersandera, dan tanpa biaya perantara tambahan.
+            Tanpa perlu daftar akun, tanpa isi saldo, dan tanpa biaya perantara.
           </p>
         </div>
 
         <!-- 3 Process Step Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-xl relative">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           @for (step of steps; track step.stepNumber) {
             <div
               class="m3-card-surface p-space-xl bg-body-canvas border border-hairline-subtle rounded-2xl flex flex-col justify-between relative group hover:border-hero-canvas transition-colors"

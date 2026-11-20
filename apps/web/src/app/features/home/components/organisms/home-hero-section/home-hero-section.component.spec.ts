@@ -75,11 +75,11 @@ describe('HomeHeroSectionComponent', () => {
     fixture.detectChanges();
   });
 
-  it('harus membuat instance komponen hero beranda dengan telemetri', () => {
+  it('harus membuat instance komponen hero beranda', () => {
     expect(component).toBeTruthy();
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('Protokol Kedaulatan Pekerja Mandiri • 0% Komisi');
-    expect(el.textContent).toContain('Cari Spesialis Terverifikasi.');
+    expect(el.textContent).toContain('Cari Teknisi Berpengalaman.');
+    expect(el.textContent).toContain('Hubungi Langsung Tanpa Perantara.');
   });
 
   it('harus merender 4 pilar kepercayaan Tuwaktu', () => {
@@ -87,8 +87,8 @@ describe('HomeHeroSectionComponent', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain('0% Potongan Komisi');
     expect(el.textContent).toContain('100% WhatsApp Langsung');
-    expect(el.textContent).toContain('Buffer Transit Otomatis');
-    expect(el.textContent).toContain('Kredensial Terverifikasi');
+    expect(el.textContent).toContain('Jeda Perjalanan Otomatis');
+    expect(el.textContent).toContain('Identitas Terverifikasi');
   });
 
   it('harus membangun daftar availableZones secara dinamis dari data pekerja', () => {

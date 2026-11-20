@@ -17,34 +17,26 @@ export interface ServiceCommitment {
   template: `
     <section
       id="standar-layanan"
-      class="w-full bg-body-canvas py-space-3xl border-b border-hairline-subtle"
+      class="w-full bg-body-canvas py-12 sm:py-16 border-b border-hairline-subtle"
       aria-labelledby="commitments-heading"
     >
-      <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="max-w-2xl space-y-space-xs">
-          <div class="flex items-center gap-space-xs">
-            <span
-              class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider"
-            >
-              Komitmen Layanan
-            </span>
-          </div>
-
+        <div class="max-w-2xl space-y-2">
           <h2
             id="commitments-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
           >
-            Standar &amp; Komitmen Kerja Mitra Mandiri
+            Standar Kerja Mitra Tuwaktu
           </h2>
 
           <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-            Prinsip transparansi dan keandalan kerja yang dipegang teguh oleh setiap mitra teknisi independen di Tuwaktu.
+            Prinsip kejelasan harga dan ketepatan waktu yang dijaga oleh setiap teknisi di Tuwaktu.
           </p>
         </div>
 
         <!-- 3-Column Commitment Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           @for (item of commitments; track item.id) {
             <article
               class="m3-card-outlined p-space-xl bg-body-canvas flex flex-col justify-between h-full space-y-space-md hover:border-hero-canvas transition-colors"

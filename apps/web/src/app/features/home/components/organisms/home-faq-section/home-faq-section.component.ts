@@ -10,18 +10,12 @@ import { FaqItem } from '../../../models/home.model';
   template: `
     <section
       id="faq"
-      class="w-full bg-surface-container-low py-space-3xl border-b border-hairline-subtle"
+      class="w-full bg-surface-container-low py-12 sm:py-16 border-b border-hairline-subtle"
       aria-labelledby="faq-heading"
     >
-      <div class="max-w-4xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="text-center max-w-2xl mx-auto space-y-space-xs">
-          <span
-            class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider inline-block"
-          >
-            Pusat Pengetahuan
-          </span>
-
+        <div class="text-center max-w-2xl mx-auto space-y-2">
           <h2
             id="faq-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
@@ -30,12 +24,12 @@ import { FaqItem } from '../../../models/home.model';
           </h2>
 
           <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-            Transparansi penuh mengenai protokol kedaulatan 0% komisi, privasi WhatsApp, dan sistem penjadwalan mandiri.
+            Jawaban seputar sistem 0% komisi, pemesanan via WhatsApp, dan cara kerja jadwal teknisi.
           </p>
         </div>
 
         <!-- Accordion Items List -->
-        <div class="space-y-space-sm">
+        <div class="space-y-3">
           @for (faq of faqs; track faq.id) {
             <app-home-faq-item
               [faq]="faq"
@@ -57,35 +51,35 @@ export class HomeFaqSectionComponent {
       id: 'faq-1',
       question: 'Apakah Tuwaktu benar-benar tidak memotong komisi sama sekali?',
       answer:
-        'Ya, 100% benar. Tuwaktu beroperasi dengan protokol kedaulatan pekerja mandiri. Seluruh pembayaran dari klien diserahkan langsung kepada teknisi tanpa potongan komisi persentase, potongan saldo, atau biaya langganan paksa.',
+        'Ya, benar. Seluruh pembayaran jasa dari klien diterima langsung oleh teknisi tanpa potongan komisi persentase, potongan saldo, atau biaya langganan wajib.',
       category: 'Komisi',
     },
     {
       id: 'faq-2',
-      question: 'Bagaimana alur konfirmasi reservasi via WhatsApp bekerja?',
+      question: 'Bagaimana cara konfirmasi pesanan lewat WhatsApp?',
       answer:
-        'Setelah klien memilih paket layanan, tanggal, dan slot jam yang tersedia, sistem Tuwaktu akan menyusun format pesan pemesanan yang rapi beserta kode reservasi unik. Klien cukup menekan tombol untuk membuka WhatsApp dan mengirim pesan langsung ke nomor asli teknisi.',
+        'Setelah Anda memilih layanan, tanggal, dan jam yang tersedia, sistem akan menyiapkan pesan pesanan lengkap dengan kode booking. Anda tinggal menekan tombol untuk membuka WhatsApp dan mengirimnya langsung ke nomor teknisi.',
       category: 'Reservasi',
     },
     {
       id: 'faq-3',
-      question: 'Mengapa fitur buffer transit 60-90 menit sangat penting?',
+      question: 'Mengapa ada jeda perjalanan 60-90 menit antar jadwal?',
       answer:
-        'Buffer transit adalah jeda waktu yang otomatis dikunci sistem di antara dua slot reservasi. Jeda ini memberikan waktu realistis bagi mitra untuk membersihkan peralatan, beristirahat sejenak, dan menempuh perjalanan tanpa risiko terlambat karena kemacetan lalu lintas.',
+        'Jeda waktu otomatis di antara dua jadwal memberi waktu bagi teknisi untuk membereskan alat, istirahat sejenak, dan menempuh perjalanan agar datang tepat waktu ke lokasi berikutnya.',
       category: 'Logistik',
     },
     {
       id: 'faq-4',
-      question: 'Bagaimana standar verifikasi teknisi dan mitra mandiri?',
+      question: 'Bagaimana proses verifikasi teknisi di Tuwaktu?',
       answer:
-        'Setiap mitra mandiri melewati proses verifikasi identitas resmi (KTP), penetapan pangkalan operasional yang valid, serta kesesuaian kategori keahlian dan kepemilikan alat kerja sebelum profil dan katalog layanan dipublikasikan secara resmi.',
+        'Setiap teknisi melewati pengecekan identitas KTP, lokasi pangkalan kerja yang jelas, serta kesesuaian keahlian dan perlengkapan kerja sebelum profil dan daftar layanannya tampil di halaman publik.',
       category: 'Verifikasi',
     },
     {
       id: 'faq-5',
       question: 'Apakah ada biaya pendaftaran atau pemesanan bagi klien?',
       answer:
-        'Tidak ada biaya apa pun bagi klien untuk mencari spesialis dan memesan jadwal di Tuwaktu. Klien hanya membayar biaya jasa dan ongkos kirim (jika di luar radius gratis) langsung kepada mitra teknisi yang bertugas.',
+        'Gratis. Klien tidak dikenakan biaya aplikasi apa pun saat mencari teknisi dan memesan jadwal. Anda cukup membayar biaya jasa dan ongkos transport (jika di luar area gratis) langsung ke teknisi.',
       category: 'Biaya',
     },
   ];

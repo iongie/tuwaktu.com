@@ -88,7 +88,7 @@ describe('HomeFeaturedWorkersSectionComponent', () => {
     expect(el.textContent).toContain('Budi Santoso');
     expect(el.textContent).toContain('Siti Aminah');
     expect(el.textContent).toContain('Hendra Saputra');
-    expect(el.textContent).toContain('TOTAL 3 PEKERJA AKTIF');
+    expect(el.textContent).toContain('3 PEKERJA AKTIF');
   });
 
   it('harus memfilter pekerja berdasarkan kategori saat tombol filter chip diklik', () => {

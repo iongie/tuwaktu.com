@@ -18,33 +18,24 @@ import { HomeApiService } from '../../../services/home-api.service';
   template: `
     <section
       id="katalog-disiplin"
-      class="w-full bg-body-canvas py-space-3xl border-b border-hairline-subtle"
+      class="w-full bg-body-canvas py-12 sm:py-16 border-b border-hairline-subtle"
       aria-labelledby="disciplines-heading"
     >
-      <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="max-w-2xl space-y-space-xs">
-          <div class="flex items-center gap-space-xs">
-            <span
-              class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider"
-            >
-              Katalog Keahlian Teknisi
-            </span>
-          </div>
-
+        <div class="max-w-2xl space-y-2">
           <h2
             id="disciplines-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
           >
-            Pilihan Spesialisasi untuk Rumah &amp; Usaha
+            Pilihan Layanan untuk Rumah &amp; Usaha
           </h2>
 
           <p
             class="font-body-default text-body-default text-ink-secondary leading-relaxed"
           >
-            Dari perawatan pendingin ruangan berkala hingga penelusuran gangguan
-            instalasi listrik. Seluruh estimasi tarif transparan tanpa markup
-            perantara.
+            Dari cuci AC rutin sampai perbaikan instalasi listrik. Estimasi tarif
+            terlihat sejak awal tanpa biaya tersembunyi.
           </p>
         </div>
 

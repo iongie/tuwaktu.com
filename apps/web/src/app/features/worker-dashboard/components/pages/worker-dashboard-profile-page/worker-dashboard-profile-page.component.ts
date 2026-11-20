@@ -12,14 +12,10 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
   template: `
     <div class="space-y-6">
       <!-- Sovereign Profile Header Banner -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+      <div
+        class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2"
+      >
         <div class="space-y-2 max-w-2xl">
-          <div
-            class="flex items-center gap-2 text-micro-uppercase font-micro-uppercase text-secondary tracking-widest uppercase"
-          >
-            <span class="inline-block w-2 h-2 rounded-full bg-secondary"></span>
-            <span>Identitas Mandiri &bull; Akses Publik Langsung</span>
-          </div>
           <h1
             class="font-heading-1 text-heading-1 text-on-surface tracking-tight font-bold"
           >
@@ -28,7 +24,9 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
           <p
             class="font-body-default text-body-default text-ink-secondary leading-relaxed"
           >
-            Kelola nama profesional, foto profil berukuran ringan (&lt; 100 KB), spesialisasi, dan biografi Anda untuk menarik kepercayaan pelanggan di halaman publik.
+            Kelola nama profesional, foto profil berukuran ringan (&lt; 100 KB),
+            spesialisasi, dan biografi Anda untuk menarik kepercayaan pelanggan
+            di halaman publik.
           </p>
         </div>
 
@@ -38,7 +36,9 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
             target="_blank"
             class="h-11 px-5 rounded-lg bg-surface-container-high text-on-surface font-button-label text-button-label hover:bg-surface-variant transition-colors flex items-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
           >
-            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+            <span class="material-symbols-outlined text-[18px]"
+              >open_in_new</span
+            >
             <span>Lihat Halaman Publik</span>
           </a>
         </div>
@@ -51,15 +51,21 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
           <section
             class="bg-surface-container-lowest p-6 rounded-xl shadow-xs flex flex-col gap-5 border border-hairline-subtle"
           >
-            <div class="flex items-center justify-between pb-3 border-b border-hairline-subtle">
+            <div
+              class="flex items-center justify-between pb-3 border-b border-hairline-subtle"
+            >
               <div class="flex items-center gap-3">
                 <div
                   class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0"
                 >
-                  <span class="material-symbols-outlined text-[20px]">person</span>
+                  <span class="material-symbols-outlined text-[20px]"
+                    >person</span
+                  >
                 </div>
                 <div>
-                  <h2 class="font-heading-3 text-heading-3 text-ink-on-light">Foto &amp; Data Pribadi</h2>
+                  <h2 class="font-heading-3 text-heading-3 text-ink-on-light">
+                    Foto &amp; Data Pribadi
+                  </h2>
                   <span class="font-caption text-caption text-ink-secondary">
                     Ditampilkan pada kartu pekerja dan hasil pencarian
                   </span>
@@ -107,7 +113,9 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
                   >
                     Alamat Email (Opsional)
                   </label>
-                  <span class="text-[11px] text-ink-secondary">Identitas masuk alternatif</span>
+                  <span class="text-[11px] text-ink-secondary"
+                    >Identitas masuk alternatif</span
+                  >
                 </div>
                 <input
                   id="profileEmailInput"
@@ -166,17 +174,24 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
               </div>
 
               <!-- Submit Action Button -->
-              <div class="pt-4 border-t border-hairline-subtle flex items-center justify-end">
+              <div
+                class="pt-4 border-t border-hairline-subtle flex items-center justify-end"
+              >
                 <button
                   type="submit"
                   [disabled]="store.isProfileSubmitting()"
                   class="h-11 px-6 rounded-lg bg-primary text-on-primary font-button-label text-button-label hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
                 >
                   @if (store.isProfileSubmitting()) {
-                    <span class="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                    <span
+                      class="material-symbols-outlined text-[18px] animate-spin"
+                      >sync</span
+                    >
                     <span>Menyimpan Profil...</span>
                   } @else {
-                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    <span class="material-symbols-outlined text-[18px]"
+                      >save</span
+                    >
                     <span>Simpan Perubahan Profil</span>
                   }
                 </button>
@@ -191,14 +206,22 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
           <section
             class="bg-surface-container-lowest p-6 rounded-xl shadow-xs border border-hairline-subtle flex flex-col gap-4"
           >
-            <div class="flex items-center gap-2 pb-2 border-b border-hairline-subtle">
-              <span class="material-symbols-outlined text-sm text-secondary">visibility</span>
-              <h3 class="font-heading-3 text-sm text-on-surface font-bold uppercase tracking-wider">
+            <div
+              class="flex items-center gap-2 pb-2 border-b border-hairline-subtle"
+            >
+              <span class="material-symbols-outlined text-sm text-secondary"
+                >visibility</span
+              >
+              <h3
+                class="font-heading-3 text-sm text-on-surface font-bold uppercase tracking-wider"
+              >
                 Pratinjau Kartu Publik
               </h3>
             </div>
 
-            <div class="p-5 rounded-xl bg-surface-highlight/70 border border-hairline-subtle flex flex-col items-center text-center gap-3">
+            <div
+              class="p-5 rounded-xl bg-surface-highlight/70 border border-hairline-subtle flex flex-col items-center text-center gap-3"
+            >
               <div
                 class="w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xs bg-surface-container flex items-center justify-center font-bold text-lg text-on-surface select-none"
               >
@@ -210,13 +233,19 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
                   />
                 } @else {
                   <span class="font-mono text-xl text-ink-secondary">
-                    {{ (store.workerFullName() || 'TW').substring(0, 2).toUpperCase() }}
+                    {{
+                      (store.workerFullName() || 'TW')
+                        .substring(0, 2)
+                        .toUpperCase()
+                    }}
                   </span>
                 }
               </div>
 
               <div class="flex flex-col">
-                <span class="font-heading-2 text-base font-bold text-on-surface">
+                <span
+                  class="font-heading-2 text-base font-bold text-on-surface"
+                >
                   {{ store.workerFullName() || 'Nama Mitra' }}
                 </span>
                 <span class="text-xs text-secondary font-medium">
@@ -224,22 +253,40 @@ import { AvatarUploadPickerComponent } from '../../molecules/avatar-upload-picke
                 </span>
               </div>
 
-              <p class="text-xs text-on-surface-variant line-clamp-3 leading-relaxed max-w-sm">
-                {{ store.workerBioDescription() || 'Belum ada deskripsi profil. Isi bio untuk menarik kepercayaan calon pemesan.' }}
+              <p
+                class="text-xs text-on-surface-variant line-clamp-3 leading-relaxed max-w-sm"
+              >
+                {{
+                  store.workerBioDescription() ||
+                    'Belum ada deskripsi profil. Isi bio untuk menarik kepercayaan calon pemesan.'
+                }}
               </p>
             </div>
           </section>
 
           <!-- Tips Section -->
-          <div class="p-5 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs text-amber-900 space-y-2">
+          <div
+            class="p-5 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs text-amber-900 space-y-2"
+          >
             <div class="flex items-center gap-2 font-bold text-amber-950">
-              <span class="material-symbols-outlined text-base text-amber-700">lightbulb</span>
+              <span class="material-symbols-outlined text-base text-amber-700"
+                >lightbulb</span
+              >
               <span>Tips Foto &amp; Profil Menarik</span>
             </div>
             <ul class="space-y-1.5 list-disc list-inside text-amber-800">
-              <li>Gunakan foto wajah jelas dengan pencahayaan terang dan seragam kerja jika ada.</li>
-              <li>Sistem secara otomatis mengompresi gambar ke WebP di bawah 100 KB agar hemat kuota.</li>
-              <li>Perubahan profil langsung tersinkronisasi ke katalog pencarian publik pelanggan.</li>
+              <li>
+                Gunakan foto wajah jelas dengan pencahayaan terang dan seragam
+                kerja jika ada.
+              </li>
+              <li>
+                Sistem secara otomatis mengompresi gambar ke WebP di bawah 100
+                KB agar hemat kuota.
+              </li>
+              <li>
+                Perubahan profil langsung tersinkronisasi ke katalog pencarian
+                publik pelanggan.
+              </li>
             </ul>
           </div>
         </div>
@@ -262,4 +309,3 @@ export class WorkerDashboardProfilePageComponent {
     this.store.submitProfileUpdate();
   }
 }
-

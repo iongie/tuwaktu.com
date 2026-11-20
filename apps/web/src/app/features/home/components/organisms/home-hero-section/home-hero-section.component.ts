@@ -20,59 +20,37 @@ import { AnalyticsService } from '../../../../../core/services/analytics.service
   standalone: true,
   imports: [CommonModule, FormsModule, SearchAutoSuggestDropdownComponent],
   template: `
-    <!-- Dark Nocturne Theater Canvas Hero (#121212) -->
     <section
-      class="w-full bg-hero-canvas text-ink-on-dark relative overflow-hidden py-space-3xl sm:py-space-4xl border-b border-white/10"
+      class="w-full bg-hero-canvas text-ink-on-dark relative overflow-hidden py-10 sm:py-16 lg:py-20 border-b border-white/10"
       aria-labelledby="hero-title"
     >
-      <!-- Background Architectural Grid Pattern -->
       <div
-        class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]"
-        aria-hidden="true"
-      ></div>
-
-      <div
-        class="max-w-7xl mx-auto px-margin-desktop relative z-10 space-y-space-2xl"
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8 sm:space-y-10"
       >
-        <!-- Telemetry Status Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-space-sm">
-          <div
-            class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-caption font-mono-rate"
-          >
-            <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-            <span
-              class="text-ink-on-dark font-medium uppercase tracking-wider text-[11px]"
-            >
-              Protokol Kedaulatan Pekerja Mandiri • 0% Komisi
-            </span>
-          </div>
-        </div>
-
-        <!-- Asymmetric Headline & Copy -->
-        <div class="max-w-4xl space-y-space-md">
+        <!-- Headline & Copy -->
+        <div class="max-w-4xl space-y-4">
           <h1
             id="hero-title"
-            class="font-heading-h1 text-[32px] sm:text-[44px] md:text-[52px] font-bold text-white tracking-tight leading-[1.12]"
+            class="font-heading-h1 text-[30px] sm:text-[42px] md:text-[50px] font-bold text-white tracking-tight leading-[1.15]"
           >
-            Cari Spesialis Terverifikasi.
+            Cari Teknisi Berpengalaman.
             <span class="text-voltage-orange block sm:inline"
-              >Terhubung Langsung Tanpa Perantara.</span
+              >Hubungi Langsung Tanpa Perantara.</span
             >
           </h1>
 
           <p
-            class="font-lead-body text-body-default sm:text-lead-body text-white/70 max-w-2xl leading-relaxed"
+            class="font-lead-body text-body-default sm:text-lead-body text-white/75 max-w-2xl leading-relaxed"
           >
-            Platform reservasi mandiri untuk teknisi AC, instalasi kelistrikan,
-            sanitasi deep clean, dan servis elektronik. Tarif transparan,
-            proteksi buffer transit perjalanan, dan kontak langsung ke WhatsApp
-            mitra.
+            Pesan layanan servis AC, perbaikan listrik, bersih-bersih rumah,
+            hingga servis elektronik. Tarif jelas sejak awal, jadwal tertata,
+            dan langsung terhubung ke WhatsApp pekerja.
           </p>
         </div>
 
         <!-- Interactive Booking Search Console -->
         <div
-          class="p-space-lg sm:p-space-xl bg-surface-elevated-dark/80 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl max-w-5xl relative z-30"
+          class="p-4 sm:p-6 bg-surface-elevated-dark rounded-2xl border border-white/15 max-w-5xl relative z-30"
         >
           <form (ngSubmit)="handleSearchSubmit()" class="space-y-space-md">
             <div
@@ -181,7 +159,7 @@ import { AnalyticsService } from '../../../../../core/services/analytics.service
                 <button
                   type="button"
                   (click)="applyFilterChip(chip.query)"
-                  class="px-3.5 py-1.5 min-h-[36px] inline-flex items-center rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 text-caption transition-colors cursor-pointer"
+                  class="px-4 py-2 min-h-11 inline-flex items-center rounded-full bg-white/5 hover:bg-white/15 text-white/85 hover:text-white border border-white/10 text-caption transition-colors cursor-pointer"
                 >
                   {{ chip.label }}
                 </button>
@@ -192,11 +170,11 @@ import { AnalyticsService } from '../../../../../core/services/analytics.service
 
         <!-- 4 Pilar Kepercayaan Tuwaktu -->
         <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-lg"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4"
         >
           @for (pillar of trustPillars; track pillar.title) {
             <div
-              class="p-space-lg rounded-xl bg-white/5 border border-white/10 space-y-space-xs hover:bg-white/[0.07] transition-colors"
+              class="p-5 rounded-xl bg-white/5 border border-white/10 space-y-2 hover:bg-white/[0.07] transition-colors"
             >
               <div class="flex items-center justify-between">
                 <span
@@ -204,17 +182,12 @@ import { AnalyticsService } from '../../../../../core/services/analytics.service
                 >
                   {{ pillar.icon }}
                 </span>
-                <span
-                  class="font-mono-rate text-[10px] uppercase font-bold text-success bg-success/15 px-2 py-0.5 rounded"
-                >
-                  {{ pillar.badge }}
-                </span>
               </div>
               <h3 class="font-heading-h3 text-[15px] font-bold text-white pt-1">
                 {{ pillar.title }}
               </h3>
               <p
-                class="font-body-default text-caption text-white/60 leading-relaxed"
+                class="font-body-default text-caption text-white/65 leading-relaxed"
               >
                 {{ pillar.description }}
               </p>
@@ -239,40 +212,36 @@ export class HomeHeroSectionComponent implements OnInit {
   readonly searchTrigger = output<{ specialty: string; location: string }>();
 
   readonly popularChips = [
-    { label: 'Servis AC HVAC', query: 'ac' },
-    { label: 'Sanitasi Deep Clean', query: 'deep clean' },
+    { label: 'Servis AC', query: 'ac' },
+    { label: 'Bersih-Bersih Rumah', query: 'deep clean' },
     { label: 'Instalasi Listrik', query: 'listrik' },
-    { label: 'Elektronik & Audio', query: 'elektronik' },
+    { label: 'Servis Elektronik', query: 'elektronik' },
   ];
 
   readonly trustPillars = [
     {
       title: '0% Potongan Komisi',
       description:
-        'Seluruh pembayaran klien 100% diterima langsung oleh pekerja mandiri tanpa potongan.',
+        'Seluruh biaya jasa 100% diterima langsung oleh pekerja tanpa potongan aplikasi.',
       icon: 'percent',
-      badge: 'Bebas Potongan',
     },
     {
       title: '100% WhatsApp Langsung',
       description:
-        'Komunikasi langsung ke kontak asli pekerja. Tanpa perantara dan tanpa sensor nomor.',
+        'Komunikasi langsung ke nomor WhatsApp asli pekerja tanpa perantara atau sensor nomor.',
       icon: 'chat',
-      badge: 'Kontak Mandiri',
     },
     {
-      title: 'Buffer Transit Otomatis',
+      title: 'Jeda Perjalanan Otomatis',
       description:
-        'Jeda 60-90 menit antar slot reservasi untuk perjalanan tenang dan tepat waktu.',
+        'Jeda 60-90 menit antar jadwal kunjungan agar teknisi datang tepat waktu dan tidak terburu-buru.',
       icon: 'timer',
-      badge: 'Bebas Bentrok',
     },
     {
-      title: 'Kredensial Terverifikasi',
+      title: 'Identitas Terverifikasi',
       description:
-        'Spesialis melalui verifikasi identitas KTP dan penentuan zona pangkalan nyata.',
+        'Setiap teknisi telah melalui pengecekan identitas KTP dan lokasi pangkalan kerja yang jelas.',
       icon: 'verified_user',
-      badge: 'Kurasi Ketat',
     },
   ];
 
@@ -327,16 +296,17 @@ export class HomeHeroSectionComponent implements OnInit {
     const q = this.specialtyQuery().trim().toLowerCase();
     if (!q) return [];
 
-    const categoriesPool = this.dynamicCategories().length > 0
-      ? this.dynamicCategories()
-      : [
-          'Servis AC',
-          'Instalasi Listrik',
-          'Sanitasi Deep Clean',
-          'Elektronik & Audio',
-          'Service Kulkas',
-          'Pipa & Saluran Air',
-        ];
+    const categoriesPool =
+      this.dynamicCategories().length > 0
+        ? this.dynamicCategories()
+        : [
+            'Servis AC',
+            'Instalasi Listrik',
+            'Sanitasi Deep Clean',
+            'Elektronik & Audio',
+            'Service Kulkas',
+            'Pipa & Saluran Air',
+          ];
 
     return categoriesPool
       .filter((cat) => cat.toLowerCase().includes(q))
@@ -349,7 +319,10 @@ export class HomeHeroSectionComponent implements OnInit {
   }
 
   loadCategories(): void {
-    if (this.homeApiService && typeof this.homeApiService.fetchPublicCategories === 'function') {
+    if (
+      this.homeApiService &&
+      typeof this.homeApiService.fetchPublicCategories === 'function'
+    ) {
       this.homeApiService.fetchPublicCategories().subscribe({
         next: (cats) => {
           if (Array.isArray(cats) && cats.length > 0) {

@@ -12,46 +12,33 @@ import { ComparisonPoint } from '../../../models/home.model';
       class="w-full bg-body-canvas py-space-3xl border-b border-hairline-subtle"
       aria-labelledby="comparison-heading"
     >
-      <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="max-w-3xl space-y-space-xs">
-          <div class="flex items-center gap-space-xs">
-            <span
-              class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider"
-            >
-              Manifesto Kedaulatan Ekonomi
-            </span>
-          </div>
-
+        <div class="max-w-3xl space-y-2">
           <h2
             id="comparison-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
           >
-            Mengapa Memilih Protokol Mandiri Tuwaktu?
+            Mengapa Memilih Tuwaktu?
           </h2>
 
           <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-            Perbandingan jujur antara infrastruktur mandiri tanpa perantara dengan aplikasi on-demand konvensional yang memotong hasil kerja praktisi.
+            Perbandingan langsung antara pesan jasa lewat Tuwaktu dengan aplikasi penyedia jasa yang memotong penghasilan pekerja.
           </p>
         </div>
 
         <!-- Bento Comparison Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Card Tuwaktu Mandiri (Hero Spotlight) -->
           <div
-            class="p-space-xl rounded-2xl bg-hero-canvas text-ink-on-dark space-y-space-lg border border-white/10 shadow-xl relative overflow-hidden"
+            class="p-6 sm:p-8 rounded-2xl bg-hero-canvas text-ink-on-dark space-y-6 border border-white/10 relative overflow-hidden"
           >
             <div
-              class="flex items-center justify-between pb-space-md border-b border-white/10"
+              class="flex items-center justify-between pb-4 border-b border-white/10"
             >
               <div class="flex items-center gap-2">
                 <span class="font-heading-h3 text-heading-h3 font-bold text-white uppercase tracking-tight">
-                  Tuwaktu Mandiri
-                </span>
-                <span
-                  class="px-2 py-0.5 rounded bg-success/20 text-success text-[10px] font-mono-rate font-bold uppercase"
-                >
-                  Protokol Adil
+                  Tuwaktu
                 </span>
               </div>
               <span class="font-mono-rate text-voltage-orange font-bold text-caption">

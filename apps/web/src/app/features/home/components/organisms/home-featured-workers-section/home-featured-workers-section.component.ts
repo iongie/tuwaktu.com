@@ -21,30 +21,22 @@ import { HomeApiService } from '../../../services/home-api.service';
   template: `
     <section
       id="spesialis-unggulan"
-      class="w-full bg-surface-container-low py-space-3xl border-b border-hairline-subtle"
+      class="w-full bg-surface-container-low py-12 sm:py-16 border-b border-hairline-subtle"
       aria-labelledby="featured-workers-heading"
     >
-      <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
-          <div class="max-w-2xl space-y-space-xs">
-            <div class="flex items-center gap-space-xs">
-              <span
-                class="px-2 py-0.5 rounded bg-success-surface text-success font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider"
-              >
-                Pilihan Minggu Ini
-              </span>
-            </div>
-
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div class="max-w-2xl space-y-2">
             <h2
               id="featured-workers-heading"
               class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-on-surface tracking-tight"
             >
-              Teknisi Terverifikasi Siaga Jabodetabek
+              Teknisi Siap Dipanggil di Jabodetabek
             </h2>
 
             <p class="font-body-default text-body-default text-ink-secondary leading-relaxed">
-              Pilih mitra mandiri, periksa slot ketersediaan waktu yang terlindungi buffer transit, dan kirimkan konfirmasi langsung ke nomor WhatsApp mitra.
+              Pilih teknisi sesuai lokasi Anda, cek jadwal yang masih kosong, lalu kirim detail pesanan langsung ke WhatsApp.
             </p>
           </div>
 
@@ -52,14 +44,14 @@ import { HomeApiService } from '../../../services/home-api.service';
             @if (isLoading()) {
               <span class="inline-block w-24 h-4 bg-surface-container-high rounded animate-pulse"></span>
             } @else {
-              TOTAL {{ totalWorkersCount() }} PEKERJA AKTIF
+              {{ totalWorkersCount() }} PEKERJA AKTIF
             }
           </div>
         </div>
 
         <!-- Quick Filter Chips Kategori -->
-        <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-hairline-subtle text-caption">
-          <span class="text-ink-disabled font-mono-rate">Kategori:</span>
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-hairline-subtle text-caption">
+          <span class="text-ink-disabled font-mono-rate mr-1">Kategori:</span>
           @for (cat of categoryFilterOptions; track cat) {
             <button
               type="button"
@@ -69,7 +61,7 @@ import { HomeApiService } from '../../../services/home-api.service';
               [class.font-bold]="activeCategory() === cat"
               [class.bg-surface-container]="activeCategory() !== cat"
               [class.text-on-surface-variant]="activeCategory() !== cat"
-              class="px-3.5 py-1.5 min-h-[36px] inline-flex items-center rounded-full border border-hairline-subtle text-caption transition-colors cursor-pointer"
+              class="px-4 py-2 min-h-11 inline-flex items-center rounded-full border border-hairline-subtle text-caption transition-colors cursor-pointer"
             >
               {{ cat }}
             </button>

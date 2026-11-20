@@ -8,44 +8,34 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, RouterLink],
   template: `
     <footer class="w-full bg-body-canvas border-t border-hairline-subtle" role="contentinfo">
-      <div class="max-w-7xl mx-auto px-margin-desktop py-space-3xl space-y-space-2xl">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-space-2xl">
-          <!-- Kolom 1: Identitas Brand & Pernyataan Misi -->
-          <div class="md:col-span-5 space-y-space-sm">
-            <div class="flex items-center gap-space-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-10">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
+          <!-- Kolom 1: Identitas Brand -->
+          <div class="md:col-span-5 space-y-3">
+            <div class="flex items-center gap-2">
               <span
                 class="font-heading-h3 text-heading-h3 font-bold text-ink-on-light uppercase tracking-tight"
               >
                 TUWAKTU
               </span>
-              <span
-                class="px-space-xs py-0.5 bg-hero-canvas text-ink-on-dark font-micro-uppercase text-micro-uppercase uppercase tracking-wider rounded"
-              >
-                MANDIRI
-              </span>
             </div>
 
             <p class="font-body-default text-body-default text-ink-secondary leading-relaxed max-w-sm">
-              Infrastruktur protokol pemesanan mandiri untuk praktisi, teknisi HVAC, dan spesialis independen di Indonesia. Menghubungkan keahlian langsung ke pemesan tanpa potongan komisi.
+              Platform pemesanan jasa teknisi AC, perbaikan listrik, dan bersih-bersih rumah langsung ke WhatsApp pekerja tanpa potongan komisi.
             </p>
-
-            <div class="flex items-center gap-space-xs text-caption font-mono-rate text-success pt-1">
-              <span class="w-2 h-2 rounded-full bg-success"></span>
-              <span>100% BEBAS POTONGAN PLATFORM</span>
-            </div>
           </div>
 
           <!-- Kolom 2: Direktori Layanan -->
-          <div class="md:col-span-3 space-y-space-sm">
+          <div class="md:col-span-3 space-y-3">
             <h3 class="font-micro-uppercase text-caption font-bold text-on-surface uppercase tracking-wider">
-              Katalog Keahlian
+              Kategori Layanan
             </h3>
-            <ul class="space-y-2 text-caption font-body-default text-ink-secondary">
+            <ul class="space-y-1 text-caption font-body-default text-ink-secondary">
               <li>
                 <a
                   routerLink="/"
                   fragment="katalog-disiplin"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
                   Servis &amp; Pasang AC
                 </a>
@@ -54,42 +44,42 @@ import { RouterLink } from '@angular/router';
                 <a
                   routerLink="/"
                   fragment="katalog-disiplin"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
-                  Sanitasi &amp; Deep Clean
+                  Bersih-Bersih Rumah
                 </a>
               </li>
               <li>
                 <a
                   routerLink="/"
                   fragment="katalog-disiplin"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
-                  Instalasi Listrik Presisi
+                  Instalasi &amp; Perbaikan Listrik
                 </a>
               </li>
               <li>
                 <a
                   routerLink="/"
                   fragment="katalog-disiplin"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
-                  Elektronik &amp; Audio Rumah
+                  Servis Elektronik
                 </a>
               </li>
             </ul>
           </div>
 
-          <!-- Kolom 3: Portal Mitra & Kedaulatan -->
-          <div class="md:col-span-4 space-y-space-sm">
+          <!-- Kolom 3: Untuk Teknisi & Pekerja -->
+          <div class="md:col-span-4 space-y-3">
             <h3 class="font-micro-uppercase text-caption font-bold text-on-surface uppercase tracking-wider">
-              Portal Pekerja Mandiri
+              Untuk Teknisi &amp; Pekerja
             </h3>
-            <ul class="space-y-2 text-caption font-body-default text-ink-secondary">
+            <ul class="space-y-1 text-caption font-body-default text-ink-secondary">
               <li>
                 <a
                   routerLink="/register"
-                  class="hover:text-on-surface transition-colors flex items-center gap-1 font-semibold text-voltage-orange"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center gap-1 font-semibold text-voltage-orange"
                 >
                   <span>Daftar Sebagai Mitra (Gratis 0%)</span>
                   <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -98,7 +88,7 @@ import { RouterLink } from '@angular/router';
               <li>
                 <a
                   routerLink="/login"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
                   Masuk ke Akun Teknisi
                 </a>
@@ -107,15 +97,15 @@ import { RouterLink } from '@angular/router';
                 <a
                   routerLink="/"
                   fragment="manifesto-kedaulatan"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
-                  Manifesto 0% Komisi
+                  Kenapa 0% Komisi
                 </a>
               </li>
               <li>
                 <a
                   routerLink="/bisnis"
-                  class="hover:text-on-surface transition-colors font-semibold text-ink-on-light"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center font-semibold text-ink-on-light"
                 >
                   Paket Klien Bisnis &amp; Properti
                 </a>
@@ -124,7 +114,7 @@ import { RouterLink } from '@angular/router';
                 <a
                   routerLink="/"
                   fragment="kalkulator-hemat"
-                  class="hover:text-on-surface transition-colors"
+                  class="hover:text-on-surface transition-colors py-1.5 inline-flex items-center"
                 >
                   Kalkulator Penghematan
                 </a>
@@ -133,14 +123,12 @@ import { RouterLink } from '@angular/router';
           </div>
         </div>
 
-        <!-- Baris Bawah: Copyright & Telemetri Jaringan -->
+        <!-- Baris Bawah: Copyright -->
         <div
-          class="pt-space-lg border-t border-hairline-subtle flex flex-col sm:flex-row items-center justify-between gap-space-sm font-caption text-caption text-ink-secondary"
+          class="pt-6 border-t border-hairline-subtle flex flex-col sm:flex-row items-center justify-between gap-2 font-caption text-caption text-ink-secondary text-center sm:text-left"
         >
-          <p>© 2025 Tuwaktu. Platform Mandiri Mandat Bebas Komisi.</p>
-          <p class="font-mono-rate text-ink-disabled">
-            STATUS SISTEM: NORMAL • BUFFER DISPATCH SIAGA
-          </p>
+          <p>© 2025 Tuwaktu. Pemesanan jasa teknisi langsung tanpa komisi.</p>
+          <p class="text-ink-disabled">Jabodetabek &amp; Sekitarnya</p>
         </div>
       </div>
     </footer>

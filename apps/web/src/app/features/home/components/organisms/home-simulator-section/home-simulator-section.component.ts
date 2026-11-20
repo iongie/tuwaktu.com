@@ -11,20 +11,12 @@ import { RouterLink } from '@angular/router';
     <!-- Dark Nocturne Section for Financial Calculation -->
     <section
       id="kalkulator-hemat"
-      class="w-full bg-hero-canvas text-ink-on-dark py-space-3xl sm:py-space-4xl border-b border-white/10"
+      class="w-full bg-hero-canvas text-ink-on-dark py-12 sm:py-16 lg:py-20 border-b border-white/10"
       aria-labelledby="simulator-heading"
     >
-      <div class="max-w-7xl mx-auto px-margin-desktop space-y-space-2xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         <!-- Section Header -->
-        <div class="max-w-3xl space-y-space-xs">
-          <div class="flex items-center gap-space-xs">
-            <span
-              class="px-2 py-0.5 rounded bg-white/10 text-voltage-orange font-micro-uppercase text-micro-uppercase uppercase font-bold tracking-wider"
-            >
-              Kalkulator Kedaulatan Finansial
-            </span>
-          </div>
-
+        <div class="max-w-3xl space-y-2">
           <h2
             id="simulator-heading"
             class="font-heading-h2 text-heading-h2 sm:text-[32px] font-bold text-white tracking-tight"
@@ -32,14 +24,14 @@ import { RouterLink } from '@angular/router';
             Hitung Uang yang Anda Hemat Tanpa Komisi
           </h2>
 
-          <p class="font-body-default text-body-default text-white/70 leading-relaxed">
-            Geser estimasi omzet kotor bulanan Anda. Lihat berapa juta rupiah yang terselamatkan dari potongan 20%-30% aplikasi konvensional.
+          <p class="font-body-default text-body-default text-white/75 leading-relaxed">
+            Geser perkiraan pendapatan bulanan Anda. Lihat berapa rupiah yang terselamatkan dibandingkan potongan 25% di aplikasi lain.
           </p>
         </div>
 
         <!-- Interactive Simulator Card Container -->
         <div
-          class="p-space-xl sm:p-space-2xl bg-surface-elevated-dark/90 rounded-2xl border border-white/15 shadow-2xl max-w-5xl"
+          class="p-6 sm:p-8 bg-surface-elevated-dark rounded-2xl border border-white/15 max-w-5xl"
         >
           <div class="space-y-space-2xl">
             <!-- Slider Control -->

@@ -146,7 +146,7 @@ func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicW
 
 	profiles := make([]domain.PublicWorkerProfile, 0, len(workers))
 	for _, w := range workers {
-		if !w.IsActive {
+		if !w.IsActive || s.isWorkerOnHolidayToday(ctx, w.ID) {
 			continue
 		}
 		services, err := s.repo.GetServicesByWorkerID(ctx, w.ID)
@@ -163,7 +163,7 @@ func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicW
 
 		pub := w.ToPublic(publicServices)
 		pub.AvatarURL = s.formatAvatarURL(pub.AvatarURL)
-		pub.IsOnHolidayToday = s.isWorkerOnHolidayToday(ctx, w.ID)
+		pub.IsOnHolidayToday = false
 		profiles = append(profiles, pub)
 	}
 

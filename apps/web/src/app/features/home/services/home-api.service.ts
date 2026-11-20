@@ -74,7 +74,9 @@ export class HomeApiService {
           if (!response || !response.success || !Array.isArray(response.data)) {
             return [];
           }
-          return response.data.map((profile) => this.mapProfileToFeaturedWorker(profile));
+          return response.data
+            .filter((profile) => !profile.is_on_holiday_today)
+            .map((profile) => this.mapProfileToFeaturedWorker(profile));
         }),
         catchError(() => of([]))
       );

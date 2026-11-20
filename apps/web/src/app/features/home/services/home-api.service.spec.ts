@@ -96,6 +96,93 @@ describe('HomeApiService', () => {
     req.error(new ProgressEvent('Network error'));
   });
 
+  it('harus menyaring pekerja yang belum mengisi layanan aktif atau sedang libur hari ini', (done) => {
+    const mockApiResponse: PublicWorkersApiResponse = {
+      success: true,
+      message: 'Daftar pekerja publik berhasil diambil',
+      data: [
+        {
+          id: 'worker-no-services',
+          slug: 'tanpa-layanan',
+          name: 'Mitra Tanpa Layanan',
+          bio: 'Belum isi layanan',
+          avatar_url: '',
+          rating: 0,
+          review_count: 0,
+          zone: 'Jakarta Timur',
+          base_price: 0,
+          rate_type: 'HOURLY',
+          max_radius_km: 10,
+          free_radius_km: 3,
+          extra_fee_per_km: 5000,
+          is_on_holiday_today: false,
+          services: [],
+        },
+        {
+          id: 'worker-holiday',
+          slug: 'sedang-libur',
+          name: 'Mitra Sedang Libur',
+          bio: 'Teknisi AC',
+          avatar_url: '',
+          rating: 5,
+          review_count: 10,
+          zone: 'Jakarta Barat',
+          base_price: 80000,
+          rate_type: 'UNIT',
+          max_radius_km: 10,
+          free_radius_km: 3,
+          extra_fee_per_km: 5000,
+          is_on_holiday_today: true,
+          services: [
+            {
+              id: 'srv-2',
+              name: 'Cuci AC',
+              description: 'Cuci AC',
+              price: 80000,
+              rate_type: 'UNIT',
+              duration_minutes: 45,
+            },
+          ],
+        },
+        {
+          id: 'worker-ready',
+          slug: 'siap-kerja',
+          name: 'Mitra Siap Kerja',
+          bio: 'Teknisi Listrik',
+          avatar_url: '',
+          rating: 4.9,
+          review_count: 12,
+          zone: 'Jakarta Selatan',
+          base_price: 90000,
+          rate_type: 'HOURLY',
+          max_radius_km: 10,
+          free_radius_km: 3,
+          extra_fee_per_km: 5000,
+          is_on_holiday_today: false,
+          services: [
+            {
+              id: 'srv-3',
+              name: 'Perbaikan MCB',
+              description: 'Cek panel listrik',
+              price: 90000,
+              rate_type: 'HOURLY',
+              duration_minutes: 60,
+            },
+          ],
+        },
+      ],
+    };
+
+    service.fetchPublicWorkers().subscribe((workers) => {
+      expect(workers.length).toBe(1);
+      expect(workers[0].id).toBe('worker-ready');
+      done();
+    });
+
+    const req = httpMock.expectOne('http://localhost:3000/api/v1/public/workers');
+    req.flush(mockApiResponse);
+  });
+
   it('harus memanggil GET /api/v1/public/categories dan memetakan DisciplineCategory', (done) => {
     service.fetchPublicCategories().subscribe((categories) => {
       expect(categories.length).toBe(1);

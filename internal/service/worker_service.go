@@ -160,6 +160,9 @@ func (s *workerService) ListPublicWorkers(ctx context.Context) ([]domain.PublicW
 				publicServices = append(publicServices, srv.ToPublic())
 			}
 		}
+		if len(publicServices) == 0 {
+			continue
+		}
 
 		pub := w.ToPublic(publicServices)
 		pub.AvatarURL = s.formatAvatarURL(pub.AvatarURL)

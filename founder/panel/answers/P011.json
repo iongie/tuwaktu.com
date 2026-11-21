@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Saya bayar atau kepotong di Sejasa dan Pinhome karena butuh aliran order baru, bukan karena butuh halaman link jadwal. Kalau cuma buat nerima booking dari pelanggan yang sudah punya nomor saya, WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan.",
+  "objection": "Kenapa saya harus keluar Rp 49.000 sampai Rp 99.000 tiap bulan cuma buat bikin link profil, kalau ujung-ujungnya saya tetap harus cari pelanggan sendiri lewat aplikasi lain atau sebar link manual?",
+  "would_change_my_mind": "Kalau Tuwaktu juga ikut mendatangkan orderan pelanggan baru di Jabodetabek seperti direktori atau marketplace tanpa potongan komisi, bukan cuma jadi halaman formulir pasif.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 49000,
+  "price_too_expensive": 99000
+}

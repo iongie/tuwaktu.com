@@ -1,0 +1,13 @@
+{
+  "id": "P005",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Saya memang kesal dengan potongan komisi di Sejasa atau Pinhome, tapi setidaknya di sana saya cuma bayar kalau dapat order baru. Kalau harus bayar langganan bulanan tetap untuk halaman profil saja sementara order belum tentu ramai, itu terasa berat di ongkos.",
+  "objection": "Halaman ini tidak membawa pelanggan baru untuk saya, dan lebih baik saya bayar komisi per proyek berhasil daripada bayar iuran tetap tiap bulan saat order lagi sepi.",
+  "would_change_my_mind": "Kalau biayanya cuma dipotong saat ada order yang berhasil masuk atau platformnya juga ikut mendatangkan pelanggan baru di sekitar area saya.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 50000,
+  "price_too_expensive": 75000
+}

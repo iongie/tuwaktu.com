@@ -1,0 +1,13 @@
+{
+  "id": "P013",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Saya masih servis AC sampingan dan pelanggan tetap selama ini cukup lewat WhatsApp Business yang gratis. Bayar iuran tetap Rp 49.000 sampai Rp 99.000 tiap bulan terasa berat kalau pas orderan lagi sepi.",
+  "objection": "Lebih baik bayar potongan saat proyek benar-benar berhasil daripada keluar biaya langganan bulanan tetap waktu orderan belum tentu ramai.",
+  "would_change_my_mind": "Kalau tanpa biaya bulanan dan bayarnya cuma komisi per orderan baru yang benar-benar masuk dan berhasil dikerjakan.",
+  "price_too_cheap": 5000,
+  "price_cheap": 15000,
+  "price_expensive": 35000,
+  "price_too_expensive": 50000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P006",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Saya sebenarnya butuh link profil dan daftar harga yang rapi buat meyakinkan penghuni apartemen atau perumahan, tapi mayoritas order harian saya masih masuk langsung lewat WA pribadi. Kalau jadwal di web tidak otomatis sinkron sama order WA, saya malah repot harus bolak-balik tutup jam kerja di tengah kerjaan dan berisiko jadwal bentrok.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron dan bikin bentrok dengan pelanggan baru, padahal setelah uji coba ada biaya langganan Rp 49.000 sampai Rp 99.000 per bulan.",
+  "would_change_my_mind": "Kalau ada cara cepat buat langsung kunci atau blokir jam di web dari WA atau sinkron otomatis dengan kalender HP setiap kali saya terima order manual.",
+  "price_too_cheap": 10000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 100000
+}

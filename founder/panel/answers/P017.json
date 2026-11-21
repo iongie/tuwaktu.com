@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Fitur jeda perjalanan dan hitung jaraknya sebenarnya membantu sekali supaya saya tidak telat antar-rumah, tapi saya keberatan harus bayar iuran tetap Rp 49.000 sampai Rp 99.000 tiap bulan padahal orderan belum tentu ramai.",
+  "objection": "Kalau lagi sepi panggilan bersih-bersih, keluar uang langganan bulanan tetap itu terasa berat; saya lebih tenang bayar komisi per proyek yang benar-benar berhasil saja.",
+  "would_change_my_mind": "Kalau biayanya hanya dipungut per pesanan yang benar-benar deal atau ada garansi gratis di bulan yang sepi order.",
+  "price_too_cheap": 5000,
+  "price_cheap": 20000,
+  "price_expensive": 49000,
+  "price_too_expensive": 80000
+}

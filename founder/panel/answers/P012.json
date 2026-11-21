@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Sebagai teknisi sampingan yang masih pemula, saya belum butuh halaman booking berbayar Rp 49.000 sampai Rp 99.000 per bulan karena layanan ini tidak otomatis mendatangkan pelanggan baru. Lagipula kalau dapat order langsung lewat WA pribadi, jadwal di web bakal repot dan tidak sinkron.",
+  "objection": "Kalau saya terima order dari WA pribadi atau ada kerjaan utama mendadak, jadwal di web tidak otomatis terblokir sehingga bisa bentrok, sementara biaya bulanannya jalan terus meski orderan lagi sepi.",
+  "would_change_my_mind": "Kalau sistemnya bisa langsung bantu mendatangkan order baru atau bayarnya hanya per transaksi yang berhasil saja tanpa biaya langganan bulanan tetap.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 50000,
+  "price_too_expensive": 75000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Saya memang ingin kelihatan lebih profesional di mata penghuni perumahan dan apartemen, tapi bayar Rp 49.000 sampai Rp 99.000 per bulan terasa sayang karena WhatsApp Business dan Google Maps sudah gratis Rp 0. Kalau cuma link profil dan kalkulator ongkos tanpa jaminan order tambahan, saya masih bisa atur manual lewat chat WA.",
+  "objection": "WhatsApp Business sudah punya fitur katalog harga dan Google Maps bisa dipakai gratis untuk membangun kepercayaan pelanggan tanpa biaya langganan bulanan.",
+  "would_change_my_mind": "Kalau paket bulanannya di kisaran Rp 25.000 atau kalau Tuwaktu juga ikut membantu mendatangkan pelanggan baru dari perumahan dan apartemen sekitar.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 45000,
+  "price_too_expensive": 75000
+}

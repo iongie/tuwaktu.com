@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Sebagai teknisi AC pemula dan sampingan, saya masih butuh aliran order baru dari Sejasa atau Pinhome, sementara halaman profil ini cuma merapikan bookingan tanpa mendatangkan pelanggan. Saya lebih rela kena potongan saat proyek berhasil daripada harus bayar iuran bulanan tetap ketika order lagi sepi.",
+  "objection": "Takut rugi bayar langganan Rp 49.000 sampai Rp 99.000 tiap bulan sementara link-nya sepi karena pelanggan tetap saya masih sedikit.",
+  "would_change_my_mind": "Kalau biayanya hanya dipotong per pesanan yang benar-benar deal dan bukan iuran bulanan tetap saat order sepi.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 49000,
+  "price_too_expensive": 75000
+}

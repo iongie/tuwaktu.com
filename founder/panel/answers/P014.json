@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Sebagai teknisi AC pemula dan sampingan, yang paling saya butuhkan itu aliran order baru seperti di Sejasa atau Pinhome, bukan cuma halaman link pemesanan karena pelanggan tetap saya belum banyak.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi atau aplikasi lain saat berhenti di pinggir jalan, jadwal di web bakal tidak sinkron dan repot harus atur manual lagi.",
+  "would_change_my_mind": "Kalau halamannya juga bisa membantu mendatangkan pelanggan baru atau jadwal di web bisa otomatis menyesuaikan saat saya terima order dari WA.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 50000,
+  "price_too_expensive": 99000
+}

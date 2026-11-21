@@ -1,0 +1,13 @@
+{
+  "id": "P008",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Pelanggan tetap saya sudah nyaman langsung chat lewat WhatsApp Business yang gratis, jadi saya berat kalau harus bayar iuran tetap bulanan saat order lagi sepi.",
+  "objection": "Lebih masuk akal bayar komisi per proyek yang benar-benar deal daripada keluar biaya rutin Rp 49.000 sampai Rp 99.000 tiap bulan sementara pelanggan lama sudah punya nomor WA saya.",
+  "would_change_my_mind": "Tidak ada iuran bulanan tetap, cukup bayar biaya kecil hanya ketika ada pesanan yang benar-benar masuk dan selesai lewat halaman itu.",
+  "price_too_cheap": 5000,
+  "price_cheap": 20000,
+  "price_expensive": 49000,
+  "price_too_expensive": 75000
+}

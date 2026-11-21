@@ -1,0 +1,222 @@
+[
+ {
+  "id": "P001",
+  "name": "Leila",
+  "age": 47,
+  "segment": "Teknisi AC Mandiri Pemula / Sampingan",
+  "income": 5747000,
+  "behaviour": "Andalkan WhatsApp & Pelanggan Tetap",
+  "behaviour_how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis.",
+  "objection": "Rp 49.000 - Rp 99.000 per bulan terasa mahal jika tidak mendatangkan order baru",
+  "habit": "Di akhir pekan jadwal sering penuh dan rawan bentrok karena jarak antar-rumah berjauhan"
+ },
+ {
+  "id": "P002",
+  "name": "Mira",
+  "age": 39,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 11657000,
+  "behaviour": "Sering Kewalahan Atur Jadwal",
+  "behaviour_how": "Sering lupa mencatat jadwal atau keteteran mengatur jarak antar-lokasi sehingga telat datang.",
+  "objection": "Rp 49.000 - Rp 99.000 per bulan terasa mahal jika tidak mendatangkan order baru",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P003",
+  "name": "Sana",
+  "age": 43,
+  "segment": "Pekerja Kebersihan Rumah Mandiri",
+  "income": 3101000,
+  "behaviour": "Andalkan WhatsApp & Pelanggan Tetap",
+  "behaviour_how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron",
+  "habit": "Di akhir pekan jadwal sering penuh dan rawan bentrok karena jarak antar-rumah berjauhan"
+ },
+ {
+  "id": "P004",
+  "name": "Zara",
+  "age": 23,
+  "segment": "Pekerja Kebersihan Rumah Mandiri",
+  "income": 3487000,
+  "behaviour": "Sering Kewalahan Atur Jadwal",
+  "behaviour_how": "Sering lupa mencatat jadwal atau keteteran mengatur jarak antar-lokasi sehingga telat datang.",
+  "objection": "Terlalu banyak pengaturan awal seperti jadwal, radius, tarif, dan verifikasi admin",
+  "habit": "Anda biasa menghitung ongkos jalan ke lokasi klien secara kira-kira lewat Google Maps"
+ },
+ {
+  "id": "P005",
+  "name": "Beatriz",
+  "age": 41,
+  "segment": "Pekerja Kebersihan Rumah Mandiri",
+  "income": 3080000,
+  "behaviour": "Pemain Aplikasi On-Demand (Sejasa/Pinhome)",
+  "behaviour_how": "Mengambil order lewat Sejasa atau Pinhome, kesal dengan potongan komisi/poin tetapi tetap butuh aliran order baru.",
+  "objection": "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi",
+  "habit": "Di akhir pekan jadwal sering penuh dan rawan bentrok karena jarak antar-rumah berjauhan"
+ },
+ {
+  "id": "P006",
+  "name": "Isla",
+  "age": 44,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 10379000,
+  "behaviour": "Ingin Terlihat Lebih Profesional",
+  "behaviour_how": "Ingin punya link profil dan daftar harga rapi agar lebih dipercaya penghuni perumahan atau apartemen.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron",
+  "habit": "Anda menerima pembayaran langsung lewat tunai, transfer bank, atau QRIS pribadi"
+ },
+ {
+  "id": "P007",
+  "name": "Nico",
+  "age": 24,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 11080000,
+  "behaviour": "Andalkan WhatsApp & Pelanggan Tetap",
+  "behaviour_how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis.",
+  "objection": "WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan",
+  "habit": "Anda biasa menghitung ongkos jalan ke lokasi klien secara kira-kira lewat Google Maps"
+ },
+ {
+  "id": "P008",
+  "name": "Malik",
+  "age": 24,
+  "segment": "Pekerja Kebersihan Rumah Mandiri",
+  "income": 4571000,
+  "behaviour": "Andalkan WhatsApp & Pelanggan Tetap",
+  "behaviour_how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis.",
+  "objection": "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P009",
+  "name": "Jasper",
+  "age": 24,
+  "segment": "Pekerja Kebersihan Rumah Mandiri",
+  "income": 5242000,
+  "behaviour": "Skeptis & Hemat Biaya",
+  "behaviour_how": "Menghindari biaya langganan bulanan kecuali terbukti langsung menghasilkan uang tambahan.",
+  "objection": "Terlalu banyak pengaturan awal seperti jadwal, radius, tarif, dan verifikasi admin",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P010",
+  "name": "Sara",
+  "age": 42,
+  "segment": "Teknisi AC Mandiri Pemula / Sampingan",
+  "income": 4497000,
+  "behaviour": "Sering Kewalahan Atur Jadwal",
+  "behaviour_how": "Sering lupa mencatat jadwal atau keteteran mengatur jarak antar-lokasi sehingga telat datang.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P011",
+  "name": "Arjun",
+  "age": 26,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 11317000,
+  "behaviour": "Pemain Aplikasi On-Demand (Sejasa/Pinhome)",
+  "behaviour_how": "Mengambil order lewat Sejasa atau Pinhome, kesal dengan potongan komisi/poin tetapi tetap butuh aliran order baru.",
+  "objection": "WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan",
+  "habit": "Anda menerima pembayaran langsung lewat tunai, transfer bank, atau QRIS pribadi"
+ },
+ {
+  "id": "P012",
+  "name": "Owen",
+  "age": 33,
+  "segment": "Teknisi AC Mandiri Pemula / Sampingan",
+  "income": 5519000,
+  "behaviour": "Skeptis & Hemat Biaya",
+  "behaviour_how": "Menghindari biaya langganan bulanan kecuali terbukti langsung menghasilkan uang tambahan.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron",
+  "habit": "Anda menerima pembayaran langsung lewat tunai, transfer bank, atau QRIS pribadi"
+ },
+ {
+  "id": "P013",
+  "name": "Tomas",
+  "age": 35,
+  "segment": "Teknisi AC Mandiri Pemula / Sampingan",
+  "income": 4999000,
+  "behaviour": "Andalkan WhatsApp & Pelanggan Tetap",
+  "behaviour_how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis.",
+  "objection": "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P014",
+  "name": "Esme",
+  "age": 36,
+  "segment": "Teknisi AC Mandiri Pemula / Sampingan",
+  "income": 3628000,
+  "behaviour": "Pemain Aplikasi On-Demand (Sejasa/Pinhome)",
+  "behaviour_how": "Mengambil order lewat Sejasa atau Pinhome, kesal dengan potongan komisi/poin tetapi tetap butuh aliran order baru.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P015",
+  "name": "Yusuf",
+  "age": 40,
+  "segment": "Teknisi AC Mandiri Pemula / Sampingan",
+  "income": 4881000,
+  "behaviour": "Pemain Aplikasi On-Demand (Sejasa/Pinhome)",
+  "behaviour_how": "Mengambil order lewat Sejasa atau Pinhome, kesal dengan potongan komisi/poin tetapi tetap butuh aliran order baru.",
+  "objection": "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi",
+  "habit": "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis"
+ },
+ {
+  "id": "P016",
+  "name": "Ravi",
+  "age": 27,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 11639000,
+  "behaviour": "Pemain Aplikasi On-Demand (Sejasa/Pinhome)",
+  "behaviour_how": "Mengambil order lewat Sejasa atau Pinhome, kesal dengan potongan komisi/poin tetapi tetap butuh aliran order baru.",
+  "objection": "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi",
+  "habit": "Di akhir pekan jadwal sering penuh dan rawan bentrok karena jarak antar-rumah berjauhan"
+ },
+ {
+  "id": "P017",
+  "name": "Sienna",
+  "age": 42,
+  "segment": "Pekerja Kebersihan Rumah Mandiri",
+  "income": 5252000,
+  "behaviour": "Sering Kewalahan Atur Jadwal",
+  "behaviour_how": "Sering lupa mencatat jadwal atau keteteran mengatur jarak antar-lokasi sehingga telat datang.",
+  "objection": "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi",
+  "habit": "Anda menerima pembayaran langsung lewat tunai, transfer bank, atau QRIS pribadi"
+ },
+ {
+  "id": "P018",
+  "name": "Andre",
+  "age": 34,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 10227000,
+  "behaviour": "Skeptis & Hemat Biaya",
+  "behaviour_how": "Menghindari biaya langganan bulanan kecuali terbukti langsung menghasilkan uang tambahan.",
+  "objection": "WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan",
+  "habit": "Anda biasa menghitung ongkos jalan ke lokasi klien secara kira-kira lewat Google Maps"
+ },
+ {
+  "id": "P019",
+  "name": "Gabriel",
+  "age": 36,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 8723000,
+  "behaviour": "Andalkan WhatsApp & Pelanggan Tetap",
+  "behaviour_how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis.",
+  "objection": "Pelanggan lama saya terbiasa langsung chat WA, tidak mau repot isi formulir web",
+  "habit": "Anda biasa menghitung ongkos jalan ke lokasi klien secara kira-kira lewat Google Maps"
+ },
+ {
+  "id": "P020",
+  "name": "Finn",
+  "age": 28,
+  "segment": "Teknisi AC Mandiri Aktif / Reguler",
+  "income": 11076000,
+  "behaviour": "Ingin Terlihat Lebih Profesional",
+  "behaviour_how": "Ingin punya link profil dan daftar harga rapi agar lebih dipercaya penghuni perumahan atau apartemen.",
+  "objection": "WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan",
+  "habit": "Anda menerima pembayaran langsung lewat tunai, transfer bank, atau QRIS pribadi"
+ }
+]

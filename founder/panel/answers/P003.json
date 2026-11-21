@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Pelanggan tetap saya sudah terbiasa langsung chat lewat WhatsApp pribadi, jadi saya tidak perlu halaman web baru yang malah bikin kerjaan dobel buat ngatur jadwal. Apalagi WhatsApp Business sudah gratis dan cukup buat komunikasi sehari-hari.",
+  "objection": "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron dan justru berisiko bikin bentrok di akhir pekan kecuali saya rajin update manual terus.",
+  "would_change_my_mind": "Kalau jadwal di web bisa otomatis ke-update atau diblokir cukup lewat balasan singkat di WhatsApp tanpa harus buka-buka aplikasi atau website lagi.",
+  "price_too_cheap": 5000,
+  "price_cheap": 25000,
+  "price_expensive": 50000,
+  "price_too_expensive": 85000
+}

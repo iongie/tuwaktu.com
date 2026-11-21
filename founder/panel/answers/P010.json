@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Saya masih sering dapat orderan langsung lewat WA pribadi dan membalasnya sambil berhenti di pinggir jalan, jadi takut jadwal di web malah tidak sinkron kalau saya lupa menutup jam kosong. Untuk kerjaan sampingan, langganan Rp 49.000 sampai Rp 99.000 per bulan juga terasa berat kalau belum pasti nambah orderan.",
+  "objection": "Kalau ada pelanggan tetap yang langsung chat ke WA pribadi di luar link Tuwaktu, jadwal di web bakal tidak sinkron dan malah bikin bentrok kalau saya lupa update di sela-sela jalan.",
+  "would_change_my_mind": "Ada cara super cepat dari HP untuk langsung blokir jam kosong dalam satu ketukan saat dapat orderan WA pribadi, dan biaya langganan di bawah Rp 30.000 per bulan atau bayar hanya di bulan yang ada ordernya.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 50000,
+  "price_too_expensive": 99000
+}

@@ -1,0 +1,62 @@
+# Buyer panel: Tuwaktu.com (halaman profil publik, kalkulator ongkos jarak, pengatur jadwal anti-bentrok, dan penerusan pesanan langsung ke WhatsApp dengan 0% komisi)
+
+**0 buy · 20 pass** (0% buy) out of 20 simulated buyers. Seed 361312, so the same cards can be dealt again.
+
+These are simulated buyers, not customers. Use this to find objections and weak spots, then confirm the big ones with real people before you spend.
+
+## By segment
+
+| group | buyers | buy rate |
+| --- | ---: | ---: |
+| Teknisi AC Mandiri Pemula / Sampingan | 6 | 0%  (thin) |
+| Teknisi AC Mandiri Aktif / Reguler | 8 | 0% |
+| Pekerja Kebersihan Rumah Mandiri | 6 | 0%  (thin) |
+
+## By buying behaviour
+
+| group | buyers | buy rate |
+| --- | ---: | ---: |
+| Andalkan WhatsApp & Pelanggan Tetap | 6 | 0%  (thin) |
+| Sering Kewalahan Atur Jadwal | 4 | 0%  (thin) |
+| Pemain Aplikasi On-Demand (Sejasa/Pinhome) | 5 | 0%  (thin) |
+| Ingin Terlihat Lebih Profesional | 2 | 0%  (thin) |
+| Skeptis & Hemat Biaya | 3 | 0%  (thin) |
+
+## By income
+
+| group | buyers | buy rate |
+| --- | ---: | ---: |
+| $4,881,000 to $10,227,000 | 7 | 0%  (thin) |
+| $10,227,000 and up | 7 | 0%  (thin) |
+| under $4,881,000 | 6 | 0%  (thin) |
+
+## Why they pass
+
+| reason | buyers | in their words |
+| --- | ---: | --- |
+| price | 13 | "Saya baru mulai jadi teknisi AC sampingan dan sudah cukup mengandalkan WhatsApp Business gratis untuk pelanggan tetap saya. Kalau nanti harus bayar Rp 49.000 sampai Rp 99.000 per bulan cuma buat halaman jadwal tanpa ada jaminan order baru masuk, rasanya berat di kantong." (P001) · "Biaya Rp 49.000 sampai Rp 99.000 per bulan terasa berat buat pengeluaran rutin kalau aplikasinya tidak sekalian mendatangkan pelanggan baru. Lagipula pelanggan AC saya sudah terbiasa langsung chat di WhatsApp, belum tentu mereka mau repot buka link buat pesan." (P002) |
+| habit | 3 | "Pelanggan tetap saya sudah terbiasa langsung chat lewat WhatsApp pribadi, jadi saya tidak perlu halaman web baru yang malah bikin kerjaan dobel buat ngatur jadwal. Apalagi WhatsApp Business sudah gratis dan cukup buat komunikasi sehari-hari." (P003) · "Saya masih sering dapat orderan langsung lewat WA pribadi dan membalasnya sambil berhenti di pinggir jalan, jadi takut jadwal di web malah tidak sinkron kalau saya lupa menutup jam kosong. Untuk kerjaan sampingan, langganan Rp 49.000 sampai Rp 99.000 per bulan juga terasa berat kalau belum pasti nambah orderan." (P010) |
+| convenience | 2 | "Saya memang sering keteteran atur jadwal dan hitung ongkos jalan, tapi membayangkan harus mengatur jadwal, radius, tarif, sampai verifikasi admin dari awal rasanya terlalu ribet di sela waktu kerja." (P004) · "Saya sebenarnya butuh link profil dan daftar harga yang rapi buat meyakinkan penghuni apartemen atau perumahan, tapi mayoritas order harian saya masih masuk langsung lewat WA pribadi. Kalau jadwal di web tidak otomatis sinkron sama order WA, saya malah repot harus bolak-balik tutup jam kerja di tengah kerjaan dan berisiko jadwal bentrok." (P006) |
+| need | 2 | "Saya bayar atau kepotong di Sejasa dan Pinhome karena butuh aliran order baru, bukan karena butuh halaman link jadwal. Kalau cuma buat nerima booking dari pelanggan yang sudah punya nomor saya, WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan." (P011) · "Sebagai teknisi AC pemula dan sampingan, yang paling saya butuhkan itu aliran order baru seperti di Sejasa atau Pinhome, bukan cuma halaman link pemesanan karena pelanggan tetap saya belum banyak." (P014) |
+
+## Why they buy
+
+| reason | buyers | in their words |
+| --- | ---: | --- |
+
+## What would flip a no
+
+- Kalau biayanya lebih terjangkau untuk pemula atau ada sistem yang ikut mendatangkan order baru di sekitar area saya, bukan sekadar link profil saja.
+- Kalau platformnya juga bantu mencarikan atau menyalurkan order servis baru di sekitar area kerja saya, bukan cuma buat catat jadwal sendiri.
+- Kalau jadwal di web bisa otomatis ke-update atau diblokir cukup lewat balasan singkat di WhatsApp tanpa harus buka-buka aplikasi atau website lagi.
+- Kalau halaman dan tarif saya bisa langsung disiapkan oleh tim tanpa harus mengatur jadwal, radius, dan verifikasi yang panjang dari nol.
+- Kalau biayanya cuma dipotong saat ada order yang berhasil masuk atau platformnya juga ikut mendatangkan pelanggan baru di sekitar area saya.
+- Kalau ada cara cepat buat langsung kunci atau blokir jam di web dari WA atau sinkron otomatis dengan kalender HP setiap kali saya terima order manual.
+- Kalau Tuwaktu benar-benar mendatangkan orderan pelanggan baru secara rutin setiap bulan, bukan cuma kasih link halaman profil untuk dibagikan sendiri.
+- Tidak ada iuran bulanan tetap, cukup bayar biaya kecil hanya ketika ada pesanan yang benar-benar masuk dan selesai lewat halaman itu.
+- Gratis tanpa biaya langganan bulanan atau hanya bayar kalau platform benar-benar mendatangkan orderan baru yang belum pernah menghubungi saya sebelumnya.
+- Ada cara super cepat dari HP untuk langsung blokir jam kosong dalam satu ketukan saat dapat orderan WA pribadi, dan biaya langganan di bawah Rp 30.000 per bulan atau bayar hanya di bulan yang ada ordernya.
+- Kalau Tuwaktu juga ikut mendatangkan orderan pelanggan baru di Jabodetabek seperti direktori atau marketplace tanpa potongan komisi, bukan cuma jadi halaman formulir pasif.
+- Kalau sistemnya bisa langsung bantu mendatangkan order baru atau bayarnya hanya per transaksi yang berhasil saja tanpa biaya langganan bulanan tetap.
+
+20 buyers gave all four price answers. Run founder-pricing's van_westendorp.py on the answers folder.

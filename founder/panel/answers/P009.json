@@ -1,0 +1,13 @@
+{
+  "id": "P009",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Saya menghindari biaya langganan Rp 49.000 sampai Rp 99.000 per bulan kalau aplikasinya tidak menjamin tambahan pelanggan baru. Selama ini pelanggan sudah langsung chat ke WhatsApp saya, jadi bayar bulanan hanya untuk link pemesanan terasa boros.",
+  "objection": "Terlalu banyak pengaturan awal seperti jadwal, radius, tarif, dan verifikasi admin yang makan waktu saat saya harus kerja di lapangan, lalu ujungnya tetap kena biaya bulanan meski belum tentu menambah penghasilan.",
+  "would_change_my_mind": "Gratis tanpa biaya langganan bulanan atau hanya bayar kalau platform benar-benar mendatangkan orderan baru yang belum pernah menghubungi saya sebelumnya.",
+  "price_too_cheap": 10000,
+  "price_cheap": 20000,
+  "price_expensive": 35000,
+  "price_too_expensive": 49000
+}

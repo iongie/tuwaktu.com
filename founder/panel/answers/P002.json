@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "Biaya Rp 49.000 sampai Rp 99.000 per bulan terasa berat buat pengeluaran rutin kalau aplikasinya tidak sekalian mendatangkan pelanggan baru. Lagipula pelanggan AC saya sudah terbiasa langsung chat di WhatsApp, belum tentu mereka mau repot buka link buat pesan.",
+  "objection": "Takutnya sudah bayar langganan tiap bulan, pelanggan tetap malas isi formulir di web dan ujung-ujungnya saya tetap harus balas chat di pinggir jalan juga.",
+  "would_change_my_mind": "Kalau platformnya juga bantu mencarikan atau menyalurkan order servis baru di sekitar area kerja saya, bukan cuma buat catat jadwal sendiri.",
+  "price_too_cheap": 5000,
+  "price_cheap": 20000,
+  "price_expensive": 50000,
+  "price_too_expensive": 99000
+}

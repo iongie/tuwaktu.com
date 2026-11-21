@@ -1,0 +1,33 @@
+{
+  "business": "Tuwaktu.com (halaman profil publik, kalkulator ongkos jarak, pengatur jadwal anti-bentrok, dan penerusan pesanan langsung ke WhatsApp dengan 0% komisi)",
+  "target": "Teknisi servis AC dan pekerja kebersihan rumah mandiri di Jabodetabek (usia 22 sampai 48 tahun) yang menerima pesanan langsung via WhatsApp atau aplikasi on-demand",
+  "where": "Jabodetabek",
+  "age": [22, 48],
+  "segments": [
+    {"name": "Teknisi AC Mandiri Pemula / Sampingan", "share": 0.30, "income": [3500000, 6000000]},
+    {"name": "Teknisi AC Mandiri Aktif / Reguler", "share": 0.40, "income": [6000000, 12000000]},
+    {"name": "Pekerja Kebersihan Rumah Mandiri", "share": 0.30, "income": [3000000, 6500000]}
+  ],
+  "behaviours": [
+    {"name": "Andalkan WhatsApp & Pelanggan Tetap", "share": 0.30, "how": "Sudah punya pelanggan tetap lewat WA pribadi dan memakai WhatsApp Business gratis."},
+    {"name": "Pemain Aplikasi On-Demand (Sejasa/Pinhome)", "share": 0.25, "how": "Mengambil order lewat Sejasa atau Pinhome, kesal dengan potongan komisi/poin tetapi tetap butuh aliran order baru."},
+    {"name": "Sering Kewalahan Atur Jadwal", "share": 0.20, "how": "Sering lupa mencatat jadwal atau keteteran mengatur jarak antar-lokasi sehingga telat datang."},
+    {"name": "Skeptis & Hemat Biaya", "share": 0.15, "how": "Menghindari biaya langganan bulanan kecuali terbukti langsung menghasilkan uang tambahan."},
+    {"name": "Ingin Terlihat Lebih Profesional", "share": 0.10, "how": "Ingin punya link profil dan daftar harga rapi agar lebih dipercaya penghuni perumahan atau apartemen."}
+  ],
+  "objections": [
+    "Rp 49.000 - Rp 99.000 per bulan terasa mahal jika tidak mendatangkan order baru",
+    "Pelanggan lama saya terbiasa langsung chat WA, tidak mau repot isi formulir web",
+    "WhatsApp Business dan Google Maps sudah gratis Rp 0 per bulan",
+    "Terlalu banyak pengaturan awal seperti jadwal, radius, tarif, dan verifikasi admin",
+    "Kalau saya dapat order langsung dari WA pribadi, jadwal di web bakal tidak sinkron",
+    "Lebih baik bayar komisi per proyek berhasil daripada bayar iuran tetap saat order sepi"
+  ],
+  "habits": [
+    "Anda sering membalas chat pelanggan sambil berhenti di pinggir jalan di antara lokasi servis",
+    "Anda biasa menghitung ongkos jalan ke lokasi klien secara kira-kira lewat Google Maps",
+    "Anda menerima pembayaran langsung lewat tunai, transfer bank, atau QRIS pribadi",
+    "Di akhir pekan jadwal sering penuh dan rawan bentrok karena jarak antar-rumah berjauhan"
+  ]
+}
+

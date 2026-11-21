@@ -1,0 +1,13 @@
+{
+  "id": "P004",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Saya memang sering keteteran atur jadwal dan hitung ongkos jalan, tapi membayangkan harus mengatur jadwal, radius, tarif, sampai verifikasi admin dari awal rasanya terlalu ribet di sela waktu kerja.",
+  "objection": "Terlalu banyak pengaturan awal sebelum halaman bisa dipakai, dan saya ragu klien yang biasa pesan lewat chat WhatsApp mau beralih mengisi formulir online.",
+  "would_change_my_mind": "Kalau halaman dan tarif saya bisa langsung disiapkan oleh tim tanpa harus mengatur jadwal, radius, dan verifikasi yang panjang dari nol.",
+  "price_too_cheap": 10000,
+  "price_cheap": 25000,
+  "price_expensive": 50000,
+  "price_too_expensive": 99000
+}
